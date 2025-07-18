@@ -6,6 +6,8 @@ const initialState = {
   activeTheme: 'BLUE_THEME', // BLUE_THEME, GREEN_THEME, PURPLE_THEME, RED_THEME, ORANGE_THEME, TEAL_THEME
   activeDir: 'ltr', // ltr | rtl
   sidebarCollapse: false,
+  isMobileSidebar: false,
+  isSidebarHover: false,
   cardShadow: '0px 7px 30px 0px rgba(90, 114, 123, 0.11)',
   borderRadius: 7,
   customizer: false,
@@ -62,6 +64,18 @@ export const CustomizerSlice = createSlice({
       state.sidebarCollapse = action.payload;
       saveState(state);
     },
+    toggleSidebar: (state) => {
+      state.sidebarCollapse = !state.sidebarCollapse;
+      saveState(state);
+    },
+    toggleMobileSidebar: (state) => {
+      state.isMobileSidebar = !state.isMobileSidebar;
+      saveState(state);
+    },
+    setSidebarHover: (state, action) => {
+      state.isSidebarHover = action.payload;
+      saveState(state);
+    },
     toggleCustomizer: (state) => {
       state.customizer = !state.customizer;
       saveState(state);
@@ -90,6 +104,9 @@ export const {
   setCardShadow,
   setBorderRadius,
   setSidebarCollapse,
+  toggleSidebar,
+  toggleMobileSidebar,
+  setSidebarHover,
   toggleCustomizer,
   setCustomizer,
   resetCustomizer,
