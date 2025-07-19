@@ -14,14 +14,14 @@ const Dashboard = () => {
       <Box>
         <Stack spacing={3}>
           <Typography variant="h2" mb={3}>
-            ¡Bienvenido al Dashboard! 🎉
+            Sistema de Centro Tía Glenda
           </Typography>
 
           {/* Tarjeta de bienvenida */}
           <Card>
             <CardContent>
               <Typography variant="h5" mb={2}>
-                Sistema de Theming Implementado
+                Elegir Temas
               </Typography>
               <Typography variant="body1" color="text.secondary" mb={3}>
                 Tu aplicación ahora cuenta con un sistema completo de personalización de temas. 
@@ -65,7 +65,7 @@ const Dashboard = () => {
             <Card sx={{ minWidth: 200, textAlign: 'center' }}>
               <CardContent>
                 <Typography variant="h4" color="primary.main" mb={1}>
-                  24
+                  9
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Usuarios Activos
@@ -76,10 +76,10 @@ const Dashboard = () => {
             <Card sx={{ minWidth: 200, textAlign: 'center' }}>
               <CardContent>
                 <Typography variant="h4" color="secondary.main" mb={1}>
-                  156
+                  124
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Proyectos
+                  Pacientes
                 </Typography>
               </CardContent>
             </Card>

@@ -33,31 +33,63 @@ const Menuitems = [
     href: '/dashboard',
   },
   
+  
   {
     navlabel: true,
-    subheader: 'Gestión de Personas',
+    subheader: 'Módulo Personas',
+  },
+  {
+    id: uniqueId(),
+    title: 'Personas',
+    icon: People,
+    href: '/apps/contacts',
+    children: [
+      {
+        id: uniqueId(),
+        title: 'Gestión de Personas',
+        icon: FiberManualRecord,
+        href: '/apps/user-profile/followers',
+      },
+    ],
+    
   },
   {
     id: uniqueId(),
     title: 'Pacientes/Alumnos',
-    icon: People,
-    href: '/apps/contacts',
-  },
-  {
-    id: uniqueId(),
-    title: 'Personal',
     icon: Business,
     href: '/apps/user-profile/followers',
     children: [
       {
         id: uniqueId(),
-        title: 'Lista de Personal',
+        title: 'Gestión de Pacientes',
         icon: FiberManualRecord,
         href: '/apps/user-profile/followers',
       },
       {
         id: uniqueId(),
-        title: 'Equipos de Trabajo',
+        title: 'Gestión de Alumnos',
+        icon: FiberManualRecord,
+        href: '/apps/user-profile/friends',
+      },
+    ],
+  },
+
+  
+  {
+    id: uniqueId(),
+    title: 'Terapeutas/Docentes',
+    icon: Business,
+    href: '/apps/user-profile/followers',
+    children: [
+      {
+        id: uniqueId(),
+        title: 'Gestión de Terapeutas',
+        icon: FiberManualRecord,
+        href: '/apps/user-profile/followers',
+      },
+      {
+        id: uniqueId(),
+        title: 'Gestión de Docentes',
         icon: FiberManualRecord,
         href: '/apps/user-profile/friends',
       },
