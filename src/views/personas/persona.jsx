@@ -16,7 +16,7 @@ import {
   IconButton,
   Dialog,
   DialogTitle,
-  DialogContent
+  DialogContent,
 } from '@mui/material';
 import { Edit, Delete, Visibility } from '@mui/icons-material';
 
@@ -28,7 +28,7 @@ const Persona = () => {
     telefono: '',
     correo: '',
     direccion: '',
-    fechaNacimiento: ''
+    fechaNacimiento: '',
   });
 
   const [personas, setPersonas] = useState([
@@ -39,7 +39,7 @@ const Persona = () => {
       telefono: '0991234567',
       correo: 'juan@example.com',
       direccion: 'Av. Siempre Viva 123',
-      fechaNacimiento: '1990-01-01'
+      fechaNacimiento: '1990-01-01',
     },
     {
       nombre: 'Ana',
@@ -48,35 +48,8 @@ const Persona = () => {
       telefono: '0987654321',
       correo: 'ana@example.com',
       direccion: 'Calle Falsa 456',
-      fechaNacimiento: '1988-05-15'
+      fechaNacimiento: '1988-05-15',
     },
-    {
-      nombre: 'Carlos',
-      apellido: 'Ramírez',
-      cedula: '1102938475',
-      telefono: '0976543210',
-      correo: 'carlos@example.com',
-      direccion: 'Av. de los Shyris 789',
-      fechaNacimiento: '1992-11-20'
-    },
-    {
-      nombre: 'Lucía',
-      apellido: 'Fernández',
-      cedula: '0807060504',
-      telefono: '0965432109',
-      correo: 'lucia@example.com',
-      direccion: 'Calle Amazonas 321',
-      fechaNacimiento: '1995-03-08'
-    },
-    {
-      nombre: 'Pedro',
-      apellido: 'Sánchez',
-      cedula: '0504030201',
-      telefono: '0954321098',
-      correo: 'pedro@example.com',
-      direccion: 'Malecón 2000',
-      fechaNacimiento: '1993-09-25'
-    }
   ]);
 
   const [page, setPage] = useState(0);
@@ -97,7 +70,7 @@ const Persona = () => {
       telefono: '',
       correo: '',
       direccion: '',
-      fechaNacimiento: ''
+      fechaNacimiento: '',
     });
   };
 
@@ -120,44 +93,71 @@ const Persona = () => {
   };
 
   return (
-    <Box p={4}>
-      <Container maxWidth="md">
-        <Paper elevation={3} sx={{ p: 6, mb: 6 }}>
-          <Typography variant="h5" gutterBottom>
+    <Box p={2} sx={{ ml: { lg: -8, md: -6, sm: -2 } }}>
+      <Container maxWidth="xl">
+        <Paper
+          elevation={6}
+          sx={{
+            borderRadius: 3,
+            backgroundColor: '#fff',
+            mb: 4,
+            p: 0,
+            overflow: 'hidden',
+            border: '4px solid transparent',
+            backgroundImage:
+              'linear-gradient(white, white), linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet)',
+            backgroundOrigin: 'border-box',
+            backgroundClip: 'padding-box, border-box',
+            animation: 'rainbow 5s linear infinite',
+            '@keyframes rainbow': {
+              '0%': { backgroundPosition: '0% 50%' },
+              '100%': { backgroundPosition: '100% 50%' },
+            },
+            backgroundSize: '300% 100%',
+          }}
+        >
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h5" fontWeight="bold" color="black">
+              Gestión de Personas
+            </Typography>
+          </Box>
+        </Paper>
+
+        <Paper elevation={3} sx={{ p: 4, mb: 6 }}>
+          <Typography variant="h6" gutterBottom>
             Registro de Persona
           </Typography>
           <Box component="form" onSubmit={handleSubmit}>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Nombre" name="nombre" value={formData.nombre} onChange={handleChange} required />
+                <Typography variant="body2" gutterBottom>Nombre :</Typography>
+                <TextField fullWidth variant="outlined" name="nombre" value={formData.nombre} onChange={handleChange} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Apellido" name="apellido" value={formData.apellido} onChange={handleChange} required />
+                <Typography variant="body2" gutterBottom>Apellido :</Typography>
+                <TextField fullWidth variant="outlined" name="apellido" value={formData.apellido} onChange={handleChange} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Cédula" name="cedula" value={formData.cedula} onChange={handleChange} required />
+                <Typography variant="body2" gutterBottom>Cédula :</Typography>
+                <TextField fullWidth variant="outlined" name="cedula" value={formData.cedula} onChange={handleChange} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Teléfono" name="telefono" value={formData.telefono} onChange={handleChange} />
+                <Typography variant="body2" gutterBottom>Teléfono :</Typography>
+                <TextField fullWidth variant="outlined" name="telefono" value={formData.telefono} onChange={handleChange} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Correo" name="correo" value={formData.correo} onChange={handleChange} type="email" />
+                <Typography variant="body2" gutterBottom>Dirección :</Typography>
+                <TextField fullWidth variant="outlined" name="direccion" value={formData.direccion} onChange={handleChange} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth label="Dirección" name="direccion" value={formData.direccion} onChange={handleChange} />
+                <Typography variant="body2" gutterBottom>Correo :</Typography>
+                <TextField fullWidth variant="outlined" name="correo" type="email" value={formData.correo} onChange={handleChange} />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Fecha de Nacimiento"
-                  name="fechaNacimiento"
-                  value={formData.fechaNacimiento}
-                  onChange={handleChange}
-                  type="date"
-                  InputLabelProps={{ shrink: true }}
-                />
+                <Typography variant="body2" gutterBottom>Fecha de Nacimiento</Typography>
+                <TextField fullWidth variant="outlined" name="fechaNacimiento" type="date" InputLabelProps={{ shrink: true }} value={formData.fechaNacimiento} onChange={handleChange} />
               </Grid>
-              <Grid item xs={12} display="flex" justifyContent="flex-end">
+              <Grid item xs={12} sm={6} display="flex" alignItems="flex-end">
                 <Button variant="contained" color="primary" type="submit">
                   Guardar Persona
                 </Button>
@@ -167,35 +167,41 @@ const Persona = () => {
         </Paper>
 
         <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h6" gutterBottom>Listado de Personas</Typography>
+          <Typography variant="h6" gutterBottom>
+            Listado de Personas
+          </Typography>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Nombre</TableCell>
                 <TableCell>Apellido</TableCell>
                 <TableCell>Cédula</TableCell>
+                <TableCell>Dirección</TableCell>
                 <TableCell>Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {personas.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((persona, index) => (
-                <TableRow key={index}>
-                  <TableCell>{persona.nombre}</TableCell>
-                  <TableCell>{persona.apellido}</TableCell>
-                  <TableCell>{persona.cedula}</TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => handleView(persona)}>
-                      <Visibility />
-                    </IconButton>
-                    <IconButton color="error" onClick={() => handleDelete(index + page * rowsPerPage)}>
-                      <Delete />
-                    </IconButton>
-                    <IconButton disabled>
-                      <Edit />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {personas
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((persona, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{persona.nombre}</TableCell>
+                    <TableCell>{persona.apellido}</TableCell>
+                    <TableCell>{persona.cedula}</TableCell>
+                    <TableCell>{persona.direccion}</TableCell>
+                    <TableCell>
+                      <IconButton color="primary" onClick={() => handleView(persona)}>
+                        <Visibility />
+                      </IconButton>
+                      <IconButton color="error" onClick={() => handleDelete(index + page * rowsPerPage)}>
+                        <Delete />
+                      </IconButton>
+                      <IconButton disabled>
+                        <Edit />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
           <TablePagination

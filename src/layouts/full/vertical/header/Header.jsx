@@ -1,25 +1,24 @@
-// src/layouts/full/vertical/header/Header.jsx
-import React from 'react';
-import { 
-  IconButton, 
-  Box, 
-  AppBar, 
-  useMediaQuery, 
-  Toolbar, 
-  styled, 
+import React, { useEffect, useState } from 'react';
+import {
+  IconButton,
+  Box,
+  AppBar,
+  useMediaQuery,
+  Toolbar,
+  styled,
   Stack,
   Typography,
   Avatar,
   Menu,
   MenuItem,
-  Divider,
+  Divider
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
-  setSidebarCollapse, 
-  toggleMobileSidebar 
+import {
+  setSidebarCollapse,
+  toggleMobileSidebar
 } from 'src/store/customizer/CustomizerSlice';
-import MenuIcon from '@mui/icons-material/Menu';
+
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -27,12 +26,29 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 
 const Header = () => {
-  const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
   const customizer = useSelector((state) => state.customizer);
   const dispatch = useDispatch();
-  
+  const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
+
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+
+  const [horaActual, setHoraActual] = useState('');
+
+  useEffect(() => {
+    const actualizarHora = () => {
+      const hora = new Date().toLocaleTimeString('es-EC', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      setHoraActual(hora);
+    };
+
+    actualizarHora();
+    const interval = setInterval(actualizarHora, 60000); // cada minuto
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleProfileClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -48,92 +64,89 @@ const Header = () => {
     justifyContent: 'center',
     backdropFilter: 'blur(4px)',
     borderBottom: `1px solid ${theme.palette.divider}`,
-    minHeight: '70px',
+    minHeight: '70px'
   }));
-  
+
   const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
     width: '100%',
     color: theme.palette.text.secondary,
-    padding: '0 24px',
+    padding: '0 24px'
   }));
 
   return (
     <AppBarStyled position="sticky" color="default">
       <ToolbarStyled>
         {/* ------------------------------------------- */}
-        {/* Toggle Button Sidebar */}
-        {/* ------------------------------------------- */}
-        <IconButton
-          color="inherit"
-          aria-label="menu"
-          onClick={
-            lgUp 
-              ? () => dispatch(setSidebarCollapse(!customizer.sidebarCollapse))
-              : () => dispatch(toggleMobileSidebar())
-          }
-          sx={{
-            mr: 2,
-            '&:hover': {
-              backgroundColor: 'primary.light',
-              color: 'primary.main',
-            },
-          }}
-        >
-          <MenuIcon />
-        </IconButton>
-        
-        {/* ------------------------------------------- */}
-        {/* Search */}
+        {/* Buscar con Label */}
         {/* ------------------------------------------- */}
         <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: 'grey.100',
-            borderRadius: 1,
-            px: 2,
-            py: 1,
-            minWidth: 200,
-            mr: 2,
-            '&:hover': {
-              backgroundColor: 'grey.200',
-            },
-            cursor: 'pointer',
-          }}
-        >
-          <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
-          <Typography variant="body2" color="text.secondary">
-            Buscar...
-          </Typography>
-        </Box>
+  sx={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: 2,
+    flexGrow: 1,
+    maxWidth: 500,
+    mr: 3
+  }}
+>
+  <Typography variant="body1" color="text.primary" sx={{ whiteSpace: 'nowrap' }}>
+    Buscar:
+  </Typography>
+  <Box
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      backgroundColor: 'grey.100',
+      borderRadius: 1,
+      px: 2,
+      py: 1,
+      flexGrow: 1,
+      '&:hover': {
+        backgroundColor: 'grey.200'
+      },
+      cursor: 'pointer'
+    }}
+  >
+    <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
+    <Typography variant="body2" color="text.secondary">
+      Buscar...
+    </Typography>
+  </Box>
+</Box>
+
 
         <Box flexGrow={1} />
-        
-        <Stack spacing={1} direction="row" alignItems="center">
-          {/* ------------------------------------------- */}
-          {/* Notifications */}
-          {/* ------------------------------------------- */}
+
+        <Stack spacing={2} direction="row" alignItems="center">
+          {/* Hora y Ciudad */}
+          <Stack direction="row" spacing={1} alignItems="center">
+  <Typography variant="body2" color="text.secondary">
+    Guayaquil:
+  </Typography>
+  <Typography variant="body1">{horaActual}</Typography>
+</Stack>
+
+
+          {/* Notificaciones */}
           <IconButton
             color="inherit"
             sx={{
               '&:hover': {
                 backgroundColor: 'primary.light',
-                color: 'primary.main',
-              },
+                color: 'primary.main'
+              }
             }}
           >
             <NotificationsIcon />
           </IconButton>
-          
-          {/* ------------------------------------------- */}
-          {/* Profile Dropdown */}
-          {/* ------------------------------------------- */}
+
+          {/* Avatar / Menú */}
           <IconButton
             onClick={handleProfileClick}
             sx={{
               '&:hover': {
-                backgroundColor: 'primary.light',
-              },
+                backgroundColor: 'primary.light'
+              }
             }}
           >
             <Avatar
@@ -141,7 +154,7 @@ const Header = () => {
                 width: 35,
                 height: 35,
                 backgroundColor: 'primary.main',
-                fontSize: '0.875rem',
+                fontSize: '0.875rem'
               }}
             >
               U
@@ -164,7 +177,7 @@ const Header = () => {
                   width: 32,
                   height: 32,
                   ml: -0.5,
-                  mr: 1,
+                  mr: 1
                 },
                 '&:before': {
                   content: '""',
@@ -176,9 +189,9 @@ const Header = () => {
                   height: 10,
                   bgcolor: 'background.paper',
                   transform: 'translateY(-50%) rotate(45deg)',
-                  zIndex: 0,
-                },
-              },
+                  zIndex: 0
+                }
+              }
             }}
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
