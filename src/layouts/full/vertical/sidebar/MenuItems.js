@@ -48,7 +48,7 @@ const Menuitems = [
         id: uniqueId(),
         title: 'Gestión de Personas',
         icon: FiberManualRecord,
-        href: '/apps/user-profile/followers',
+        href: '/gestion/persona',
       },
     ],
     

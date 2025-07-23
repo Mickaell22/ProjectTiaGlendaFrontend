@@ -10,6 +10,8 @@ import BlankLayout from 'src/layouts/blank/BlankLayout';
 import Login from 'src/views/authentication/auth1/Login';
 import Register from 'src/views/authentication/auth1/Register';
 import Dashboard from 'src/views/dashboard/Dashboard';
+import Persona from 'src/views/personas/persona';
+
 
 // Componente para páginas en desarrollo
 import ComingSoon from 'src/components/shared/ComingSoon';
@@ -180,7 +182,8 @@ const Router = [
       { path: '/apps/contacts', element: <PacientesAlumnos /> },
       { path: '/apps/user-profile/followers', element: <PersonalLista /> },
       { path: '/apps/user-profile/friends', element: <PersonalEquipos /> },
-      
+      { path: '/gestion/persona', element: <Persona /> },
+
       // Módulo Terapéutico
       { path: '/terapeutico/evaluaciones', element: <TerapeuticoEvaluaciones /> },
       { path: '/terapeutico/planes', element: <TerapeuticoPlanes /> },
