@@ -12,7 +12,7 @@ const Logo = () => {
     <LinkStyled to="/">
       <Box
         component="img"
-        src="/LOGO TÍA GLENDA-07.jpg"
+        src="/LOGO TÍA GLENDA-07.png"
         alt="Logo Tía Glenda"
         sx={{
           width: '220px',          // 🔼 Más ancho

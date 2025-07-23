@@ -71,6 +71,12 @@ const Menuitems = [
         icon: FiberManualRecord,
         href: '/apps/user-profile/friends',
       },
+      {
+        id: uniqueId(),
+        title: 'Gestión de Tutores',
+        icon: FiberManualRecord,
+        href: '/apps/user-profile/friends',
+      },
     ],
   },
 
@@ -165,7 +171,7 @@ const Menuitems = [
     children: [
       {
         id: uniqueId(),
-        title: 'Programar Citas',
+        title: 'Asignar Sesiones',
         icon: FiberManualRecord,
         href: '/horarios/citas',
       },

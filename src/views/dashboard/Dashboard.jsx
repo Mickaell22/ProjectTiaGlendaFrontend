@@ -9,13 +9,23 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const customizer = useSelector((state) => state.customizer);
 
+  // Estilo para la línea arcoíris
+  const rainbowLineStyle = {
+    height: '4px',
+    width: '100%',
+    borderRadius: '2px',
+    background: 'linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)',
+    marginBottom: '24px',
+  };
+
   return (
     <PageContainer title="Dashboard" description="Panel principal">
       <Box>
         <Stack spacing={3}>
-          <Typography variant="h2" mb={3}>
-            Sistema de Centro Tía Glenda
+          <Typography variant="h2" mb={1}>
+            Sistema del Centro Tía Glenda
           </Typography>
+          <Box sx={rainbowLineStyle} />
 
           {/* Tarjeta de bienvenida */}
           <Card>
