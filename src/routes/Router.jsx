@@ -11,6 +11,8 @@ import Login from 'src/views/authentication/auth1/Login';
 import Register from 'src/views/authentication/auth1/Register';
 import Dashboard from 'src/views/dashboard/Dashboard';
 import Persona from 'src/views/personas/persona';
+import Paciente from 'src/views/pacientes/paciente';
+
 
 
 // Componente para páginas en desarrollo
@@ -183,6 +185,8 @@ const Router = [
       { path: '/apps/user-profile/followers', element: <PersonalLista /> },
       { path: '/apps/user-profile/friends', element: <PersonalEquipos /> },
       { path: '/gestion/persona', element: <Persona /> },
+      { path: '/gestion/paciente', element: <Paciente /> },
+
 
       // Módulo Terapéutico
       { path: '/terapeutico/evaluaciones', element: <TerapeuticoEvaluaciones /> },

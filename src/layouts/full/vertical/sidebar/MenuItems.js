@@ -85,7 +85,7 @@ const Menuitems = [
         id: uniqueId(),
         title: 'Gestión de Pacientes',
         icon: FiberManualRecord,
-        href: '/apps/user-profile/followers',
+        href: '/gestion/paciente',
       },
       {
         id: uniqueId(),

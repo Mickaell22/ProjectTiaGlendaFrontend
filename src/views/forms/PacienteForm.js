@@ -8,6 +8,7 @@ import {
   Typography,
 } from '@mui/material';
 
+// Datos de ejemplo para selección
 const pacientesMock = [
   {
     cedula: '0102030405',
@@ -46,10 +47,12 @@ const PacienteForm = () => {
   const [observaciones, setObservaciones] = useState('');
   const [tipoTerapia, setTipoTerapia] = useState('');
 
+  // Manejo de cambio de cédula
   const handleCedulaChange = (e) => {
     setCedulaSeleccionada(e.target.value);
   };
 
+  // Buscar datos de paciente por cédula
   const handleBuscar = () => {
     const paciente = pacientesMock.find((p) => p.cedula === cedulaSeleccionada);
     if (paciente) {
@@ -65,6 +68,7 @@ const PacienteForm = () => {
     }
   };
 
+  // Enviar formulario
   const handleSubmit = (e) => {
     e.preventDefault();
     const datosFinales = {
@@ -74,18 +78,20 @@ const PacienteForm = () => {
     };
     console.log(datosFinales);
     alert('Datos del paciente registrados');
+    // Aquí podrías hacer una llamada a API
   };
 
   return (
     <Box component="form" onSubmit={handleSubmit}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
+          <Typography variant="body2">Cédula del Paciente</Typography>
           <TextField
-            select
             fullWidth
-            label="Cédula del Paciente"
+            select
             value={cedulaSeleccionada}
             onChange={handleCedulaChange}
+            label="Selecciona una cédula"
           >
             {pacientesMock.map((p) => (
               <MenuItem key={p.cedula} value={p.cedula}>
@@ -96,37 +102,37 @@ const PacienteForm = () => {
         </Grid>
 
         <Grid item xs={12}>
-          <Button
-            variant="contained"
-            onClick={handleBuscar}
-            disabled={!cedulaSeleccionada}
-          >
+          <Button variant="contained" onClick={handleBuscar}>
             Buscar
           </Button>
         </Grid>
 
         <Grid item xs={12}>
-          <TextField fullWidth label="Nombre" value={datosPaciente.nombre} disabled />
+          <Typography variant="body2">Nombre</Typography>
+          <TextField fullWidth value={datosPaciente.nombre} disabled />
         </Grid>
 
         <Grid item xs={12}>
-          <TextField fullWidth label="Apellido" value={datosPaciente.apellido} disabled />
+          <Typography variant="body2">Apellido</Typography>
+          <TextField fullWidth value={datosPaciente.apellido} disabled />
         </Grid>
 
         <Grid item xs={12}>
-          <TextField fullWidth label="Tutor - Nombre" value={datosPaciente.tutorNombre} disabled />
+          <Typography variant="body2">Tutor - Nombre</Typography>
+          <TextField fullWidth value={datosPaciente.tutorNombre} disabled />
         </Grid>
 
         <Grid item xs={12}>
-          <TextField fullWidth label="Tutor - Apellido" value={datosPaciente.tutorApellido} disabled />
+          <Typography variant="body2">Tutor - Apellido</Typography>
+          <TextField fullWidth value={datosPaciente.tutorApellido} disabled />
         </Grid>
 
         <Grid item xs={12}>
+          <Typography variant="body2">Observaciones</Typography>
           <TextField
             fullWidth
             multiline
             minRows={3}
-            label="Observaciones"
             value={observaciones}
             onChange={(e) => setObservaciones(e.target.value)}
             placeholder="Escriba aquí las observaciones..."
@@ -134,12 +140,13 @@ const PacienteForm = () => {
         </Grid>
 
         <Grid item xs={12}>
+          <Typography variant="body2">Tipo de Terapia</Typography>
           <TextField
-            select
             fullWidth
-            label="Tipo de Terapia"
+            select
             value={tipoTerapia}
             onChange={(e) => setTipoTerapia(e.target.value)}
+            label="Seleccione el tipo"
           >
             {tiposTerapia.map((tipo, i) => (
               <MenuItem key={i} value={tipo}>
