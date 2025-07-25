@@ -2,20 +2,24 @@
 import {
   Dashboard,
   People,
-  Business,
-  FiberManualRecord,
-  TableChart,
-  Description,
-  Settings,
-  CalendarToday,
-  Assignment,
+  Group,
+  AdminPanelSettings,
+  LocalHospital,
+  SchoolOutlined,
+  AccountCircle,
   Favorite,
   School,
-  Camera,
+  CalendarMonth,
+  InsertChart,
+  Description,
+  Settings,
+  CameraAlt,
   TrendingUp,
   Login,
   PersonAdd,
   Error,
+  TableChart,
+  FiberManualRecord,
 } from '@mui/icons-material';
 
 // Función simple para generar IDs únicos
@@ -32,8 +36,7 @@ const Menuitems = [
     icon: Dashboard,
     href: '/dashboard',
   },
-  
-  
+
   {
     navlabel: true,
     subheader: 'Módulo Personas',
@@ -51,12 +54,31 @@ const Menuitems = [
         href: '/gestion/persona',
       },
     ],
-    
+  },
+  {
+    id: uniqueId(),
+    title: 'Administración',
+    icon: AdminPanelSettings,
+    href: '/apps/user-profile/followers',
+    children: [
+      {
+        id: uniqueId(),
+        title: 'Gestión de Usuarios',
+        icon: FiberManualRecord,
+        href: '/apps/user-profile/followers',
+      },
+      {
+        id: uniqueId(),
+        title: 'Gestión de Roles',
+        icon: FiberManualRecord,
+        href: '/apps/user-profile/friends',
+      },
+    ],
   },
   {
     id: uniqueId(),
     title: 'Pacientes/Alumnos',
-    icon: Business,
+    icon: Group,
     href: '/apps/user-profile/followers',
     children: [
       {
@@ -79,12 +101,10 @@ const Menuitems = [
       },
     ],
   },
-
-  
   {
     id: uniqueId(),
-    title: 'Terapeutas/Docentes',
-    icon: Business,
+    title: 'Personal',
+    icon: AccountCircle,
     href: '/apps/user-profile/followers',
     children: [
       {
@@ -135,7 +155,7 @@ const Menuitems = [
   {
     id: uniqueId(),
     title: 'Módulo Pedagógico',
-    icon: School,
+    icon: SchoolOutlined,
     href: '/pedagogico',
     children: [
       {
@@ -166,7 +186,7 @@ const Menuitems = [
   {
     id: uniqueId(),
     title: 'Horarios',
-    icon: CalendarToday,
+    icon: CalendarMonth,
     href: '/horarios',
     children: [
       {
@@ -192,7 +212,7 @@ const Menuitems = [
   {
     id: uniqueId(),
     title: 'Informes',
-    icon: Assignment,
+    icon: InsertChart,
     href: '/informes',
     children: [
       {
@@ -223,7 +243,7 @@ const Menuitems = [
   {
     id: uniqueId(),
     title: 'Galería',
-    icon: Camera,
+    icon: CameraAlt,
     href: '/apps/user-profile/gallery',
   },
   {
@@ -233,7 +253,6 @@ const Menuitems = [
     href: '/pages/account-settings',
   },
 
-  // Mantener elementos útiles para desarrollo/formularios
   {
     navlabel: true,
     subheader: 'Herramientas',
@@ -285,7 +304,6 @@ const Menuitems = [
     ],
   },
 
-  // Mantener autenticación para referencia
   {
     navlabel: true,
     subheader: 'Autenticación',
