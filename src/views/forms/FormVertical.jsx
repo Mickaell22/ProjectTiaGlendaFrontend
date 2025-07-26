@@ -46,7 +46,7 @@ const FormVertical = () => {
         </Grid>
 
         {/* ✅ Sección: Formulario de Paciente */}
-        <Grid item xs={12} lg={6}>
+        <Grid item xs={12}>
           <ParentCard title="Formulario de Paciente">
             <PacienteForm />
           </ParentCard>

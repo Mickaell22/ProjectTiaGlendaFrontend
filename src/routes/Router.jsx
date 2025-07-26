@@ -12,6 +12,7 @@ import Register from 'src/views/authentication/auth1/Register';
 import Dashboard from 'src/views/dashboard/Dashboard';
 import Persona from 'src/views/personas/persona';
 import Paciente from 'src/views/pacientes/paciente';
+import TestPacienteView from 'src/views/pacientes/TestPacienteView';
 
 
 
@@ -186,6 +187,7 @@ const Router = [
       { path: '/apps/user-profile/friends', element: <PersonalEquipos /> },
       { path: '/gestion/persona', element: <Persona /> },
       { path: '/gestion/paciente', element: <Paciente /> },
+      { path: '/test-paciente', element: <TestPacienteView /> },
 
 
       // Módulo Terapéutico
