@@ -12,7 +12,10 @@ import Register from 'src/views/authentication/auth1/Register';
 import Dashboard from 'src/views/dashboard/Dashboard';
 import Persona from 'src/views/personas/persona';
 import Paciente from 'src/views/pacientes/paciente';
-import TestPacienteView from 'src/views/pacientes/TestPacienteView';
+import Alumno from 'src/views/pacientes/alumno'; 
+import Tutor from 'src/views/pacientes/tutores';
+
+
 
 
 
@@ -187,7 +190,9 @@ const Router = [
       { path: '/apps/user-profile/friends', element: <PersonalEquipos /> },
       { path: '/gestion/persona', element: <Persona /> },
       { path: '/gestion/paciente', element: <Paciente /> },
-      { path: '/test-paciente', element: <TestPacienteView /> },
+      { path: '/gestion/alumno', element: <Alumno /> },
+      { path: '/gestion/tutor', element: <Tutor /> },
+
 
 
       // Módulo Terapéutico

@@ -93,7 +93,7 @@ const Persona = () => {
   };
 
   return (
-    <Box p={2} sx={{ ml: { lg: -8, md: -6, sm: -2 } }}>
+    <Box p={2} sx={{ ml: { lg: 2, md: 2, sm: 1 } }}>
       <Container maxWidth="xl">
         <Paper
           elevation={6}
@@ -129,35 +129,35 @@ const Persona = () => {
           </Typography>
           <Box component="form" onSubmit={handleSubmit}>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={4}>
                 <Typography variant="body2" gutterBottom>Nombre :</Typography>
                 <TextField fullWidth variant="outlined" name="nombre" value={formData.nombre} onChange={handleChange} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={4}>
                 <Typography variant="body2" gutterBottom>Apellido :</Typography>
                 <TextField fullWidth variant="outlined" name="apellido" value={formData.apellido} onChange={handleChange} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={4}>
                 <Typography variant="body2" gutterBottom>Cédula :</Typography>
                 <TextField fullWidth variant="outlined" name="cedula" value={formData.cedula} onChange={handleChange} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={4}>
                 <Typography variant="body2" gutterBottom>Teléfono :</Typography>
                 <TextField fullWidth variant="outlined" name="telefono" value={formData.telefono} onChange={handleChange} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={4}>
                 <Typography variant="body2" gutterBottom>Dirección :</Typography>
                 <TextField fullWidth variant="outlined" name="direccion" value={formData.direccion} onChange={handleChange} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={4}>
                 <Typography variant="body2" gutterBottom>Correo :</Typography>
                 <TextField fullWidth variant="outlined" name="correo" type="email" value={formData.correo} onChange={handleChange} />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={4}>
                 <Typography variant="body2" gutterBottom>Fecha de Nacimiento</Typography>
                 <TextField fullWidth variant="outlined" name="fechaNacimiento" type="date" InputLabelProps={{ shrink: true }} value={formData.fechaNacimiento} onChange={handleChange} />
               </Grid>
-              <Grid item xs={12} sm={6} display="flex" alignItems="flex-end">
+              <Grid item xs={12} md={4} display="flex" alignItems="flex-end">
                 <Button variant="contained" color="primary" type="submit">
                   Guardar Persona
                 </Button>
