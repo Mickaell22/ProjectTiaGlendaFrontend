@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   TextField,
@@ -27,6 +27,7 @@ import {
   Chip,
 } from '@mui/material';
 import { Edit, Delete, Visibility, PersonAdd, Search } from '@mui/icons-material';
+import axios from 'axios';
 
 const Persona = () => {
   const [formData, setFormData] = useState({
@@ -39,27 +40,7 @@ const Persona = () => {
     fechaNacimiento: '',
   });
 
-  const [personas, setPersonas] = useState([
-    {
-      nombre: 'Juan',
-      apellido: 'Pérez',
-      cedula: '0102030405',
-      telefono: '0991234567',
-      correo: 'juan@example.com',
-      direccion: 'Av. Siempre Viva 123',
-      fechaNacimiento: '1990-01-01',
-    },
-    {
-      nombre: 'Ana',
-      apellido: 'Gómez',
-      cedula: '0605040302',
-      telefono: '0987654321',
-      correo: 'ana@example.com',
-      direccion: 'Calle Falsa 456',
-      fechaNacimiento: '1988-05-15',
-    },
-  ]);
-
+  const [personas, setPersonas] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(10);
   const [detalle, setDetalle] = useState(null);
@@ -67,6 +48,13 @@ const Persona = () => {
   const [errors, setErrors] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Cargar personas desde el backend
+  useEffect(() => {
+    axios.get('/api/personas')
+      .then(res => setPersonas(res.data.data || []))
+      .catch(() => setSnackbar({ open: true, message: 'Error cargando personas', severity: 'error' }));
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -78,7 +66,6 @@ const Persona = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
     if (!formData.nombre.trim()) newErrors.nombre = 'Nombre es requerido';
     if (!formData.apellido.trim()) newErrors.apellido = 'Apellido es requerido';
     if (!formData.cedula.trim()) newErrors.cedula = 'Cédula es requerida';
@@ -89,47 +76,74 @@ const Persona = () => {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo)) newErrors.correo = 'Correo no válido';
     if (!formData.direccion.trim()) newErrors.direccion = 'Dirección es requerida';
     if (!formData.fechaNacimiento) newErrors.fechaNacimiento = 'Fecha de nacimiento es requerida';
-    
-    const cedulaExists = personas.some((p, index) => 
+
+    // Validar cédula duplicada
+    const cedulaExists = personas.some((p, index) =>
       p.cedula === formData.cedula && (editingIndex === -1 || index !== editingIndex)
     );
     if (cedulaExists) newErrors.cedula = 'Esta cédula ya está registrada';
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    
-    if (editingIndex >= 0) {
-      const updatedPersonas = [...personas];
-      updatedPersonas[editingIndex] = formData;
-      setPersonas(updatedPersonas);
-      setEditingIndex(-1);
-      setSnackbar({ open: true, message: 'Persona actualizada exitosamente', severity: 'success' });
-    } else {
-      setPersonas([...personas, formData]);
-      setSnackbar({ open: true, message: 'Persona registrada exitosamente', severity: 'success' });
+
+    try {
+      if (editingIndex >= 0) {
+        // Actualizar persona
+        const personaId = personas[editingIndex].id;
+        await axios.put(`/api/personas/${personaId}`, formData);
+        const updatedPersonas = [...personas];
+        updatedPersonas[editingIndex] = { ...formData, id: personaId };
+        setPersonas(updatedPersonas);
+        setEditingIndex(-1);
+        setSnackbar({ open: true, message: 'Persona actualizada exitosamente', severity: 'success' });
+      } else {
+        // Crear persona
+        const res = await axios.post('/api/personas', formData);
+        setPersonas([...personas, res.data.data]);
+        setSnackbar({ open: true, message: 'Persona registrada exitosamente', severity: 'success' });
+      }
+      setFormData({
+        nombre: '',
+        apellido: '',
+        cedula: '',
+        telefono: '',
+        correo: '',
+        direccion: '',
+        fechaNacimiento: '',
+      });
+      setErrors({});
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Error al guardar persona', severity: 'error' });
     }
-    
-    setFormData({
-      nombre: '',
-      apellido: '',
-      cedula: '',
-      telefono: '',
-      correo: '',
-      direccion: '',
-      fechaNacimiento: '',
-    });
   };
 
-  const handleDelete = (index) => {
-    const nuevasPersonas = [...personas];
-    nuevasPersonas.splice(index, 1);
-    setPersonas(nuevasPersonas);
-    setSnackbar({ open: true, message: 'Persona eliminada exitosamente', severity: 'info' });
+  const handleDelete = async (index) => {
+    try {
+      const personaId = personas[index].id;
+      await axios.delete(`/api/personas/${personaId}`);
+      const nuevasPersonas = [...personas];
+      nuevasPersonas.splice(index, 1);
+      setPersonas(nuevasPersonas);
+      setSnackbar({ open: true, message: 'Persona eliminada exitosamente', severity: 'info' });
+      setEditingIndex(-1);
+      setFormData({
+        nombre: '',
+        apellido: '',
+        cedula: '',
+        telefono: '',
+        correo: '',
+        direccion: '',
+        fechaNacimiento: '',
+      });
+      setErrors({});
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Error al eliminar persona', severity: 'error' });
+    }
   };
 
   const handleEdit = (index) => {
@@ -177,7 +191,6 @@ const Persona = () => {
 
   return (
     <Box p={2} sx={{ ml: { lg: 2, md: 2, sm: 1, xs: 0 } }}>
-
       <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
         <Paper
           elevation={6}
@@ -207,10 +220,10 @@ const Persona = () => {
           </Box>
         </Paper>
 
-        <Card 
-          elevation={8} 
-          sx={{ 
-            mb: 4, 
+        <Card
+          elevation={8}
+          sx={{
+            mb: 4,
             borderRadius: 4,
             background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
             border: '1px solid',
@@ -223,10 +236,9 @@ const Persona = () => {
           }}
         >
           <CardContent sx={{ p: 0 }}>
-            {/* Header Section */}
-            <Box 
-              sx={{ 
-                background: editingIndex >= 0 
+            <Box
+              sx={{
+                background: editingIndex >= 0
                   ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
                   : 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
                 color: 'white',
@@ -249,11 +261,11 @@ const Persona = () => {
             >
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Box 
-                    sx={{ 
-                      bgcolor: 'rgba(255,255,255,0.2)', 
-                      borderRadius: '50%', 
-                      p: 1.5, 
+                  <Box
+                    sx={{
+                      bgcolor: 'rgba(255,255,255,0.2)',
+                      borderRadius: '50%',
+                      p: 1.5,
                       mr: 2,
                       display: 'flex',
                       alignItems: 'center',
@@ -267,7 +279,7 @@ const Persona = () => {
                       {editingIndex >= 0 ? 'Editar Persona' : 'Registrar Nueva Persona'}
                     </Typography>
                     <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                      {editingIndex >= 0 
+                      {editingIndex >= 0
                         ? 'Modifica los campos necesarios y guarda los cambios'
                         : 'Completa todos los campos para registrar una nueva persona'
                       }
@@ -275,9 +287,9 @@ const Persona = () => {
                   </Box>
                 </Box>
                 {editingIndex >= 0 && (
-                  <Chip 
-                    label="EDITANDO" 
-                    sx={{ 
+                  <Chip
+                    label="EDITANDO"
+                    sx={{
                       bgcolor: 'rgba(255,255,255,0.2)',
                       color: 'white',
                       fontWeight: 'bold',
@@ -288,39 +300,36 @@ const Persona = () => {
               </Box>
             </Box>
 
-            {/* Form Section */}
             <Box sx={{ p: 4 }}>
-            <Box component="form" onSubmit={handleSubmit}>
-              {/* Personal Information Section */}
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  mb: 3, 
-                  color: 'primary.main', 
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  '&::before': {
-                    content: '""',
-                    width: '4px',
-                    height: '24px',
-                    bgcolor: 'primary.main',
-                    mr: 1,
-                    borderRadius: '2px'
-                  }
-                }}
-              >
-                Información Personal
-              </Typography>
-              
-              <Box sx={{ mb: 4 }}>
-                {/* Nombre - Campo completo vertical */}
+              <Box component="form" onSubmit={handleSubmit}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    mb: 3,
+                    color: 'primary.main',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '&::before': {
+                      content: '""',
+                      width: '4px',
+                      height: '24px',
+                      bgcolor: 'primary.main',
+                      mr: 1,
+                      borderRadius: '2px'
+                    }
+                  }}
+                >
+                  Información Personal
+                </Typography>
+
+                {/* Nombre */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      mb: 1, 
-                      fontWeight: 600, 
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 600,
                       color: 'text.primary',
                       display: 'flex',
                       alignItems: 'center'
@@ -328,12 +337,12 @@ const Persona = () => {
                   >
                     Nombre Completo *
                   </Typography>
-                  <TextField 
-                    fullWidth 
-                    variant="outlined" 
-                    name="nombre" 
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    name="nombre"
                     placeholder="Ingresa el nombre completo"
-                    value={formData.nombre} 
+                    value={formData.nombre}
                     onChange={handleChange}
                     error={!!errors.nombre}
                     helperText={errors.nombre}
@@ -357,14 +366,14 @@ const Persona = () => {
                     }}
                   />
                 </Box>
-                
-                {/* Apellido - Campo completo vertical */}
+
+                {/* Apellido */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      mb: 1, 
-                      fontWeight: 600, 
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 600,
                       color: 'text.primary',
                       display: 'flex',
                       alignItems: 'center'
@@ -372,12 +381,12 @@ const Persona = () => {
                   >
                     Apellidos *
                   </Typography>
-                  <TextField 
-                    fullWidth 
-                    variant="outlined" 
-                    name="apellido" 
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    name="apellido"
                     placeholder="Ingresa los apellidos"
-                    value={formData.apellido} 
+                    value={formData.apellido}
                     onChange={handleChange}
                     error={!!errors.apellido}
                     helperText={errors.apellido}
@@ -401,14 +410,14 @@ const Persona = () => {
                     }}
                   />
                 </Box>
-                
-                {/* Cédula - Campo completo vertical */}
+
+                {/* Cédula */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      mb: 1, 
-                      fontWeight: 600, 
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 600,
                       color: 'text.primary',
                       display: 'flex',
                       alignItems: 'center'
@@ -416,12 +425,12 @@ const Persona = () => {
                   >
                     Número de Cédula *
                   </Typography>
-                  <TextField 
-                    fullWidth 
-                    variant="outlined" 
-                    name="cedula" 
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    name="cedula"
                     placeholder="Ingresa el número de cédula (10 dígitos)"
-                    value={formData.cedula} 
+                    value={formData.cedula}
                     onChange={handleChange}
                     error={!!errors.cedula}
                     helperText={errors.cedula}
@@ -446,14 +455,14 @@ const Persona = () => {
                     }}
                   />
                 </Box>
-                
-                {/* Fecha de Nacimiento - Campo completo vertical */}
+
+                {/* Fecha de Nacimiento */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      mb: 1, 
-                      fontWeight: 600, 
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 600,
                       color: 'text.primary',
                       display: 'flex',
                       alignItems: 'center'
@@ -461,13 +470,13 @@ const Persona = () => {
                   >
                     Fecha de Nacimiento *
                   </Typography>
-                  <TextField 
-                    fullWidth 
-                    variant="outlined" 
-                    name="fechaNacimiento" 
-                    type="date" 
-                    InputLabelProps={{ shrink: true }} 
-                    value={formData.fechaNacimiento} 
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    name="fechaNacimiento"
+                    type="date"
+                    InputLabelProps={{ shrink: true }}
+                    value={formData.fechaNacimiento}
                     onChange={handleChange}
                     error={!!errors.fechaNacimiento}
                     helperText={errors.fechaNacimiento}
@@ -491,38 +500,14 @@ const Persona = () => {
                     }}
                   />
                 </Box>
-              </Box>
 
-              {/* Contact Information Section */}
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  mb: 3, 
-                  color: 'primary.main', 
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  '&::before': {
-                    content: '""',
-                    width: '4px',
-                    height: '24px',
-                    bgcolor: 'primary.main',
-                    mr: 1,
-                    borderRadius: '2px'
-                  }
-                }}
-              >
-                Información de Contacto
-              </Typography>
-              
-              <Box sx={{ mb: 4 }}>
-                {/* Teléfono - Campo completo vertical */}
+                {/* Teléfono */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      mb: 1, 
-                      fontWeight: 600, 
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 600,
                       color: 'text.primary',
                       display: 'flex',
                       alignItems: 'center'
@@ -530,12 +515,12 @@ const Persona = () => {
                   >
                     Número de Teléfono *
                   </Typography>
-                  <TextField 
-                    fullWidth 
-                    variant="outlined" 
-                    name="telefono" 
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    name="telefono"
                     placeholder="Ingresa el número de teléfono (10 dígitos)"
-                    value={formData.telefono} 
+                    value={formData.telefono}
                     onChange={handleChange}
                     error={!!errors.telefono}
                     helperText={errors.telefono}
@@ -560,14 +545,14 @@ const Persona = () => {
                     }}
                   />
                 </Box>
-                
-                {/* Correo - Campo completo vertical */}
+
+                {/* Correo */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      mb: 1, 
-                      fontWeight: 600, 
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 600,
                       color: 'text.primary',
                       display: 'flex',
                       alignItems: 'center'
@@ -575,13 +560,13 @@ const Persona = () => {
                   >
                     Correo Electrónico *
                   </Typography>
-                  <TextField 
-                    fullWidth 
-                    variant="outlined" 
-                    name="correo" 
-                    type="email" 
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    name="correo"
+                    type="email"
                     placeholder="ejemplo@correo.com"
-                    value={formData.correo} 
+                    value={formData.correo}
                     onChange={handleChange}
                     error={!!errors.correo}
                     helperText={errors.correo}
@@ -605,14 +590,14 @@ const Persona = () => {
                     }}
                   />
                 </Box>
-                
-                {/* Dirección - Campo completo vertical multilinea */}
+
+                {/* Dirección */}
                 <Box sx={{ mb: 3 }}>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      mb: 1, 
-                      fontWeight: 600, 
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mb: 1,
+                      fontWeight: 600,
                       color: 'text.primary',
                       display: 'flex',
                       alignItems: 'center'
@@ -620,12 +605,12 @@ const Persona = () => {
                   >
                     Dirección Completa *
                   </Typography>
-                  <TextField 
-                    fullWidth 
-                    variant="outlined" 
-                    name="direccion" 
+                  <TextField
+                    fullWidth
+                    variant="outlined"
+                    name="direccion"
                     placeholder="Ej: Av. Principal 123, Sector Norte, Ciudad, Provincia"
-                    value={formData.direccion} 
+                    value={formData.direccion}
                     onChange={handleChange}
                     error={!!errors.direccion}
                     helperText={errors.direccion}
@@ -651,75 +636,75 @@ const Persona = () => {
                     }}
                   />
                 </Box>
-              </Box>
-              {/* Action Buttons Section */}
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  gap: 2, 
-                  justifyContent: 'center',
-                  alignItems: 'center', 
-                  mt: 4,
-                  pt: 3,
-                  borderTop: '1px solid',
-                  borderColor: 'divider'
-                }}
-              >
-                {editingIndex >= 0 && (
-                  <Button 
-                    variant="outlined" 
-                    color="secondary" 
-                    onClick={handleCancelEdit}
+
+                {/* Botones */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    mt: 4,
+                    pt: 3,
+                    borderTop: '1px solid',
+                    borderColor: 'divider'
+                  }}
+                >
+                  {editingIndex >= 0 && (
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      onClick={handleCancelEdit}
+                      size="large"
+                      sx={{
+                        borderRadius: 3,
+                        px: 4,
+                        py: 1.5,
+                        fontWeight: 'bold',
+                        textTransform: 'none',
+                        fontSize: '1rem',
+                        border: '2px solid',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 6px 20px rgba(0,0,0,0.15)'
+                        }
+                      }}
+                    >
+                      Cancelar Edición
+                    </Button>
+                  )}
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    type="submit"
                     size="large"
                     sx={{
                       borderRadius: 3,
-                      px: 4,
+                      px: 5,
                       py: 1.5,
                       fontWeight: 'bold',
                       textTransform: 'none',
                       fontSize: '1rem',
-                      border: '2px solid',
+                      minWidth: 200,
+                      background: editingIndex >= 0
+                        ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
+                        : 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+                      boxShadow: '0 4px 15px rgba(33, 150, 243, 0.4)',
                       transition: 'all 0.2s ease',
                       '&:hover': {
                         transform: 'translateY(-2px)',
-                        boxShadow: '0 6px 20px rgba(0,0,0,0.15)'
+                        boxShadow: '0 8px 25px rgba(33, 150, 243, 0.6)',
+                        background: editingIndex >= 0
+                          ? 'linear-gradient(135deg, #f57c00 0%, #ef6c00 100%)'
+                          : 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
                       }
                     }}
                   >
-                    Cancelar Edición
+                    {editingIndex >= 0 ? '✓ Actualizar Persona' : '+ Registrar Persona'}
                   </Button>
-                )}
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  type="submit"
-                  size="large"
-                  sx={{
-                    borderRadius: 3,
-                    px: 5,
-                    py: 1.5,
-                    fontWeight: 'bold',
-                    textTransform: 'none',
-                    fontSize: '1rem',
-                    minWidth: 200,
-                    background: editingIndex >= 0 
-                      ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
-                      : 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
-                    boxShadow: '0 4px 15px rgba(33, 150, 243, 0.4)',
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 8px 25px rgba(33, 150, 243, 0.6)',
-                      background: editingIndex >= 0 
-                        ? 'linear-gradient(135deg, #f57c00 0%, #ef6c00 100%)'
-                        : 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-                    }
-                  }}
-                >
-                  {editingIndex >= 0 ? '✓ Actualizar Persona' : '+ Registrar Persona'}
-                </Button>
+                </Box>
               </Box>
-            </Box>
             </Box>
           </CardContent>
         </Card>
@@ -744,78 +729,78 @@ const Persona = () => {
               </Box>
             </Box>
             <Divider sx={{ mb: 3 }} />
-          <Box sx={{ overflowX: 'auto' }}>
-            <Table sx={{ minWidth: 650 }}>
-            <TableHead>
-              <TableRow>
-                <TableCell>Nombre</TableCell>
-                <TableCell>Apellido</TableCell>
-                <TableCell>Cédula</TableCell>
-                <TableCell>Dirección</TableCell>
-                <TableCell>Acciones</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredPersonas
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((persona, filteredIndex) => {
-                  const originalIndex = personas.findIndex(p => p === persona);
-                  return (
-                    <TableRow key={originalIndex} hover>
-                      <TableCell>{persona.nombre}</TableCell>
-                      <TableCell>{persona.apellido}</TableCell>
-                      <TableCell>{persona.cedula}</TableCell>
-                      <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {persona.direccion}
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Tooltip title="Ver detalles">
-                            <IconButton 
-                              color="primary" 
-                              onClick={() => handleView(persona)}
-                              size="small"
-                            >
-                              <Visibility fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Editar persona">
-                            <IconButton 
-                              color="warning" 
-                              onClick={() => handleEdit(originalIndex)}
-                              size="small"
-                            >
-                              <Edit fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Eliminar persona">
-                            <IconButton 
-                              color="error" 
-                              onClick={() => handleDelete(originalIndex)}
-                              size="small"
-                            >
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-            </TableBody>
-            </Table>
-          </Box>
-          <TablePagination
-            component="div"
-            count={filteredPersonas.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[]}
-            labelDisplayedRows={({ from, to, count }) => 
-              `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
-            }
-          />
+            <Box sx={{ overflowX: 'auto' }}>
+              <Table sx={{ minWidth: 650 }}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Nombre</TableCell>
+                    <TableCell>Apellido</TableCell>
+                    <TableCell>Cédula</TableCell>
+                    <TableCell>Dirección</TableCell>
+                    <TableCell>Acciones</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredPersonas
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((persona, filteredIndex) => {
+                      const originalIndex = personas.findIndex(p => p === persona);
+                      return (
+                        <TableRow key={originalIndex} hover>
+                          <TableCell>{persona.nombre}</TableCell>
+                          <TableCell>{persona.apellido}</TableCell>
+                          <TableCell>{persona.cedula}</TableCell>
+                          <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {persona.direccion}
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Tooltip title="Ver detalles">
+                                <IconButton
+                                  color="primary"
+                                  onClick={() => handleView(persona)}
+                                  size="small"
+                                >
+                                  <Visibility fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Editar persona">
+                                <IconButton
+                                  color="warning"
+                                  onClick={() => handleEdit(originalIndex)}
+                                  size="small"
+                                >
+                                  <Edit fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Eliminar persona">
+                                <IconButton
+                                  color="error"
+                                  onClick={() => handleDelete(originalIndex)}
+                                  size="small"
+                                >
+                                  <Delete fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                </TableBody>
+              </Table>
+            </Box>
+            <TablePagination
+              component="div"
+              count={filteredPersonas.length}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              rowsPerPageOptions={[]}
+              labelDisplayedRows={({ from, to, count }) =>
+                `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+              }
+            />
           </CardContent>
         </Card>
       </Container>
@@ -878,9 +863,9 @@ const Persona = () => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity} 
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
           sx={{ width: '100%' }}
         >
           {snackbar.message}
