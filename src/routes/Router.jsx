@@ -14,6 +14,7 @@ import Persona from 'src/views/personas/persona';
 import Paciente from 'src/views/pacientes/paciente';
 import Alumno from 'src/views/pacientes/alumno'; 
 import Tutor from 'src/views/pacientes/tutores';
+import Usuario from 'src/views/administracion/usuario';
 
 
 
@@ -192,6 +193,7 @@ const Router = [
       { path: '/gestion/paciente', element: <Paciente /> },
       { path: '/gestion/alumno', element: <Alumno /> },
       { path: '/gestion/tutor', element: <Tutor /> },
+      { path: '/gestion/usuario', element: <Usuario /> },
 
 
 

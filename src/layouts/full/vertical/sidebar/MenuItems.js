@@ -65,7 +65,7 @@ const Menuitems = [
         id: uniqueId(),
         title: 'Gestión de Usuarios',
         icon: FiberManualRecord,
-        href: '/apps/user-profile/followers',
+        href: '/gestion/usuario',
       },
       {
         id: uniqueId(),
