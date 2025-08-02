@@ -1,5 +1,4 @@
-// src/views/authentication/auth1/Login.js
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -18,41 +17,46 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import PageContainer from 'src/components/container/PageContainer';
+import axios from 'axios';
 
 // Esquema de validación con Yup
 const validationSchema = Yup.object({
-  email: Yup.string()
-    .email('Ingresa un email válido')
-    .required('El email es requerido'),
-  password: Yup.string()
-    .min(6, 'La contraseña debe tener al menos 6 caracteres')
-    .required('La contraseña es requerida'),
+  usuario: Yup.string().required('El usuario es requerido'),
+  contrasenia: Yup.string().min(6, 'La contraseña debe tener al menos 6 caracteres').required('La contraseña es requerida'),
 });
 
 const Login = () => {
   const navigate = useNavigate();
+  const [errorMsg, setErrorMsg] = useState('');
 
   const formik = useFormik({
     initialValues: {
-      email: '',
-      password: '',
+      usuario: '',
+      contrasenia: '',
       rememberMe: false,
     },
     validationSchema,
-    onSubmit: async (values, { setSubmitting, setFieldError }) => {
+    onSubmit: async (values, { setSubmitting }) => {
+      setErrorMsg('');
       try {
-        // Aquí iría la lógica de autenticación
-        console.log('Login attempt:', values);
-        
-        // Simulación de login exitoso
-        setTimeout(() => {
-          setSubmitting(false);
+        const res = await axios.post('http://localhost:5000/api/login', {
+          usuario: values.usuario,
+          contrasenia: values.contrasenia,
+        });
+        if (res.data.status === 'success' && res.data.data.token) {
+          localStorage.setItem('jwt_token', res.data.data.token);
+          localStorage.setItem('user', JSON.stringify(res.data.data.user));
           navigate('/dashboard');
-        }, 1000);
+        } else {
+          setErrorMsg(res.data.message || 'Credenciales incorrectas');
+        }
       } catch (error) {
-        setSubmitting(false);
-        setFieldError('password', 'Email o contraseña incorrectos');
+        setErrorMsg(
+          error.response?.data?.message ||
+          'Error de conexión o credenciales incorrectas'
+        );
       }
+      setSubmitting(false);
     },
   });
 
@@ -116,23 +120,23 @@ const Login = () => {
                         variant="subtitle1"
                         fontWeight={600}
                         component="label"
-                        htmlFor="email"
+                        htmlFor="usuario"
                         mb="5px"
                       >
-                        Email
+                        Usuario
                       </Typography>
                       <TextField
-                        id="email"
-                        name="email"
-                        type="email"
+                        id="usuario"
+                        name="usuario"
+                        type="text"
                         variant="outlined"
                         fullWidth
-                        value={formik.values.email}
+                        value={formik.values.usuario}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        error={formik.touched.email && Boolean(formik.errors.email)}
-                        helperText={formik.touched.email && formik.errors.email}
-                        placeholder="usuario@ejemplo.com"
+                        error={formik.touched.usuario && Boolean(formik.errors.usuario)}
+                        helperText={formik.touched.usuario && formik.errors.usuario}
+                        placeholder="admin"
                       />
                     </Box>
 
@@ -141,22 +145,22 @@ const Login = () => {
                         variant="subtitle1"
                         fontWeight={600}
                         component="label"
-                        htmlFor="password"
+                        htmlFor="contrasenia"
                         mb="5px"
                       >
                         Contraseña
                       </Typography>
                       <TextField
-                        id="password"
-                        name="password"
+                        id="contrasenia"
+                        name="contrasenia"
                         type="password"
                         variant="outlined"
                         fullWidth
-                        value={formik.values.password}
+                        value={formik.values.contrasenia}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
-                        error={formik.touched.password && Boolean(formik.errors.password)}
-                        helperText={formik.touched.password && formik.errors.password}
+                        error={formik.touched.contrasenia && Boolean(formik.errors.contrasenia)}
+                        helperText={formik.touched.contrasenia && formik.errors.contrasenia}
                         placeholder="••••••••"
                       />
                     </Box>
@@ -206,9 +210,9 @@ const Login = () => {
                       </Button>
                     </Box>
 
-                    {formik.errors.submit && (
+                    {errorMsg && (
                       <Alert severity="error" sx={{ mt: 2 }}>
-                        {formik.errors.submit}
+                        {errorMsg}
                       </Alert>
                     )}
                   </Stack>
