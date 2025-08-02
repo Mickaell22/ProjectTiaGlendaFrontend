@@ -23,7 +23,7 @@ const Dashboard = () => {
       <Box>
         <Stack spacing={3}>
           <Typography variant="h2" mb={1}>
-            Sistema del Centro Tía Glenda
+           Plataforma del Centro Tía Glenda
           </Typography>
           <Box sx={rainbowLineStyle} />
 
