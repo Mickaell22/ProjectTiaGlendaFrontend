@@ -28,6 +28,7 @@ import {
 } from '@mui/material';
 import { Edit, Delete, Visibility, PersonAdd, Search } from '@mui/icons-material';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Persona = () => {
   const [formData, setFormData] = useState({
@@ -48,12 +49,31 @@ const Persona = () => {
   const [errors, setErrors] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
-  // Cargar personas desde el backend
+  // Helper para obtener el token y headers
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('jwt_token');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : '',
+    };
+  };
+
+  // Cargar personas desde el backend con JWT
   useEffect(() => {
-    axios.get('/api/personas')
+    axios.get('http://localhost:5000/api/personas', {
+      headers: getAuthHeaders(),
+    })
       .then(res => setPersonas(res.data.data || []))
-      .catch(() => setSnackbar({ open: true, message: 'Error cargando personas', severity: 'error' }));
+      .catch(err => {
+        if (err.response && err.response.status === 401) {
+          setSnackbar({ open: true, message: 'Sesión expirada. Inicia sesión nuevamente.', severity: 'error' });
+          setTimeout(() => navigate('/auth/login'), 2000);
+        } else {
+          setSnackbar({ open: true, message: 'Error cargando personas', severity: 'error' });
+        }
+      });
   }, []);
 
   const handleChange = (e) => {
@@ -87,6 +107,15 @@ const Persona = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Adaptar los datos para el backend (fecha_nacimiento)
+  const adaptFormData = () => {
+    const { fechaNacimiento, ...rest } = formData;
+    return {
+      ...rest,
+      fecha_nacimiento: fechaNacimiento,
+    };
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -95,15 +124,19 @@ const Persona = () => {
       if (editingIndex >= 0) {
         // Actualizar persona
         const personaId = personas[editingIndex].id;
-        await axios.put(`/api/personas/${personaId}`, formData);
+        await axios.put(`http://localhost:5000/api/personas/${personaId}`, adaptFormData(), {
+          headers: getAuthHeaders(),
+        });
         const updatedPersonas = [...personas];
-        updatedPersonas[editingIndex] = { ...formData, id: personaId };
+        updatedPersonas[editingIndex] = { ...formData, id: personaId, fecha_nacimiento: formData.fechaNacimiento };
         setPersonas(updatedPersonas);
         setEditingIndex(-1);
         setSnackbar({ open: true, message: 'Persona actualizada exitosamente', severity: 'success' });
       } else {
         // Crear persona
-        const res = await axios.post('/api/personas', formData);
+        const res = await axios.post('http://localhost:5000/api/personas', adaptFormData(), {
+          headers: getAuthHeaders(),
+        });
         setPersonas([...personas, res.data.data]);
         setSnackbar({ open: true, message: 'Persona registrada exitosamente', severity: 'success' });
       }
@@ -118,14 +151,21 @@ const Persona = () => {
       });
       setErrors({});
     } catch (err) {
-      setSnackbar({ open: true, message: 'Error al guardar persona', severity: 'error' });
+      if (err.response && err.response.status === 401) {
+        setSnackbar({ open: true, message: 'Sesión expirada. Inicia sesión nuevamente.', severity: 'error' });
+        setTimeout(() => navigate('/auth/login'), 2000);
+      } else {
+        setSnackbar({ open: true, message: 'Error al guardar persona', severity: 'error' });
+      }
     }
   };
 
   const handleDelete = async (index) => {
     try {
       const personaId = personas[index].id;
-      await axios.delete(`/api/personas/${personaId}`);
+      await axios.delete(`http://localhost:5000/api/personas/${personaId}`, {
+        headers: getAuthHeaders(),
+      });
       const nuevasPersonas = [...personas];
       nuevasPersonas.splice(index, 1);
       setPersonas(nuevasPersonas);
@@ -142,13 +182,21 @@ const Persona = () => {
       });
       setErrors({});
     } catch (err) {
-      setSnackbar({ open: true, message: 'Error al eliminar persona', severity: 'error' });
+      if (err.response && err.response.status === 401) {
+        setSnackbar({ open: true, message: 'Sesión expirada. Inicia sesión nuevamente.', severity: 'error' });
+        setTimeout(() => navigate('/auth/login'), 2000);
+      } else {
+        setSnackbar({ open: true, message: 'Error al eliminar persona', severity: 'error' });
+      }
     }
   };
 
   const handleEdit = (index) => {
     const persona = personas[index];
-    setFormData(persona);
+    setFormData({
+      ...persona,
+      fechaNacimiento: persona.fecha_nacimiento || '', // Adaptar para el form
+    });
     setEditingIndex(index);
     setSnackbar({ open: true, message: 'Editando persona. Modifica los campos y guarda los cambios.', severity: 'info' });
   };
@@ -229,13 +277,17 @@ const Persona = () => {
             border: '1px solid',
             borderColor: 'divider',
             transition: 'all 0.3s ease',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
             '&:hover': {
               elevation: 12,
               transform: 'translateY(-2px)',
             }
           }}
         >
-          <CardContent sx={{ p: 0 }}>
+          <CardContent sx={{ p: 0, width: '100%' }}>
             <Box
               sx={{
                 background: editingIndex >= 0
@@ -246,20 +298,13 @@ const Persona = () => {
                 borderRadius: '16px 16px 0 0',
                 position: 'relative',
                 overflow: 'hidden',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  width: '100px',
-                  height: '100px',
-                  background: 'rgba(255,255,255,0.1)',
-                  borderRadius: '50%',
-                  transform: 'translate(30px, -30px)'
-                }
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: 600 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Box
                     sx={{
@@ -300,86 +345,72 @@ const Persona = () => {
               </Box>
             </Box>
 
-            <Box sx={{ p: 4 }}>
-              <Box component="form" onSubmit={handleSubmit}>
+            <Box sx={{
+              p: { xs: 2, sm: 4 },
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              minHeight: 0,
+              background: 'transparent'
+            }}>
+              <Box
+                component="form"
+                onSubmit={handleSubmit}
+                sx={{
+                  width: '100%',
+                  maxWidth: 500,
+                  mx: 'auto',
+                  background: '#fff',
+                  borderRadius: 3,
+                  boxShadow: '0 2px 12px rgba(33,150,243,0.08)',
+                  p: { xs: 2, sm: 4 },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2,
+                }}
+              >
                 <Typography
                   variant="h6"
                   sx={{
                     mb: 3,
                     color: 'primary.main',
                     fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    '&::before': {
-                      content: '""',
-                      width: '4px',
-                      height: '24px',
-                      bgcolor: 'primary.main',
-                      mr: 1,
-                      borderRadius: '2px'
-                    }
+                    textAlign: 'center',
+                    letterSpacing: 1,
                   }}
                 >
                   Información Personal
                 </Typography>
 
                 {/* Nombre */}
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 1 }}>
                   <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      fontWeight: 600,
-                      color: 'text.primary',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
+                    variant="body1"
+                    sx={{ fontWeight: 600, mb: 0.5, color: 'text.primary' }}
                   >
-                    Nombre Completo *
+                    Nombre:
                   </Typography>
                   <TextField
                     fullWidth
                     variant="outlined"
                     name="nombre"
-                    placeholder="Ingresa el nombre completo"
+                    placeholder="Ingresa los nombres"
                     value={formData.nombre}
                     onChange={handleChange}
                     error={!!errors.nombre}
                     helperText={errors.nombre}
-                    sx={{
-                      maxWidth: 600,
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        backgroundColor: 'background.paper',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: '#f8f9ff',
-                        },
-                        '&.Mui-focused': {
-                          backgroundColor: '#f8f9ff',
-                          '& fieldset': {
-                            borderColor: 'primary.main',
-                            borderWidth: '2px'
-                          }
-                        }
-                      }
-                    }}
                   />
                 </Box>
 
                 {/* Apellido */}
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 1 }}>
                   <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      fontWeight: 600,
-                      color: 'text.primary',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
+                    variant="body1"
+                    sx={{ fontWeight: 600, mb: 0.5, color: 'text.primary' }}
                   >
-                    Apellidos *
+                    Apellido:
                   </Typography>
                   <TextField
                     fullWidth
@@ -390,40 +421,16 @@ const Persona = () => {
                     onChange={handleChange}
                     error={!!errors.apellido}
                     helperText={errors.apellido}
-                    sx={{
-                      maxWidth: 600,
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        backgroundColor: 'background.paper',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: '#f8f9ff',
-                        },
-                        '&.Mui-focused': {
-                          backgroundColor: '#f8f9ff',
-                          '& fieldset': {
-                            borderColor: 'primary.main',
-                            borderWidth: '2px'
-                          }
-                        }
-                      }
-                    }}
                   />
                 </Box>
 
                 {/* Cédula */}
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 1 }}>
                   <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      fontWeight: 600,
-                      color: 'text.primary',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
+                    variant="body1"
+                    sx={{ fontWeight: 600, mb: 0.5, color: 'text.primary' }}
                   >
-                    Número de Cédula *
+                    Cédula:
                   </Typography>
                   <TextField
                     fullWidth
@@ -435,40 +442,16 @@ const Persona = () => {
                     error={!!errors.cedula}
                     helperText={errors.cedula}
                     inputProps={{ maxLength: 10 }}
-                    sx={{
-                      maxWidth: 400,
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        backgroundColor: 'background.paper',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: '#f8f9ff',
-                        },
-                        '&.Mui-focused': {
-                          backgroundColor: '#f8f9ff',
-                          '& fieldset': {
-                            borderColor: 'primary.main',
-                            borderWidth: '2px'
-                          }
-                        }
-                      }
-                    }}
                   />
                 </Box>
 
                 {/* Fecha de Nacimiento */}
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 1 }}>
                   <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      fontWeight: 600,
-                      color: 'text.primary',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
+                    variant="body1"
+                    sx={{ fontWeight: 600, mb: 0.5, color: 'text.primary' }}
                   >
-                    Fecha de Nacimiento *
+                    Fecha de Nacimiento:
                   </Typography>
                   <TextField
                     fullWidth
@@ -480,40 +463,16 @@ const Persona = () => {
                     onChange={handleChange}
                     error={!!errors.fechaNacimiento}
                     helperText={errors.fechaNacimiento}
-                    sx={{
-                      maxWidth: 300,
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        backgroundColor: 'background.paper',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: '#f8f9ff',
-                        },
-                        '&.Mui-focused': {
-                          backgroundColor: '#f8f9ff',
-                          '& fieldset': {
-                            borderColor: 'primary.main',
-                            borderWidth: '2px'
-                          }
-                        }
-                      }
-                    }}
                   />
                 </Box>
 
                 {/* Teléfono */}
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 1 }}>
                   <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      fontWeight: 600,
-                      color: 'text.primary',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
+                    variant="body1"
+                    sx={{ fontWeight: 600, mb: 0.5, color: 'text.primary' }}
                   >
-                    Número de Teléfono *
+                    Teléfono:
                   </Typography>
                   <TextField
                     fullWidth
@@ -525,40 +484,16 @@ const Persona = () => {
                     error={!!errors.telefono}
                     helperText={errors.telefono}
                     inputProps={{ maxLength: 10 }}
-                    sx={{
-                      maxWidth: 350,
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        backgroundColor: 'background.paper',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: '#f8f9ff',
-                        },
-                        '&.Mui-focused': {
-                          backgroundColor: '#f8f9ff',
-                          '& fieldset': {
-                            borderColor: 'primary.main',
-                            borderWidth: '2px'
-                          }
-                        }
-                      }
-                    }}
                   />
                 </Box>
 
                 {/* Correo */}
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 1 }}>
                   <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      fontWeight: 600,
-                      color: 'text.primary',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
+                    variant="body1"
+                    sx={{ fontWeight: 600, mb: 0.5, color: 'text.primary' }}
                   >
-                    Correo Electrónico *
+                    Correo:
                   </Typography>
                   <TextField
                     fullWidth
@@ -570,40 +505,16 @@ const Persona = () => {
                     onChange={handleChange}
                     error={!!errors.correo}
                     helperText={errors.correo}
-                    sx={{
-                      maxWidth: 500,
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        backgroundColor: 'background.paper',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: '#f8f9ff',
-                        },
-                        '&.Mui-focused': {
-                          backgroundColor: '#f8f9ff',
-                          '& fieldset': {
-                            borderColor: 'primary.main',
-                            borderWidth: '2px'
-                          }
-                        }
-                      }
-                    }}
                   />
                 </Box>
 
                 {/* Dirección */}
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 1 }}>
                   <Typography
-                    variant="body2"
-                    sx={{
-                      mb: 1,
-                      fontWeight: 600,
-                      color: 'text.primary',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}
+                    variant="body1"
+                    sx={{ fontWeight: 600, mb: 0.5, color: 'text.primary' }}
                   >
-                    Dirección Completa *
+                    Dirección:
                   </Typography>
                   <TextField
                     fullWidth
@@ -616,24 +527,6 @@ const Persona = () => {
                     helperText={errors.direccion}
                     multiline
                     rows={3}
-                    sx={{
-                      maxWidth: 600,
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        backgroundColor: 'background.paper',
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                          backgroundColor: '#f8f9ff',
-                        },
-                        '&.Mui-focused': {
-                          backgroundColor: '#f8f9ff',
-                          '& fieldset': {
-                            borderColor: 'primary.main',
-                            borderWidth: '2px'
-                          }
-                        }
-                      }
-                    }}
                   />
                 </Box>
 
@@ -644,8 +537,8 @@ const Persona = () => {
                     gap: 2,
                     justifyContent: 'center',
                     alignItems: 'center',
-                    mt: 4,
-                    pt: 3,
+                    mt: 2,
+                    pt: 2,
                     borderTop: '1px solid',
                     borderColor: 'divider'
                   }}
@@ -840,11 +733,13 @@ const Persona = () => {
               <Grid item xs={12}>
                 <Typography variant="body2" color="text.secondary">Fecha de Nacimiento</Typography>
                 <Typography variant="body1" fontWeight="bold">
-                  {new Date(detalle.fechaNacimiento).toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
+                  {detalle.fecha_nacimiento
+                    ? new Date(detalle.fecha_nacimiento).toLocaleDateString('es-ES', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })
+                    : 'Sin fecha'}
                 </Typography>
               </Grid>
             </Grid>
