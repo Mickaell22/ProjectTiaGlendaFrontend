@@ -2,16 +2,12 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  FormGroup,
-  FormControlLabel,
   Button,
   Stack,
-  Checkbox,
   TextField,
   Alert,
   Card,
   CardContent,
-  Grid,
 } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
@@ -33,7 +29,6 @@ const Login = () => {
     initialValues: {
       usuario: '',
       contrasenia: '',
-      rememberMe: false,
     },
     validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
@@ -64,183 +59,178 @@ const Login = () => {
     <PageContainer title="Login" description="Página de inicio de sesión">
       <Box
         sx={{
-          position: 'relative',
-          '&:before': {
-            content: '""',
-            background: 'radial-gradient(#d2f1df, #d3d7fa, #bad8f4)',
-            backgroundSize: '400% 400%',
-            animation: 'gradient 15s ease infinite',
-            position: 'absolute',
-            height: '100%',
-            width: '100%',
-            opacity: '0.3',
-          },
+          minHeight: '100vh',
+          background: 'linear-gradient(135deg, #e3eafc 0%, #f8f9ff 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
-        <Grid container spacing={0} justifyContent="center" sx={{ height: '100vh' }}>
-          <Grid
-            item
-            xs={12}
-            sm={12}
-            lg={4}
-            xl={3}
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
+        <Card
+          elevation={10}
+          sx={{
+            width: '100%',
+            maxWidth: 420,
+            borderRadius: 4,
+            overflow: 'hidden',
+            boxShadow: '0 8px 32px rgba(33, 150, 243, 0.12)',
+            position: 'relative',
+          }}
+        >
+          {/* Barra superior con título y logo alineados */}
+          <Box
+            sx={{
+              bgcolor: '#6C4ACF',
+              py: 2.5,
+              px: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
           >
-            <Card elevation={9} sx={{ p: 4, zIndex: 1, width: '100%', maxWidth: '500px' }}>
-              <CardContent>
-                <Box display="flex" alignItems="center" justifyContent="center" mb={3}>
-                  <Typography variant="h2" fontWeight={700} color="primary">
-                    Mi App
+            <Typography
+              variant="h6"
+              fontWeight={600}
+              color="white"
+              sx={{ letterSpacing: 1 }}
+            >
+              Plataforma del Centro Tia Glenda
+            </Typography>
+            <img
+              src="/logo.png"
+              alt="Logo Tia Glenda"
+              style={{ width: '74px', height: 'auto', marginLeft: 12 }}
+            />
+          </Box>
+          {/* Fin barra superior */}
+
+          <CardContent sx={{ px: 4, py: 5 }}>
+            <Typography
+              variant="subtitle1"
+              textAlign="center"
+              color="textSecondary"
+              mb={2}
+              fontWeight={500}
+            >
+              Bienvenido/a
+            </Typography>
+            <Typography
+              variant="body2"
+              textAlign="center"
+              color="textSecondary"
+              mb={3}
+            >
+              Inicia sesión para continuar
+            </Typography>
+
+            <form onSubmit={formik.handleSubmit}>
+              <Stack spacing={3}>
+                <Box>
+                  <Typography
+                    variant="subtitle2"
+                    fontWeight={600}
+                    component="label"
+                    htmlFor="usuario"
+                    mb="5px"
+                  >
+                    Usuario
                   </Typography>
+                  <TextField
+                    id="usuario"
+                    name="usuario"
+                    type="text"
+                    variant="outlined"
+                    fullWidth
+                    value={formik.values.usuario}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.usuario && Boolean(formik.errors.usuario)}
+                    helperText={formik.touched.usuario && formik.errors.usuario}
+                    placeholder="admin"
+                  />
                 </Box>
 
-                <Typography
-                  variant="subtitle1"
-                  textAlign="center"
-                  color="textSecondary"
-                  mb={1}
-                >
-                  Bienvenido de vuelta
-                </Typography>
-                <Typography
-                  variant="subtitle1"
-                  textAlign="center"
-                  color="textSecondary"
-                  mb={3}
-                >
-                  Inicia sesión para continuar
-                </Typography>
-
-                <form onSubmit={formik.handleSubmit}>
-                  <Stack spacing={3}>
-                    <Box>
-                      <Typography
-                        variant="subtitle1"
-                        fontWeight={600}
-                        component="label"
-                        htmlFor="usuario"
-                        mb="5px"
-                      >
-                        Usuario
-                      </Typography>
-                      <TextField
-                        id="usuario"
-                        name="usuario"
-                        type="text"
-                        variant="outlined"
-                        fullWidth
-                        value={formik.values.usuario}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.touched.usuario && Boolean(formik.errors.usuario)}
-                        helperText={formik.touched.usuario && formik.errors.usuario}
-                        placeholder="admin"
-                      />
-                    </Box>
-
-                    <Box>
-                      <Typography
-                        variant="subtitle1"
-                        fontWeight={600}
-                        component="label"
-                        htmlFor="contrasenia"
-                        mb="5px"
-                      >
-                        Contraseña
-                      </Typography>
-                      <TextField
-                        id="contrasenia"
-                        name="contrasenia"
-                        type="password"
-                        variant="outlined"
-                        fullWidth
-                        value={formik.values.contrasenia}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.touched.contrasenia && Boolean(formik.errors.contrasenia)}
-                        helperText={formik.touched.contrasenia && formik.errors.contrasenia}
-                        placeholder="••••••••"
-                      />
-                    </Box>
-
-                    <Stack
-                      justifyContent="space-between"
-                      direction="row"
-                      alignItems="center"
-                      my={2}
-                    >
-                      <FormGroup>
-                        <FormControlLabel
-                          control={
-                            <Checkbox
-                              checked={formik.values.rememberMe}
-                              onChange={formik.handleChange}
-                              name="rememberMe"
-                            />
-                          }
-                          label="Recordarme"
-                        />
-                      </FormGroup>
-                      <Typography
-                        component={Link}
-                        to="/auth/forgot-password"
-                        fontWeight="500"
-                        sx={{
-                          textDecoration: 'none',
-                          color: 'primary.main',
-                        }}
-                      >
-                        ¿Olvidaste tu contraseña?
-                      </Typography>
-                    </Stack>
-
-                    <Box>
-                      <Button
-                        color="primary"
-                        variant="contained"
-                        size="large"
-                        fullWidth
-                        type="submit"
-                        disabled={formik.isSubmitting}
-                        sx={{ mb: 2 }}
-                      >
-                        {formik.isSubmitting ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-                      </Button>
-                    </Box>
-
-                    {errorMsg && (
-                      <Alert severity="error" sx={{ mt: 2 }}>
-                        {errorMsg}
-                      </Alert>
-                    )}
-                  </Stack>
-                </form>
-
-                <Typography
-                  variant="subtitle1"
-                  textAlign="center"
-                  color="textSecondary"
-                  mt={3}
-                >
-                  ¿No tienes una cuenta?{' '}
+                <Box>
                   <Typography
-                    component={Link}
-                    to="/auth/register"
-                    fontWeight="500"
+                    variant="subtitle2"
+                    fontWeight={600}
+                    component="label"
+                    htmlFor="contrasenia"
+                    mb="5px"
+                  >
+                    Contraseña
+                  </Typography>
+                  <TextField
+                    id="contrasenia"
+                    name="contrasenia"
+                    type="password"
+                    variant="outlined"
+                    fullWidth
+                    value={formik.values.contrasenia}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.touched.contrasenia && Boolean(formik.errors.contrasenia)}
+                    helperText={formik.touched.contrasenia && formik.errors.contrasenia}
+                    placeholder="••••••••"
+                  />
+                </Box>
+
+                <Box>
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    size="large"
+                    fullWidth
+                    type="submit"
+                    disabled={formik.isSubmitting}
                     sx={{
-                      textDecoration: 'none',
-                      color: 'primary.main',
+                      fontWeight: 'bold',
+                      fontSize: '1rem',
+                      letterSpacing: 1,
+                      borderRadius: 3,
+                      background: 'linear-gradient(90deg, #6C4ACF 0%, #8F6FE6 100%)',
+                      boxShadow: '0 4px 15px rgba(108, 74, 207, 0.15)',
+                      mb: 2,
+                      mt: 1,
+                      '&:hover': {
+                        background: 'linear-gradient(90deg, #8F6FE6 0%, #6C4ACF 100%)',
+                      },
                     }}
                   >
-                    Regístrate
-                  </Typography>
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+                    {formik.isSubmitting ? 'Iniciando sesión...' : 'INICIAR SESIÓN'}
+                  </Button>
+                </Box>
+
+                {errorMsg && (
+                  <Alert severity="error" sx={{ mt: 2 }}>
+                    {errorMsg}
+                  </Alert>
+                )}
+              </Stack>
+            </form>
+
+           
+          </CardContent>
+
+          {/* Barra inferior decorativa */}
+          {/* Barra inferior decorativa */}
+        <Box
+           sx={{
+            width: '100%',
+           height: 18,
+           bgcolor: '#6C4ACF',
+           position: 'absolute',
+           left: 0,
+           bottom: 0,
+          }}
+          >
+            <Box sx={{ flex: 1, bgcolor: '#6C4ACF' }} />
+            <Box sx={{ flex: 1, bgcolor: '#fff' }} />
+            <Box sx={{ flex: 1, bgcolor: '#6C4ACF' }} />
+            <Box sx={{ flex: 1, bgcolor: '#fff' }} />
+            <Box sx={{ flex: 1, bgcolor: '#6C4ACF' }} />
+          </Box>
+        </Card>
       </Box>
     </PageContainer>
   );
