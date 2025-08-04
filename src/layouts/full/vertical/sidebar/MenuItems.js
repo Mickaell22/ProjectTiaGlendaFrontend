@@ -106,7 +106,7 @@ const Menuitems = [
         id: uniqueId(),
         title: 'Gestión de Especialidad',
         icon: FiberManualRecord,
-        href: '/apps/user-profile/followers',
+        href: '/gestion/especialidad',
       },
       {
         id: uniqueId(),
