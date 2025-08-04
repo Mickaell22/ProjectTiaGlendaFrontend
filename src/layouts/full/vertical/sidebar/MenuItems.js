@@ -67,12 +67,7 @@ const Menuitems = [
         icon: FiberManualRecord,
         href: '/gestion/usuario',
       },
-      {
-        id: uniqueId(),
-        title: 'Gestión de Roles',
-        icon: FiberManualRecord,
-        href: '/apps/user-profile/friends',
-      },
+      
     ],
   },
   {
@@ -109,13 +104,13 @@ const Menuitems = [
     children: [
       {
         id: uniqueId(),
-        title: 'Gestión de Terapeutas',
+        title: 'Gestión de Especialidad',
         icon: FiberManualRecord,
         href: '/apps/user-profile/followers',
       },
       {
         id: uniqueId(),
-        title: 'Gestión de Docentes',
+        title: 'Gestión de Personal',
         icon: FiberManualRecord,
         href: '/apps/user-profile/friends',
       },
