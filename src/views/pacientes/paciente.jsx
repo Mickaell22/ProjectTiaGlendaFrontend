@@ -1,23 +1,24 @@
+// src/views/admin/Paciente.jsx
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Button, Container, Dialog, DialogContent, DialogTitle, Grid, IconButton,
-  MenuItem, Paper, Snackbar, Table, TableBody, TableCell, TableHead, TablePagination,
-  TableRow, TextField, Typography, Alert, Tooltip, InputLabel
+  Box, Button, Container, Dialog, DialogContent, DialogTitle, Grid,
+  IconButton, MenuItem, Paper, Snackbar, Table, TableBody, TableCell,
+  TableHead, TablePagination, TableRow, TextField, Typography, Alert, Tooltip
 } from '@mui/material';
-import { Delete, Edit, Visibility, Search, UploadFile } from '@mui/icons-material';
+import { Delete, Edit, Visibility, Search } from '@mui/icons-material';
 import axios from 'axios';
 
 const Paciente = () => {
   const [pacientes, setPacientes] = useState([]);
-  const [tutores, setTutores] = useState([]);
   const [detalle, setDetalle] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage] = useState(5);
   const [editingId, setEditingId] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [searchCedula, setSearchCedula] = useState('');
+  const [searchCedulaPersona, setSearchCedulaPersona] = useState('');
+  const [searchCedulaTutor, setSearchCedulaTutor] = useState('');
   const [personaEncontrada, setPersonaEncontrada] = useState(null);
-  const [documentoFile, setDocumentoFile] = useState(null);
+  const [tutorEncontrado, setTutorEncontrado] = useState(null);
 
   const [formData, setFormData] = useState({
     persona_id: '', tutor_id: '', tipo_terapia: '', fecha_ingreso: '',
@@ -25,10 +26,7 @@ const Paciente = () => {
   });
 
   const token = localStorage.getItem('jwt_token');
-  const headers = {
-    Authorization: `Bearer ${token}`
-  };
-
+  const headers = { Authorization: `Bearer ${token}` };
   const tiposTerapia = ['Física', 'Ocupacional', 'Lenguaje', 'Psicológica'];
 
   useEffect(() => {
@@ -37,22 +35,18 @@ const Paciente = () => {
 
   const fetchData = async () => {
     try {
-      const [pacRes, tutRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/pacientes', { headers }),
-        axios.get('http://localhost:5000/api/tutores', { headers })
-      ]);
-      setPacientes(pacRes.data.data || []);
-      setTutores(tutRes.data.data || []);
+      const res = await axios.get('http://localhost:5000/api/pacientes', { headers });
+      setPacientes(res.data.data || []);
     } catch (err) {
-      console.error(err);
+      console.error('Error al obtener pacientes:', err);
     }
   };
 
   const handleBuscarPersona = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/personas?cedula=${searchCedula}`, { headers });
-      const persona = res.data.data;
-      if (persona && persona.id) {
+      const res = await axios.get(`http://localhost:5000/api/personas?cedula=${searchCedulaPersona}`, { headers });
+      const persona = res.data?.data;
+      if (persona && typeof persona === 'object' && Object.keys(persona).length > 0) {
         setPersonaEncontrada(persona);
         setFormData(prev => ({ ...prev, persona_id: persona.id }));
         setSnackbar({ open: true, message: 'Persona encontrada', severity: 'success' });
@@ -61,13 +55,36 @@ const Paciente = () => {
         setSnackbar({ open: true, message: 'Persona no encontrada', severity: 'warning' });
       }
     } catch (error) {
+      console.error('Error al buscar persona:', error);
       setPersonaEncontrada(null);
       setSnackbar({ open: true, message: 'Error al buscar persona', severity: 'error' });
     }
   };
 
-  const handleFileChange = (e) => {
-    setDocumentoFile(e.target.files[0]);
+  const handleBuscarTutor = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/personas?cedula=${searchCedulaTutor}`, { headers });
+      const persona = res.data?.data;
+      if (persona && typeof persona === 'object' && Object.keys(persona).length > 0) {
+        const tutoresRes = await axios.get('http://localhost:5000/api/tutores', { headers });
+        const tutor = tutoresRes.data.data.find(t => t.persona_id === persona.id);
+        if (tutor) {
+          setTutorEncontrado(persona);
+          setFormData(prev => ({ ...prev, tutor_id: tutor.id }));
+          setSnackbar({ open: true, message: 'Tutor encontrado', severity: 'success' });
+        } else {
+          setTutorEncontrado(null);
+          setSnackbar({ open: true, message: 'No existe tutor con esa cédula', severity: 'warning' });
+        }
+      } else {
+        setTutorEncontrado(null);
+        setSnackbar({ open: true, message: 'Persona no encontrada', severity: 'warning' });
+      }
+    } catch (err) {
+      console.error('Error al buscar tutor:', err);
+      setTutorEncontrado(null);
+      setSnackbar({ open: true, message: 'Error al buscar tutor', severity: 'error' });
+    }
   };
 
   const handleGuardar = async () => {
@@ -76,36 +93,31 @@ const Paciente = () => {
         return setSnackbar({ open: true, message: 'Persona y fecha requeridas', severity: 'warning' });
       }
 
-      const form = new FormData();
-      Object.entries(formData).forEach(([key, value]) => form.append(key, value));
-      if (documentoFile) form.append('documento', documentoFile);
+      const usuario_creacion = JSON.parse(localStorage.getItem('user_data'))?.id;
+      const dataToSend = { ...formData, usuario_creacion };
 
       if (editingId) {
-        await axios.put(`http://localhost:5000/api/pacientes/${editingId}`, form, {
-          headers: { ...headers, 'Content-Type': 'multipart/form-data' }
-        });
+        await axios.put(`http://localhost:5000/api/pacientes/${editingId}`, dataToSend, { headers });
         setSnackbar({ open: true, message: 'Paciente actualizado', severity: 'success' });
       } else {
-        await axios.post('http://localhost:5000/api/pacientes', form, {
-          headers: { ...headers, 'Content-Type': 'multipart/form-data' }
-        });
+        await axios.post('http://localhost:5000/api/pacientes', dataToSend, { headers });
         setSnackbar({ open: true, message: 'Paciente registrado', severity: 'success' });
       }
 
       resetForm();
       fetchData();
     } catch (err) {
+      console.error('Error al guardar:', err);
       setSnackbar({ open: true, message: 'Error al guardar', severity: 'error' });
     }
   };
 
   const resetForm = () => {
-    setFormData({
-      persona_id: '', tutor_id: '', tipo_terapia: '', fecha_ingreso: '', observaciones: '', estado: 'activo'
-    });
-    setDocumentoFile(null);
+    setFormData({ persona_id: '', tutor_id: '', tipo_terapia: '', fecha_ingreso: '', observaciones: '', estado: 'activo' });
     setPersonaEncontrada(null);
-    setSearchCedula('');
+    setTutorEncontrado(null);
+    setSearchCedulaPersona('');
+    setSearchCedulaTutor('');
     setEditingId(null);
   };
 
@@ -128,76 +140,71 @@ const Paciente = () => {
     }
   };
 
-  const filteredPacientes = pacientes.filter(p =>
-    p.cedula && p.cedula.toLowerCase().includes(searchCedula.toLowerCase())
-  );
-
   return (
     <Box p={2}>
       <Container maxWidth="xl">
+        {/* Cabecera */}
         <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
           <Typography variant="h5" fontWeight="bold">Gestión de Pacientes</Typography>
         </Paper>
 
-        {/* Buscador de Persona */}
-        <Paper elevation={3} sx={{ p: 3, maxWidth: 600, mx: 'auto', mb: 3 }}>
-          <Typography variant="h6">Buscar Persona por Cédula</Typography>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={8}>
-              <TextField fullWidth label="Cédula" value={searchCedula} onChange={e => setSearchCedula(e.target.value)} />
+        {/* Buscar Persona */}
+        <Paper elevation={3} sx={{ p: 3, maxWidth: 1000, mx: 'auto', mb: 3 }}>
+          <Typography variant="h6">Buscar Persona</Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <TextField fullWidth label="Cédula de Persona" value={searchCedulaPersona} onChange={e => setSearchCedulaPersona(e.target.value)} />
+              <Button variant="outlined" fullWidth onClick={handleBuscarPersona} startIcon={<Search />} sx={{ mt: 1 }}>
+                Buscar Persona
+              </Button>
             </Grid>
-            <Grid item xs={4}>
-              <Button variant="outlined" fullWidth onClick={handleBuscarPersona} startIcon={<Search />}>Buscar</Button>
+            <Grid item xs={12} md={6}>
+              {personaEncontrada && (
+                <Paper elevation={1} sx={{ p: 2, backgroundColor: '#f3f3f3' }}>
+                  <Typography><strong>Nombre:</strong> {personaEncontrada.nombre} {personaEncontrada.apellido}</Typography>
+                  <Typography><strong>Cédula:</strong> {personaEncontrada.cedula}</Typography>
+                </Paper>
+              )}
             </Grid>
           </Grid>
-          {personaEncontrada && (
-            <Box mt={2}>
-              <Alert severity="info">
-                {personaEncontrada.nombre} {personaEncontrada.apellido} - Cédula: {personaEncontrada.cedula}
-              </Alert>
-            </Box>
-          )}
+        </Paper>
+
+        {/* Buscar Tutor */}
+        <Paper elevation={3} sx={{ p: 3, maxWidth: 1000, mx: 'auto', mb: 3 }}>
+          <Typography variant="h6">Buscar Tutor</Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <TextField fullWidth label="Cédula del Tutor" value={searchCedulaTutor} onChange={e => setSearchCedulaTutor(e.target.value)} />
+              <Button variant="outlined" fullWidth onClick={handleBuscarTutor} startIcon={<Search />} sx={{ mt: 1 }}>
+                Buscar Tutor
+              </Button>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {tutorEncontrado && (
+                <Paper elevation={1} sx={{ p: 2, backgroundColor: '#f3f3f3' }}>
+                  <Typography><strong>Nombre:</strong> {tutorEncontrado.nombre} {tutorEncontrado.apellido}</Typography>
+                  <Typography><strong>Cédula:</strong> {tutorEncontrado.cedula}</Typography>
+                </Paper>
+              )}
+            </Grid>
+          </Grid>
         </Paper>
 
         {/* Formulario */}
-        <Paper elevation={3} sx={{ borderRadius: 2, p: 3, maxWidth: 600, mx: 'auto', mb: 4 }}>
-          <Typography variant="h6" textAlign="center" fontWeight="bold" color="primary.main" mb={3}>
-            {editingId ? 'Editar Paciente' : 'Registrar Paciente'}
-          </Typography>
+        <Paper elevation={3} sx={{ p: 3, maxWidth: 600, mx: 'auto', mb: 4 }}>
+          <Typography variant="h6" textAlign="center" color="primary">{editingId ? 'Editar Paciente' : 'Registrar Paciente'}</Typography>
           <Grid container spacing={2} direction="column">
             <Grid item>
-              <Typography>Tutor:</Typography>
-              <TextField select fullWidth name="tutor_id" value={formData.tutor_id} onChange={e => setFormData(prev => ({ ...prev, tutor_id: e.target.value }))}>
-                <MenuItem value="">Sin asignar</MenuItem>
-                {tutores.map(t => (
-                  <MenuItem key={t.id} value={t.id}>{t.nombre_completo}</MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item>
-              <Typography>Tipo de Terapia:</Typography>
-              <TextField select fullWidth name="tipo_terapia" value={formData.tipo_terapia} onChange={e => setFormData(prev => ({ ...prev, tipo_terapia: e.target.value }))}>
+              <TextField select fullWidth label="Tipo de Terapia" value={formData.tipo_terapia} onChange={e => setFormData(prev => ({ ...prev, tipo_terapia: e.target.value }))}>
                 <MenuItem value="">Seleccione</MenuItem>
-                {tiposTerapia.map((t, i) => (
-                  <MenuItem key={i} value={t}>{t}</MenuItem>
-                ))}
+                {tiposTerapia.map((t, i) => <MenuItem key={i} value={t}>{t}</MenuItem>)}
               </TextField>
             </Grid>
             <Grid item>
-              <Typography>Fecha Ingreso:</Typography>
-              <TextField type="date" fullWidth name="fecha_ingreso" value={formData.fecha_ingreso} onChange={e => setFormData(prev => ({ ...prev, fecha_ingreso: e.target.value }))} />
+              <TextField type="date" fullWidth label="Fecha Ingreso" InputLabelProps={{ shrink: true }} value={formData.fecha_ingreso} onChange={e => setFormData(prev => ({ ...prev, fecha_ingreso: e.target.value }))} />
             </Grid>
             <Grid item>
-              <Typography>Observaciones:</Typography>
-              <TextField name="observaciones" fullWidth multiline rows={2} value={formData.observaciones} onChange={e => setFormData(prev => ({ ...prev, observaciones: e.target.value }))} />
-            </Grid>
-            <Grid item>
-              <InputLabel>Documento (PDF):</InputLabel>
-              <Button variant="outlined" component="label" startIcon={<UploadFile />}>
-                Subir Documento
-                <input type="file" hidden accept="application/pdf" onChange={handleFileChange} />
-              </Button>
-              {documentoFile && <Typography mt={1}>{documentoFile.name}</Typography>}
+              <TextField fullWidth multiline rows={3} label="Observaciones" value={formData.observaciones} onChange={e => setFormData(prev => ({ ...prev, observaciones: e.target.value }))} />
             </Grid>
             <Grid item>
               <Button variant="contained" color="success" fullWidth onClick={handleGuardar}>
@@ -207,7 +214,7 @@ const Paciente = () => {
           </Grid>
         </Paper>
 
-        {/* Tabla de pacientes */}
+        {/* Tabla de Pacientes */}
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h6" gutterBottom>Listado de Pacientes</Typography>
           <Table>
@@ -222,7 +229,7 @@ const Paciente = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredPacientes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((p) => (
+              {pacientes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(p => (
                 <TableRow key={p.id}>
                   <TableCell>{p.nombre_completo}</TableCell>
                   <TableCell>{p.cedula}</TableCell>
@@ -238,14 +245,10 @@ const Paciente = () => {
               ))}
             </TableBody>
           </Table>
-          <TablePagination
-            component="div" count={filteredPacientes.length}
-            page={page} onPageChange={(e, newPage) => setPage(newPage)}
-            rowsPerPage={rowsPerPage} rowsPerPageOptions={[]}
-          />
+          <TablePagination component="div" count={pacientes.length} page={page} onPageChange={(e, newPage) => setPage(newPage)} rowsPerPage={rowsPerPage} rowsPerPageOptions={[]} />
         </Paper>
 
-        {/* Detalle */}
+        {/* Detalle del Paciente */}
         <Dialog open={!!detalle} onClose={() => setDetalle(null)}>
           <DialogTitle>Detalle del Paciente</DialogTitle>
           <DialogContent>
@@ -262,10 +265,9 @@ const Paciente = () => {
           </DialogContent>
         </Dialog>
 
+        {/* Snackbar de notificación */}
         <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
-          <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
+          <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>{snackbar.message}</Alert>
         </Snackbar>
       </Container>
     </Box>
