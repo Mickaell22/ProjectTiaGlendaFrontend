@@ -1,4 +1,3 @@
-// src/views/admin/Paciente.jsx
 import React, { useEffect, useState } from 'react';
 import {
   Box, Button, Container, Dialog, DialogContent, DialogTitle, Grid,
@@ -29,9 +28,7 @@ const Paciente = () => {
   const headers = { Authorization: `Bearer ${token}` };
   const tiposTerapia = ['Física', 'Ocupacional', 'Lenguaje', 'Psicológica'];
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
@@ -44,9 +41,9 @@ const Paciente = () => {
 
   const handleBuscarPersona = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/personas?cedula=${searchCedulaPersona}`, { headers });
-      const persona = res.data?.data;
-      if (persona && typeof persona === 'object' && Object.keys(persona).length > 0) {
+      const res = await axios.get('http://localhost:5000/api/personas', { headers });
+      const persona = res.data?.data?.find(p => p.cedula === searchCedulaPersona);
+      if (persona) {
         setPersonaEncontrada(persona);
         setFormData(prev => ({ ...prev, persona_id: persona.id }));
         setSnackbar({ open: true, message: 'Persona encontrada', severity: 'success' });
@@ -56,16 +53,16 @@ const Paciente = () => {
       }
     } catch (error) {
       console.error('Error al buscar persona:', error);
-      setPersonaEncontrada(null);
       setSnackbar({ open: true, message: 'Error al buscar persona', severity: 'error' });
     }
   };
 
   const handleBuscarTutor = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/personas?cedula=${searchCedulaTutor}`, { headers });
-      const persona = res.data?.data;
-      if (persona && typeof persona === 'object' && Object.keys(persona).length > 0) {
+      const resPersonas = await axios.get('http://localhost:5000/api/personas', { headers });
+      const persona = resPersonas.data?.data?.find(p => p.cedula === searchCedulaTutor);
+
+      if (persona) {
         const tutoresRes = await axios.get('http://localhost:5000/api/tutores', { headers });
         const tutor = tutoresRes.data.data.find(t => t.persona_id === persona.id);
         if (tutor) {
@@ -82,7 +79,6 @@ const Paciente = () => {
       }
     } catch (err) {
       console.error('Error al buscar tutor:', err);
-      setTutorEncontrado(null);
       setSnackbar({ open: true, message: 'Error al buscar tutor', severity: 'error' });
     }
   };
@@ -123,10 +119,15 @@ const Paciente = () => {
 
   const handleEdit = (p) => {
     setFormData({
-      persona_id: p.persona_id, tutor_id: p.tutor_id || '', tipo_terapia: p.tipo_terapia || '',
-      fecha_ingreso: p.fecha_ingreso?.split('T')[0] || '', observaciones: p.observaciones || '', estado: p.estado || 'activo'
+      persona_id: p.persona_id,
+      tutor_id: p.tutor_id || '',
+      tipo_terapia: p.tipo_terapia || '',
+      fecha_ingreso: p.fecha_ingreso?.split('T')[0] || '',
+      observaciones: p.observaciones || '',
+      estado: p.estado || 'activo'
     });
     setPersonaEncontrada({ nombre: p.nombre, apellido: p.apellido, cedula: p.cedula });
+    setTutorEncontrado({ nombre: p.nombre_tutor?.split(' ')[0], apellido: p.nombre_tutor?.split(' ').slice(1).join(' '), cedula: '' });
     setEditingId(p.id);
   };
 
@@ -143,7 +144,6 @@ const Paciente = () => {
   return (
     <Box p={2}>
       <Container maxWidth="xl">
-        {/* Cabecera */}
         <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
           <Typography variant="h5" fontWeight="bold">Gestión de Pacientes</Typography>
         </Paper>
@@ -214,7 +214,7 @@ const Paciente = () => {
           </Grid>
         </Paper>
 
-        {/* Tabla de Pacientes */}
+        {/* Tabla */}
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h6" gutterBottom>Listado de Pacientes</Typography>
           <Table>
@@ -233,7 +233,7 @@ const Paciente = () => {
                 <TableRow key={p.id}>
                   <TableCell>{p.nombre_completo}</TableCell>
                   <TableCell>{p.cedula}</TableCell>
-                  <TableCell>{p.tutor_nombre || 'Sin tutor'}</TableCell>
+                  <TableCell>{p.nombre_tutor || 'Sin tutor'}</TableCell>
                   <TableCell>{p.fecha_ingreso?.split('T')[0]}</TableCell>
                   <TableCell>{p.tipo_terapia}</TableCell>
                   <TableCell>
@@ -248,7 +248,7 @@ const Paciente = () => {
           <TablePagination component="div" count={pacientes.length} page={page} onPageChange={(e, newPage) => setPage(newPage)} rowsPerPage={rowsPerPage} rowsPerPageOptions={[]} />
         </Paper>
 
-        {/* Detalle del Paciente */}
+        {/* Detalles */}
         <Dialog open={!!detalle} onClose={() => setDetalle(null)}>
           <DialogTitle>Detalle del Paciente</DialogTitle>
           <DialogContent>
@@ -256,7 +256,7 @@ const Paciente = () => {
               <Box>
                 <Typography><strong>Nombre:</strong> {detalle.nombre_completo}</Typography>
                 <Typography><strong>Cédula:</strong> {detalle.cedula}</Typography>
-                <Typography><strong>Tutor:</strong> {detalle.tutor_nombre || 'Sin tutor'}</Typography>
+                <Typography><strong>Tutor:</strong> {detalle.nombre_tutor || 'Sin tutor'}</Typography>
                 <Typography><strong>Fecha:</strong> {detalle.fecha_ingreso?.split('T')[0]}</Typography>
                 <Typography><strong>Terapia:</strong> {detalle.tipo_terapia}</Typography>
                 <Typography><strong>Observaciones:</strong> {detalle.observaciones}</Typography>
@@ -265,7 +265,6 @@ const Paciente = () => {
           </DialogContent>
         </Dialog>
 
-        {/* Snackbar de notificación */}
         <Snackbar open={snackbar.open} autoHideDuration={4000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
           <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>{snackbar.message}</Alert>
         </Snackbar>
