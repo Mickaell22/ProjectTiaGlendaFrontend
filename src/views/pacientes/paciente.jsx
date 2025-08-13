@@ -29,6 +29,7 @@ import {
 import { Delete, Edit, Visibility, Search, Description } from '@mui/icons-material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import BuscadorPersonas from 'src/components/shared/BuscadorPersonas';
 
 /* ---------- Helpers ---------- */
 function formatFecha(valor) {
@@ -76,6 +77,9 @@ const Paciente = () => {
 
   // Modal Detalle
   const [detalle, setDetalle] = useState(null);
+  
+  // Buscador avanzado
+  const [showBuscador, setShowBuscador] = useState(false);
 
   // Formulario
   const [editingId, setEditingId] = useState(null);
@@ -84,8 +88,8 @@ const Paciente = () => {
     persona_id: '',
     tutor_id: '',
     especialidad_id: '',
-    fecha_ingreso: '',
-    fecha_inicio_tratamiento: '',
+    fecha_ingreso: new Date().toISOString().split('T')[0], // Fecha actual por defecto
+    fecha_inicio_tratamiento: new Date().toISOString().split('T')[0], // Fecha actual por defecto
     fecha_fin_tratamiento: '',
     estado_tratamiento: 'activo',
     observaciones_tratamiento: '',
@@ -186,32 +190,66 @@ const Paciente = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.persona_id) newErrors.persona_id = 'Seleccione la persona (busque por cédula).';
-    if (!formData.tutor_id) newErrors.tutor_id = 'Seleccione el tutor (busque por cédula).';
-    if (!formData.especialidad_id) newErrors.especialidad_id = 'Seleccione una especialidad.';
-    if (!formData.fecha_ingreso) newErrors.fecha_ingreso = 'La fecha de ingreso es requerida.';
-    if (!formData.fecha_inicio_tratamiento)
-      newErrors.fecha_inicio_tratamiento = 'La fecha de inicio de tratamiento es requerida.';
+    
+    // Validaciones obligatorias
+    if (!formData.persona_id) newErrors.persona_id = 'Debe seleccionar una persona';
+    if (!formData.tutor_id) newErrors.tutor_id = 'Debe seleccionar un tutor';
+    if (!formData.especialidad_id) newErrors.especialidad_id = 'Debe seleccionar una especialidad';
+    
+    // Validación de fecha de ingreso (obligatoria)
+    if (!formData.fecha_ingreso) {
+      newErrors.fecha_ingreso = 'Debe especificar la fecha de ingreso';
+    } else {
+      const fechaIngreso = new Date(formData.fecha_ingreso);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      
+      if (fechaIngreso > today) {
+        newErrors.fecha_ingreso = 'La fecha de ingreso no puede ser futura';
+      }
+    }
+    
+    // Validación de fecha de inicio de tratamiento (obligatoria)
+    if (!formData.fecha_inicio_tratamiento) {
+      newErrors.fecha_inicio_tratamiento = 'La fecha de inicio de tratamiento es obligatoria';
+    } else {
+      // Validar que no sea anterior a la fecha de ingreso
+      if (formData.fecha_ingreso && formData.fecha_inicio_tratamiento < formData.fecha_ingreso) {
+        newErrors.fecha_inicio_tratamiento = 'La fecha de inicio no puede ser anterior a la fecha de ingreso';
+      }
+    }
+    
+    // Validar fecha fin si se proporciona
+    if (formData.fecha_fin_tratamiento && formData.fecha_inicio_tratamiento) {
+      if (formData.fecha_fin_tratamiento <= formData.fecha_inicio_tratamiento) {
+        newErrors.fecha_fin_tratamiento = 'La fecha de fin debe ser posterior a la fecha de inicio';
+      }
+    }
+    
     if (!formData.estado_tratamiento) newErrors.estado_tratamiento = 'Seleccione el estado del tratamiento.';
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const buildPayload = (isUpdate = false) => {
     const usuarioId = getUsuarioId();
+    
     const base = {
       persona_id: toIntOrNull(formData.persona_id),
       tutor_id: toIntOrNull(formData.tutor_id),
       especialidad_id: toIntOrNull(formData.especialidad_id),
       fecha_ingreso: normalizeDate(formData.fecha_ingreso),
       fecha_inicio_tratamiento: normalizeDate(formData.fecha_inicio_tratamiento),
-      fecha_fin_tratamiento: normalizeDate(formData.fecha_fin_tratamiento),
+      fecha_fin_tratamiento: formData.fecha_fin_tratamiento ? normalizeDate(formData.fecha_fin_tratamiento) : null,
       estado_tratamiento: formData.estado_tratamiento || 'activo',
-      observaciones_tratamiento:
-        formData.observaciones_tratamiento?.trim() ? formData.observaciones_tratamiento : null,
-      observaciones: formData.observaciones?.trim() ? formData.observaciones : null,
+      observaciones_tratamiento: formData.observaciones_tratamiento?.trim() || null,
+      observaciones: formData.observaciones?.trim() || null,
       estado: 'activo',
     };
+    
+    console.log('🔥 Payload a enviar:', JSON.stringify(base, null, 2));
+    
     return isUpdate
       ? { ...base, usuario_modificacion: usuarioId }
       : { ...base, usuario_creacion: usuarioId };
@@ -219,13 +257,29 @@ const Paciente = () => {
 
   const handleGuardar = async () => {
     try {
+      console.log('🔥 INICIANDO GUARDADO - Estado actual del formData:', formData);
+      console.log('🔥 Persona encontrada:', personaEncontrada);
+      console.log('🔥 Tutor encontrado:', tutorEncontrado);
+      
       if (!token) {
+        console.log('❌ Error: No hay token');
         return setSnackbar({ open: true, message: 'No autenticado. Inicia sesión.', severity: 'warning' });
       }
-      if (!validateForm()) return;
+      
+      console.log('🔥 Validando formulario...');
+      const isValid = validateForm();
+      console.log('🔥 Resultado validación:', isValid, 'Errores:', errors);
+      
+      if (!isValid) {
+        console.log('❌ Formulario no válido, deteniendo proceso');
+        return;
+      }
 
       const usuarioId = getUsuarioId();
+      console.log('🔥 Usuario ID obtenido:', usuarioId);
+      
       if (!usuarioId) {
+        console.log('❌ Error: No se pudo obtener usuario ID');
         return setSnackbar({
           open: true,
           message: 'No pude obtener tu ID de usuario. Inicia sesión nuevamente.',
@@ -233,19 +287,40 @@ const Paciente = () => {
         });
       }
 
+      console.log('🔥 Preparando payload...');
+      const payload = buildPayload(editingId ? true : false);
+      console.log('🔥 Payload final a enviar:', payload);
+
       if (editingId) {
-        const payload = buildPayload(true);
-        await axios.put(`http://localhost:5000/api/pacientes/${editingId}`, payload, { headers });
+        console.log('🔥 ACTUALIZANDO paciente ID:', editingId);
+        const response = await axios.put(`http://localhost:5000/api/pacientes/${editingId}`, payload, { headers });
+        console.log('🔥 Respuesta UPDATE:', response.data);
         setSnackbar({ open: true, message: 'Paciente actualizado', severity: 'success' });
       } else {
-        const payload = buildPayload(false);
-        await axios.post('http://localhost:5000/api/pacientes', payload, { headers });
-        setSnackbar({ open: true, message: 'Paciente registrado', severity: 'success' });
+        console.log('🔥 CREANDO nuevo paciente...');
+        console.log('🔥 URL:', 'http://localhost:5000/api/pacientes');
+        console.log('🔥 Headers:', headers);
+        
+        const response = await axios.post('http://localhost:5000/api/pacientes', payload, { headers });
+        console.log('🔥 Respuesta CREATE:', response);
+        console.log('🔥 Respuesta CREATE data:', response.data);
+        console.log('🔥 Respuesta CREATE status:', response.status);
+        
+        setSnackbar({ open: true, message: 'Paciente registrado exitosamente', severity: 'success' });
       }
 
+      console.log('🔥 Limpiando formulario y recargando lista...');
       resetForm();
-      fetchPacientes();
+      await fetchPacientes();
+      console.log('🔥 Proceso completado exitosamente');
+      
     } catch (err) {
+      console.log('❌ ERROR EN handleGuardar:', err);
+      console.log('❌ Error response:', err.response);
+      console.log('❌ Error response data:', err.response?.data);
+      console.log('❌ Error response status:', err.response?.status);
+      console.log('❌ Error message:', err.message);
+      
       const apiMsg =
         err?.response?.data?.message ||
         err?.response?.data?.msg ||
@@ -257,12 +332,13 @@ const Paciente = () => {
   };
 
   const resetForm = () => {
+    const today = new Date().toISOString().split('T')[0];
     setFormData({
       persona_id: '',
       tutor_id: '',
       especialidad_id: '',
-      fecha_ingreso: '',
-      fecha_inicio_tratamiento: '',
+      fecha_ingreso: today, // Fecha actual por defecto
+      fecha_inicio_tratamiento: today, // Fecha actual por defecto
       fecha_fin_tratamiento: '',
       estado_tratamiento: 'activo',
       observaciones_tratamiento: '',
@@ -274,6 +350,7 @@ const Paciente = () => {
     setSearchCedulaTutor('');
     setEditingId(null);
     setErrors({});
+    setShowBuscador(false); // Volver a búsqueda simple al resetear
   };
 
   const handleEdit = (p) => {
@@ -313,6 +390,50 @@ const Paciente = () => {
     navigate(`/pacientes/${p.id}/documentos`);
   };
 
+  // Handlers del buscador avanzado
+  const handlePersonaSelectBuscador = (persona) => {
+    setPersonaEncontrada(persona);
+    setFormData((prev) => ({ ...prev, persona_id: persona.id }));
+    setSearchCedulaPersona(persona.cedula || '');
+    setSnackbar({ open: true, message: `Persona seleccionada: ${persona.nombre_completo}`, severity: 'success' });
+  };
+
+  const handleTutorSelectBuscador = (tutor) => {
+    // Configurar los datos del tutor encontrado
+    setTutorEncontrado({
+      nombre_completo: tutor.nombre_completo,
+      cedula: tutor.cedula || tutor.cedula_display,
+      nombre: tutor.nombre,
+      apellido: tutor.apellido
+    });
+    
+    // Usar el tutor_id si está disponible, sino usar el id
+    const tutorId = tutor.tutor_id || tutor.id;
+    setFormData((prev) => ({ ...prev, tutor_id: tutorId }));
+    setSearchCedulaTutor(tutor.cedula || tutor.cedula_display || '');
+    
+    setSnackbar({ 
+      open: true, 
+      message: `Tutor seleccionado: ${tutor.nombre_completo}`, 
+      severity: 'success' 
+    });
+  };
+
+  const handleBuscarTutorPorPersona = async (persona) => {
+    try {
+      const tutoresRes = await axios.get('http://localhost:5000/api/tutores', { headers });
+      const tutor = tutoresRes.data?.data?.find((t) => t.persona_id === persona.id);
+      if (tutor) {
+        setFormData((prev) => ({ ...prev, tutor_id: tutor.id }));
+      } else {
+        setSnackbar({ open: true, message: 'Esta persona no está registrada como tutor', severity: 'warning' });
+      }
+    } catch (err) {
+      console.error('Error al buscar tutor:', err);
+      setSnackbar({ open: true, message: 'Error al buscar tutor', severity: 'error' });
+    }
+  };
+
   /* ---------- Render ---------- */
   return (
     <Box p={2}>
@@ -324,76 +445,154 @@ const Paciente = () => {
           </Typography>
         </Paper>
 
-        {/* Buscar Persona */}
-        <Paper elevation={3} sx={{ p: 3, maxWidth: 1000, mx: 'auto', mb: 3 }}>
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
-            Buscar Persona (Paciente)
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Cédula de Persona"
-                value={searchCedulaPersona}
-                onChange={(e) => setSearchCedulaPersona(e.target.value)}
-                error={!!errors.persona_id}
-                helperText={errors.persona_id}
-              />
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={handleBuscarPersona}
-                startIcon={<Search />}
-                sx={{ mt: 1 }}
-              >
-                Buscar Persona
-              </Button>
+        {/* Opciones de Búsqueda */}
+        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={8}>
+              <Typography variant="h6" fontWeight="bold">
+                Búsqueda de Persona y Tutor
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Puedes buscar por cédula individual o usar el buscador avanzado
+              </Typography>
             </Grid>
-            <Grid item xs={12} md={6}>
-              {personaEncontrada && (
-                <Paper elevation={1} sx={{ p: 2, backgroundColor: '#f7f7f7' }}>
-                  <Typography>
-                    <strong>Nombre:</strong> {personaEncontrada.nombre} {personaEncontrada.apellido}
-                  </Typography>
-                  <Typography>
-                    <strong>Cédula:</strong> {personaEncontrada.cedula}
-                  </Typography>
-                </Paper>
-              )}
+            <Grid item xs={12} md={4}>
+              <Button
+                variant={showBuscador ? "outlined" : "contained"}
+                fullWidth
+                onClick={() => setShowBuscador(!showBuscador)}
+                startIcon={<Search />}
+              >
+                {showBuscador ? "Búsqueda Simple" : "Buscador Avanzado"}
+              </Button>
             </Grid>
           </Grid>
         </Paper>
 
-        {/* Buscar Tutor */}
-        <Paper elevation={3} sx={{ p: 3, maxWidth: 1000, mx: 'auto', mb: 3 }}>
-          <Typography variant="h6" fontWeight="bold" gutterBottom>
-            Buscar Tutor/Representante
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Cédula del Tutor"
-                value={searchCedulaTutor}
-                onChange={(e) => setSearchCedulaTutor(e.target.value)}
-                error={!!errors.tutor_id}
-                helperText={errors.tutor_id}
-              />
-              <Button variant="outlined" fullWidth onClick={handleBuscarTutor} startIcon={<Search />} sx={{ mt: 1 }}>
-                Buscar Tutor
-              </Button>
-            </Grid>
-            <Grid item xs={12} md={6}>
+        {/* Buscador Avanzado */}
+        {showBuscador && (
+          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+            <BuscadorPersonas
+              onPersonaSelect={handlePersonaSelectBuscador}
+              onTutorSelect={handleTutorSelectBuscador}
+              showPersonas={true}
+              showTutores={true}
+              compact={true}
+              maxHeight={350}
+              hideRegisteredPatients={true}
+              editingPatientId={editingId}
+            />
+          </Paper>
+        )}
+
+        {/* Búsqueda Simple - Solo cuando no está el buscador avanzado */}
+        {!showBuscador && (
+          <>
+            {/* Buscar Persona */}
+            <Paper elevation={3} sx={{ p: 3, maxWidth: 1000, mx: 'auto', mb: 3 }}>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>
+                Buscar Persona (Paciente)
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Cédula de Persona"
+                    value={searchCedulaPersona}
+                    onChange={(e) => setSearchCedulaPersona(e.target.value)}
+                    error={!!errors.persona_id}
+                    helperText={errors.persona_id}
+                  />
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={handleBuscarPersona}
+                    startIcon={<Search />}
+                    sx={{ mt: 1 }}
+                  >
+                    Buscar Persona
+                  </Button>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  {personaEncontrada && (
+                    <Paper elevation={1} sx={{ p: 2, backgroundColor: '#f7f7f7' }}>
+                      <Typography>
+                        <strong>Nombre:</strong> {personaEncontrada.nombre} {personaEncontrada.apellido}
+                      </Typography>
+                      <Typography>
+                        <strong>Cédula:</strong> {personaEncontrada.cedula}
+                      </Typography>
+                    </Paper>
+                  )}
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Buscar Tutor */}
+            <Paper elevation={3} sx={{ p: 3, maxWidth: 1000, mx: 'auto', mb: 3 }}>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>
+                Buscar Tutor/Representante
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Cédula del Tutor"
+                    value={searchCedulaTutor}
+                    onChange={(e) => setSearchCedulaTutor(e.target.value)}
+                    error={!!errors.tutor_id}
+                    helperText={errors.tutor_id}
+                  />
+                  <Button variant="outlined" fullWidth onClick={handleBuscarTutor} startIcon={<Search />} sx={{ mt: 1 }}>
+                    Buscar Tutor
+                  </Button>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  {tutorEncontrado && (
+                    <Paper elevation={1} sx={{ p: 2, backgroundColor: '#f7f7f7' }}>
+                      <Typography>
+                        <strong>Nombre:</strong> {tutorEncontrado.nombre_completo || `${tutorEncontrado.nombre} ${tutorEncontrado.apellido}`}
+                      </Typography>
+                    </Paper>
+                  )}
+                </Grid>
+              </Grid>
+            </Paper>
+          </>
+        )}
+
+        {/* Mostrar Persona y Tutor Seleccionados */}
+        {(personaEncontrada || tutorEncontrado) && (
+          <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: '#f8f9ff' }}>
+            <Typography variant="h6" gutterBottom color="primary">
+              ✅ Selección Actual
+            </Typography>
+            <Grid container spacing={3}>
+              {personaEncontrada && (
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ p: 2, border: '1px solid', borderColor: 'primary.light', borderRadius: 1 }}>
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
+                      👤 PERSONA SELECCIONADA
+                    </Typography>
+                    <Typography><strong>Nombre:</strong> {personaEncontrada.nombre_completo || `${personaEncontrada.nombre} ${personaEncontrada.apellido}`}</Typography>
+                    <Typography><strong>Cédula:</strong> {personaEncontrada.cedula}</Typography>
+                  </Box>
+                </Grid>
+              )}
               {tutorEncontrado && (
-                <Paper elevation={1} sx={{ p: 2, backgroundColor: '#f7f7f7' }}>
-                  <Typography>
-                    <strong>Nombre:</strong> {tutorEncontrado.nombre} {tutorEncontrado.apellido}
-                  </Typography>
-                </Paper>
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ p: 2, border: '1px solid', borderColor: 'secondary.light', borderRadius: 1 }}>
+                    <Typography variant="subtitle2" color="secondary" gutterBottom>
+                      👥 TUTOR SELECCIONADO
+                    </Typography>
+                    <Typography><strong>Nombre:</strong> {tutorEncontrado.nombre_completo || `${tutorEncontrado.nombre} ${tutorEncontrado.apellido}`}</Typography>
+                    <Typography><strong>Cédula:</strong> {tutorEncontrado.cedula}</Typography>
+                  </Box>
+                </Grid>
               )}
             </Grid>
-          </Grid>
-        </Paper>
+          </Paper>
+        )}
 
         {/* Formulario Principal */}
         <Card elevation={3} sx={{ borderRadius: 2, p: 0, mb: 4 }}>
@@ -432,10 +631,11 @@ const Paciente = () => {
                   label="Fecha de Ingreso *"
                   name="fecha_ingreso"
                   InputLabelProps={{ shrink: true }}
+                  inputProps={{ max: new Date().toISOString().split('T')[0] }}
                   value={formData.fecha_ingreso}
                   onChange={handleChange}
                   error={!!errors.fecha_ingreso}
-                  helperText={errors.fecha_ingreso}
+                  helperText={errors.fecha_ingreso || "Fecha en que el paciente ingresó al centro"}
                 />
               </Grid>
               <Grid item xs={12} md={4}>
@@ -448,7 +648,7 @@ const Paciente = () => {
                   value={formData.fecha_inicio_tratamiento}
                   onChange={handleChange}
                   error={!!errors.fecha_inicio_tratamiento}
-                  helperText={errors.fecha_inicio_tratamiento}
+                  helperText={errors.fecha_inicio_tratamiento || "Fecha de inicio del tratamiento asignado"}
                 />
               </Grid>
 

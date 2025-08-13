@@ -28,6 +28,10 @@ import {
   ExpandMore,
   ExpandLess,
   FilterList,
+  ToggleOn,
+  ToggleOff,
+  CheckCircle,
+  Warning,
 } from '@mui/icons-material';
 import axios from 'axios';
 
@@ -37,11 +41,14 @@ const BuscadorPersonas = ({
   showPersonas = true, 
   showTutores = true,
   maxHeight = 400,
-  compact = false 
+  compact = false,
+  hideRegisteredPatients = true, // Nueva prop para filtrar pacientes registrados
+  editingPatientId = null // ID del paciente que se está editando (para no filtrarlo)
 }) => {
   // Estados principales
   const [personas, setPersonas] = useState([]);
   const [tutores, setTutores] = useState([]);
+  const [pacientesExistentes, setPacientesExistentes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -49,6 +56,7 @@ const BuscadorPersonas = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all'); // all, persona, tutor
   const [expanded, setExpanded] = useState(true);
+  const [showOnlyAvailable, setShowOnlyAvailable] = useState(hideRegisteredPatients);
   
   const token = localStorage.getItem('jwt_token');
   const headers = { Authorization: `Bearer ${token}` };
@@ -64,28 +72,77 @@ const BuscadorPersonas = ({
 
       const promises = [];
       
+      // Siempre cargar pacientes existentes para filtrar
+      if (hideRegisteredPatients) {
+        promises.push(axios.get('http://localhost:5000/api/pacientes', { headers }));
+      }
+      
       if (showPersonas) {
         promises.push(axios.get('http://localhost:5000/api/personas', { headers }));
       }
       
       if (showTutores) {
         promises.push(axios.get('http://localhost:5000/api/tutores', { headers }));
+        // También cargar personas para mapear los tutores
+        if (!showPersonas) {
+          promises.push(axios.get('http://localhost:5000/api/personas', { headers }));
+        }
       }
 
       const responses = await Promise.all(promises);
       
+      let responseIndex = 0;
+      let pacientesData = [];
       let personasData = [];
       let tutoresData = [];
+      let personasParaTutores = [];
       
-      if (showPersonas) {
-        personasData = responses[0].data?.data || [];
+      // Obtener pacientes existentes si se solicitó filtrar
+      if (hideRegisteredPatients) {
+        pacientesData = responses[responseIndex].data?.data || [];
+        responseIndex++;
       }
       
-      if (showTutores) {
-        const tutoresResponse = showPersonas ? responses[1] : responses[0];
-        tutoresData = tutoresResponse.data?.data || [];
+      if (showPersonas && showTutores) {
+        personasData = responses[responseIndex].data?.data || [];
+        tutoresData = responses[responseIndex + 1].data?.data || [];
+        personasParaTutores = personasData; // Usar las mismas personas
+      } else if (showPersonas) {
+        personasData = responses[responseIndex].data?.data || [];
+      } else if (showTutores) {
+        tutoresData = responses[responseIndex].data?.data || [];
+        personasParaTutores = responses[responseIndex + 1].data?.data || [];
       }
 
+      // Marcar qué personas ya son pacientes para mostrar indicadores
+      if (personasData.length > 0 && pacientesData.length > 0) {
+        const personasYaPacientes = pacientesData.map(p => p.persona_id);
+        personasData = personasData.map(persona => ({
+          ...persona,
+          yaEsPaciente: personasYaPacientes.includes(persona.id)
+        }));
+      }
+
+      // Enriquecer tutores con datos de personas
+      if (tutoresData.length > 0 && personasParaTutores.length > 0) {
+        tutoresData = tutoresData.map(tutor => {
+          const persona = personasParaTutores.find(p => p.id === tutor.persona_id);
+          if (persona) {
+            return {
+              ...tutor,
+              nombre: persona.nombre,
+              apellido: persona.apellido,
+              cedula: persona.cedula,
+              telefono: persona.telefono,
+              correo: persona.correo,
+              nombre_completo: `${persona.nombre} ${persona.apellido}`,
+            };
+          }
+          return tutor;
+        });
+      }
+
+      setPacientesExistentes(pacientesData);
       setPersonas(personasData);
       setTutores(tutoresData);
     } catch (err) {
@@ -102,7 +159,23 @@ const BuscadorPersonas = ({
 
     // Agregar personas
     if (showPersonas && (filterType === 'all' || filterType === 'persona')) {
-      const personasWithType = personas.map(persona => ({
+      let personasToShow = personas;
+      
+      // Filtrar según el toggle de disponibilidad
+      if (showOnlyAvailable) {
+        personasToShow = personas.filter(persona => {
+          // Mostrar si no es paciente, O si es el paciente que se está editando
+          if (editingPatientId) {
+            const pacienteEditando = pacientesExistentes.find(p => p.id === editingPatientId);
+            if (pacienteEditando && pacienteEditando.persona_id === persona.id) {
+              return true;
+            }
+          }
+          return !persona.yaEsPaciente;
+        });
+      }
+      
+      const personasWithType = personasToShow.map(persona => ({
         ...persona,
         tipo: 'persona',
         nombre_completo: `${persona.nombre} ${persona.apellido}`,
@@ -118,9 +191,12 @@ const BuscadorPersonas = ({
         ...tutor,
         tipo: 'tutor',
         nombre_completo: tutor.nombre_completo || `${tutor.nombre || ''} ${tutor.apellido || ''}`.trim(),
-        telefono_display: tutor.telefono_tutor || tutor.telefono || 'Sin teléfono',
-        correo_display: tutor.correo_tutor || tutor.correo || 'Sin correo',
-        cedula: tutor.cedula_tutor || tutor.cedula
+        telefono_display: tutor.telefono || 'Sin teléfono',
+        correo_display: tutor.correo || 'Sin correo',
+        cedula_display: tutor.cedula || 'Sin cédula',
+        // Mantener el ID del tutor para la selección
+        tutor_id: tutor.id,
+        persona_id: tutor.persona_id
       }));
       combinedData = [...combinedData, ...tutoresWithType];
     }
@@ -131,13 +207,14 @@ const BuscadorPersonas = ({
       combinedData = combinedData.filter(item => 
         item.nombre_completo?.toLowerCase().includes(term) ||
         item.cedula?.includes(term) ||
+        item.cedula_display?.includes(term) ||
         item.telefono_display?.includes(term) ||
         item.correo_display?.toLowerCase().includes(term)
       );
     }
 
     return combinedData;
-  }, [personas, tutores, searchTerm, filterType, showPersonas, showTutores]);
+  }, [personas, tutores, searchTerm, filterType, showPersonas, showTutores, showOnlyAvailable, pacientesExistentes, editingPatientId]);
 
   const handleSelect = (item) => {
     if (item.tipo === 'persona' && onPersonaSelect) {
@@ -206,7 +283,7 @@ const BuscadorPersonas = ({
         {/* Controles de búsqueda */}
         <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={5}>
               <TextField
                 fullWidth
                 placeholder="Buscar por nombre, cédula, teléfono o correo..."
@@ -230,7 +307,7 @@ const BuscadorPersonas = ({
               />
             </Grid>
             
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={3}>
               <TextField
                 select
                 fullWidth
@@ -246,9 +323,9 @@ const BuscadorPersonas = ({
                   )
                 }}
               >
-                <MenuItem value="all">Todos</MenuItem>
-                {showPersonas && <MenuItem value="persona">Solo Personas</MenuItem>}
-                {showTutores && <MenuItem value="tutor">Solo Tutores</MenuItem>}
+                <MenuItem value="all">📋 Todos</MenuItem>
+                {showPersonas && <MenuItem value="persona">👤 Solo Personas</MenuItem>}
+                {showTutores && <MenuItem value="tutor">👥 Solo Tutores</MenuItem>}
               </TextField>
             </Grid>
             
@@ -263,8 +340,78 @@ const BuscadorPersonas = ({
                 Limpiar
               </Button>
             </Grid>
+            
+            <Grid item xs={12} md={2}>
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={loadData}
+                startIcon={<Search />}
+                size={compact ? "small" : "medium"}
+                color="success"
+              >
+                Actualizar
+              </Button>
+            </Grid>
           </Grid>
+          
+          {/* Toggle y estadísticas */}
+          <Box mt={2} display="flex" justifyContent="space-between" alignItems="center">
+            {/* Indicadores rápidos */}
+            <Box display="flex" gap={1} flexWrap="wrap">
+              <Chip 
+                icon={<Person />} 
+                label={`${personas.length} Personas`} 
+                size="small" 
+                color="primary" 
+                variant="outlined"
+              />
+              <Chip 
+                icon={<SupervisorAccount />} 
+                label={`${tutores.length} Tutores`} 
+                size="small" 
+                color="secondary" 
+                variant="outlined"
+              />
+              {searchTerm && (
+                <Chip 
+                  icon={<Search />} 
+                  label={`${filteredData.length} resultados`} 
+                  size="small" 
+                  color="success" 
+                  variant="filled"
+                />
+              )}
+            </Box>
+            
+            {/* Toggle para mostrar solo disponibles */}
+            <Box display="flex" alignItems="center" gap={1}>
+              <Typography variant="caption" color="text.secondary">
+                Solo disponibles
+              </Typography>
+              <IconButton 
+                onClick={() => setShowOnlyAvailable(!showOnlyAvailable)}
+                color={showOnlyAvailable ? "success" : "default"}
+              >
+                {showOnlyAvailable ? <ToggleOn /> : <ToggleOff />}
+              </IconButton>
+            </Box>
+          </Box>
         </Paper>
+
+        {/* Información del filtro */}
+        {showOnlyAvailable && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <strong>Filtro activo:</strong> Solo se muestran personas que AÚN NO están registradas como pacientes
+          </Alert>
+        )}
+        
+        {!showOnlyAvailable && pacientesExistentes.length > 0 && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <strong>Atención:</strong> Se muestran todas las personas, incluso las que ya son pacientes. 
+            Activa el filtro "Solo disponibles" para ver únicamente personas disponibles.
+          </Alert>
+        )}
 
         {/* Resultados */}
         <Paper elevation={2}>
@@ -307,7 +454,25 @@ const BuscadorPersonas = ({
                         }}
                       >
                         <TableCell>
-                          {getTipoChip(item.tipo)}
+                          <Box display="flex" alignItems="center" gap={1}>
+                            {getTipoChip(item.tipo)}
+                            {item.yaEsPaciente && (
+                              <Tooltip title="Esta persona ya está registrada como paciente">
+                                <Chip
+                                  icon={<Warning />}
+                                  label="Ya es paciente"
+                                  size="small"
+                                  color="warning"
+                                  variant="outlined"
+                                />
+                              </Tooltip>
+                            )}
+                            {!item.yaEsPaciente && item.tipo === 'persona' && (
+                              <Tooltip title="Persona disponible para registrar como paciente">
+                                <CheckCircle color="success" fontSize="small" />
+                              </Tooltip>
+                            )}
+                          </Box>
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2" fontWeight="medium">
@@ -316,7 +481,7 @@ const BuscadorPersonas = ({
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2" fontFamily="monospace">
-                            {item.cedula || 'Sin cédula'}
+                            {item.cedula || item.cedula_display || 'Sin cédula'}
                           </Typography>
                         </TableCell>
                         <TableCell>
