@@ -5,6 +5,7 @@ import {
   Button,
   Container,
   Dialog,
+  Divider,
   DialogActions,
   DialogContent,
   DialogTitle,
@@ -25,6 +26,7 @@ import {
   Tooltip,
   Card,
   CardContent,
+  InputAdornment, // <-- agregado
 } from '@mui/material';
 import { Delete, Edit, Visibility, Search, Description } from '@mui/icons-material';
 import axios from 'axios';
@@ -158,7 +160,7 @@ const Paciente = () => {
       const resPersonas = await axios.get('http://localhost:5000/api/personas', { headers });
       const persona = resPersonas.data?.data?.find((p) => p.cedula === searchCedulaTutor);
 
-      if (persona) {
+    if (persona) {
         const tutoresRes = await axios.get('http://localhost:5000/api/tutores', { headers });
         const tutor = tutoresRes.data?.data?.find((t) => t.persona_id === persona.id);
         if (tutor) {
@@ -434,16 +436,60 @@ const Paciente = () => {
     }
   };
 
+  /* ---------- Buscador en listado de pacientes ---------- */
+  const [searchTerm, setSearchTerm] = useState('');
+  const normalize = (s = '') =>
+    s.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+  const filteredPacientes = React.useMemo(() => {
+    const q = normalize(searchTerm.trim());
+    if (!q) return pacientes;
+    return pacientes.filter((p) => {
+      const campos = [
+        p.nombre_completo,
+        p.cedula,
+        p.nombre_tutor,
+        p.especialidad_nombre,
+        p.estado_tratamiento,
+      ];
+      return campos.some((c) => normalize(c || '').includes(q));
+    });
+  }, [pacientes, searchTerm]);
+
   /* ---------- Render ---------- */
   return (
     <Box p={2}>
       <Container maxWidth="xl">
         {/* Encabezado */}
-        <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-          <Typography variant="h5" fontWeight="bold">
-            Gestión de Pacientes
-          </Typography>
-        </Paper>
+        {/* Encabezado arcoíris */}
+<Paper
+  elevation={6}
+  sx={{
+    borderRadius: 3,
+    backgroundColor: '#fff',
+    mb: 4,
+    p: 0,
+    overflow: 'hidden',
+    border: '4px solid transparent',
+    backgroundImage:
+      'linear-gradient(white, white), linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet)',
+    backgroundOrigin: 'border-box',
+    backgroundClip: 'padding-box, border-box',
+    animation: 'rainbow 5s linear infinite',
+    '@keyframes rainbow': {
+      '0%': { backgroundPosition: '0% 50%' },
+      '100%': { backgroundPosition: '100% 50%' },
+    },
+    backgroundSize: '300% 100%',
+  }}
+>
+  <Box sx={{ p: 3 }}>
+    <Typography variant="h6" fontWeight="bold" color="black">
+      Gestión de Pacientes
+    </Typography>
+  </Box>
+</Paper>
+
 
         {/* Opciones de Búsqueda */}
         <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
@@ -594,146 +640,310 @@ const Paciente = () => {
           </Paper>
         )}
 
-        {/* Formulario Principal */}
-        <Card elevation={3} sx={{ borderRadius: 2, p: 0, mb: 4 }}>
-          <CardContent sx={{ p: 3, maxWidth: 1000, mx: 'auto' }}>
-            <Typography variant="h6" textAlign="center" color="primary" fontWeight="bold" mb={2}>
-              {editingId ? 'Editar Paciente' : 'Registrar Paciente'}
-            </Typography>
+      {/* Formulario Principal (completo, armónico y con etiquetas a la izquierda) */}
+<Card
+  elevation={8}
+  sx={{
+    borderRadius: 4,
+    mb: 4,
+    background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+    border: '1px solid',
+    borderColor: 'divider',
+    overflow: 'hidden'
+  }}
+>
+  {/* Header dinámico */}
+  <Box
+    sx={{
+      background: editingId
+        ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
+        : 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+      color: 'white',
+      p: 3,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }}
+  >
+    <Box>
+      <Typography variant="h6" fontWeight="bold">
+        {editingId ? 'Editar Paciente' : 'Registrar Paciente'}
+      </Typography>
+      <Typography variant="body2" sx={{ opacity: 0.9 }}>
+        {editingId
+          ? 'Modifica los campos necesarios y guarda los cambios'
+          : 'Selecciona persona y tutor, asigna especialidad y define fechas'}
+      </Typography>
+    </Box>
+  </Box>
 
-            <Grid container spacing={2}>
-              {/* Especialidad */}
-              <Grid item xs={12} md={4}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Especialidad Asignada *"
-                  name="especialidad_id"
-                  value={formData.especialidad_id}
-                  onChange={handleChange}
-                  error={!!errors.especialidad_id}
-                  helperText={errors.especialidad_id}
-                >
-                  <MenuItem value="">Seleccione una especialidad</MenuItem>
-                  {especialidades.map((e) => (
-                    <MenuItem key={e.id} value={e.id}>
-                      {e.nombre} {e.area ? `— ${e.area}` : ''}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
+  <CardContent sx={{ p: { xs: 2, md: 4 }, maxWidth: 1100, mx: 'auto' }}>
+    {/* ===== Bloque: Asignación ===== */}
+    <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+      <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+        Asignación
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
 
-              {/* Fechas */}
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Fecha de Ingreso *"
-                  name="fecha_ingreso"
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{ max: new Date().toISOString().split('T')[0] }}
-                  value={formData.fecha_ingreso}
-                  onChange={handleChange}
-                  error={!!errors.fecha_ingreso}
-                  helperText={errors.fecha_ingreso || "Fecha en que el paciente ingresó al centro"}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Fecha Inicio Tratamiento *"
-                  name="fecha_inicio_tratamiento"
-                  InputLabelProps={{ shrink: true }}
-                  value={formData.fecha_inicio_tratamiento}
-                  onChange={handleChange}
-                  error={!!errors.fecha_inicio_tratamiento}
-                  helperText={errors.fecha_inicio_tratamiento || "Fecha de inicio del tratamiento asignado"}
-                />
-              </Grid>
+      {/* Fila: Especialidad */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+          gap: 2,
+          alignItems: 'center',
+          mb: 2,
+        }}
+      >
+        <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Especialidad Asignada *</Typography>
+        <TextField
+          select
+          fullWidth
+          name="especialidad_id"
+          value={formData.especialidad_id}
+          onChange={handleChange}
+          error={!!errors.especialidad_id}
+          helperText={errors.especialidad_id || 'Selecciona la especialidad del plan'}
+          size="medium"
+        >
+          <MenuItem value="">Seleccione una especialidad</MenuItem>
+          {especialidades.map((e) => (
+            <MenuItem key={e.id} value={e.id}>
+              {e.nombre} {e.area ? `— ${e.area}` : ''}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Box>
 
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Fecha Fin Tratamiento"
-                  name="fecha_fin_tratamiento"
-                  InputLabelProps={{ shrink: true }}
-                  value={formData.fecha_fin_tratamiento}
-                  onChange={handleChange}
-                />
-              </Grid>
+      {/* Fila: Estado Tratamiento */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+          gap: 2,
+          alignItems: 'center',
+        }}
+      >
+        <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Estado del Tratamiento *</Typography>
+        <TextField
+          select
+          fullWidth
+          name="estado_tratamiento"
+          value={formData.estado_tratamiento}
+          onChange={handleChange}
+          error={!!errors.estado_tratamiento}
+          helperText={errors.estado_tratamiento || 'Define el estado actual'}
+          size="medium"
+        >
+          {['activo', 'en pausa', 'completado', 'suspendido'].map((opt) => (
+            <MenuItem key={opt} value={opt}>
+              {opt.charAt(0).toUpperCase() + opt.slice(1)}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Box>
+    </Box>
 
-              {/* Estado del Tratamiento */}
-              <Grid item xs={12} md={4}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Estado del Tratamiento *"
-                  name="estado_tratamiento"
-                  value={formData.estado_tratamiento}
-                  onChange={handleChange}
-                  error={!!errors.estado_tratamiento}
-                  helperText={errors.estado_tratamiento}
-                >
-                  {['activo', 'en pausa', 'completado', 'suspendido'].map((opt) => (
-                    <MenuItem key={opt} value={opt}>
-                      {opt.charAt(0).toUpperCase() + opt.slice(1)}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
+    {/* ===== Bloque: Fechas ===== */}
+    <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+      <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+        Fechas del Tratamiento
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
 
-              {/* Observaciones Tratamiento */}
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Observaciones del Tratamiento"
-                  name="observaciones_tratamiento"
-                  placeholder="Objetivos, progreso esperado, notas específicas del plan terapéutico..."
-                  value={formData.observaciones_tratamiento}
-                  onChange={handleChange}
-                />
-              </Grid>
+      {/* Fecha de Ingreso */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+          gap: 2,
+          alignItems: 'center',
+          mb: 2,
+        }}
+      >
+        <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Fecha de Ingreso *</Typography>
+        <TextField
+          fullWidth
+          type="date"
+          name="fecha_ingreso"
+          InputLabelProps={{ shrink: true }}
+          inputProps={{ max: new Date().toISOString().split('T')[0] }}
+          value={formData.fecha_ingreso}
+          onChange={handleChange}
+          error={!!errors.fecha_ingreso}
+          helperText={errors.fecha_ingreso || 'Fecha en que el paciente ingresó al centro'}
+          size="medium"
+        />
+      </Box>
 
-              {/* Observaciones Generales */}
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Observaciones Generales"
-                  name="observaciones"
-                  placeholder="Información relevante sobre diagnóstico, necesidades especiales, etc."
-                  value={formData.observaciones}
-                  onChange={handleChange}
-                />
-              </Grid>
+      {/* Inicio Tratamiento */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+          gap: 2,
+          alignItems: 'center',
+          mb: 2,
+        }}
+      >
+        <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Inicio Tratamiento *</Typography>
+        <TextField
+          fullWidth
+          type="date"
+          name="fecha_inicio_tratamiento"
+          InputLabelProps={{ shrink: true }}
+          value={formData.fecha_inicio_tratamiento}
+          onChange={handleChange}
+          error={!!errors.fecha_inicio_tratamiento}
+          helperText={errors.fecha_inicio_tratamiento || 'Fecha de inicio del tratamiento'}
+          size="medium"
+        />
+      </Box>
 
-              {/* Botones */}
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', gap: 2, maxWidth: 600, mx: 'auto' }}>
-                  <Button variant="contained" color="success" fullWidth onClick={handleGuardar}>
-                    {editingId ? 'Actualizar' : 'Guardar Paciente'}
-                  </Button>
-                  {editingId && (
-                    <Button variant="outlined" fullWidth onClick={resetForm}>
-                      Cancelar Edición
-                    </Button>
-                  )}
-                </Box>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
+      {/* Fin Tratamiento */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+          gap: 2,
+          alignItems: 'center',
+        }}
+      >
+        <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Fin Tratamiento</Typography>
+        <TextField
+          fullWidth
+          type="date"
+          name="fecha_fin_tratamiento"
+          InputLabelProps={{ shrink: true }}
+          value={formData.fecha_fin_tratamiento}
+          onChange={handleChange}
+          helperText="(Opcional) Fecha estimada de finalización"
+          size="medium"
+        />
+      </Box>
+    </Box>
+
+    {/* ===== Bloque: Observaciones ===== */}
+    <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+      <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+        Observaciones
+      </Typography>
+      <Divider sx={{ mb: 2 }} />
+
+      {/* Observaciones del Tratamiento */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+          gap: 2,
+          alignItems: 'flex-start',
+          mb: 2,
+        }}
+      >
+        <Typography sx={{ fontWeight: 600, color: 'text.primary', pt: { md: 1 } }}>
+          Observaciones del Tratamiento
+        </Typography>
+        <TextField
+          fullWidth
+          multiline
+          minRows={5}
+          name="observaciones_tratamiento"
+          placeholder="Objetivos, progreso esperado, notas del plan terapéutico..."
+          value={formData.observaciones_tratamiento}
+          onChange={handleChange}
+          size="medium"
+        />
+      </Box>
+
+      {/* Observaciones Generales */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+          gap: 2,
+          alignItems: 'flex-start',
+        }}
+      >
+        <Typography sx={{ fontWeight: 600, color: 'text.primary', pt: { md: 1 } }}>
+          Observaciones Generales
+        </Typography>
+        <TextField
+          fullWidth
+          multiline
+          minRows={5}
+          name="observaciones"
+          placeholder="Información relevante: diagnóstico, necesidades especiales, etc."
+          value={formData.observaciones}
+          onChange={handleChange}
+          size="medium"
+        />
+      </Box>
+    </Box>
+
+    {/* ===== Acciones ===== */}
+    <Box
+      sx={{
+        mt: 3,
+        pt: 2,
+        display: 'flex',
+        gap: 2,
+        maxWidth: 600,
+        mx: 'auto',
+        borderTop: '1px solid',
+        borderColor: 'divider'
+      }}
+    >
+      <Button
+        variant="contained"
+        color="success"
+        fullWidth
+        onClick={handleGuardar}
+        sx={{ py: 1.4, fontWeight: 'bold', textTransform: 'none' }}
+      >
+        {editingId ? 'Actualizar' : 'Guardar Paciente'}
+      </Button>
+
+      {editingId && (
+        <Button
+          variant="outlined"
+          fullWidth
+          onClick={resetForm}
+          sx={{ py: 1.4, fontWeight: 'bold', textTransform: 'none' }}
+        >
+          Cancelar Edición
+        </Button>
+      )}
+    </Box>
+  </CardContent>
+</Card>
+
 
         {/* Tabla */}
         <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Listado de Pacientes
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
+              Listado de Pacientes ({filteredPacientes.length})
+            </Typography>
+
+            <TextField
+              size="small"
+              placeholder="Buscar por nombre, cédula, tutor, especialidad o estado…"
+              value={searchTerm}
+              onChange={(e) => {
+                setPage(0);
+                setSearchTerm(e.target.value);
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search sx={{ color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ minWidth: { xs: 220, sm: 320 } }}
+            />
+          </Box>
+
           <Table>
             <TableHead>
               <TableRow>
@@ -746,7 +956,7 @@ const Paciente = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {pacientes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((p) => (
+              {filteredPacientes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((p) => (
                 <TableRow key={p.id}>
                   <TableCell>{p.nombre_completo}</TableCell>
                   <TableCell>{p.cedula}</TableCell>
@@ -783,7 +993,7 @@ const Paciente = () => {
           </Table>
           <TablePagination
             component="div"
-            count={pacientes.length}
+            count={filteredPacientes.length}
             page={page}
             onPageChange={(e, newPage) => setPage(newPage)}
             rowsPerPage={rowsPerPage}
