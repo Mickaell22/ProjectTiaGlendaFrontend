@@ -29,6 +29,7 @@ import {
 import { Edit, Delete, Visibility, PersonAdd, Search } from '@mui/icons-material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { formatDateLocal } from 'src/utils/dateUtils';
 
 const Persona = () => {
   const [formData, setFormData] = useState({
@@ -733,13 +734,7 @@ const Persona = () => {
               <Grid item xs={12}>
                 <Typography variant="body2" color="text.secondary">Fecha de Nacimiento</Typography>
                 <Typography variant="body1" fontWeight="bold">
-                  {detalle.fecha_nacimiento
-                    ? new Date(detalle.fecha_nacimiento).toLocaleDateString('es-ES', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })
-                    : 'Sin fecha'}
+                  {detalle.fecha_nacimiento ? formatDateLocal(detalle.fecha_nacimiento) : 'Sin fecha'}
                 </Typography>
               </Grid>
             </Grid>

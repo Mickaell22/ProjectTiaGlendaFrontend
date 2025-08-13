@@ -26,26 +26,16 @@ import {
   Tooltip,
   Card,
   CardContent,
-  InputAdornment, // <-- agregado
+  InputAdornment
 } from '@mui/material';
 import { Delete, Edit, Visibility, Search, Description } from '@mui/icons-material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import BuscadorPersonas from 'src/components/shared/BuscadorPersonas';
+import { formatDateLocal, formatDateForInput, getCurrentDateForInput } from 'src/utils/dateUtils';
 
 /* ---------- Helpers ---------- */
-function formatFecha(valor) {
-  if (!valor) return '—';
-  if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) return valor;
-  if (typeof valor === 'string' && valor.includes('T')) return valor.split('T')[0];
-  const d = new Date(valor);
-  if (isNaN(d.getTime())) return '—';
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-}
-const normalizeDate = (v) => (!v ? null : formatFecha(v));
+const normalizeDate = (v) => (!v ? null : formatDateForInput(v));
 const toIntOrNull = (v) =>
   v === '' || v === null || v === undefined ? null : parseInt(v, 10);
 
@@ -80,8 +70,6 @@ const Paciente = () => {
   // Modal Detalle
   const [detalle, setDetalle] = useState(null);
   
-  // Buscador avanzado
-  const [showBuscador, setShowBuscador] = useState(false);
 
   // Formulario
   const [editingId, setEditingId] = useState(null);
@@ -90,8 +78,8 @@ const Paciente = () => {
     persona_id: '',
     tutor_id: '',
     especialidad_id: '',
-    fecha_ingreso: new Date().toISOString().split('T')[0], // Fecha actual por defecto
-    fecha_inicio_tratamiento: new Date().toISOString().split('T')[0], // Fecha actual por defecto
+    fecha_ingreso: getCurrentDateForInput(), // Fecha actual por defecto
+    fecha_inicio_tratamiento: getCurrentDateForInput(), // Fecha actual por defecto
     fecha_fin_tratamiento: '',
     estado_tratamiento: 'activo',
     observaciones_tratamiento: '',
@@ -99,9 +87,7 @@ const Paciente = () => {
   });
   const [errors, setErrors] = useState({});
 
-  // Buscar Persona/Tutor por cédula
-  const [searchCedulaPersona, setSearchCedulaPersona] = useState('');
-  const [searchCedulaTutor, setSearchCedulaTutor] = useState('');
+  // Variables para personas y tutores encontrados
   const [personaEncontrada, setPersonaEncontrada] = useState(null);
   const [tutorEncontrado, setTutorEncontrado] = useState(null);
 
@@ -135,53 +121,6 @@ const Paciente = () => {
     }
   };
 
-  /* ---------- Buscar Persona/Tutor por cédula ---------- */
-  const handleBuscarPersona = async () => {
-    try {
-      const res = await axios.get('http://localhost:5000/api/personas', { headers });
-      const persona = res.data?.data?.find((p) => p.cedula === searchCedulaPersona);
-      if (persona) {
-        setPersonaEncontrada(persona);
-        setFormData((prev) => ({ ...prev, persona_id: persona.id }));
-        setSnackbar({ open: true, message: 'Persona encontrada', severity: 'success' });
-      } else {
-        setPersonaEncontrada(null);
-        setFormData((prev) => ({ ...prev, persona_id: '' }));
-        setSnackbar({ open: true, message: 'Persona no encontrada', severity: 'warning' });
-      }
-    } catch (error) {
-      console.error('Error al buscar persona:', error);
-      setSnackbar({ open: true, message: 'Error al buscar persona', severity: 'error' });
-    }
-  };
-
-  const handleBuscarTutor = async () => {
-    try {
-      const resPersonas = await axios.get('http://localhost:5000/api/personas', { headers });
-      const persona = resPersonas.data?.data?.find((p) => p.cedula === searchCedulaTutor);
-
-    if (persona) {
-        const tutoresRes = await axios.get('http://localhost:5000/api/tutores', { headers });
-        const tutor = tutoresRes.data?.data?.find((t) => t.persona_id === persona.id);
-        if (tutor) {
-          setTutorEncontrado(persona);
-          setFormData((prev) => ({ ...prev, tutor_id: tutor.id }));
-          setSnackbar({ open: true, message: 'Tutor encontrado', severity: 'success' });
-        } else {
-          setTutorEncontrado(null);
-          setFormData((prev) => ({ ...prev, tutor_id: '' }));
-          setSnackbar({ open: true, message: 'No existe tutor con esa cédula', severity: 'warning' });
-        }
-      } else {
-        setTutorEncontrado(null);
-        setFormData((prev) => ({ ...prev, tutor_id: '' }));
-        setSnackbar({ open: true, message: 'Persona no encontrada', severity: 'warning' });
-      }
-    } catch (err) {
-      console.error('Error al buscar tutor:', err);
-      setSnackbar({ open: true, message: 'Error al buscar tutor', severity: 'error' });
-    }
-  };
 
   /* ---------- Form handlers ---------- */
   const handleChange = (e) => {
@@ -334,7 +273,7 @@ const Paciente = () => {
   };
 
   const resetForm = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getCurrentDateForInput();
     setFormData({
       persona_id: '',
       tutor_id: '',
@@ -348,11 +287,8 @@ const Paciente = () => {
     });
     setPersonaEncontrada(null);
     setTutorEncontrado(null);
-    setSearchCedulaPersona('');
-    setSearchCedulaTutor('');
     setEditingId(null);
     setErrors({});
-    setShowBuscador(false); // Volver a búsqueda simple al resetear
   };
 
   const handleEdit = (p) => {
@@ -360,11 +296,9 @@ const Paciente = () => {
       persona_id: p.persona_id,
       tutor_id: p.tutor_id || '',
       especialidad_id: p.especialidad_id || '',
-      fecha_ingreso: formatFecha(p.fecha_ingreso) === '—' ? '' : formatFecha(p.fecha_ingreso),
-      fecha_inicio_tratamiento:
-        formatFecha(p.fecha_inicio_tratamiento) === '—' ? '' : formatFecha(p.fecha_inicio_tratamiento),
-      fecha_fin_tratamiento:
-        formatFecha(p.fecha_fin_tratamiento) === '—' ? '' : formatFecha(p.fecha_fin_tratamiento),
+      fecha_ingreso: formatDateForInput(p.fecha_ingreso) || '',
+      fecha_inicio_tratamiento: formatDateForInput(p.fecha_inicio_tratamiento) || '',
+      fecha_fin_tratamiento: formatDateForInput(p.fecha_fin_tratamiento) || '',
       estado_tratamiento: p.estado_tratamiento || 'activo',
       observaciones_tratamiento: p.observaciones_tratamiento || '',
       observaciones: p.observaciones || '',
@@ -396,7 +330,6 @@ const Paciente = () => {
   const handlePersonaSelectBuscador = (persona) => {
     setPersonaEncontrada(persona);
     setFormData((prev) => ({ ...prev, persona_id: persona.id }));
-    setSearchCedulaPersona(persona.cedula || '');
     setSnackbar({ open: true, message: `Persona seleccionada: ${persona.nombre_completo}`, severity: 'success' });
   };
 
@@ -412,7 +345,6 @@ const Paciente = () => {
     // Usar el tutor_id si está disponible, sino usar el id
     const tutorId = tutor.tutor_id || tutor.id;
     setFormData((prev) => ({ ...prev, tutor_id: tutorId }));
-    setSearchCedulaTutor(tutor.cedula || tutor.cedula_display || '');
     
     setSnackbar({ 
       open: true, 
@@ -436,25 +368,101 @@ const Paciente = () => {
     }
   };
 
-  /* ---------- Buscador en listado de pacientes ---------- */
+  /* ---------- Filtros del listado de pacientes ---------- */
   const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    especialidad: '',
+    estado_tratamiento: '',
+    tutor: '',
+    fecha_ingreso_desde: '',
+    fecha_ingreso_hasta: ''
+  });
+  
   const normalize = (s = '') =>
     s.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
   const filteredPacientes = React.useMemo(() => {
-    const q = normalize(searchTerm.trim());
-    if (!q) return pacientes;
-    return pacientes.filter((p) => {
-      const campos = [
-        p.nombre_completo,
-        p.cedula,
-        p.nombre_tutor,
-        p.especialidad_nombre,
-        p.estado_tratamiento,
-      ];
-      return campos.some((c) => normalize(c || '').includes(q));
+    let result = pacientes;
+    
+    // Filtro por texto general
+    if (searchTerm.trim()) {
+      const q = normalize(searchTerm.trim());
+      result = result.filter((p) => {
+        const campos = [
+          p.nombre_completo,
+          p.cedula,
+          p.nombre_tutor,
+          p.especialidad_nombre,
+          p.estado_tratamiento,
+        ];
+        return campos.some((c) => normalize(c || '').includes(q));
+      });
+    }
+    
+    // Filtro por especialidad
+    if (filters.especialidad) {
+      result = result.filter(p => p.especialidad_id == filters.especialidad);
+    }
+    
+    // Filtro por estado de tratamiento
+    if (filters.estado_tratamiento) {
+      result = result.filter(p => p.estado_tratamiento === filters.estado_tratamiento);
+    }
+    
+    // Filtro por tutor
+    if (filters.tutor.trim()) {
+      const tutorQ = normalize(filters.tutor.trim());
+      result = result.filter(p => normalize(p.nombre_tutor || '').includes(tutorQ));
+    }
+    
+    // Filtro por rango de fechas de ingreso
+    if (filters.fecha_ingreso_desde) {
+      result = result.filter(p => {
+        if (!p.fecha_ingreso) return false;
+        const fechaIngreso = new Date(p.fecha_ingreso);
+        const fechaDesde = new Date(filters.fecha_ingreso_desde);
+        return fechaIngreso >= fechaDesde;
+      });
+    }
+    
+    if (filters.fecha_ingreso_hasta) {
+      result = result.filter(p => {
+        if (!p.fecha_ingreso) return false;
+        const fechaIngreso = new Date(p.fecha_ingreso);
+        const fechaHasta = new Date(filters.fecha_ingreso_hasta);
+        return fechaIngreso <= fechaHasta;
+      });
+    }
+    
+    return result;
+  }, [pacientes, searchTerm, filters]);
+  
+  const handleFilterChange = (field, value) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+    setPage(0); // Reset pagination
+  };
+  
+  const clearFilters = () => {
+    setFilters({
+      especialidad: '',
+      estado_tratamiento: '',
+      tutor: '',
+      fecha_ingreso_desde: '',
+      fecha_ingreso_hasta: ''
     });
-  }, [pacientes, searchTerm]);
+    setSearchTerm('');
+    setPage(0);
+  };
+  
+  const hasActiveFilters = () => {
+    return searchTerm.trim() || 
+           filters.especialidad || 
+           filters.estado_tratamiento || 
+           filters.tutor.trim() || 
+           filters.fecha_ingreso_desde || 
+           filters.fecha_ingreso_hasta;
+  };
 
   /* ---------- Render ---------- */
   return (
@@ -491,121 +499,27 @@ const Paciente = () => {
 </Paper>
 
 
-        {/* Opciones de Búsqueda */}
-        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={8}>
-              <Typography variant="h6" fontWeight="bold">
-                Búsqueda de Persona y Tutor
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Puedes buscar por cédula individual o usar el buscador avanzado
-              </Typography>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Button
-                variant={showBuscador ? "outlined" : "contained"}
-                fullWidth
-                onClick={() => setShowBuscador(!showBuscador)}
-                startIcon={<Search />}
-              >
-                {showBuscador ? "Búsqueda Simple" : "Buscador Avanzado"}
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
 
         {/* Buscador Avanzado */}
-        {showBuscador && (
-          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
-            <BuscadorPersonas
-              onPersonaSelect={handlePersonaSelectBuscador}
-              onTutorSelect={handleTutorSelectBuscador}
-              showPersonas={true}
-              showTutores={true}
-              compact={true}
-              maxHeight={350}
-              hideRegisteredPatients={true}
-              editingPatientId={editingId}
-            />
-          </Paper>
-        )}
+        <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+          <Typography variant="h6" fontWeight="bold" gutterBottom>
+            Búsqueda de Persona y Tutor
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Busca y selecciona la persona (paciente) y el tutor/representante
+          </Typography>
+          <BuscadorPersonas
+            onPersonaSelect={handlePersonaSelectBuscador}
+            onTutorSelect={handleTutorSelectBuscador}
+            showPersonas={true}
+            showTutores={true}
+            compact={true}
+            maxHeight={350}
+            hideRegisteredPatients={true}
+            editingPatientId={editingId}
+          />
+        </Paper>
 
-        {/* Búsqueda Simple - Solo cuando no está el buscador avanzado */}
-        {!showBuscador && (
-          <>
-            {/* Buscar Persona */}
-            <Paper elevation={3} sx={{ p: 3, maxWidth: 1000, mx: 'auto', mb: 3 }}>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>
-                Buscar Persona (Paciente)
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Cédula de Persona"
-                    value={searchCedulaPersona}
-                    onChange={(e) => setSearchCedulaPersona(e.target.value)}
-                    error={!!errors.persona_id}
-                    helperText={errors.persona_id}
-                  />
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={handleBuscarPersona}
-                    startIcon={<Search />}
-                    sx={{ mt: 1 }}
-                  >
-                    Buscar Persona
-                  </Button>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  {personaEncontrada && (
-                    <Paper elevation={1} sx={{ p: 2, backgroundColor: '#f7f7f7' }}>
-                      <Typography>
-                        <strong>Nombre:</strong> {personaEncontrada.nombre} {personaEncontrada.apellido}
-                      </Typography>
-                      <Typography>
-                        <strong>Cédula:</strong> {personaEncontrada.cedula}
-                      </Typography>
-                    </Paper>
-                  )}
-                </Grid>
-              </Grid>
-            </Paper>
-
-            {/* Buscar Tutor */}
-            <Paper elevation={3} sx={{ p: 3, maxWidth: 1000, mx: 'auto', mb: 3 }}>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>
-                Buscar Tutor/Representante
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Cédula del Tutor"
-                    value={searchCedulaTutor}
-                    onChange={(e) => setSearchCedulaTutor(e.target.value)}
-                    error={!!errors.tutor_id}
-                    helperText={errors.tutor_id}
-                  />
-                  <Button variant="outlined" fullWidth onClick={handleBuscarTutor} startIcon={<Search />} sx={{ mt: 1 }}>
-                    Buscar Tutor
-                  </Button>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  {tutorEncontrado && (
-                    <Paper elevation={1} sx={{ p: 2, backgroundColor: '#f7f7f7' }}>
-                      <Typography>
-                        <strong>Nombre:</strong> {tutorEncontrado.nombre_completo || `${tutorEncontrado.nombre} ${tutorEncontrado.apellido}`}
-                      </Typography>
-                    </Paper>
-                  )}
-                </Grid>
-              </Grid>
-            </Paper>
-          </>
-        )}
 
         {/* Mostrar Persona y Tutor Seleccionados */}
         {(personaEncontrada || tutorEncontrado) && (
@@ -767,7 +681,7 @@ const Paciente = () => {
           type="date"
           name="fecha_ingreso"
           InputLabelProps={{ shrink: true }}
-          inputProps={{ max: new Date().toISOString().split('T')[0] }}
+          inputProps={{ max: getCurrentDateForInput() }}
           value={formData.fecha_ingreso}
           onChange={handleChange}
           error={!!errors.fecha_ingreso}
@@ -956,12 +870,40 @@ const Paciente = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredPacientes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((p) => (
+              {filteredPacientes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                    <Box>
+                      <Search sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+                      <Typography variant="h6" color="text.secondary" gutterBottom>
+                        No se encontraron pacientes
+                      </Typography>
+                      <Typography variant="body2" color="text.disabled">
+                        {hasActiveFilters() 
+                          ? 'Intenta modificar o limpiar los filtros de búsqueda'
+                          : 'No hay pacientes registrados en el sistema'
+                        }
+                      </Typography>
+                      {hasActiveFilters() && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={clearFilters}
+                          sx={{ mt: 2 }}
+                        >
+                          Limpiar Filtros
+                        </Button>
+                      )}
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredPacientes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((p) => (
                 <TableRow key={p.id}>
                   <TableCell>{p.nombre_completo}</TableCell>
                   <TableCell>{p.cedula}</TableCell>
                   <TableCell>{p.nombre_tutor || 'Sin tutor'}</TableCell>
-                  <TableCell>{formatFecha(p.fecha_ingreso)}</TableCell>
+                  <TableCell>{formatDateLocal(p.fecha_ingreso)}</TableCell>
                   <TableCell>{p.especialidad_nombre || '—'}</TableCell>
                   <TableCell sx={{ whiteSpace: 'nowrap' }}>
                     <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'nowrap' }}>
@@ -988,7 +930,8 @@ const Paciente = () => {
                     </Box>
                   </TableCell>
                 </TableRow>
-              ))}
+                ))
+              )}
             </TableBody>
           </Table>
           <TablePagination
@@ -1025,7 +968,7 @@ const Paciente = () => {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Typography variant="body2" color="text.secondary">Fecha Ingreso</Typography>
-                    <Typography variant="body1" fontWeight="bold">{formatFecha(detalle.fecha_ingreso)}</Typography>
+                    <Typography variant="body1" fontWeight="bold">{formatDateLocal(detalle.fecha_ingreso)}</Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Typography variant="body2" color="text.secondary">Especialidad</Typography>
@@ -1038,12 +981,12 @@ const Paciente = () => {
                   <Grid item xs={12} sm={6}>
                     <Typography variant="body2" color="text.secondary">Inicio Tratamiento</Typography>
                     <Typography variant="body1" fontWeight="bold">
-                      {formatFecha(detalle.fecha_inicio_tratamiento)}
+                      {formatDateLocal(detalle.fecha_inicio_tratamiento)}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <Typography variant="body2" color="text.secondary">Fin Tratamiento</Typography>
-                    <Typography variant="body1" fontWeight="bold">{formatFecha(detalle.fecha_fin_tratamiento)}</Typography>
+                    <Typography variant="body1" fontWeight="bold">{formatDateLocal(detalle.fecha_fin_tratamiento)}</Typography>
                   </Grid>
                   <Grid item xs={12}>
                     <Typography variant="body2" color="text.secondary">Obs. Tratamiento</Typography>

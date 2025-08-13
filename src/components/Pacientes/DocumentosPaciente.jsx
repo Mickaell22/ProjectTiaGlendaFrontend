@@ -36,6 +36,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import { formatDateLocal } from 'src/utils/dateUtils';
 
 const DocumentosPaciente = () => {
   const navigate = useNavigate();
@@ -220,7 +221,7 @@ const DocumentosPaciente = () => {
   const handleEdit = (documento) => {
     setEditingDocumento({
       ...documento,
-      fecha_vencimiento: documento.fecha_vencimiento ? documento.fecha_vencimiento.split('T')[0] : ''
+      fecha_vencimiento: documento.fecha_vencimiento ? new Date(documento.fecha_vencimiento).toISOString().split('T')[0] : ''
     });
   };
 
@@ -252,7 +253,7 @@ const DocumentosPaciente = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'No especificada';
-    return new Date(dateString).toLocaleDateString('es-ES');
+    return formatDateLocal(dateString);
   };
 
   const formatFileSize = (bytes) => {
