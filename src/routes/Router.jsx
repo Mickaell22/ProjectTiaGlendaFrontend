@@ -16,6 +16,9 @@ import Alumno from 'src/views/pacientes/alumno';
 import Tutor from 'src/views/pacientes/tutores';
 import Usuario from 'src/views/administracion/usuario';
 import Especialidad from 'src/views/personal/especialidad';
+import Personal from 'src/views/personal/personal';
+import SesionesTerapeuticas from 'src/views/terapeutico/SesionesTerapeuticas';
+import SesionesPedagogicas from 'src/views/pedagogico/SesionesPedagogicas';
 import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
 
 
@@ -197,16 +200,19 @@ const Router = [
       { path: '/gestion/tutor', element: <Tutor /> },
       { path: '/gestion/usuario', element: <Usuario /> },
       { path: '/gestion/especialidad', element: <Especialidad /> },
+      { path: '/gestion/personal', element: <Personal /> },
       { path: '/pacientes/:pacienteId/documentos', element: <DocumentosPaciente /> },
 
 
 
       // Módulo Terapéutico
+      { path: '/terapeutico/sesiones', element: <SesionesTerapeuticas /> },
       { path: '/terapeutico/evaluaciones', element: <TerapeuticoEvaluaciones /> },
       { path: '/terapeutico/planes', element: <TerapeuticoPlanes /> },
       { path: '/terapeutico/seguimiento', element: <TerapeuticoSeguimiento /> },
       
       // Módulo Pedagógico
+      { path: '/pedagogico/sesiones', element: <SesionesPedagogicas /> },
       { path: '/pedagogico/programas', element: <PedagogicoProgramas /> },
       { path: '/pedagogico/evaluaciones', element: <PedagogicoEvaluaciones /> },
       { path: '/pedagogico/progreso', element: <PedagogicoProgreso /> },

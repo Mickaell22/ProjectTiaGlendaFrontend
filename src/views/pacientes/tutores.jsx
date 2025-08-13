@@ -373,18 +373,18 @@ const Tutor = () => {
                       sx={{
                         display: 'flex',
                         flexWrap: 'nowrap',
-                        gap: 1,
+                        gap: 0.5,
                         alignItems: 'center',
                         justifyContent: 'flex-end',
                       }}
                     >
-                      <Tooltip title="Ver detalles">
+                      <Tooltip title="Ver Detalles">
                         <IconButton color="primary" size="small" onClick={() => setDetalle(tutor)}>
                           <Visibility fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Editar">
-                        <IconButton size="small" onClick={() => handleEditar(tutor)}>
+                        <IconButton color="success" size="small" onClick={() => handleEditar(tutor)}>
                           <Edit fontSize="small" />
                         </IconButton>
                       </Tooltip>

@@ -11,15 +11,24 @@ import {
   School,
   CalendarMonth,
   InsertChart,
-  Description,
-  Settings,
-  CameraAlt,
-  TrendingUp,
   Login,
   PersonAdd,
-  Error,
-  TableChart,
-  FiberManualRecord,
+  TrendingUp,
+  Person,
+  SupervisorAccount,
+  FamilyRestroom,
+  MedicalServices,
+  Psychology,
+  MenuBook,
+  Assignment,
+  Assessment,
+  Timeline,
+  Event,
+  Schedule,
+  BarChart,
+  PictureAsPdf,
+  AutoGraph,
+  Security
 } from '@mui/icons-material';
 
 // Función simple para generar IDs únicos
@@ -28,7 +37,7 @@ const uniqueId = () => Math.random().toString(36).substring(2, 15);
 const Menuitems = [
   {
     navlabel: true,
-    subheader: 'Principal',
+    subheader: 'Panel Principal',
   },
   {
     id: uniqueId(),
@@ -39,136 +48,147 @@ const Menuitems = [
 
   {
     navlabel: true,
-    subheader: 'Módulo Personas',
+    subheader: 'Gestión de Personas',
   },
   {
     id: uniqueId(),
-    title: 'Personas',
-    icon: People,
+    title: 'Registro de Personas',
+    icon: Person,
     href: '/apps/contacts',
     children: [
       {
         id: uniqueId(),
         title: 'Gestión de Personas',
-        icon: FiberManualRecord,
+        icon: People,
         href: '/gestion/persona',
       },
     ],
   },
   {
     id: uniqueId(),
-    title: 'Administración',
-    icon: AdminPanelSettings,
+    title: 'Administración del Sistema',
+    icon: Security,
     href: '/apps/user-profile/followers',
     children: [
       {
         id: uniqueId(),
         title: 'Gestión de Usuarios',
-        icon: FiberManualRecord,
+        icon: SupervisorAccount,
         href: '/gestion/usuario',
       },
-      
     ],
   },
   {
     id: uniqueId(),
-    title: 'Pacientes/Alumnos',
-    icon: Group,
+    title: 'Pacientes y Estudiantes',
+    icon: LocalHospital,
     href: '/apps/user-profile/followers',
     children: [
       {
         id: uniqueId(),
         title: 'Gestión de Pacientes',
-        icon: FiberManualRecord,
+        icon: MedicalServices,
         href: '/gestion/paciente',
       },
       {
         id: uniqueId(),
-        title: 'Gestión de Alumnos',
-        icon: FiberManualRecord,
+        title: 'Gestión de Estudiantes',
+        icon: School,
         href: '/gestion/alumno',
       },
       {
         id: uniqueId(),
         title: 'Gestión de Tutores',
-        icon: FiberManualRecord,
+        icon: FamilyRestroom,
         href: '/gestion/tutor',
       },
     ],
   },
   {
     id: uniqueId(),
-    title: 'Personal',
+    title: 'Personal del Centro',
     icon: AccountCircle,
     href: '/apps/user-profile/followers',
     children: [
       {
         id: uniqueId(),
-        title: 'Gestión de Especialidad',
-        icon: FiberManualRecord,
+        title: 'Gestión de Especialidades',
+        icon: Psychology,
         href: '/gestion/especialidad',
       },
       {
         id: uniqueId(),
         title: 'Gestión de Personal',
-        icon: FiberManualRecord,
-        href: '/apps/user-profile/friends',
+        icon: SupervisorAccount,
+        href: '/gestion/personal',
       },
     ],
   },
 
   {
     navlabel: true,
-    subheader: 'Módulos Específicos',
+    subheader: 'Área Clínica y Educativa',
   },
   {
     id: uniqueId(),
-    title: 'Módulo Terapéutico',
+    title: 'Área Terapéutica',
     icon: Favorite,
     href: '/terapeutico',
     children: [
       {
         id: uniqueId(),
-        title: 'Evaluaciones',
-        icon: FiberManualRecord,
+        title: 'Sesiones Terapéuticas',
+        icon: MedicalServices,
+        href: '/terapeutico/sesiones',
+      },
+      {
+        id: uniqueId(),
+        title: 'Evaluaciones Clínicas',
+        icon: Assessment,
         href: '/terapeutico/evaluaciones',
       },
       {
         id: uniqueId(),
         title: 'Planes de Tratamiento',
-        icon: FiberManualRecord,
+        icon: Assignment,
         href: '/terapeutico/planes',
       },
       {
         id: uniqueId(),
-        title: 'Seguimiento',
-        icon: FiberManualRecord,
+        title: 'Seguimiento y Progreso',
+        icon: Timeline,
         href: '/terapeutico/seguimiento',
       },
     ],
   },
   {
     id: uniqueId(),
-    title: 'Módulo Pedagógico',
-    icon: SchoolOutlined,
+    title: 'Área Pedagógica',
+    icon: MenuBook,
     href: '/pedagogico',
     children: [
       {
         id: uniqueId(),
+        title: 'Sesiones Pedagógicas',
+        icon: School,
+        href: '/pedagogico/sesiones',
+      },
+      {
+        id: uniqueId(),
         title: 'Programas Educativos',
-        icon: FiberManualRecord,
+        icon: SchoolOutlined,
         href: '/pedagogico/programas',
       },
       {
         id: uniqueId(),
         title: 'Evaluaciones Académicas',
-        icon: FiberManualRecord,
+        icon: Assessment,
         href: '/pedagogico/evaluaciones',
       },
       {
         id: uniqueId(),
         title: 'Progreso Académico',
-        icon: FiberManualRecord,
+        icon: AutoGraph,
         href: '/pedagogico/progreso',
       },
     ],
@@ -176,56 +196,56 @@ const Menuitems = [
 
   {
     navlabel: true,
-    subheader: 'Gestión del Centro',
+    subheader: 'Programación y Reportes',
   },
   {
     id: uniqueId(),
-    title: 'Horarios',
-    icon: CalendarMonth,
+    title: 'Gestión de Horarios',
+    icon: Schedule,
     href: '/horarios',
     children: [
       {
         id: uniqueId(),
-        title: 'Asignar Sesiones',
-        icon: FiberManualRecord,
+        title: 'Programar Sesiones',
+        icon: Event,
         href: '/horarios/citas',
       },
       {
         id: uniqueId(),
         title: 'Calendario Semanal',
-        icon: FiberManualRecord,
+        icon: CalendarMonth,
         href: '/horarios/semanal',
       },
       {
         id: uniqueId(),
-        title: 'Disponibilidad',
-        icon: FiberManualRecord,
+        title: 'Disponibilidad Personal',
+        icon: Schedule,
         href: '/horarios/disponibilidad',
       },
     ],
   },
   {
     id: uniqueId(),
-    title: 'Informes',
-    icon: InsertChart,
+    title: 'Informes y Estadísticas',
+    icon: BarChart,
     href: '/informes',
     children: [
       {
         id: uniqueId(),
         title: 'Generar Informes',
-        icon: FiberManualRecord,
+        icon: PictureAsPdf,
         href: '/informes/generar',
       },
       {
         id: uniqueId(),
-        title: 'Estadísticas',
+        title: 'Panel de Estadísticas',
         icon: TrendingUp,
         href: '/informes/estadisticas',
       },
       {
         id: uniqueId(),
         title: 'Reportes Mensuales',
-        icon: FiberManualRecord,
+        icon: InsertChart,
         href: '/informes/mensuales',
       },
     ],
@@ -233,75 +253,7 @@ const Menuitems = [
 
   {
     navlabel: true,
-    subheader: 'Centro',
-  },
-  {
-    id: uniqueId(),
-    title: 'Galería',
-    icon: CameraAlt,
-    href: '/apps/user-profile/gallery',
-  },
-  {
-    id: uniqueId(),
-    title: 'Configuración',
-    icon: Settings,
-    href: '/pages/account-settings',
-  },
-
-  {
-    navlabel: true,
-    subheader: 'Herramientas',
-  },
-  {
-    id: uniqueId(),
-    title: 'Formularios',
-    icon: Description,
-    href: '/forms/form-layouts',
-    children: [
-      {
-        id: uniqueId(),
-        title: 'Layouts',
-        icon: FiberManualRecord,
-        href: '/forms/form-layouts',
-      },
-      {
-        id: uniqueId(),
-        title: 'Validación',
-        icon: FiberManualRecord,
-        href: '/forms/form-validation',
-      },
-    ],
-  },
-  {
-    id: uniqueId(),
-    title: 'Tablas',
-    icon: TableChart,
-    href: '/tables/basic',
-    children: [
-      {
-        id: uniqueId(),
-        title: 'Básica',
-        icon: FiberManualRecord,
-        href: '/tables/basic',
-      },
-      {
-        id: uniqueId(),
-        title: 'Con Paginación',
-        icon: FiberManualRecord,
-        href: '/tables/pagination',
-      },
-      {
-        id: uniqueId(),
-        title: 'Con Búsqueda',
-        icon: FiberManualRecord,
-        href: '/tables/search',
-      },
-    ],
-  },
-
-  {
-    navlabel: true,
-    subheader: 'Autenticación',
+    subheader: 'Autenticación y Acceso',
   },
   {
     id: uniqueId(),
@@ -311,15 +263,9 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: 'Registrarse',
+    title: 'Crear Cuenta',
     icon: PersonAdd,
     href: '/auth/register',
-  },
-  {
-    id: uniqueId(),
-    title: 'Error 404',
-    icon: Error,
-    href: '/auth/404',
   },
 ];
 

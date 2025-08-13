@@ -269,6 +269,7 @@ const Persona = () => {
           </Box>
         </Paper>
 
+        {/* Formulario Principal */}
         <Card
           elevation={8}
           sx={{
@@ -631,7 +632,7 @@ const Persona = () => {
                     <TableCell>Apellido</TableCell>
                     <TableCell>Cédula</TableCell>
                     <TableCell>Dirección</TableCell>
-                    <TableCell>Acciones</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -647,9 +648,9 @@ const Persona = () => {
                           <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {persona.direccion}
                           </TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', gap: 1 }}>
-                              <Tooltip title="Ver detalles">
+                          <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'nowrap' }}>
+                              <Tooltip title="Ver Detalles">
                                 <IconButton
                                   color="primary"
                                   onClick={() => handleView(persona)}
@@ -658,16 +659,16 @@ const Persona = () => {
                                   <Visibility fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Editar persona">
+                              <Tooltip title="Editar">
                                 <IconButton
-                                  color="warning"
+                                  color="success"
                                   onClick={() => handleEdit(originalIndex)}
                                   size="small"
                                 >
                                   <Edit fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Eliminar persona">
+                              <Tooltip title="Eliminar">
                                 <IconButton
                                   color="error"
                                   onClick={() => handleDelete(originalIndex)}

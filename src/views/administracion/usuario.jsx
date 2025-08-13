@@ -388,14 +388,14 @@ const Usuario = () => {
                       <TableCell>{usuario.rol}</TableCell>
                       <TableCell>{usuario.estado}</TableCell>
                       <TableCell align="right" sx={{ minWidth: 200, whiteSpace: 'nowrap' }}>
-                        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'nowrap', justifyContent: 'flex-end' }}>
-                          <Tooltip title="Ver detalles">
+                        <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'nowrap', justifyContent: 'flex-end' }}>
+                          <Tooltip title="Ver Detalles">
                             <IconButton color="primary" size="small" onClick={() => setDetalle(usuario)}>
                               <Visibility fontSize="small" />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Editar">
-                            <IconButton color="primary" size="small" onClick={() => handleEdit(usuario)}>
+                            <IconButton color="success" size="small" onClick={() => handleEdit(usuario)}>
                               <Edit fontSize="small" />
                             </IconButton>
                           </Tooltip>
