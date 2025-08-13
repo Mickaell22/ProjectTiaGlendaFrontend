@@ -10,13 +10,13 @@ import BlankLayout from 'src/layouts/blank/BlankLayout';
 import Login from 'src/views/authentication/auth1/Login';
 import Register from 'src/views/authentication/auth1/Register';
 import Dashboard from 'src/views/dashboard/Dashboard';
-import Persona from 'src/views/personas/persona';
-import Paciente from 'src/views/pacientes/paciente';
+import PersonaModern from 'src/views/personas/PersonaModern';
+import PacienteModern from 'src/views/pacientes/PacienteModern';
 import Alumno from 'src/views/pacientes/alumno'; 
-import Tutor from 'src/views/pacientes/tutores';
-import Usuario from 'src/views/administracion/usuario';
-import Especialidad from 'src/views/personal/especialidad';
-import Personal from 'src/views/personal/personal';
+import TutorModern from 'src/views/pacientes/TutorModern';
+import UsuarioModern from 'src/views/administracion/UsuarioModern';
+import EspecialidadModern from 'src/views/personal/EspecialidadModern';
+import PersonalModern from 'src/views/personal/PersonalModern';
 import SesionesTerapeuticas from 'src/views/terapeutico/SesionesTerapeuticas';
 import SesionesPedagogicas from 'src/views/pedagogico/SesionesPedagogicas';
 import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
@@ -28,112 +28,160 @@ import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
 // Componente para páginas en desarrollo
 import ComingSoon from 'src/components/shared/ComingSoon';
 
-// Páginas específicas en desarrollo
-const TerapeuticoEvaluaciones = () => (
+// Páginas específicas del área terapéutica
+const TerapeuticoCronogramas = () => (
   <ComingSoon
-    title="Evaluaciones Terapéuticas"
-    description="Sistema para crear, gestionar y realizar seguimiento de evaluaciones terapéuticas"
+    title="Cronogramas Terapéuticos"
+    description="Gestión y visualización de cronogramas de sesiones terapéuticas"
     module="Terapéutico"
-    progress={30}
+    progress={40}
   />
 );
 
-const TerapeuticoPlanes = () => (
+const TerapeuticoAsistencia = () => (
   <ComingSoon
-    title="Planes de Tratamiento"
-    description="Herramienta para diseñar planes de tratamiento personalizados"
+    title="Control de Asistencia"
+    description="Sistema de registro y seguimiento de asistencia a sesiones"
     module="Terapéutico"
-    progress={25}
+    progress={45}
   />
 );
 
-const TerapeuticoSeguimiento = () => (
+const TerapeuticoHoy = () => (
   <ComingSoon
-    title="Seguimiento Terapéutico"
-    description="Monitor del progreso de pacientes en tratamientos"
+    title="Sesiones de Hoy"
+    description="Vista de sesiones programadas para el día actual"
     module="Terapéutico"
-    progress={20}
+    progress={60}
   />
 );
 
-const PedagogicoProgramas = () => (
+const TerapeuticoEstadisticas = () => (
   <ComingSoon
-    title="Programas Educativos"
-    description="Gestión de programas educativos y currículos especializados"
+    title="Estadísticas Terapéuticas"
+    description="Dashboard con métricas y análisis del área terapéutica"
+    module="Terapéutico"
+    progress={35}
+  />
+);
+
+const PedagogicoCronogramas = () => (
+  <ComingSoon
+    title="Cronograma de Clases"
+    description="Programación y gestión de cronogramas de clases pedagógicas"
     module="Pedagógico"
     progress={35}
+  />
+);
+
+const PedagogicoAsistencia = () => (
+  <ComingSoon
+    title="Asistencia Estudiantil"
+    description="Control de asistencia y tardanzas de estudiantes"
+    module="Pedagógico"
+    progress={40}
   />
 );
 
 const PedagogicoEvaluaciones = () => (
   <ComingSoon
-    title="Evaluaciones Académicas"
-    description="Sistema de evaluación del rendimiento académico"
-    module="Pedagógico"
-    progress={40}
-  />
-);
-
-const PedagogicoProgreso = () => (
-  <ComingSoon
-    title="Progreso Académico"
-    description="Seguimiento del avance académico de los alumnos"
+    title="Evaluaciones y Notas"
+    description="Sistema de evaluación académica y gestión de calificaciones"
     module="Pedagógico"
     progress={30}
   />
 );
 
-const HorariosCitas = () => (
+const PedagogicoEstadisticas = () => (
   <ComingSoon
-    title="Programar Citas"
-    description="Sistema de agendamiento de citas y consultas"
-    module="Horarios"
-    progress={45}
+    title="Estadísticas Académicas"
+    description="Análisis del rendimiento académico y métricas educativas"
+    module="Pedagógico"
+    progress={25}
   />
 );
 
-const HorariosSemanal = () => (
+// Consultas especializadas
+const ConsultasPacientesDisponibles = () => (
   <ComingSoon
-    title="Calendario Semanal"
-    description="Vista semanal con todas las actividades programadas"
-    module="Horarios"
+    title="Pacientes Disponibles"
+    description="Lista de pacientes disponibles para asignar a sesiones"
+    module="Consultas"
     progress={50}
   />
 );
 
-const HorariosDisponibilidad = () => (
+const ConsultasTerapeutasDisponibles = () => (
   <ComingSoon
-    title="Gestión de Disponibilidad"
-    description="Configuración de horarios disponibles"
-    module="Horarios"
-    progress={35}
+    title="Terapeutas Disponibles"
+    description="Personal terapéutico disponible para asignación"
+    module="Consultas"
+    progress={45}
   />
 );
 
-const InformesGenerar = () => (
+const ConsultasSesionesTerapeuta = () => (
   <ComingSoon
-    title="Generar Informes"
-    description="Herramienta para crear reportes personalizados"
-    module="Informes"
+    title="Sesiones por Terapeuta"
+    description="Vista de sesiones agrupadas por terapeuta"
+    module="Consultas"
     progress={40}
   />
 );
 
-const InformesEstadisticas = () => (
+const ConsultasHistorialAsistencia = () => (
   <ComingSoon
-    title="Estadísticas"
+    title="Historial de Asistencia"
+    description="Consulta histórica de asistencia de pacientes"
+    module="Consultas"
+    progress={35}
+  />
+);
+
+// Reportes y estadísticas
+const ReportesDashboard = () => (
+  <ComingSoon
+    title="Dashboard Ejecutivo"
+    description="Panel principal con métricas clave del centro"
+    module="Reportes"
+    progress={60}
+  />
+);
+
+const ReportesEstadisticas = () => (
+  <ComingSoon
+    title="Estadísticas Generales"
     description="Dashboard con métricas y análisis del centro"
-    module="Informes"
+    module="Reportes"
     progress={55}
   />
 );
 
-const InformesMensuales = () => (
+const ReportesPDF = () => (
   <ComingSoon
-    title="Reportes Mensuales"
-    description="Generación automática de reportes consolidados"
-    module="Informes"
-    progress={25}
+    title="Informes PDF"
+    description="Generación de informes en formato PDF"
+    module="Reportes"
+    progress={45}
+  />
+);
+
+// Configuraciones del sistema
+const GestionRoles = () => (
+  <ComingSoon
+    title="Gestión de Roles"
+    description="Administración de roles y permisos del sistema"
+    module="Configuración"
+    progress={30}
+  />
+);
+
+const ConfiguracionGeneral = () => (
+  <ComingSoon
+    title="Configuración General"
+    description="Configuraciones generales del sistema"
+    module="Configuración"
+    progress={40}
   />
 );
 
@@ -194,38 +242,45 @@ const Router = [
       { path: '/apps/contacts', element: <PacientesAlumnos /> },
       { path: '/apps/user-profile/followers', element: <PersonalLista /> },
       { path: '/apps/user-profile/friends', element: <PersonalEquipos /> },
-      { path: '/gestion/persona', element: <Persona /> },
-      { path: '/gestion/paciente', element: <Paciente /> },
+      { path: '/gestion/persona', element: <PersonaModern /> },
+      { path: '/gestion/paciente', element: <PacienteModern /> },
       { path: '/gestion/alumno', element: <Alumno /> },
-      { path: '/gestion/tutor', element: <Tutor /> },
-      { path: '/gestion/usuario', element: <Usuario /> },
-      { path: '/gestion/especialidad', element: <Especialidad /> },
-      { path: '/gestion/personal', element: <Personal /> },
+      { path: '/gestion/tutor', element: <TutorModern /> },
+      { path: '/gestion/usuario', element: <UsuarioModern /> },
+      { path: '/gestion/especialidad', element: <EspecialidadModern /> },
+      { path: '/gestion/personal', element: <PersonalModern /> },
       { path: '/pacientes/:pacienteId/documentos', element: <DocumentosPaciente /> },
 
 
 
       // Módulo Terapéutico
       { path: '/terapeutico/sesiones', element: <SesionesTerapeuticas /> },
-      { path: '/terapeutico/evaluaciones', element: <TerapeuticoEvaluaciones /> },
-      { path: '/terapeutico/planes', element: <TerapeuticoPlanes /> },
-      { path: '/terapeutico/seguimiento', element: <TerapeuticoSeguimiento /> },
+      { path: '/terapeutico/cronogramas', element: <TerapeuticoCronogramas /> },
+      { path: '/terapeutico/asistencia', element: <TerapeuticoAsistencia /> },
+      { path: '/terapeutico/hoy', element: <TerapeuticoHoy /> },
+      { path: '/terapeutico/estadisticas', element: <TerapeuticoEstadisticas /> },
       
       // Módulo Pedagógico
       { path: '/pedagogico/sesiones', element: <SesionesPedagogicas /> },
-      { path: '/pedagogico/programas', element: <PedagogicoProgramas /> },
+      { path: '/pedagogico/cronogramas', element: <PedagogicoCronogramas /> },
+      { path: '/pedagogico/asistencia', element: <PedagogicoAsistencia /> },
       { path: '/pedagogico/evaluaciones', element: <PedagogicoEvaluaciones /> },
-      { path: '/pedagogico/progreso', element: <PedagogicoProgreso /> },
+      { path: '/pedagogico/estadisticas', element: <PedagogicoEstadisticas /> },
       
-      // Horarios
-      { path: '/horarios/citas', element: <HorariosCitas /> },
-      { path: '/horarios/semanal', element: <HorariosSemanal /> },
-      { path: '/horarios/disponibilidad', element: <HorariosDisponibilidad /> },
+      // Consultas especializadas
+      { path: '/consultas/pacientes-disponibles', element: <ConsultasPacientesDisponibles /> },
+      { path: '/consultas/terapeutas-disponibles', element: <ConsultasTerapeutasDisponibles /> },
+      { path: '/consultas/sesiones-terapeuta', element: <ConsultasSesionesTerapeuta /> },
+      { path: '/consultas/historial-asistencia', element: <ConsultasHistorialAsistencia /> },
       
-      // Informes
-      { path: '/informes/generar', element: <InformesGenerar /> },
-      { path: '/informes/estadisticas', element: <InformesEstadisticas /> },
-      { path: '/informes/mensuales', element: <InformesMensuales /> },
+      // Reportes
+      { path: '/reportes/dashboard', element: <ReportesDashboard /> },
+      { path: '/reportes/estadisticas', element: <ReportesEstadisticas /> },
+      { path: '/reportes/pdf', element: <ReportesPDF /> },
+      
+      // Configuración del sistema
+      { path: '/gestion/roles', element: <GestionRoles /> },
+      { path: '/configuracion/general', element: <ConfiguracionGeneral /> },
       
       // Centro
       { path: '/apps/user-profile/gallery', element: <Galeria /> },

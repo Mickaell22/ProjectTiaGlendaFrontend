@@ -25,8 +25,17 @@ import {
   CardContent,
   Divider,
   Chip,
+  Tabs,
+  Tab,
+  InputAdornment,
+  Stack,
+  Avatar,
+  MenuItem
 } from '@mui/material';
-import { Edit, Delete, Visibility, PersonAdd, Search } from '@mui/icons-material';
+import { 
+  Edit, Delete, Visibility, PersonAdd, Search, Person, 
+  Email, Phone, LocationOn, CalendarToday, Add
+} from '@mui/icons-material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { formatDateLocal } from 'src/utils/dateUtils';
@@ -40,16 +49,19 @@ const Persona = () => {
     correo: '',
     direccion: '',
     fechaNacimiento: '',
+    estado: 'activo'
   });
 
   const [personas, setPersonas] = useState([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage] = useState(10);
-  const [detalle, setDetalle] = useState(null);
-  const [editingIndex, setEditingIndex] = useState(-1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
+  const [editingId, setEditingId] = useState(null);
   const [errors, setErrors] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState(0);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   // Helper para obtener el token y headers
@@ -63,19 +75,27 @@ const Persona = () => {
 
   // Cargar personas desde el backend con JWT
   useEffect(() => {
-    axios.get('http://localhost:5000/api/personas', {
-      headers: getAuthHeaders(),
-    })
-      .then(res => setPersonas(res.data.data || []))
-      .catch(err => {
-        if (err.response && err.response.status === 401) {
-          setSnackbar({ open: true, message: 'Sesión expirada. Inicia sesión nuevamente.', severity: 'error' });
-          setTimeout(() => navigate('/auth/login'), 2000);
-        } else {
-          setSnackbar({ open: true, message: 'Error cargando personas', severity: 'error' });
-        }
-      });
+    fetchPersonas();
   }, []);
+
+  const fetchPersonas = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get('http://localhost:5000/api/personas', {
+        headers: getAuthHeaders(),
+      });
+      setPersonas(res.data.data || []);
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setSnackbar({ open: true, message: 'Sesión expirada.', severity: 'error' });
+        setTimeout(() => navigate('/auth/login'), 2000);
+      } else {
+        setSnackbar({ open: true, message: 'Error al cargar personas', severity: 'error' });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -99,8 +119,8 @@ const Persona = () => {
     if (!formData.fechaNacimiento) newErrors.fechaNacimiento = 'Fecha de nacimiento es requerida';
 
     // Validar cédula duplicada
-    const cedulaExists = personas.some((p, index) =>
-      p.cedula === formData.cedula && (editingIndex === -1 || index !== editingIndex)
+    const cedulaExists = personas.some((p) =>
+      p.cedula === formData.cedula && p.id !== editingId
     );
     if (cedulaExists) newErrors.cedula = 'Esta cédula ya está registrada';
 
@@ -122,88 +142,54 @@ const Persona = () => {
     if (!validateForm()) return;
 
     try {
-      if (editingIndex >= 0) {
+      if (editingId) {
         // Actualizar persona
-        const personaId = personas[editingIndex].id;
-        await axios.put(`http://localhost:5000/api/personas/${personaId}`, adaptFormData(), {
+        await axios.put(`http://localhost:5000/api/personas/${editingId}`, adaptFormData(), {
           headers: getAuthHeaders(),
         });
-        const updatedPersonas = [...personas];
-        updatedPersonas[editingIndex] = { ...formData, id: personaId, fecha_nacimiento: formData.fechaNacimiento };
-        setPersonas(updatedPersonas);
-        setEditingIndex(-1);
-        setSnackbar({ open: true, message: 'Persona actualizada exitosamente', severity: 'success' });
+        setSnackbar({ open: true, message: 'Persona actualizada correctamente', severity: 'success' });
       } else {
         // Crear persona
-        const res = await axios.post('http://localhost:5000/api/personas', adaptFormData(), {
+        await axios.post('http://localhost:5000/api/personas', adaptFormData(), {
           headers: getAuthHeaders(),
         });
-        setPersonas([...personas, res.data.data]);
-        setSnackbar({ open: true, message: 'Persona registrada exitosamente', severity: 'success' });
+        setSnackbar({ open: true, message: 'Persona registrada correctamente', severity: 'success' });
       }
-      setFormData({
-        nombre: '',
-        apellido: '',
-        cedula: '',
-        telefono: '',
-        correo: '',
-        direccion: '',
-        fechaNacimiento: '',
-      });
-      setErrors({});
+      resetForm();
+      fetchPersonas();
+      setActiveTab(0); // Volver a la lista
     } catch (err) {
-      if (err.response && err.response.status === 401) {
-        setSnackbar({ open: true, message: 'Sesión expirada. Inicia sesión nuevamente.', severity: 'error' });
-        setTimeout(() => navigate('/auth/login'), 2000);
-      } else {
-        setSnackbar({ open: true, message: 'Error al guardar persona', severity: 'error' });
+      const msg = err.response?.data?.message || 'Error al guardar persona';
+      setSnackbar({ open: true, message: msg, severity: 'error' });
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('¿Está seguro de eliminar esta persona?')) {
+      try {
+        await axios.delete(`http://localhost:5000/api/personas/${id}`, {
+          headers: getAuthHeaders(),
+        });
+        setSnackbar({ open: true, message: 'Persona eliminada correctamente', severity: 'info' });
+        fetchPersonas();
+      } catch (error) {
+        const msg = error.response?.data?.message || 'Error al eliminar persona';
+        setSnackbar({ open: true, message: msg, severity: 'error' });
       }
     }
   };
 
-  const handleDelete = async (index) => {
-    try {
-      const personaId = personas[index].id;
-      await axios.delete(`http://localhost:5000/api/personas/${personaId}`, {
-        headers: getAuthHeaders(),
-      });
-      const nuevasPersonas = [...personas];
-      nuevasPersonas.splice(index, 1);
-      setPersonas(nuevasPersonas);
-      setSnackbar({ open: true, message: 'Persona eliminada exitosamente', severity: 'info' });
-      setEditingIndex(-1);
-      setFormData({
-        nombre: '',
-        apellido: '',
-        cedula: '',
-        telefono: '',
-        correo: '',
-        direccion: '',
-        fechaNacimiento: '',
-      });
-      setErrors({});
-    } catch (err) {
-      if (err.response && err.response.status === 401) {
-        setSnackbar({ open: true, message: 'Sesión expirada. Inicia sesión nuevamente.', severity: 'error' });
-        setTimeout(() => navigate('/auth/login'), 2000);
-      } else {
-        setSnackbar({ open: true, message: 'Error al eliminar persona', severity: 'error' });
-      }
-    }
-  };
-
-  const handleEdit = (index) => {
-    const persona = personas[index];
+  const handleEdit = (item) => {
     setFormData({
-      ...persona,
-      fechaNacimiento: persona.fecha_nacimiento || '', // Adaptar para el form
+      ...item,
+      fechaNacimiento: item.fecha_nacimiento || '',
+      estado: item.estado || 'activo'
     });
-    setEditingIndex(index);
-    setSnackbar({ open: true, message: 'Editando persona. Modifica los campos y guarda los cambios.', severity: 'info' });
+    setEditingId(item.id);
+    setActiveTab(1); // Cambiar a la tab del formulario
   };
 
-  const handleCancelEdit = () => {
-    setEditingIndex(-1);
+  const resetForm = () => {
     setFormData({
       nombre: '',
       apellido: '',
@@ -212,16 +198,14 @@ const Persona = () => {
       correo: '',
       direccion: '',
       fechaNacimiento: '',
+      estado: 'activo'
     });
+    setEditingId(null);
     setErrors({});
   };
 
-  const handleView = (persona) => {
-    setDetalle(persona);
-  };
-
-  const handleClose = () => {
-    setDetalle(null);
+  const handleViewDetail = (item) => {
+    setDetailDialog({ open: true, data: item });
   };
 
   const handleCloseSnackbar = () => {
