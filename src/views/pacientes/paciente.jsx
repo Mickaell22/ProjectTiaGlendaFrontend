@@ -26,7 +26,7 @@ import {
   Card,
   CardContent,
 } from '@mui/material';
-import { Delete, Edit, Visibility, Search } from '@mui/icons-material';
+import { Delete, Edit, Visibility, Search, Description } from '@mui/icons-material';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
@@ -571,8 +571,8 @@ const Paciente = () => {
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Documentos">
-                        <IconButton onClick={() => handleDocs(p)} size="small" sx={{ fontSize: 18, lineHeight: 1 }}>
-                          <span role="img" aria-label="documentos">📄</span>
+                        <IconButton color="info" onClick={() => handleDocs(p)} size="small">
+                          <Description fontSize="small" />
                         </IconButton>
                       </Tooltip>
                     </Box>
