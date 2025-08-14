@@ -121,9 +121,47 @@ export class PersonaService {
     );
   }
 
+  // Filtrar por estado
+  static filterByEstado(personas, estado) {
+    if (!estado) return personas;
+    return personas.filter(persona => persona.estado === estado);
+  }
+
   // Generar nombre completo
   static getFullName(persona) {
     return `${persona.nombre || ''} ${persona.apellido || ''}`.trim();
+  }
+
+  // Calcular edad
+  static calculateAge(fechaNacimiento) {
+    if (!fechaNacimiento) return 'N/A';
+    const birth = new Date(fechaNacimiento);
+    const now = new Date();
+    let age = now.getFullYear() - birth.getFullYear();
+    const monthDiff = now.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  }
+
+  // Formatear fecha
+  static formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  }
+
+  // Obtener estados disponibles
+  static getEstados() {
+    return [
+      { value: 'activo', label: 'Activo' },
+      { value: 'inactivo', label: 'Inactivo' }
+    ];
   }
 
   // Obtener estado de la persona con color para UI

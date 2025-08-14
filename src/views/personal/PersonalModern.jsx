@@ -1,5 +1,5 @@
 // src/views/personal/PersonalModern.jsx
-// Módulo de personal completamente refactorizado con buenas prácticas
+// Módulo de personal con diseño moderno original
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -31,11 +31,12 @@ import {
   Avatar,
   Chip,
   Divider,
-  Tooltip
+  Tooltip,
+  Autocomplete
 } from '@mui/material';
 import {
   SupervisorAccount,
-  PersonAdd,
+  Add,
   Edit,
   Delete,
   Visibility,
@@ -44,7 +45,6 @@ import {
   Phone,
   Email,
   Work,
-  Add,
   AccountBox
 } from '@mui/icons-material';
 
@@ -60,7 +60,6 @@ import CustomSnackbar from '../../components/shared/CustomSnackbar.jsx';
 import LoadingSpinner from '../../components/shared/LoadingSpinner.jsx';
 import ConfirmDialog from '../../components/shared/ConfirmDialog.jsx';
 import ErrorBoundary from '../../components/shared/ErrorBoundary.jsx';
-import BuscadorPersonas from '../../components/shared/BuscadorPersonas.jsx';
 
 // Tab Panel Component
 const TabPanel = ({ children, value, index, ...other }) => (
@@ -90,7 +89,6 @@ const PersonalModern = () => {
   const [editingId, setEditingId] = useState(null);
   const [errors, setErrors] = useState({});
   const [selectedPerson, setSelectedPerson] = useState(null);
-  const [showPersonSelector, setShowPersonSelector] = useState(false);
 
   // Estados de UI
   const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
@@ -112,16 +110,16 @@ const PersonalModern = () => {
     try {
       setLoading(true);
       const [personalData, personasData, especialidadesData] = await Promise.all([
-        PersonalService.getAll().catch(() => []),
-        PersonaService.getAll().catch(() => []),
-        EspecialidadService.getAll().catch(() => [])
+        PersonalService.getAll(),
+        PersonaService.getAll(),
+        EspecialidadService.getAll()
       ]);
       
       setPersonal(personalData);
       setPersonasDisponibles(personasData);
       setEspecialidades(especialidadesData);
     } catch (error) {
-      showError('Error al cargar datos: ' + error.message);
+      showError(error.message);
     } finally {
       setLoading(false);
     }
@@ -163,7 +161,7 @@ const PersonalModern = () => {
         showSuccess('Personal actualizado correctamente');
       } else {
         await PersonalService.create(backendData);
-        showSuccess('Personal registrado correctamente');
+        showSuccess('Personal creado correctamente');
       }
       
       resetForm();
@@ -183,7 +181,6 @@ const PersonalModern = () => {
     setEditingId(null);
     setErrors({});
     setSelectedPerson(null);
-    setShowPersonSelector(false);
   };
 
   // Manejadores de acciones
@@ -194,11 +191,8 @@ const PersonalModern = () => {
       estado: item.estado
     });
     
-    // Encontrar la persona seleccionada
     const persona = personasDisponibles.find(p => p.id === item.persona_id);
-    if (persona) {
-      setSelectedPerson(persona);
-    }
+    if (persona) setSelectedPerson(persona);
     
     setEditingId(item.id);
     setActiveTab(1);
@@ -223,24 +217,13 @@ const PersonalModern = () => {
     setDetailDialog({ open: true, data: item });
   };
 
-  const handlePersonaSelect = (persona) => {
-    setSelectedPerson(persona);
-    setFormData(prev => ({ ...prev, persona_id: persona.id }));
-    setShowPersonSelector(false);
-    if (errors.persona_id) {
-      setErrors(prev => ({ ...prev, persona_id: '' }));
-    }
-  };
-
   // Datos filtrados
-  const filteredPersonal = PersonalService.filterPersonal(
-    PersonalService.filterByArea(personal, filterArea),
-    searchTerm
-  );
+  let filteredPersonal = PersonalService.filterPersonal(personal, searchTerm);
+  filteredPersonal = PersonalService.filterByArea(filteredPersonal, filterArea);
 
   // Loading state
   if (loading) {
-    return <LoadingSpinner message="Cargando datos de personal..." fullHeight />;
+    return <LoadingSpinner message="Cargando personal..." fullHeight />;
   }
 
   return (
@@ -284,7 +267,7 @@ const PersonalModern = () => {
               sx={{ borderBottom: 1, borderColor: 'divider' }}
             >
               <Tab label="Lista de Personal" icon={<SupervisorAccount />} />
-              <Tab label={editingId ? "Editar Personal" : "Registrar Personal"} icon={<PersonAdd />} />
+              <Tab label={editingId ? "Editar Personal" : "Nuevo Personal"} icon={<Add />} />
             </Tabs>
           </Paper>
 
@@ -304,7 +287,7 @@ const PersonalModern = () => {
                 </Typography>
                 
                 <Grid container spacing={2} mb={3}>
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} md={5}>
                     <TextField
                       fullWidth
                       size="small"
@@ -318,7 +301,7 @@ const PersonalModern = () => {
                           </InputAdornment>
                         )
                       }}
-                      placeholder="Buscar por nombre, título profesional o especialidad"
+                      placeholder="Buscar por nombre, título profesional o especialidad..."
                     />
                   </Grid>
                   <Grid item xs={12} md={3}>
@@ -338,11 +321,11 @@ const PersonalModern = () => {
                       ))}
                     </TextField>
                   </Grid>
-                  <Grid item xs={12} md={3}>
+                  <Grid item xs={12} md={4}>
                     <Button
                       fullWidth
                       variant="contained"
-                      startIcon={<PersonAdd />}
+                      startIcon={<Add />}
                       onClick={() => {
                         resetForm();
                         setActiveTab(1);
@@ -370,7 +353,6 @@ const PersonalModern = () => {
                       .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                       .map((item) => {
                         const estadoInfo = PersonalService.getEstadoInfo(item.estado);
-                        const contactInfo = PersonalService.getContactInfo(item);
                         return (
                           <TableRow key={item.id}>
                             <TableCell>
@@ -397,13 +379,13 @@ const PersonalModern = () => {
                               <Box>
                                 {item.especialidades && item.especialidades.length > 0 ? (
                                   item.especialidades.map((esp, index) => (
-                                    <Chip 
-                                      key={index}
-                                      label={esp.nombre} 
-                                      color={PersonalService.getEspecialidadColor(esp.area)}
-                                      size="small"
-                                      sx={{ mr: 0.5, mb: 0.5 }}
-                                    />
+                                    <span key={index} style={{ marginRight: '4px', marginBottom: '4px', display: 'inline-block' }}>
+                                      <Chip 
+                                        label={esp.nombre}
+                                        color={PersonalService.getEspecialidadColor(esp.area)}
+                                        size="small"
+                                      />
+                                    </span>
                                   ))
                                 ) : (
                                   <Typography variant="caption" color="text.secondary">
@@ -416,11 +398,11 @@ const PersonalModern = () => {
                               <Box>
                                 <Typography variant="body2" display="flex" alignItems="center" fontSize="0.75rem">
                                   <Phone sx={{ fontSize: '14px', mr: 0.5 }} />
-                                  {contactInfo.telefono}
+                                  {item.telefono || 'Sin teléfono'}
                                 </Typography>
                                 <Typography variant="body2" display="flex" alignItems="center" fontSize="0.75rem" color="text.secondary">
                                   <Email sx={{ fontSize: '14px', mr: 0.5 }} />
-                                  {contactInfo.correo}
+                                  {item.correo || 'Sin email'}
                                 </Typography>
                               </Box>
                             </TableCell>
@@ -493,90 +475,58 @@ const PersonalModern = () => {
 
           {/* Tab Panel 1 - Formulario */}
           <TabPanel value={activeTab} index={1}>
-            <Paper elevation={3} sx={{ borderRadius: 2, p: 3 }}>
+            <Paper elevation={3} sx={{ borderRadius: 2, p: 3, maxWidth: 800, mx: 'auto' }}>
               <Typography variant="h6" textAlign="center" fontWeight="bold" color="primary.main" mb={3}>
                 {editingId ? 'Editar Personal' : 'Registrar Nuevo Personal'}
               </Typography>
               
               <Box component="form" onSubmit={handleSubmit}>
                 <Grid container spacing={3}>
-                  {/* Información Personal */}
                   <Grid item xs={12}>
-                    <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
-                      <AccountBox sx={{ mr: 1 }} />
-                      Información Personal
+                    <Typography variant="h6" color="primary" gutterBottom>
+                      Información del Personal
                     </Typography>
                     <Divider sx={{ mb: 2 }} />
                   </Grid>
 
                   <Grid item xs={12}>
                     <Typography variant="body1" mb={1}>Persona: *</Typography>
-                    {selectedPerson ? (
-                      <Box>
-                        <Paper 
-                          elevation={1} 
-                          sx={{ 
-                            p: 2, 
-                            bgcolor: 'success.50', 
-                            border: '1px solid', 
-                            borderColor: 'success.main',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                          }}
-                        >
+                    <Autocomplete
+                      value={selectedPerson}
+                      onChange={(event, newValue) => {
+                        setSelectedPerson(newValue);
+                        setFormData(prev => ({ ...prev, persona_id: newValue ? newValue.id : '' }));
+                        if (errors.persona_id) {
+                          setErrors(prev => ({ ...prev, persona_id: '' }));
+                        }
+                      }}
+                      options={personasDisponibles}
+                      getOptionLabel={(option) => `${option.nombre} ${option.apellido} - ${option.cedula}`}
+                      renderOption={(props, option) => (
+                        <Box component="li" {...props}>
+                          <Avatar sx={{ mr: 2, bgcolor: 'primary.light' }}>
+                            <Person />
+                          </Avatar>
                           <Box>
-                            <Typography variant="body1" fontWeight="bold">
-                              {PersonaService.getFullName(selectedPerson)}
+                            <Typography variant="body2" fontWeight="bold">
+                              {option.nombre} {option.apellido}
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Cédula: {selectedPerson.cedula} • Teléfono: {selectedPerson.telefono || 'N/A'}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Email: {selectedPerson.correo || 'N/A'}
+                            <Typography variant="caption" color="text.secondary">
+                              {option.cedula}
                             </Typography>
                           </Box>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => {
-                              setSelectedPerson(null);
-                              setFormData(prev => ({ ...prev, persona_id: '' }));
-                              setShowPersonSelector(true);
-                            }}
-                          >
-                            Cambiar
-                          </Button>
-                        </Paper>
-                        {errors.persona_id && (
-                          <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
-                            {errors.persona_id}
-                          </Typography>
-                        )}
-                      </Box>
-                    ) : (
-                      <Box>
-                        <Button
-                          fullWidth
-                          variant="outlined"
-                          size="large"
-                          onClick={() => setShowPersonSelector(true)}
-                          startIcon={<Search />}
-                          sx={{ 
-                            py: 2,
-                            borderStyle: errors.persona_id ? 'solid' : 'dashed',
-                            borderColor: errors.persona_id ? 'error.main' : 'primary.main'
-                          }}
-                        >
-                          Buscar y Seleccionar Persona
-                        </Button>
-                        {errors.persona_id && (
-                          <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
-                            {errors.persona_id}
-                          </Typography>
-                        )}
-                      </Box>
-                    )}
+                        </Box>
+                      )}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          placeholder="Buscar y seleccionar persona..."
+                          error={!!errors.persona_id}
+                          helperText={errors.persona_id}
+                        />
+                      )}
+                      noOptionsText="No se encontraron personas"
+                    />
                   </Grid>
 
                   <Grid item xs={12}>
@@ -601,8 +551,11 @@ const PersonalModern = () => {
                       value={formData.estado}
                       onChange={handleChange}
                     >
-                      <MenuItem value="activo">Activo</MenuItem>
-                      <MenuItem value="inactivo">Inactivo</MenuItem>
+                      {PersonalService.getEstados().map((estado) => (
+                        <MenuItem key={estado.value} value={estado.value}>
+                          {estado.label}
+                        </MenuItem>
+                      ))}
                     </TextField>
                   </Grid>
 
@@ -613,11 +566,11 @@ const PersonalModern = () => {
                         variant="contained" 
                         type="submit" 
                         color="primary"
-                        startIcon={editingId ? <Edit /> : <PersonAdd />}
+                        startIcon={editingId ? <Edit /> : <Add />}
                         size="large"
                         disabled={!formData.persona_id || !formData.titulo_profesional}
                       >
-                        {editingId ? 'Actualizar Personal' : 'Registrar Personal'}
+                        {editingId ? 'Actualizar Personal' : 'Crear Personal'}
                       </Button>
                       <Button 
                         variant="outlined" 
@@ -636,33 +589,6 @@ const PersonalModern = () => {
               </Box>
             </Paper>
           </TabPanel>
-
-          {/* Modal del Buscador de Personas */}
-          <Dialog
-            open={showPersonSelector}
-            onClose={() => setShowPersonSelector(false)}
-            maxWidth="lg"
-            fullWidth
-          >
-            <DialogTitle>
-              <Box display="flex" alignItems="center">
-                <Search sx={{ mr: 2 }} />
-                Seleccionar Persona para Personal
-              </Box>
-            </DialogTitle>
-            <DialogContent>
-              <BuscadorPersonas
-                onPersonaSelect={handlePersonaSelect}
-                showTutores={false}
-                showPersonas={true}
-                compact={true}
-                maxHeight={400}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setShowPersonSelector(false)}>Cancelar</Button>
-            </DialogActions>
-          </Dialog>
 
           {/* Dialog de detalles */}
           <Dialog 
@@ -693,11 +619,11 @@ const PersonalModern = () => {
                     </Typography>
                     <Typography variant="body2" display="flex" alignItems="center">
                       <Phone fontSize="small" sx={{ mr: 1 }} />
-                      {PersonalService.getContactInfo(detailDialog.data).telefono}
+                      {detailDialog.data.telefono || 'Sin teléfono'}
                     </Typography>
                     <Typography variant="body2" display="flex" alignItems="center">
                       <Email fontSize="small" sx={{ mr: 1 }} />
-                      {PersonalService.getContactInfo(detailDialog.data).correo}
+                      {detailDialog.data.correo || 'Sin email'}
                     </Typography>
                   </Grid>
                   
@@ -708,12 +634,11 @@ const PersonalModern = () => {
                         {detailDialog.data.especialidades.map((esp, index) => (
                           <Box key={index} sx={{ mb: 1 }}>
                             <Chip 
-                              label={esp.nombre} 
+                              label={esp.nombre}
                               color={PersonalService.getEspecialidadColor(esp.area)}
                               size="small"
-                              sx={{ mr: 1 }}
                             />
-                            <Typography variant="caption" color="text.secondary">
+                            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
                               Área: {EspecialidadService.getAreaLabel(esp.area)}
                             </Typography>
                           </Box>
@@ -728,38 +653,32 @@ const PersonalModern = () => {
 
                   <Grid item xs={12} md={6}>
                     <Typography variant="subtitle2" color="primary">Estado y Fechas</Typography>
-                    <Typography variant="body2">
-                      <strong>Fecha de creación:</strong> {PersonalService.formatDate(detailDialog.data.fecha_creacion)}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Fecha de modificación:</strong> {PersonalService.formatDate(detailDialog.data.fecha_modificacion)}
-                    </Typography>
-                    <Box mt={1}>
+                    <Box mb={1}>
                       <Chip 
                         label={PersonalService.getEstadoInfo(detailDialog.data.estado).label} 
                         color={PersonalService.getEstadoInfo(detailDialog.data.estado).color}
                         size="small"
                       />
                     </Box>
+                    <Typography variant="body2">
+                      <strong>Fecha de creación:</strong> {PersonalService.formatDate(detailDialog.data.fecha_creacion)}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Fecha de modificación:</strong> {PersonalService.formatDate(detailDialog.data.fecha_modificacion)}
+                    </Typography>
                   </Grid>
 
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="primary">Información de Usuario</Typography>
-                    {detailDialog.data.usuario_id ? (
-                      <Box>
-                        <Typography variant="body2">
-                          <strong>Usuario del sistema:</strong> {detailDialog.data.nombre_usuario || 'Sí'}
-                        </Typography>
-                        <Typography variant="body2">
-                          <strong>Rol:</strong> {detailDialog.data.rol_usuario || 'N/A'}
-                        </Typography>
-                      </Box>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        No tiene usuario del sistema asignado
+                  {detailDialog.data.usuario_id && (
+                    <Grid item xs={12} md={6}>
+                      <Typography variant="subtitle2" color="primary">Información de Usuario</Typography>
+                      <Typography variant="body2">
+                        <strong>Usuario del sistema:</strong> {detailDialog.data.nombre_usuario || 'Sí'}
                       </Typography>
-                    )}
-                  </Grid>
+                      <Typography variant="body2">
+                        <strong>Rol:</strong> {detailDialog.data.rol_usuario || 'N/A'}
+                      </Typography>
+                    </Grid>
+                  )}
                 </Grid>
               )}
             </DialogContent>
@@ -767,6 +686,18 @@ const PersonalModern = () => {
               <Button onClick={() => setDetailDialog({ open: false, data: null })}>
                 Cerrar
               </Button>
+              {detailDialog.data && (
+                <Button 
+                  variant="contained" 
+                  onClick={() => {
+                    handleEdit(detailDialog.data);
+                    setDetailDialog({ open: false, data: null });
+                  }}
+                  startIcon={<Edit />}
+                >
+                  Editar
+                </Button>
+              )}
             </DialogActions>
           </Dialog>
 

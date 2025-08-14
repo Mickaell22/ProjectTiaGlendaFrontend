@@ -1,5 +1,5 @@
 // src/views/personal/EspecialidadModern.jsx
-// Módulo de especialidades completamente refactorizado con buenas prácticas
+// Módulo de especialidades con diseño moderno original
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -34,13 +34,15 @@ import {
   Tooltip
 } from '@mui/material';
 import {
-  Work,
+  MedicalServices,
   Add,
   Edit,
   Delete,
   Visibility,
   Search,
+  Work,
   LocalHospital,
+  Psychology,
   School
 } from '@mui/icons-material';
 
@@ -75,6 +77,7 @@ const EspecialidadModern = () => {
   // Estados del formulario
   const [formData, setFormData] = useState({
     nombre: '',
+    descripcion: '',
     area: '',
     estado: 'activo'
   });
@@ -125,7 +128,7 @@ const EspecialidadModern = () => {
     
     // Verificar nombre duplicado
     if (EspecialidadService.checkNombreExists(especialidades, formData.nombre, editingId)) {
-      validation.errors.nombre = 'Esta especialidad ya existe';
+      validation.errors.nombre = 'Esta especialidad ya está registrada';
       validation.isValid = false;
     }
 
@@ -159,6 +162,7 @@ const EspecialidadModern = () => {
   const resetForm = () => {
     setFormData({
       nombre: '',
+      descripcion: '',
       area: '',
       estado: 'activo'
     });
@@ -170,6 +174,7 @@ const EspecialidadModern = () => {
   const handleEdit = (item) => {
     setFormData({
       nombre: item.nombre,
+      descripcion: item.descripcion || '',
       area: item.area,
       estado: item.estado
     });
@@ -196,16 +201,9 @@ const EspecialidadModern = () => {
     setDetailDialog({ open: true, data: item });
   };
 
-  // Obtener icono por área
-  const getAreaIcon = (area) => {
-    return area === 'terapeutico' ? <LocalHospital /> : <School />;
-  };
-
   // Datos filtrados
-  const filteredEspecialidades = EspecialidadService.filterEspecialidades(
-    EspecialidadService.filterByArea(especialidades, filterArea),
-    searchTerm
-  );
+  let filteredEspecialidades = EspecialidadService.filterEspecialidades(especialidades, searchTerm);
+  filteredEspecialidades = EspecialidadService.filterByArea(filteredEspecialidades, filterArea);
 
   // Loading state
   if (loading) {
@@ -239,7 +237,7 @@ const EspecialidadModern = () => {
           >
             <Box sx={{ p: 3 }}>
               <Typography variant="h5" fontWeight="bold" color="black" display="flex" alignItems="center">
-                <Work sx={{ mr: 2 }} />
+                <MedicalServices sx={{ mr: 2 }} />
                 Gestión de Especialidades
               </Typography>
             </Box>
@@ -252,7 +250,7 @@ const EspecialidadModern = () => {
               onChange={(e, newValue) => setActiveTab(newValue)} 
               sx={{ borderBottom: 1, borderColor: 'divider' }}
             >
-              <Tab label="Lista de Especialidades" icon={<Work />} />
+              <Tab label="Lista de Especialidades" icon={<MedicalServices />} />
               <Tab label={editingId ? "Editar Especialidad" : "Nueva Especialidad"} icon={<Add />} />
             </Tabs>
           </Paper>
@@ -262,7 +260,7 @@ const EspecialidadModern = () => {
             <Card>
               <CardContent>
                 <Typography variant="h6" mb={2} display="flex" alignItems="center">
-                  <Work sx={{ mr: 1 }} />
+                  <MedicalServices sx={{ mr: 1 }} />
                   Lista de Especialidades
                   <Chip 
                     label={`${filteredEspecialidades.length} especialidad${filteredEspecialidades.length !== 1 ? 'es' : ''}`} 
@@ -287,7 +285,7 @@ const EspecialidadModern = () => {
                           </InputAdornment>
                         )
                       }}
-                      placeholder="Buscar por nombre de especialidad"
+                      placeholder="Buscar por nombre o descripción..."
                     />
                   </Grid>
                   <Grid item xs={12} md={3}>
@@ -328,8 +326,8 @@ const EspecialidadModern = () => {
                     <TableRow>
                       <TableCell>Especialidad</TableCell>
                       <TableCell>Área</TableCell>
+                      <TableCell>Descripción</TableCell>
                       <TableCell>Estado</TableCell>
-                      <TableCell>Fechas</TableCell>
                       <TableCell>Acciones</TableCell>
                     </TableRow>
                   </TableHead>
@@ -338,13 +336,14 @@ const EspecialidadModern = () => {
                       .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                       .map((item) => {
                         const estadoInfo = EspecialidadService.getEstadoInfo(item.estado);
-                        const areaColor = EspecialidadService.getAreaColor(item.area);
+                        const areaInfo = EspecialidadService.getAreaInfo(item.area);
                         return (
                           <TableRow key={item.id}>
                             <TableCell>
                               <Box display="flex" alignItems="center">
-                                <Avatar sx={{ mr: 2, bgcolor: `${areaColor}.light` }}>
-                                  {getAreaIcon(item.area)}
+                                <Avatar sx={{ mr: 2, bgcolor: areaInfo.color }}>
+                                  {areaInfo.icon === 'LocalHospital' ? <LocalHospital /> : 
+                                   areaInfo.icon === 'School' ? <School /> : <Work />}
                                 </Avatar>
                                 <Box>
                                   <Typography variant="body2" fontWeight="bold">
@@ -358,11 +357,17 @@ const EspecialidadModern = () => {
                             </TableCell>
                             <TableCell>
                               <Chip 
-                                label={EspecialidadService.getAreaLabel(item.area)} 
-                                color={areaColor}
+                                label={areaInfo.label} 
+                                color={areaInfo.color}
                                 size="small"
-                                icon={getAreaIcon(item.area)}
+                                icon={areaInfo.icon === 'LocalHospital' ? <LocalHospital /> : 
+                                      areaInfo.icon === 'School' ? <School /> : <Work />}
                               />
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" fontSize="0.75rem">
+                                {item.descripcion || 'Sin descripción'}
+                              </Typography>
                             </TableCell>
                             <TableCell>
                               <Chip 
@@ -370,13 +375,8 @@ const EspecialidadModern = () => {
                                 color={estadoInfo.color}
                                 size="small"
                               />
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" fontSize="0.75rem">
-                                <strong>Creado:</strong> {EspecialidadService.formatDate(item.fecha_creacion)}
-                              </Typography>
-                              <Typography variant="body2" fontSize="0.75rem" color="text.secondary">
-                                <strong>Modificado:</strong> {EspecialidadService.formatDate(item.fecha_modificacion)}
+                              <Typography variant="caption" display="block" color="text.secondary">
+                                Desde: {EspecialidadService.formatDate(item.fecha_creacion)}
                               </Typography>
                             </TableCell>
                             <TableCell>
@@ -438,7 +438,7 @@ const EspecialidadModern = () => {
 
           {/* Tab Panel 1 - Formulario */}
           <TabPanel value={activeTab} index={1}>
-            <Paper elevation={3} sx={{ borderRadius: 2, p: 3, maxWidth: 600, mx: 'auto' }}>
+            <Paper elevation={3} sx={{ borderRadius: 2, p: 3, maxWidth: 800, mx: 'auto' }}>
               <Typography variant="h6" textAlign="center" fontWeight="bold" color="primary.main" mb={3}>
                 {editingId ? 'Editar Especialidad' : 'Registrar Nueva Especialidad'}
               </Typography>
@@ -446,15 +446,14 @@ const EspecialidadModern = () => {
               <Box component="form" onSubmit={handleSubmit}>
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
-                    <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
-                      <Work sx={{ mr: 1 }} />
+                    <Typography variant="h6" color="primary" gutterBottom>
                       Información de la Especialidad
                     </Typography>
                     <Divider sx={{ mb: 2 }} />
                   </Grid>
 
-                  <Grid item xs={12}>
-                    <Typography variant="body1" mb={1}>Nombre de la Especialidad: *</Typography>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="body1" mb={1}>Nombre: *</Typography>
                     <TextField
                       fullWidth
                       name="nombre"
@@ -462,7 +461,7 @@ const EspecialidadModern = () => {
                       onChange={handleChange}
                       error={!!errors.nombre}
                       helperText={errors.nombre}
-                      placeholder="Ej: Terapia Ocupacional, Psicopedagogía, etc."
+                      placeholder="Ej: Psicología Clínica, Terapia Ocupacional..."
                     />
                   </Grid>
 
@@ -477,16 +476,27 @@ const EspecialidadModern = () => {
                       error={!!errors.area}
                       helperText={errors.area}
                     >
-                      <MenuItem value="">Seleccione un área</MenuItem>
                       {EspecialidadService.getAreas().map((area) => (
                         <MenuItem key={area.value} value={area.value}>
-                          <Box display="flex" alignItems="center">
-                            {getAreaIcon(area.value)}
-                            <Typography sx={{ ml: 1 }}>{area.label}</Typography>
-                          </Box>
+                          {area.label}
                         </MenuItem>
                       ))}
                     </TextField>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Typography variant="body1" mb={1}>Descripción:</Typography>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      name="descripcion"
+                      value={formData.descripcion}
+                      onChange={handleChange}
+                      error={!!errors.descripcion}
+                      helperText={errors.descripcion}
+                      placeholder="Describe los servicios y enfoques de esta especialidad..."
+                    />
                   </Grid>
 
                   <Grid item xs={12} md={6}>
@@ -498,8 +508,11 @@ const EspecialidadModern = () => {
                       value={formData.estado}
                       onChange={handleChange}
                     >
-                      <MenuItem value="activo">Activo</MenuItem>
-                      <MenuItem value="inactivo">Inactivo</MenuItem>
+                      {EspecialidadService.getEstados().map((estado) => (
+                        <MenuItem key={estado.value} value={estado.value}>
+                          {estado.label}
+                        </MenuItem>
+                      ))}
                     </TextField>
                   </Grid>
 
@@ -512,7 +525,7 @@ const EspecialidadModern = () => {
                         color="primary"
                         startIcon={editingId ? <Edit /> : <Add />}
                         size="large"
-                        disabled={!formData.nombre.trim() || !formData.area}
+                        disabled={!formData.nombre || !formData.area}
                       >
                         {editingId ? 'Actualizar Especialidad' : 'Crear Especialidad'}
                       </Button>
@@ -543,7 +556,7 @@ const EspecialidadModern = () => {
           >
             <DialogTitle>
               <Box display="flex" alignItems="center">
-                <Work sx={{ mr: 2 }} />
+                <MedicalServices sx={{ mr: 2 }} />
                 Detalles de la Especialidad
               </Box>
             </DialogTitle>
@@ -551,20 +564,16 @@ const EspecialidadModern = () => {
               {detailDialog.data && (
                 <Grid container spacing={3} sx={{ mt: 1 }}>
                   <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="primary">Información General</Typography>
+                    <Typography variant="subtitle2" color="primary">Información Básica</Typography>
                     <Typography variant="body2">
                       <strong>Nombre:</strong> {detailDialog.data.nombre}
                     </Typography>
                     <Typography variant="body2">
+                      <strong>Área:</strong> {EspecialidadService.getAreaInfo(detailDialog.data.area).label}
+                    </Typography>
+                    <Typography variant="body2">
                       <strong>ID:</strong> {detailDialog.data.id}
                     </Typography>
-                    <Box mt={1}>
-                      <Chip 
-                        label={EspecialidadService.getAreaLabel(detailDialog.data.area)} 
-                        color={EspecialidadService.getAreaColor(detailDialog.data.area)}
-                        icon={getAreaIcon(detailDialog.data.area)}
-                      />
-                    </Box>
                   </Grid>
                   
                   <Grid item xs={12} md={6}>
@@ -583,6 +592,13 @@ const EspecialidadModern = () => {
                     </Typography>
                     <Typography variant="body2">
                       <strong>Última modificación:</strong> {EspecialidadService.formatDate(detailDialog.data.fecha_modificacion)}
+                    </Typography>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="primary">Descripción</Typography>
+                    <Typography variant="body2">
+                      {detailDialog.data.descripcion || 'Sin descripción disponible'}
                     </Typography>
                   </Grid>
                 </Grid>

@@ -1,0 +1,45 @@
+// src/components/shared/ModernHeader.jsx
+// Header reutilizable con animación arcoíris
+
+import React from 'react';
+import { Box, Paper, Typography } from '@mui/material';
+
+const ModernHeader = ({ 
+  title, 
+  icon: Icon, 
+  colors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0'] 
+}) => {
+  const gradientColors = colors.join(', ');
+  
+  return (
+    <Paper 
+      elevation={4} 
+      sx={{ 
+        borderRadius: 3, 
+        backgroundColor: '#fff', 
+        mb: 4, 
+        p: 0, 
+        overflow: 'hidden', 
+        border: '4px solid transparent', 
+        backgroundImage: `linear-gradient(white, white), linear-gradient(270deg, ${gradientColors})`, 
+        backgroundOrigin: 'border-box', 
+        backgroundClip: 'padding-box, border-box', 
+        animation: 'rainbow 5s linear infinite', 
+        '@keyframes rainbow': { 
+          '0%': { backgroundPosition: '0% 50%' }, 
+          '100%': { backgroundPosition: '100% 50%' } 
+        }, 
+        backgroundSize: '300% 100%' 
+      }}
+    >
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h5" fontWeight="bold" color="black" display="flex" alignItems="center">
+          {Icon && <Icon sx={{ mr: 2 }} />}
+          {title}
+        </Typography>
+      </Box>
+    </Paper>
+  );
+};
+
+export default ModernHeader;

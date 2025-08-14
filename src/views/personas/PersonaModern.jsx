@@ -57,9 +57,6 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner.jsx';
 import ConfirmDialog from '../../components/shared/ConfirmDialog.jsx';
 import ErrorBoundary from '../../components/shared/ErrorBoundary.jsx';
 
-// Utilidades
-import { formatDateLocal } from '../../utils/dateUtils.js';
-
 // Tab Panel Component
 const TabPanel = ({ children, value, index, ...other }) => (
   <div role="tabpanel" hidden={value !== index} {...other}>
@@ -73,6 +70,7 @@ const PersonaModern = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterEstado, setFilterEstado] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -81,10 +79,10 @@ const PersonaModern = () => {
     nombre: '',
     apellido: '',
     cedula: '',
+    fecha_nacimiento: '',
     telefono: '',
     correo: '',
     direccion: '',
-    fechaNacimiento: '',
     estado: 'activo'
   });
   const [editingId, setEditingId] = useState(null);
@@ -123,7 +121,6 @@ const PersonaModern = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
-    // Limpiar error del campo modificado
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -155,7 +152,7 @@ const PersonaModern = () => {
         showSuccess('Persona actualizada correctamente');
       } else {
         await PersonaService.create(backendData);
-        showSuccess('Persona registrada correctamente');
+        showSuccess('Persona creada correctamente');
       }
       
       resetForm();
@@ -171,10 +168,10 @@ const PersonaModern = () => {
       nombre: '',
       apellido: '',
       cedula: '',
+      fecha_nacimiento: '',
       telefono: '',
       correo: '',
       direccion: '',
-      fechaNacimiento: '',
       estado: 'activo'
     });
     setEditingId(null);
@@ -183,8 +180,16 @@ const PersonaModern = () => {
 
   // Manejadores de acciones
   const handleEdit = (item) => {
-    const formattedData = PersonaService.formatForFrontend(item);
-    setFormData(formattedData);
+    setFormData({
+      nombre: item.nombre,
+      apellido: item.apellido,
+      cedula: item.cedula,
+      fecha_nacimiento: item.fecha_nacimiento || '',
+      telefono: item.telefono || '',
+      correo: item.correo || '',
+      direccion: item.direccion || '',
+      estado: item.estado
+    });
     setEditingId(item.id);
     setActiveTab(1);
   };
@@ -209,7 +214,8 @@ const PersonaModern = () => {
   };
 
   // Datos filtrados
-  const filteredPersonas = PersonaService.filterPersonas(personas, searchTerm);
+  let filteredPersonas = PersonaService.filterPersonas(personas, searchTerm);
+  filteredPersonas = PersonaService.filterByEstado(filteredPersonas, filterEstado);
 
   // Loading state
   if (loading) {
@@ -230,7 +236,7 @@ const PersonaModern = () => {
               p: 0, 
               overflow: 'hidden', 
               border: '4px solid transparent', 
-              backgroundImage: 'linear-gradient(white, white), linear-gradient(270deg, #FF9800, #2196F3, #4CAF50, #9C27B0)', 
+              backgroundImage: 'linear-gradient(white, white), linear-gradient(270deg, #2196F3, #4CAF50, #FF9800, #9C27B0)', 
               backgroundOrigin: 'border-box', 
               backgroundClip: 'padding-box, border-box', 
               animation: 'rainbow 5s linear infinite', 
@@ -291,10 +297,27 @@ const PersonaModern = () => {
                           </InputAdornment>
                         )
                       }}
-                      placeholder="Buscar por nombre, apellido, cédula o correo"
+                      placeholder="Buscar por nombre, apellido, cédula..."
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      select
+                      fullWidth
+                      size="small"
+                      label="Filtrar por estado"
+                      value={filterEstado}
+                      onChange={(e) => setFilterEstado(e.target.value)}
+                    >
+                      <MenuItem value="">Todos los estados</MenuItem>
+                      {PersonaService.getEstados().map((estado) => (
+                        <MenuItem key={estado.value} value={estado.value}>
+                          {estado.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} md={3}>
                     <Button
                       fullWidth
                       variant="contained"
@@ -337,7 +360,7 @@ const PersonaModern = () => {
                                     {PersonaService.getFullName(item)}
                                   </Typography>
                                   <Typography variant="caption" color="text.secondary">
-                                    Cédula: {item.cedula}
+                                    {item.cedula} • Edad: {PersonaService.calculateAge(item.fecha_nacimiento)}
                                   </Typography>
                                 </Box>
                               </Box>
@@ -346,25 +369,19 @@ const PersonaModern = () => {
                               <Box>
                                 <Typography variant="body2" display="flex" alignItems="center" fontSize="0.75rem">
                                   <Phone sx={{ fontSize: '14px', mr: 0.5 }} />
-                                  {item.telefono}
+                                  {item.telefono || 'Sin teléfono'}
                                 </Typography>
                                 <Typography variant="body2" display="flex" alignItems="center" fontSize="0.75rem" color="text.secondary">
                                   <Email sx={{ fontSize: '14px', mr: 0.5 }} />
-                                  {item.correo}
+                                  {item.correo || 'Sin email'}
                                 </Typography>
                               </Box>
                             </TableCell>
                             <TableCell>
                               <Typography variant="body2" display="flex" alignItems="center" fontSize="0.75rem">
                                 <LocationOn sx={{ fontSize: '14px', mr: 0.5 }} />
-                                {item.direccion}
+                                {item.direccion || 'Sin dirección'}
                               </Typography>
-                              {item.fecha_nacimiento && (
-                                <Typography variant="body2" display="flex" alignItems="center" fontSize="0.75rem" color="text.secondary">
-                                  <CalendarToday sx={{ fontSize: '14px', mr: 0.5 }} />
-                                  {formatDateLocal(item.fecha_nacimiento)}
-                                </Typography>
-                              )}
                             </TableCell>
                             <TableCell>
                               <Chip 
@@ -372,6 +389,9 @@ const PersonaModern = () => {
                                 color={estadoInfo.color}
                                 size="small"
                               />
+                              <Typography variant="caption" display="block" color="text.secondary">
+                                Desde: {PersonaService.formatDate(item.fecha_creacion)}
+                              </Typography>
                             </TableCell>
                             <TableCell>
                               <Stack direction="row" spacing={1}>
@@ -439,10 +459,8 @@ const PersonaModern = () => {
               
               <Box component="form" onSubmit={handleSubmit}>
                 <Grid container spacing={3}>
-                  {/* Información Personal */}
                   <Grid item xs={12}>
-                    <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
-                      <Person sx={{ mr: 1 }} />
+                    <Typography variant="h6" color="primary" gutterBottom>
                       Información Personal
                     </Typography>
                     <Divider sx={{ mb: 2 }} />
@@ -457,7 +475,6 @@ const PersonaModern = () => {
                       onChange={handleChange}
                       error={!!errors.nombre}
                       helperText={errors.nombre}
-                      placeholder="Ej: Juan Carlos"
                     />
                   </Grid>
 
@@ -470,7 +487,6 @@ const PersonaModern = () => {
                       onChange={handleChange}
                       error={!!errors.apellido}
                       helperText={errors.apellido}
-                      placeholder="Ej: Pérez García"
                     />
                   </Grid>
 
@@ -483,18 +499,16 @@ const PersonaModern = () => {
                       onChange={handleChange}
                       error={!!errors.cedula}
                       helperText={errors.cedula}
-                      placeholder="Ej: 1234567890"
-                      inputProps={{ maxLength: 10 }}
                     />
                   </Grid>
 
                   <Grid item xs={12} md={6}>
-                    <Typography variant="body1" mb={1}>Fecha de Nacimiento: *</Typography>
+                    <Typography variant="body1" mb={1}>Fecha de Nacimiento:</Typography>
                     <TextField
                       fullWidth
-                      name="fechaNacimiento"
                       type="date"
-                      value={formData.fechaNacimiento}
+                      name="fecha_nacimiento"
+                      value={formData.fecha_nacimiento}
                       onChange={handleChange}
                       error={!!errors.fecha_nacimiento}
                       helperText={errors.fecha_nacimiento}
@@ -502,8 +516,15 @@ const PersonaModern = () => {
                     />
                   </Grid>
 
+                  <Grid item xs={12}>
+                    <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 2 }}>
+                      Información de Contacto
+                    </Typography>
+                    <Divider sx={{ mb: 2 }} />
+                  </Grid>
+
                   <Grid item xs={12} md={6}>
-                    <Typography variant="body1" mb={1}>Teléfono: *</Typography>
+                    <Typography variant="body1" mb={1}>Teléfono:</Typography>
                     <TextField
                       fullWidth
                       name="telefono"
@@ -511,8 +532,33 @@ const PersonaModern = () => {
                       onChange={handleChange}
                       error={!!errors.telefono}
                       helperText={errors.telefono}
-                      placeholder="Ej: 0987654321"
-                      inputProps={{ maxLength: 10 }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="body1" mb={1}>Correo Electrónico:</Typography>
+                    <TextField
+                      fullWidth
+                      type="email"
+                      name="correo"
+                      value={formData.correo}
+                      onChange={handleChange}
+                      error={!!errors.correo}
+                      helperText={errors.correo}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Typography variant="body1" mb={1}>Dirección:</Typography>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={2}
+                      name="direccion"
+                      value={formData.direccion}
+                      onChange={handleChange}
+                      error={!!errors.direccion}
+                      helperText={errors.direccion}
                     />
                   </Grid>
 
@@ -525,38 +571,12 @@ const PersonaModern = () => {
                       value={formData.estado}
                       onChange={handleChange}
                     >
-                      <MenuItem value="activo">Activo</MenuItem>
-                      <MenuItem value="inactivo">Inactivo</MenuItem>
+                      {PersonaService.getEstados().map((estado) => (
+                        <MenuItem key={estado.value} value={estado.value}>
+                          {estado.label}
+                        </MenuItem>
+                      ))}
                     </TextField>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Typography variant="body1" mb={1}>Correo Electrónico: *</Typography>
-                    <TextField
-                      fullWidth
-                      name="correo"
-                      type="email"
-                      value={formData.correo}
-                      onChange={handleChange}
-                      error={!!errors.correo}
-                      helperText={errors.correo}
-                      placeholder="Ej: juan.perez@email.com"
-                    />
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Typography variant="body1" mb={1}>Dirección: *</Typography>
-                    <TextField
-                      fullWidth
-                      name="direccion"
-                      value={formData.direccion}
-                      onChange={handleChange}
-                      error={!!errors.direccion}
-                      helperText={errors.direccion}
-                      placeholder="Ej: Av. Principal 123, Sector Norte, Ciudad"
-                      multiline
-                      rows={3}
-                    />
                   </Grid>
 
                   <Grid item xs={12}>
@@ -568,7 +588,7 @@ const PersonaModern = () => {
                         color="primary"
                         startIcon={editingId ? <Edit /> : <Add />}
                         size="large"
-                        disabled={!formData.nombre.trim() || !formData.apellido.trim() || !formData.cedula.trim()}
+                        disabled={!formData.nombre || !formData.apellido || !formData.cedula}
                       >
                         {editingId ? 'Actualizar Persona' : 'Crear Persona'}
                       </Button>
@@ -615,42 +635,42 @@ const PersonaModern = () => {
                       <strong>Cédula:</strong> {detailDialog.data.cedula}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Fecha de nacimiento:</strong> {
-                        detailDialog.data.fecha_nacimiento ? 
-                          formatDateLocal(detailDialog.data.fecha_nacimiento) : 
-                          'No especificada'
-                      }
+                      <strong>Edad:</strong> {PersonaService.calculateAge(detailDialog.data.fecha_nacimiento)}
                     </Typography>
                   </Grid>
                   
                   <Grid item xs={12} md={6}>
                     <Typography variant="subtitle2" color="primary">Información de Contacto</Typography>
-                    <Typography variant="body2">
-                      <strong>Teléfono:</strong> {detailDialog.data.telefono}
+                    <Typography variant="body2" display="flex" alignItems="center">
+                      <Phone fontSize="small" sx={{ mr: 1 }} />
+                      {detailDialog.data.telefono || 'Sin teléfono'}
                     </Typography>
-                    <Typography variant="body2">
-                      <strong>Correo:</strong> {detailDialog.data.correo}
+                    <Typography variant="body2" display="flex" alignItems="center">
+                      <Email fontSize="small" sx={{ mr: 1 }} />
+                      {detailDialog.data.correo || 'Sin correo'}
                     </Typography>
-                    <Typography variant="body2">
-                      <strong>Dirección:</strong> {detailDialog.data.direccion}
+                    <Typography variant="body2" display="flex" alignItems="center">
+                      <LocationOn fontSize="small" sx={{ mr: 1 }} />
+                      {detailDialog.data.direccion || 'Sin dirección'}
                     </Typography>
                   </Grid>
 
                   <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="primary">Estado y Fechas del Sistema</Typography>
-                    <Box mt={1}>
+                    <Typography variant="subtitle2" color="primary">Estado y Fechas</Typography>
+                    <Typography variant="body2">
+                      <strong>Estado:</strong> 
                       <Chip 
                         label={PersonaService.getEstadoInfo(detailDialog.data.estado).label} 
                         color={PersonaService.getEstadoInfo(detailDialog.data.estado).color}
                         size="small"
+                        sx={{ ml: 1 }}
                       />
-                    </Box>
-                    <Typography variant="caption" display="block" sx={{ mt: 2 }}>
-                      <strong>Fecha de registro:</strong> {
-                        detailDialog.data.fecha_creacion ? 
-                          formatDateLocal(detailDialog.data.fecha_creacion) : 
-                          'No disponible'
-                      }
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Fecha de creación:</strong> {PersonaService.formatDate(detailDialog.data.fecha_creacion)}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Última modificación:</strong> {PersonaService.formatDate(detailDialog.data.fecha_modificacion)}
                     </Typography>
                   </Grid>
                 </Grid>

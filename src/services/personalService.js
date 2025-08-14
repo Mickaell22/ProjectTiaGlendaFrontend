@@ -146,6 +146,48 @@ export class PersonalService {
     return new Date(dateString).toLocaleDateString();
   }
 
+  // Filtrar personal por término de búsqueda
+  static filterPersonal(personal, searchTerm) {
+    if (!searchTerm?.trim()) return personal;
+
+    const term = searchTerm.toLowerCase();
+    return personal.filter(p =>
+      p.nombre?.toLowerCase().includes(term) ||
+      p.apellido?.toLowerCase().includes(term) ||
+      p.titulo_profesional?.toLowerCase().includes(term) ||
+      p.especialidades?.some(e => e.nombre?.toLowerCase().includes(term))
+    );
+  }
+
+  // Filtrar por área
+  static filterByArea(personal, area) {
+    if (!area) return personal;
+    return personal.filter(p => 
+      p.especialidades?.some(e => e.area === area)
+    );
+  }
+
+  // Obtener áreas únicas del personal
+  static getUniqueAreas(personal) {
+    const areas = new Set();
+    personal.forEach(p => {
+      p.especialidades?.forEach(e => {
+        if (e.area) areas.add(e.area);
+      });
+    });
+    return Array.from(areas);
+  }
+
+  // Obtener estados disponibles
+  static getEstados() {
+    return [
+      { value: 'activo', label: 'Activo' },
+      { value: 'inactivo', label: 'Inactivo' },
+      { value: 'suspendido', label: 'Suspendido' },
+      { value: 'vacaciones', label: 'Vacaciones' }
+    ];
+  }
+
   // Obtener información de contacto
   static getContactInfo(personal) {
     return {

@@ -107,6 +107,22 @@ export class EspecialidadService {
     return colorMap[area] || 'default';
   }
 
+  // Obtener estados disponibles
+  static getEstados() {
+    return [
+      { value: 'activo', label: 'Activo' },
+      { value: 'inactivo', label: 'Inactivo' }
+    ];
+  }
+
+  // Obtener áreas disponibles
+  static getAreas() {
+    return [
+      { value: 'terapeutico', label: 'Terapéutico' },
+      { value: 'pedagogico', label: 'Pedagógico' }
+    ];
+  }
+
   // Obtener estado con color para UI
   static getEstadoInfo(estado) {
     const estadoMap = {
@@ -126,10 +142,39 @@ export class EspecialidadService {
     return labelMap[area] || area;
   }
 
+  // Obtener información completa del área con icono y color
+  static getAreaInfo(area) {
+    const areaMap = {
+      terapeutico: { 
+        label: 'Terapéutico', 
+        color: 'primary',
+        icon: 'LocalHospital'
+      },
+      pedagogico: { 
+        label: 'Pedagógico', 
+        color: 'secondary',
+        icon: 'School'
+      }
+    };
+    return areaMap[area] || { label: area, color: 'default', icon: 'Work' };
+  }
+
   // Verificar si un nombre ya existe
   static checkNombreExists(especialidades, nombre, excludeId = null) {
     return especialidades.some(esp => 
       esp.nombre?.toLowerCase() === nombre?.toLowerCase() && esp.id !== excludeId
+    );
+  }
+
+  // Filtrar especialidades por término de búsqueda
+  static filterEspecialidades(especialidades, searchTerm) {
+    if (!searchTerm?.trim()) return especialidades;
+
+    const term = searchTerm.toLowerCase();
+    return especialidades.filter(esp =>
+      esp.nombre?.toLowerCase().includes(term) ||
+      esp.descripcion?.toLowerCase().includes(term) ||
+      esp.area?.toLowerCase().includes(term)
     );
   }
 
