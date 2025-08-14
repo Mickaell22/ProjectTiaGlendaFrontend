@@ -89,12 +89,6 @@ const Menuitems = [
       },
       {
         id: uniqueId(),
-        title: 'Gestión de Estudiantes',
-        icon: School,
-        href: '/gestion/alumno',
-      },
-      {
-        id: uniqueId(),
         title: 'Gestión de Tutores',
         icon: FamilyRestroom,
         href: '/gestion/tutor',

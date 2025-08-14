@@ -9,13 +9,13 @@ import BlankLayout from 'src/layouts/blank/BlankLayout';
 import Login from 'src/views/authentication/auth1/Login';
 import Register from 'src/views/authentication/auth1/Register';
 import Dashboard from 'src/views/dashboard/Dashboard';
-import PersonaModern from 'src/views/personas/PersonaModern';
-import PacienteModern from 'src/views/pacientes/PacienteModern';
-import Alumno from 'src/views/pacientes/alumno'; 
-import TutorModern from 'src/views/pacientes/TutorModern';
-import UsuarioModern from 'src/views/administracion/UsuarioModern';
-import EspecialidadModern from 'src/views/personal/EspecialidadModern';
-import PersonalModern from 'src/views/personal/PersonalModern';
+import PersonaMain from 'src/views/persona/PersonaMain';
+import PacienteMain from 'src/views/paciente/PacienteMain';
+ 
+import TutorMain from 'src/views/tutor/TutorMain';
+import UsuarioMain from 'src/views/usuario/UsuarioMain';
+import EspecialidadMain from 'src/views/especialidad/EspecialidadMain';
+import PersonalMain from 'src/views/personal/PersonalMain';
 import TerapeuticoMain from 'src/views/terapeutico/TerapeuticoMain';
 import SesionesPedagogicas from 'src/views/pedagogico/SesionesPedagogicas';
 import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
@@ -211,13 +211,12 @@ const Router = [
       { path: '/apps/contacts', element: <PacientesAlumnos /> },
       { path: '/apps/user-profile/followers', element: <PersonalLista /> },
       { path: '/apps/user-profile/friends', element: <PersonalEquipos /> },
-      { path: '/gestion/persona', element: <PersonaModern /> },
-      { path: '/gestion/paciente', element: <PacienteModern /> },
-      { path: '/gestion/alumno', element: <Alumno /> },
-      { path: '/gestion/tutor', element: <TutorModern /> },
-      { path: '/gestion/usuario', element: <UsuarioModern /> },
-      { path: '/gestion/especialidad', element: <EspecialidadModern /> },
-      { path: '/gestion/personal', element: <PersonalModern /> },
+      { path: '/gestion/persona', element: <PersonaMain /> },
+      { path: '/gestion/paciente', element: <PacienteMain /> },
+      { path: '/gestion/tutor', element: <TutorMain /> },
+      { path: '/gestion/usuario', element: <UsuarioMain /> },
+      { path: '/gestion/especialidad', element: <EspecialidadMain /> },
+      { path: '/gestion/personal', element: <PersonalMain /> },
       { path: '/pacientes/:pacienteId/documentos', element: <DocumentosPaciente /> },
 
 
