@@ -7,6 +7,7 @@ import Router from './routes/Router';
 import { ThemeSettings } from './theme';
 import RTL from './layouts/full/shared/customizer/RTL';
 import { AuthProvider } from './contexts/AuthContext';
+import InactivityWrapper from './components/InactivityWrapper';
 
 function App() {
   const routing = useRoutes(Router);
@@ -17,7 +18,9 @@ function App() {
       <RTL direction={theme.direction}>
         <CssBaseline />
         <AuthProvider>
-          {routing}
+          <InactivityWrapper>
+            {routing}
+          </InactivityWrapper>
         </AuthProvider>
       </RTL>
     </ThemeProvider>

@@ -250,6 +250,12 @@ const Menuitems = [
         icon: Business,
         href: '/configuracion/general',
       },
+      {
+        id: uniqueId(),
+        title: 'Configuraciones del Sistema',
+        icon: AdminPanelSettings,
+        href: '/configuracion/sistema',
+      },
     ],
   },
 

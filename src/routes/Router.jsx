@@ -19,6 +19,7 @@ import PersonalMain from 'src/views/personal/PersonalMain';
 import TerapeuticoMain from 'src/views/terapeutico/TerapeuticoMain';
 import SesionesPedagogicas from 'src/views/pedagogico/SesionesPedagogicas';
 import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
+import ConfiguracionMain from 'src/views/configuracion/ConfiguracionMain';
 
 
 
@@ -245,6 +246,7 @@ const Router = [
       // Configuración del sistema
       { path: '/gestion/roles', element: <GestionRoles /> },
       { path: '/configuracion/general', element: <ConfiguracionGeneral /> },
+      { path: '/configuracion/sistema', element: <ConfiguracionMain /> },
       
       // Centro
       { path: '/apps/user-profile/gallery', element: <Galeria /> },
