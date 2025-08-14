@@ -9,11 +9,13 @@ import {
   Card,
   CardContent,
 } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import PageContainer from 'src/components/container/PageContainer';
-import axios from 'axios';
+import useAuth from 'src/hooks/useAuth';
+import ApiService from 'src/services/apiService';
+import { API_ENDPOINTS } from 'src/config/api';
 
 // Esquema de validación con Yup
 const validationSchema = Yup.object({
@@ -23,7 +25,17 @@ const validationSchema = Yup.object({
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [errorMsg, setErrorMsg] = useState('');
+  const { login, isAuthenticated } = useAuth();
+
+  // Si ya está autenticado, redirigir al dashboard o la página original
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname || '/dashboard';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location]);
 
   const formik = useFormik({
     initialValues: {
@@ -34,20 +46,33 @@ const Login = () => {
     onSubmit: async (values, { setSubmitting }) => {
       setErrorMsg('');
       try {
-        const res = await axios.post('http://localhost:5000/api/login', {
+        const response = await ApiService.post(API_ENDPOINTS.AUTH.LOGIN, {
           usuario: values.usuario,
           contrasenia: values.contrasenia,
         });
-        if (res.data.status === 'success' && res.data.data.token) {
-          localStorage.setItem('jwt_token', res.data.data.token);
-          localStorage.setItem('user', JSON.stringify(res.data.data.user));
-          navigate('/dashboard');
+        
+        // Extraer datos de la respuesta
+        const data = response?.data || response;
+        
+        if (data.status === 'success' && data.data?.token) {
+          // Usar el hook de autenticación para manejar el login
+          const loginSuccess = login(data.data.token, data.data.user);
+          
+          if (loginSuccess) {
+            console.log('Login successful, navigating...');
+            const from = location.state?.from?.pathname || '/dashboard';
+            navigate(from, { replace: true });
+          } else {
+            setErrorMsg('Error al procesar el login');
+          }
         } else {
-          setErrorMsg(res.data.message || 'Credenciales incorrectas');
+          setErrorMsg(data.message || 'Credenciales incorrectas');
         }
       } catch (error) {
+        console.error('Error en login:', error);
         setErrorMsg(
-          error.response?.data?.message ||
+          error?.response?.data?.message ||
+          error?.message ||
           'Error de conexión o credenciales incorrectas'
         );
       }

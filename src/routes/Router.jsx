@@ -27,6 +27,7 @@ import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
 
 // Componente para páginas en desarrollo
 import ComingSoon from 'src/components/shared/ComingSoon';
+import ProtectedRoute from 'src/components/shared/ProtectedRoute';
 
 // Páginas específicas del área terapéutica
 const TerapeuticoCronogramas = () => (
@@ -233,7 +234,11 @@ const Configuracion = () => (
 const Router = [
   {
     path: '/',
-    element: <FullLayout />,
+    element: (
+      <ProtectedRoute>
+        <FullLayout />
+      </ProtectedRoute>
+    ),
     children: [
       { path: '/', element: <Navigate to="/dashboard" /> },
       { path: '/dashboard', element: <Dashboard /> },

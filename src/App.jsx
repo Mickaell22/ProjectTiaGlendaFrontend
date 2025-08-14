@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import Router from './routes/Router';
 import { ThemeSettings } from './theme';
 import RTL from './layouts/full/shared/customizer/RTL';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   const routing = useRoutes(Router);
@@ -15,7 +16,9 @@ function App() {
     <ThemeProvider theme={theme}>
       <RTL direction={theme.direction}>
         <CssBaseline />
-        {routing}
+        <AuthProvider>
+          {routing}
+        </AuthProvider>
       </RTL>
     </ThemeProvider>
   );
