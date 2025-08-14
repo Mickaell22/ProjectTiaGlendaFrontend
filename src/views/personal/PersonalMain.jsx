@@ -1,8 +1,9 @@
+// src/views/personal/PersonalMainComponent.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Box, Container, Paper, Typography, Tabs, Tab
 } from '@mui/material';
-import { 
+import {
   SupervisorAccount, Add
 } from '@mui/icons-material';
 
@@ -40,6 +41,13 @@ function TabPanel({ children, value, index, ...other }) {
       )}
     </div>
   );
+}
+
+function a11yProps(index) {
+  return {
+    id: `personal-tab-${index}`,
+    'aria-controls': `personal-tabpanel-${index}`,
+  };
 }
 
 const PersonalMainComponent = () => {
@@ -84,7 +92,7 @@ const PersonalMainComponent = () => {
         PersonaService.getAll(),
         EspecialidadService.getAll()
       ]);
-      
+
       setPersonal(personalData);
       setPersonasDisponibles(personasData);
       setEspecialidades(especialidadesData);
@@ -99,7 +107,7 @@ const PersonalMainComponent = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -116,7 +124,7 @@ const PersonalMainComponent = () => {
   const validateForm = () => {
     const backendData = PersonalService.formatForBackend(formData);
     const validation = PersonalService.validatePersonalData(backendData);
-    
+
     // Verificar persona duplicada
     if (PersonalService.checkPersonaExists(personal, formData.persona_id, editingId)) {
       validation.errors.persona_id = 'Esta persona ya está registrada como personal';
@@ -132,7 +140,7 @@ const PersonalMainComponent = () => {
 
     try {
       const backendData = PersonalService.formatForBackend(formData);
-      
+
       if (editingId) {
         await PersonalService.update(editingId, backendData);
         showSuccess('Personal actualizado correctamente');
@@ -140,7 +148,7 @@ const PersonalMainComponent = () => {
         await PersonalService.create(backendData);
         showSuccess('Personal creado correctamente');
       }
-      
+
       resetForm();
       fetchData();
       setActiveTab(0);
@@ -167,10 +175,10 @@ const PersonalMainComponent = () => {
       titulo_profesional: item.titulo_profesional || '',
       estado: item.estado
     });
-    
+
     const persona = personasDisponibles.find(p => p.id === item.persona_id);
     if (persona) setSelectedPerson(persona);
-    
+
     setEditingId(item.id);
     setActiveTab(1);
   };
@@ -245,63 +253,100 @@ const PersonalMainComponent = () => {
   return (
     <ErrorBoundary>
       <Box>
+        {/* Header principal con borde arcoíris (mismo tamaño/estilo que UsuarioMain) */}
         <Container maxWidth="xl" sx={{ py: 2 }}>
-          <Paper 
-            elevation={4} 
-            sx={{ 
-              borderRadius: 3, 
-              backgroundColor: '#fff', 
-              mb: 4, 
-              overflow: 'hidden', 
-              border: '4px solid transparent', 
-              backgroundImage: 'linear-gradient(white, white), linear-gradient(270deg, #795548, #607D8B, #455A64, #37474F)', 
-              backgroundOrigin: 'border-box', 
-              backgroundClip: 'padding-box, border-box', 
-              animation: 'rainbow 5s linear infinite', 
-              '@keyframes rainbow': { 
-                '0%': { backgroundPosition: '0% 50%' }, 
-                '100%': { backgroundPosition: '100% 50%' } 
-              }, 
-              backgroundSize: '300% 100%' 
+          <Paper
+            elevation={4}
+            sx={{
+              borderRadius: 3,
+              backgroundColor: '#fff',
+              mb: 4,
+              overflow: 'hidden',
+              border: '4px solid transparent',
+              backgroundImage:
+                'linear-gradient(white, white), linear-gradient(270deg, #673AB7, #E91E63, #FF9800, #4CAF50)',
+              backgroundOrigin: 'border-box',
+              backgroundClip: 'padding-box, border-box',
+              animation: 'rainbow 5s linear infinite',
+              '@keyframes rainbow': {
+                '0%': { backgroundPosition: '0% 50%' },
+                '100%': { backgroundPosition: '100% 50%' }
+              },
+              backgroundSize: '300% 100%',
+              maxWidth: '90%',
+              mx: 'auto'
             }}
           >
             <Box sx={{ p: 3, pb: 0 }}>
-              <Typography variant="h4" fontWeight="bold" color="black" display="flex" alignItems="center" mb={2}>
+              <Typography
+                variant="h4"
+                fontWeight="bold"
+                color="black"
+                display="flex"
+                alignItems="center"
+                mb={2}
+              >
                 <SupervisorAccount sx={{ mr: 2, fontSize: 40 }} />
                 Gestión de Personal
               </Typography>
               <Typography variant="body1" color="text.secondary" mb={3}>
                 Administración del personal médico y de apoyo del centro
               </Typography>
+
+              {/* Tabs dentro del mismo Paper (igual a UsuarioMain) */}
+              <Tabs
+                value={activeTab}
+                onChange={(e, newValue) => setActiveTab(newValue)}
+                aria-label="Pestañas de gestión de personal"
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{
+                  '& .MuiTabs-flexContainer': {
+                    gap: 2
+                  },
+                  '& .MuiTab-root': {
+                    minHeight: 64,
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                    textTransform: 'none',
+                    color: 'text.secondary',
+                    '&.Mui-selected': {
+                      color: 'primary.main',
+                      fontWeight: 600
+                    }
+                  },
+                  '& .MuiTabs-indicator': {
+                    height: 3,
+                    borderRadius: '3px 3px 0 0'
+                  }
+                }}
+              >
+                {tabs.map((tab, index) => (
+                  <Tab
+                    key={index}
+                    label={tab.label}
+                    icon={tab.icon}
+                    iconPosition="start"
+                    {...a11yProps(index)}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 1
+                    }}
+                  />
+                ))}
+              </Tabs>
             </Box>
           </Paper>
         </Container>
 
-        {/* Navegación por pestañas */}
-        <Container maxWidth="xl">
-          <Paper elevation={2} sx={{ mb: 3 }}>
-            <Tabs 
-              value={activeTab} 
-              onChange={(e, newValue) => setActiveTab(newValue)} 
-              sx={{ borderBottom: 1, borderColor: 'divider' }}
-            >
-              {tabs.map((tab, index) => (
-                <Tab 
-                  key={index}
-                  label={tab.label} 
-                  icon={tab.icon} 
-                />
-              ))}
-            </Tabs>
-          </Paper>
-
-          {/* Contenido de pestañas */}
-          {tabs.map((tab, index) => (
-            <TabPanel key={index} value={activeTab} index={index}>
-              {tab.component}
-            </TabPanel>
-          ))}
-        </Container>
+        {/* Contenido de pestañas */}
+        {tabs.map((tab, index) => (
+          <TabPanel key={index} value={activeTab} index={index}>
+            {tab.component}
+          </TabPanel>
+        ))}
 
         {/* Dialog de detalles */}
         <PersonalDetalles

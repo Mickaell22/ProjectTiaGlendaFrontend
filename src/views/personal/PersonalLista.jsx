@@ -1,3 +1,4 @@
+// src/views/personal/PersonalLista.jsx
 import React, { useState } from 'react';
 import {
   Card,
@@ -12,14 +13,15 @@ import {
   TableBody,
   TablePagination,
   IconButton,
-  Grid,
-  MenuItem,
   InputAdornment,
   Stack,
   Avatar,
   Chip,
   Tooltip,
-  Box
+  Box,
+  MenuItem,
+  Select,
+  FormControl
 } from '@mui/material';
 import {
   SupervisorAccount,
@@ -37,12 +39,20 @@ import {
 import PersonalService from '../../services/personalService.js';
 import EspecialidadService from '../../services/especialidadService.js';
 
-const PersonalLista = ({ 
-  personal = [], 
-  onEdit, 
-  onDelete, 
-  onViewDetail, 
-  onAddNew 
+const purpleOutlineSX = {
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': { borderColor: 'primary.main' },
+    '&:hover fieldset': { borderColor: 'primary.main' },
+    '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: 2 }
+  }
+};
+
+const PersonalLista = ({
+  personal = [],
+  onEdit,
+  onDelete,
+  onViewDetail,
+  onAddNew
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterArea, setFilterArea] = useState('');
@@ -54,45 +64,91 @@ const PersonalLista = ({
   filteredPersonal = PersonalService.filterByArea(filteredPersonal, filterArea);
 
   return (
-    <Card>
-      <CardContent>
-        <Typography variant="h6" mb={2} display="flex" alignItems="center">
-          <SupervisorAccount sx={{ mr: 1 }} />
-          Lista de Personal
-          <Chip 
-            label={`${filteredPersonal.length} empleado${filteredPersonal.length !== 1 ? 's' : ''}`} 
-            color="primary" 
-            size="small" 
-            sx={{ ml: 2 }}
+    <Card
+      elevation={8}
+      sx={{
+        borderRadius: 4,
+        mb: 4,
+        background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+        overflow: 'hidden',
+        // mismo ancho que el form/lista de usuarios
+        width: '100%',
+        maxWidth: { xs: '100%', sm: 800, md: 900 },
+        mx: 'auto'
+      }}
+    >
+      {/* Header morado estilo usuarios */}
+      <Box
+        sx={{
+          background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+          color: 'white',
+          p: 3,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Box>
+          <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
+            <SupervisorAccount sx={{ mr: 1 }} />
+            Lista de Personal
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9 }}>
+            Busca, filtra por área y gestiona el personal del centro
+          </Typography>
+        </Box>
+
+        <Chip
+          label={`${filteredPersonal.length} empleado${filteredPersonal.length !== 1 ? 's' : ''}`}
+          color="default"
+          sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+          size="small"
+        />
+      </Box>
+
+      <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+        {/* Toolbar en una sola fila (scroll horizontal en móvil) */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            mb: 3,
+            flexWrap: 'nowrap',
+            overflowX: 'auto',
+            pb: 1,
+            '& > *': { flex: '0 0 auto' }
+          }}
+        >
+          {/* Buscar (flexible) */}
+          <TextField
+            size="small"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar por nombre, título o especialidad..."
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              )
+            }}
+            sx={{
+              ...purpleOutlineSX,
+              minWidth: 260,
+              flex: '1 1 380px'
+            }}
           />
-        </Typography>
-        
-        <Grid container spacing={2} mb={3}>
-          <Grid item xs={12} md={5}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Buscar personal"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search />
-                  </InputAdornment>
-                )
-              }}
-              placeholder="Buscar por nombre, título profesional o especialidad..."
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              select
-              fullWidth
-              size="small"
-              label="Filtrar por área"
+
+          {/* Filtro Área (fijo) */}
+          <FormControl size="small" sx={{ ...purpleOutlineSX, width: 200 }}>
+            <Select
               value={filterArea}
               onChange={(e) => setFilterArea(e.target.value)}
+              displayEmpty
+              renderValue={(val) =>
+                val === '' ? 'Todas las áreas' : EspecialidadService.getAreaLabel(val)
+              }
             >
               <MenuItem value="">Todas las áreas</MenuItem>
               {PersonalService.getUniqueAreas(personal).map((area) => (
@@ -100,137 +156,139 @@ const PersonalLista = ({
                   {EspecialidadService.getAreaLabel(area)}
                 </MenuItem>
               ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={<Add />}
-              onClick={onAddNew}
-              sx={{ height: '40px' }}
-            >
-              Nuevo Personal
-            </Button>
-          </Grid>
-        </Grid>
+            </Select>
+          </FormControl>
 
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Empleado</TableCell>
-              <TableCell>Título Profesional</TableCell>
-              <TableCell>Especialidades</TableCell>
-              <TableCell>Contacto</TableCell>
-              <TableCell>Estado</TableCell>
-              <TableCell>Acciones</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredPersonal
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((item) => {
-                const estadoInfo = PersonalService.getEstadoInfo(item.estado);
-                return (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <Box display="flex" alignItems="center">
-                        <Avatar sx={{ mr: 2, bgcolor: 'primary.light' }}>
-                          <Person />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="body2" fontWeight="bold">
-                            {PersonalService.getFullName(item)}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {item.cedula}
-                          </Typography>
+          {/* Nuevo personal (fijo) */}
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={onAddNew}
+            sx={{ height: 40, px: 2 }}
+          >
+            Nuevo Personal
+          </Button>
+        </Box>
+
+        {/* Tabla (manteniendo TODAS las columnas) */}
+        <Box sx={{ width: '100%', overflowX: 'auto' }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Empleado</TableCell>
+                <TableCell>Título Profesional</TableCell>
+                <TableCell>Especialidades</TableCell>
+                <TableCell>Contacto</TableCell>
+                <TableCell>Estado</TableCell>
+                <TableCell>Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredPersonal
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((item) => {
+                  const estadoInfo = PersonalService.getEstadoInfo(item.estado);
+                  return (
+                    <TableRow key={item.id}>
+                      {/* Empleado */}
+                      <TableCell>
+                        <Box display="flex" alignItems="center">
+                          <Avatar sx={{ mr: 2, bgcolor: 'primary.light' }}>
+                            <Person />
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body2" fontWeight="bold">
+                              {PersonalService.getFullName(item)}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {item.cedula}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="bold">
-                        {item.titulo_profesional}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box>
-                        {item.especialidades && item.especialidades.length > 0 ? (
-                          item.especialidades.map((esp, index) => (
-                            <span key={index} style={{ marginRight: '4px', marginBottom: '4px', display: 'inline-block' }}>
-                              <Chip 
+                      </TableCell>
+
+                      {/* Título Profesional */}
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="bold">
+                          {item.titulo_profesional || '—'}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Especialidades */}
+                      <TableCell>
+                        <Box>
+                          {item.especialidades?.length > 0 ? (
+                            item.especialidades.map((esp, index) => (
+                              <Chip
+                                key={index}
                                 label={esp.nombre}
                                 color={PersonalService.getEspecialidadColor(esp.area)}
                                 size="small"
+                                sx={{ mr: 0.5, mb: 0.5 }}
                               />
-                            </span>
-                          ))
-                        ) : (
-                          <Typography variant="caption" color="text.secondary">
-                            Sin especialidades asignadas
-                          </Typography>
-                        )}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Box>
+                            ))
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">
+                              Sin especialidades asignadas
+                            </Typography>
+                          )}
+                        </Box>
+                      </TableCell>
+
+                      {/* Contacto */}
+                      <TableCell>
                         <Typography variant="body2" display="flex" alignItems="center" fontSize="0.75rem">
-                          <Phone sx={{ fontSize: '14px', mr: 0.5 }} />
+                          <Phone sx={{ fontSize: 14, mr: 0.5 }} />
                           {item.telefono || 'Sin teléfono'}
                         </Typography>
-                        <Typography variant="body2" display="flex" alignItems="center" fontSize="0.75rem" color="text.secondary">
-                          <Email sx={{ fontSize: '14px', mr: 0.5 }} />
+                        <Typography
+                          variant="body2"
+                          display="flex"
+                          alignItems="center"
+                          fontSize="0.75rem"
+                          color="text.secondary"
+                        >
+                          <Email sx={{ fontSize: 14, mr: 0.5 }} />
                           {item.correo || 'Sin email'}
                         </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={estadoInfo.label} 
-                        color={estadoInfo.color}
-                        size="small"
-                      />
-                      <Typography variant="caption" display="block" color="text.secondary">
-                        Desde: {PersonalService.formatDate(item.fecha_creacion)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1}>
-                        <Tooltip title="Ver detalles">
-                          <IconButton 
-                            color="info" 
-                            size="small"
-                            onClick={() => onViewDetail(item)}
-                          >
-                            <Visibility />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Editar">
-                          <IconButton 
-                            color="primary" 
-                            size="small"
-                            onClick={() => onEdit(item)}
-                          >
-                            <Edit />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Eliminar">
-                          <IconButton 
-                            color="error" 
-                            size="small"
-                            onClick={() => onDelete(item.id)}
-                          >
-                            <Delete />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
+                      </TableCell>
 
+                      {/* Estado */}
+                      <TableCell>
+                        <Chip label={estadoInfo.label} color={estadoInfo.color} size="small" />
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          Desde: {PersonalService.formatDate(item.fecha_creacion)}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Acciones */}
+                      <TableCell>
+                        <Stack direction="row" spacing={1}>
+                          <Tooltip title="Ver detalles">
+                            <IconButton color="info" size="small" onClick={() => onViewDetail(item)}>
+                              <Visibility />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Editar">
+                            <IconButton color="primary" size="small" onClick={() => onEdit(item)}>
+                              <Edit />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Eliminar">
+                            <IconButton color="error" size="small" onClick={() => onDelete(item.id)}>
+                              <Delete />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+        </Box>
+
+        {/* Paginación */}
         <TablePagination
           component="div"
           count={filteredPersonal.length}
@@ -243,7 +301,7 @@ const PersonalLista = ({
           }}
           rowsPerPageOptions={[5, 10, 25, 50]}
           labelRowsPerPage="Filas por página:"
-          labelDisplayedRows={({ from, to, count }) => 
+          labelDisplayedRows={({ from, to, count }) =>
             `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
           }
         />
