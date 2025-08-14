@@ -151,6 +151,30 @@ export class UsuarioService {
     ];
   }
 
+  // Obtener roles disponibles
+  static getRoles() {
+    return [
+      { value: 'admin', label: 'Administrador', icon: 'AdminPanelSettings' },
+      { value: 'usuario', label: 'Usuario', icon: 'Person' },
+      { value: 'terapeuta', label: 'Terapeuta', icon: 'Psychology' },
+      { value: 'pedagogo', label: 'Pedagogo', icon: 'School' },
+      { value: 'supervisor', label: 'Supervisor', icon: 'SupervisorAccount' }
+    ];
+  }
+
+  // Obtener información del rol con icono y color
+  static getRolInfo(rol) {
+    const rolMap = {
+      admin: { label: 'Administrador', color: 'error', icon: 'AdminPanelSettings' },
+      administrador: { label: 'Administrador', color: 'error', icon: 'AdminPanelSettings' },
+      usuario: { label: 'Usuario', color: 'default', icon: 'Person' },
+      terapeuta: { label: 'Terapeuta', color: 'primary', icon: 'Psychology' },
+      pedagogo: { label: 'Pedagogo', color: 'secondary', icon: 'School' },
+      supervisor: { label: 'Supervisor', color: 'warning', icon: 'SupervisorAccount' }
+    };
+    return rolMap[rol] || { label: rol || 'Sin rol', color: 'default', icon: 'Person' };
+  }
+
   // Obtener estado con color para UI
   static getEstadoInfo(estado) {
     const estadoMap = {

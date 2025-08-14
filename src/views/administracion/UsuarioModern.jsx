@@ -59,7 +59,9 @@ import {
   Visibility as VisibilityIcon,
   VisibilityOff,
   Key,
-  AccessTime
+  AccessTime,
+  Psychology,
+  School
 } from '@mui/icons-material';
 
 // Servicios y hooks personalizados
@@ -151,25 +153,18 @@ const UsuarioModern = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [usuariosData, personasData, rolesData] = await Promise.all([
-        UsuarioService.getAll().catch(() => []),
-        PersonaService.getAll().catch(() => []),
-        fetchRoles().catch(() => [])
+      const [usuariosData, personasData] = await Promise.all([
+        UsuarioService.getAll(),
+        PersonaService.getAll()
       ]);
       
       setUsuarios(usuariosData);
       setPersonasDisponibles(personasData);
-      setRoles(rolesData);
     } catch (error) {
-      showError('Error al cargar datos: ' + error.message);
+      showError(error.message);
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchRoles = async () => {
-    const response = await ApiService.get(API_ENDPOINTS.ROLES.BASE);
-    return extractData(response);
   };
 
   // Manejadores del formulario
@@ -438,10 +433,10 @@ const UsuarioModern = () => {
                         onChange={(e) => setFilterRol(e.target.value)}
                         label="Rol"
                       >
-                        <MenuItem value="">Todos</MenuItem>
-                        {roles.map((rol) => (
-                          <MenuItem key={rol.id} value={rol.id}>
-                            {rol.nombre}
+                        <MenuItem value="">Todos los roles</MenuItem>
+                        {UsuarioService.getRoles().map((rol) => (
+                          <MenuItem key={rol.value} value={rol.value}>
+                            {rol.label}
                           </MenuItem>
                         ))}
                       </Select>
@@ -512,12 +507,21 @@ const UsuarioModern = () => {
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Chip 
-                                label={item.rol_nombre || 'Sin rol'} 
-                                color={UsuarioService.getRolColor(item.rol_nombre)}
-                                size="small"
-                                icon={<SupervisorAccount />}
-                              />
+                              {(() => {
+                                const rolInfo = UsuarioService.getRolInfo(item.rol_nombre || item.rol);
+                                return (
+                                  <Chip 
+                                    label={rolInfo.label} 
+                                    color={rolInfo.color}
+                                    size="small"
+                                    icon={rolInfo.icon === 'AdminPanelSettings' ? <AdminPanelSettings /> :
+                                          rolInfo.icon === 'SupervisorAccount' ? <SupervisorAccount /> :
+                                          rolInfo.icon === 'Psychology' ? <Psychology /> :
+                                          rolInfo.icon === 'School' ? <School /> :
+                                          <Person />}
+                                  />
+                                );
+                              })()}
                             </TableCell>
                             <TableCell>
                               <Box>
@@ -721,23 +725,22 @@ const UsuarioModern = () => {
                     <TextField
                       select
                       fullWidth
-                      name="rol_id"
-                      value={formData.rol_id}
+                      name="rol"
+                      value={formData.rol}
                       onChange={handleChange}
-                      error={!!errors.rol_id}
-                      helperText={errors.rol_id}
+                      error={!!errors.rol}
+                      helperText={errors.rol}
                     >
                       <MenuItem value="">Seleccione un rol</MenuItem>
-                      {roles.map((rol) => (
-                        <MenuItem key={rol.id} value={rol.id}>
+                      {UsuarioService.getRoles().map((rol) => (
+                        <MenuItem key={rol.value} value={rol.value}>
                           <Box display="flex" alignItems="center">
-                            <SupervisorAccount sx={{ mr: 1, color: `${UsuarioService.getRolColor(rol.nombre)}.main` }} />
-                            <Box>
-                              <Typography variant="body2">{rol.nombre}</Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {rol.descripcion}
-                              </Typography>
-                            </Box>
+                            {rol.icon === 'AdminPanelSettings' ? <AdminPanelSettings sx={{ mr: 1 }} /> :
+                             rol.icon === 'SupervisorAccount' ? <SupervisorAccount sx={{ mr: 1 }} /> :
+                             rol.icon === 'Psychology' ? <Psychology sx={{ mr: 1 }} /> :
+                             rol.icon === 'School' ? <School sx={{ mr: 1 }} /> :
+                             <Person sx={{ mr: 1 }} />}
+                            <Typography variant="body2">{rol.label}</Typography>
                           </Box>
                         </MenuItem>
                       ))}

@@ -1,1093 +1,974 @@
 // src/views/pacientes/PacienteModern.jsx
-// Módulo de pacientes completamente refactorizado con buenas prácticas
+// Módulo de pacientes con diseño moderno con pestañas
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
+  Button,
   Container,
+  Dialog,
+  Divider,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+  MenuItem,
   Paper,
+  Snackbar,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TablePagination,
+  TableRow,
+  TextField,
   Typography,
-  Tabs,
-  Tab,
+  Alert,
+  Tooltip,
   Card,
   CardContent,
-  TextField,
-  Button,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  TablePagination,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Grid,
-  MenuItem,
   InputAdornment,
-  Stack,
+  Tabs,
+  Tab,
   Avatar,
   Chip,
-  Divider,
-  Tooltip,
-  FormControl,
-  InputLabel,
-  Select
+  Stack
 } from '@mui/material';
-import {
+import { 
+  Delete, 
+  Edit, 
+  Visibility, 
+  Search, 
+  Description,
   PersonAdd,
-  Edit,
-  Delete,
-  Visibility,
-  Search,
+  Add,
   Person,
   Phone,
   Email,
   LocalHospital,
   FamilyRestroom,
-  CalendarToday,
-  Assignment,
-  AttachFile,
-  AccessTime,
-  Add,
-  AccountBox,
-  MedicalServices
+  CalendarToday
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 // Servicios y hooks personalizados
 import PacienteService from '../../services/pacienteService.js';
 import PersonaService from '../../services/personaService.js';
 import EspecialidadService from '../../services/especialidadService.js';
+import TutorService from '../../services/tutorService.js';
 import useSnackbar from '../../hooks/useSnackbar.js';
 import useAuth from '../../hooks/useAuth.js';
 
 // Componentes reutilizables
-import CustomSnackbar from '../../components/shared/CustomSnackbar.jsx';
-import LoadingSpinner from '../../components/shared/LoadingSpinner.jsx';
-import ConfirmDialog from '../../components/shared/ConfirmDialog.jsx';
-import ErrorBoundary from '../../components/shared/ErrorBoundary.jsx';
 import BuscadorPersonas from '../../components/shared/BuscadorPersonas.jsx';
+import ErrorBoundary from '../../components/shared/ErrorBoundary.jsx';
 
-// Tab Panel Component
-const TabPanel = ({ children, value, index, ...other }) => (
-  <div role="tabpanel" hidden={value !== index} {...other}>
-    {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-  </div>
-);
+/* ---------- Helpers ---------- */
+const normalizeDate = (v) => (!v ? null : v);
+const toIntOrNull = (v) =>
+  v === '' || v === null || v === undefined ? null : parseInt(v, 10);
 
+// Obtener fecha actual en formato YYYY-MM-DD
+function getCurrentDateForInput() {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+}
+
+// Formatear fecha para mostrar
+function formatDateLocal(dateString) {
+  if (!dateString) return '—';
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES');
+  } catch {
+    return '—';
+  }
+}
+
+// Formatear fecha para input
+function formatDateForInput(dateString) {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+  } catch {
+    return '';
+  }
+}
+
+// Intenta obtener el ID del usuario: primero de localStorage.user_data, luego del JWT
+function getUsuarioId() {
+  const raw = localStorage.getItem('user_data');
+  if (raw) {
+    try {
+      const u = JSON.parse(raw);
+      if (u?.id) return u.id;
+    } catch {}
+  }
+  const token = localStorage.getItem('jwt_token');
+  if (token && token.split('.').length === 3) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.user_id || payload.id || payload.sub || null;
+    } catch {}
+  }
+  return null;
+}
+
+/* ---------- Componente ---------- */
 const PacienteModern = () => {
+  const navigate = useNavigate();
+
   // Estados principales
   const [pacientes, setPacientes] = useState([]);
-  const [personasDisponibles, setPersonasDisponibles] = useState([]);
-  const [tutoresDisponibles, setTutoresDisponibles] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
-  const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterEstado, setFilterEstado] = useState('');
-  const [filterEspecialidad, setFilterEspecialidad] = useState('');
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage] = useState(5);
 
-  // Estados del formulario
+  // Modal Detalle
+  const [detalle, setDetalle] = useState(null);
+  
+  // Formulario
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     persona_id: '',
     tutor_id: '',
     especialidad_id: '',
-    fecha_ingreso: '',
-    fecha_inicio_tratamiento: '',
+    fecha_ingreso: getCurrentDateForInput(), // Fecha actual por defecto
+    fecha_inicio_tratamiento: getCurrentDateForInput(), // Fecha actual por defecto
     fecha_fin_tratamiento: '',
     estado_tratamiento: 'activo',
     observaciones_tratamiento: '',
     observaciones: '',
-    estado: 'activo'
   });
-  const [editingId, setEditingId] = useState(null);
   const [errors, setErrors] = useState({});
-  const [selectedPerson, setSelectedPerson] = useState(null);
-  const [selectedTutor, setSelectedTutor] = useState(null);
-  const [showPersonSelector, setShowPersonSelector] = useState(false);
-  const [showTutorSelector, setShowTutorSelector] = useState(false);
 
-  // Estados de UI
-  const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
-  const [confirmDialog, setConfirmDialog] = useState({ open: false, id: null });
+  // Variables para personas y tutores encontrados
+  const [personaEncontrada, setPersonaEncontrada] = useState(null);
+  const [tutorEncontrado, setTutorEncontrado] = useState(null);
 
   // Hooks personalizados
   const { snackbar, showSuccess, showError, hideSnackbar } = useSnackbar();
   const { requireAuth } = useAuth();
 
-  // Efectos
+  /* ---------- Carga inicial ---------- */
   useEffect(() => {
     if (requireAuth()) {
       fetchData();
     }
   }, []);
 
-  // Funciones de API
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [pacientesData, personasData, especialidadesData] = await Promise.all([
-        PacienteService.getAll().catch(() => []),
-        PersonaService.getAll().catch(() => []),
-        EspecialidadService.getAll().catch(() => [])
+      const [pacientesData, especialidadesData] = await Promise.all([
+        PacienteService.getAll(),
+        EspecialidadService.getAll()
       ]);
       
       setPacientes(pacientesData);
-      setPersonasDisponibles(personasData);
-      // Los tutores se obtienen del mismo endpoint de personas pero filtrados
-      setTutoresDisponibles(personasData.filter(p => p.es_tutor || p.tipo === 'tutor'));
-      setEspecialidades(especialidadesData.filter(e => e.estado === 'activo'));
+      setEspecialidades(especialidadesData);
     } catch (error) {
-      showError('Error al cargar datos: ' + error.message);
+      showError(error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Manejadores del formulario
+  /* ---------- Form handlers ---------- */
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const validateForm = () => {
     const backendData = PacienteService.formatForBackend(formData);
     const validation = PacienteService.validatePacienteData(backendData);
     
-    // Verificar persona duplicada
-    if (PacienteService.checkPersonaExists(pacientes, formData.persona_id, editingId)) {
-      validation.errors.persona_id = 'Esta persona ya está registrada como paciente';
-      validation.isValid = false;
+    // Validaciones adicionales específicas
+    if (!formData.persona_id) validation.errors.persona_id = 'Debe seleccionar una persona';
+    if (!formData.tutor_id) validation.errors.tutor_id = 'Debe seleccionar un tutor';
+    if (!formData.especialidad_id) validation.errors.especialidad_id = 'Debe seleccionar una especialidad';
+    
+    // Validación de fecha de ingreso (obligatoria)
+    if (!formData.fecha_ingreso) {
+      validation.errors.fecha_ingreso = 'Debe especificar la fecha de ingreso';
+    } else {
+      const fechaIngreso = new Date(formData.fecha_ingreso);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      
+      if (fechaIngreso > today) {
+        validation.errors.fecha_ingreso = 'La fecha de ingreso no puede ser futura';
+      }
     }
-
+    
+    // Validación de fecha de inicio de tratamiento (obligatoria)
+    if (!formData.fecha_inicio_tratamiento) {
+      validation.errors.fecha_inicio_tratamiento = 'La fecha de inicio de tratamiento es obligatoria';
+    } else {
+      // Validar que no sea anterior a la fecha de ingreso
+      if (formData.fecha_ingreso && formData.fecha_inicio_tratamiento < formData.fecha_ingreso) {
+        validation.errors.fecha_inicio_tratamiento = 'La fecha de inicio no puede ser anterior a la fecha de ingreso';
+      }
+    }
+    
+    // Validar fecha fin si se proporciona
+    if (formData.fecha_fin_tratamiento && formData.fecha_inicio_tratamiento) {
+      if (formData.fecha_fin_tratamiento <= formData.fecha_inicio_tratamiento) {
+        validation.errors.fecha_fin_tratamiento = 'La fecha de fin debe ser posterior a la fecha de inicio';
+      }
+    }
+    
+    if (!formData.estado_tratamiento) validation.errors.estado_tratamiento = 'Seleccione el estado del tratamiento.';
+    
     setErrors(validation.errors);
+    validation.isValid = Object.keys(validation.errors).length === 0;
     return validation.isValid;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+  const buildPayload = (isUpdate = false) => {
+    const usuarioId = getUsuarioId();
+    
+    const base = {
+      persona_id: toIntOrNull(formData.persona_id),
+      tutor_id: toIntOrNull(formData.tutor_id),
+      especialidad_id: toIntOrNull(formData.especialidad_id),
+      fecha_ingreso: normalizeDate(formData.fecha_ingreso),
+      fecha_inicio_tratamiento: normalizeDate(formData.fecha_inicio_tratamiento),
+      fecha_fin_tratamiento: formData.fecha_fin_tratamiento ? normalizeDate(formData.fecha_fin_tratamiento) : null,
+      estado_tratamiento: formData.estado_tratamiento || 'activo',
+      observaciones_tratamiento: formData.observaciones_tratamiento?.trim() || null,
+      observaciones: formData.observaciones?.trim() || null,
+      estado: 'activo',
+    };
+    
+    return isUpdate
+      ? { ...base, usuario_modificacion: usuarioId }
+      : { ...base, usuario_creacion: usuarioId };
+  };
 
+  const handleGuardar = async () => {
     try {
-      const backendData = PacienteService.formatForBackend(formData);
-      
+      if (!validateForm()) return;
+
+      const usuarioId = getUsuarioId();
+      if (!usuarioId) {
+        return showError('No se pudo obtener tu ID de usuario. Inicia sesión nuevamente.');
+      }
+
+      const payload = buildPayload(editingId ? true : false);
+
       if (editingId) {
-        await PacienteService.update(editingId, backendData);
+        await PacienteService.update(editingId, payload);
         showSuccess('Paciente actualizado correctamente');
       } else {
-        await PacienteService.create(backendData);
-        showSuccess('Paciente registrado correctamente');
+        await PacienteService.create(payload);
+        showSuccess('Paciente registrado exitosamente');
       }
-      
+
       resetForm();
-      fetchData();
-      setActiveTab(0);
-    } catch (error) {
-      showError(error.message);
+      await fetchData();
+      
+    } catch (err) {
+      showError(`Error al guardar: ${err.message}`);
     }
   };
 
   const resetForm = () => {
+    const today = getCurrentDateForInput();
     setFormData({
       persona_id: '',
       tutor_id: '',
       especialidad_id: '',
-      fecha_ingreso: '',
-      fecha_inicio_tratamiento: '',
+      fecha_ingreso: today,
+      fecha_inicio_tratamiento: today,
       fecha_fin_tratamiento: '',
       estado_tratamiento: 'activo',
       observaciones_tratamiento: '',
       observaciones: '',
-      estado: 'activo'
     });
+    setPersonaEncontrada(null);
+    setTutorEncontrado(null);
     setEditingId(null);
     setErrors({});
-    setSelectedPerson(null);
-    setSelectedTutor(null);
-    setShowPersonSelector(false);
-    setShowTutorSelector(false);
   };
 
-  // Manejadores de acciones
-  const handleEdit = (item) => {
+  const handleEdit = (p) => {
     setFormData({
-      persona_id: item.persona_id,
-      tutor_id: item.tutor_id || '',
-      especialidad_id: item.especialidad_id || '',
-      fecha_ingreso: item.fecha_ingreso || '',
-      fecha_inicio_tratamiento: item.fecha_inicio_tratamiento || '',
-      fecha_fin_tratamiento: item.fecha_fin_tratamiento || '',
-      estado_tratamiento: item.estado_tratamiento || 'activo',
-      observaciones_tratamiento: item.observaciones_tratamiento || '',
-      observaciones: item.observaciones || '',
-      estado: item.estado
+      persona_id: p.persona_id,
+      tutor_id: p.tutor_id || '',
+      especialidad_id: p.especialidad_id || '',
+      fecha_ingreso: formatDateForInput(p.fecha_ingreso) || '',
+      fecha_inicio_tratamiento: formatDateForInput(p.fecha_inicio_tratamiento) || '',
+      fecha_fin_tratamiento: formatDateForInput(p.fecha_fin_tratamiento) || '',
+      estado_tratamiento: p.estado_tratamiento || 'activo',
+      observaciones_tratamiento: p.observaciones_tratamiento || '',
+      observaciones: p.observaciones || '',
     });
-    
-    // Encontrar la persona y tutor seleccionados
-    const persona = personasDisponibles.find(p => p.id === item.persona_id);
-    const tutor = tutoresDisponibles.find(t => t.id === item.tutor_id);
-    
-    if (persona) setSelectedPerson(persona);
-    if (tutor) setSelectedTutor(tutor);
-    
-    setEditingId(item.id);
-    setActiveTab(1);
+    setPersonaEncontrada({ nombre: p.nombre, apellido: p.apellido, cedula: p.cedula });
+    setTutorEncontrado({
+      nombre: (p.nombre_tutor || '').split(' ')[0] || '',
+      apellido: (p.nombre_tutor || '').split(' ').slice(1).join(' '),
+      cedula: '',
+    });
+    setEditingId(p.id);
   };
 
-  const handleDelete = (id) => {
-    setConfirmDialog({ open: true, id });
-  };
-
-  const confirmDelete = async () => {
+  const handleDelete = async (id) => {
     try {
-      await PacienteService.delete(confirmDialog.id);
+      await PacienteService.delete(id);
       showSuccess('Paciente eliminado correctamente');
       fetchData();
     } catch (error) {
       showError(error.message);
     }
-    setConfirmDialog({ open: false, id: null });
   };
 
-  const handleViewDetail = (item) => {
-    setDetailDialog({ open: true, data: item });
+  const handleDocs = (p) => {
+    navigate(`/pacientes/${p.id}/documentos`);
   };
 
-  const handlePersonaSelect = (persona) => {
-    setSelectedPerson(persona);
-    setFormData(prev => ({ ...prev, persona_id: persona.id }));
-    setShowPersonSelector(false);
-    if (errors.persona_id) {
-      setErrors(prev => ({ ...prev, persona_id: '' }));
+  // Handlers del buscador avanzado
+  const handlePersonaSelectBuscador = (persona) => {
+    setPersonaEncontrada(persona);
+    setFormData((prev) => ({ ...prev, persona_id: persona.id }));
+    showSuccess(`Persona seleccionada: ${persona.nombre_completo}`);
+  };
+
+  const handleTutorSelectBuscador = (tutor) => {
+    // Configurar los datos del tutor encontrado
+    setTutorEncontrado({
+      nombre_completo: tutor.nombre_completo,
+      cedula: tutor.cedula || tutor.cedula_display,
+      nombre: tutor.nombre,
+      apellido: tutor.apellido
+    });
+    
+    // Usar el tutor_id si está disponible, sino usar el id
+    const tutorId = tutor.tutor_id || tutor.id;
+    setFormData((prev) => ({ ...prev, tutor_id: tutorId }));
+    
+    showSuccess(`Tutor seleccionado: ${tutor.nombre_completo}`);
+  };
+
+  /* ---------- Filtros del listado de pacientes ---------- */
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    especialidad: '',
+    estado_tratamiento: '',
+    tutor: '',
+    fecha_ingreso_desde: '',
+    fecha_ingreso_hasta: ''
+  });
+  
+  const normalize = (s = '') =>
+    s.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+  const filteredPacientes = React.useMemo(() => {
+    let result = pacientes;
+    
+    // Filtro por texto general
+    if (searchTerm.trim()) {
+      const q = normalize(searchTerm.trim());
+      result = result.filter((p) => {
+        const campos = [
+          p.nombre_completo,
+          p.cedula,
+          p.nombre_tutor,
+          p.especialidad_nombre,
+          p.estado_tratamiento,
+        ];
+        return campos.some((c) => normalize(c || '').includes(q));
+      });
     }
+    
+    return result;
+  }, [pacientes, searchTerm, filters]);
+  
+  const clearFilters = () => {
+    setFilters({
+      especialidad: '',
+      estado_tratamiento: '',
+      tutor: '',
+      fecha_ingreso_desde: '',
+      fecha_ingreso_hasta: ''
+    });
+    setSearchTerm('');
+    setPage(0);
+  };
+  
+  const hasActiveFilters = () => {
+    return searchTerm.trim() || 
+           filters.especialidad || 
+           filters.estado_tratamiento || 
+           filters.tutor.trim() || 
+           filters.fecha_ingreso_desde || 
+           filters.fecha_ingreso_hasta;
   };
 
-  const handleTutorSelect = (tutor) => {
-    setSelectedTutor(tutor);
-    setFormData(prev => ({ ...prev, tutor_id: tutor.id }));
-    setShowTutorSelector(false);
-    if (errors.tutor_id) {
-      setErrors(prev => ({ ...prev, tutor_id: '' }));
-    }
-  };
-
-  // Datos filtrados
-  let filteredPacientes = PacienteService.filterPacientes(pacientes, searchTerm);
-  filteredPacientes = PacienteService.filterByEstado(filteredPacientes, filterEstado);
-  filteredPacientes = PacienteService.filterByEspecialidad(filteredPacientes, filterEspecialidad);
-
-  // Loading state
   if (loading) {
-    return <LoadingSpinner message="Cargando datos de pacientes..." fullHeight />;
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+        <Typography>Cargando pacientes...</Typography>
+      </Box>
+    );
   }
 
+  /* ---------- Render ---------- */
   return (
     <ErrorBoundary>
       <Box p={2}>
         <Container maxWidth="xl">
-          {/* Header con borde arcoíris */}
-          <Paper 
-            elevation={4} 
-            sx={{ 
-              borderRadius: 3, 
-              backgroundColor: '#fff', 
-              mb: 4, 
-              p: 0, 
-              overflow: 'hidden', 
-              border: '4px solid transparent', 
-              backgroundImage: 'linear-gradient(white, white), linear-gradient(270deg, #2196F3, #4CAF50, #FF9800, #E91E63)', 
-              backgroundOrigin: 'border-box', 
-              backgroundClip: 'padding-box, border-box', 
-              animation: 'rainbow 5s linear infinite', 
-              '@keyframes rainbow': { 
-                '0%': { backgroundPosition: '0% 50%' }, 
-                '100%': { backgroundPosition: '100% 50%' } 
-              }, 
-              backgroundSize: '300% 100%' 
+          {/* Encabezado con borde arcoíris */}
+          <Paper
+            elevation={6}
+            sx={{
+              borderRadius: 3,
+              backgroundColor: '#fff',
+              mb: 4,
+              p: 0,
+              overflow: 'hidden',
+              border: '4px solid transparent',
+              backgroundImage:
+                'linear-gradient(white, white), linear-gradient(270deg, #2196F3, #4CAF50, #FF9800, #E91E63)',
+              backgroundOrigin: 'border-box',
+              backgroundClip: 'padding-box, border-box',
+              animation: 'rainbow 5s linear infinite',
+              '@keyframes rainbow': {
+                '0%': { backgroundPosition: '0% 50%' },
+                '100%': { backgroundPosition: '100% 50%' },
+              },
+              backgroundSize: '300% 100%',
             }}
           >
             <Box sx={{ p: 3 }}>
-              <Typography variant="h5" fontWeight="bold" color="black" display="flex" alignItems="center">
-                <LocalHospital sx={{ mr: 2 }} />
+              <Typography variant="h5" fontWeight="bold" color="black">
                 Gestión de Pacientes
               </Typography>
             </Box>
           </Paper>
 
-          {/* Navegación por pestañas */}
-          <Paper elevation={2} sx={{ mb: 3 }}>
-            <Tabs 
-              value={activeTab} 
-              onChange={(e, newValue) => setActiveTab(newValue)} 
-              sx={{ borderBottom: 1, borderColor: 'divider' }}
-            >
-              <Tab label="Lista de Pacientes" icon={<LocalHospital />} />
-              <Tab label={editingId ? "Editar Paciente" : "Nuevo Paciente"} icon={<PersonAdd />} />
-            </Tabs>
+          {/* Buscador Avanzado */}
+          <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>
+              Búsqueda de Persona y Tutor
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Busca y selecciona la persona (paciente) y el tutor/representante
+            </Typography>
+            <BuscadorPersonas
+              onPersonaSelect={handlePersonaSelectBuscador}
+              onTutorSelect={handleTutorSelectBuscador}
+              showPersonas={true}
+              showTutores={true}
+              compact={true}
+              maxHeight={350}
+              hideRegisteredPatients={true}
+              editingPatientId={editingId}
+            />
           </Paper>
 
-          {/* Tab Panel 0 - Lista */}
-          <TabPanel value={activeTab} index={0}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" mb={2} display="flex" alignItems="center">
-                  <LocalHospital sx={{ mr: 1 }} />
-                  Lista de Pacientes
-                  <Chip 
-                    label={`${filteredPacientes.length} paciente${filteredPacientes.length !== 1 ? 's' : ''}`} 
-                    color="primary" 
-                    size="small" 
-                    sx={{ ml: 2 }}
-                  />
-                </Typography>
-                
-                <Grid container spacing={2} mb={3}>
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Buscar pacientes"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <Search />
-                          </InputAdornment>
-                        )
-                      }}
-                      placeholder="Buscar por nombre, cédula, tutor..."
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={2}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel>Estado</InputLabel>
-                      <Select
-                        value={filterEstado}
-                        onChange={(e) => setFilterEstado(e.target.value)}
-                        label="Estado"
-                      >
-                        <MenuItem value="">Todos</MenuItem>
-                        {PacienteService.getEstados().map((estado) => (
-                          <MenuItem key={estado.value} value={estado.value}>
-                            {estado.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel>Especialidad</InputLabel>
-                      <Select
-                        value={filterEspecialidad}
-                        onChange={(e) => setFilterEspecialidad(e.target.value)}
-                        label="Especialidad"
-                      >
-                        <MenuItem value="">Todas</MenuItem>
-                        {especialidades.map((esp) => (
-                          <MenuItem key={esp.id} value={esp.id}>
-                            {esp.nombre}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      startIcon={<PersonAdd />}
-                      onClick={() => {
-                        resetForm();
-                        setActiveTab(1);
-                      }}
-                      sx={{ height: '40px' }}
-                    >
-                      Nuevo Paciente
-                    </Button>
-                  </Grid>
-                </Grid>
-
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Paciente</TableCell>
-                      <TableCell>Tutor</TableCell>
-                      <TableCell>Especialidad</TableCell>
-                      <TableCell>Tratamiento</TableCell>
-                      <TableCell>Estado</TableCell>
-                      <TableCell>Acciones</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredPacientes
-                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                      .map((item) => {
-                        const estadoInfo = PacienteService.getEstadoInfo(item.estado);
-                        const estadoTratamientoInfo = PacienteService.getEstadoTratamientoInfo(item.estado_tratamiento);
-                        const tutorInfo = PacienteService.getTutorContactInfo(item);
-                        return (
-                          <TableRow key={item.id}>
-                            <TableCell>
-                              <Box display="flex" alignItems="center">
-                                <Avatar sx={{ mr: 2, bgcolor: 'primary.light' }}>
-                                  <Person />
-                                </Avatar>
-                                <Box>
-                                  <Typography variant="body2" fontWeight="bold">
-                                    {PacienteService.getFullName(item)}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary">
-                                    {item.cedula} • Edad: {PacienteService.calculateAge(item.fecha_nacimiento)}
-                                  </Typography>
-                                </Box>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Box>
-                                <Typography variant="body2" fontWeight="bold">
-                                  {tutorInfo.nombre}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary" display="flex" alignItems="center">
-                                  <Phone sx={{ fontSize: '12px', mr: 0.5 }} />
-                                  {tutorInfo.telefono}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {tutorInfo.parentesco}
-                                </Typography>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              {item.especialidad_nombre ? (
-                                <Chip 
-                                  label={item.especialidad_nombre} 
-                                  color="secondary"
-                                  size="small"
-                                  icon={<MedicalServices />}
-                                />
-                              ) : (
-                                <Typography variant="caption" color="text.secondary">
-                                  Sin especialidad
-                                </Typography>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <Box>
-                                <Chip 
-                                  label={estadoTratamientoInfo.label} 
-                                  color={estadoTratamientoInfo.color}
-                                  size="small"
-                                  sx={{ mb: 0.5 }}
-                                />
-                                <Typography variant="caption" display="block" color="text.secondary">
-                                  {item.fecha_inicio_tratamiento ? 
-                                    `Inicio: ${PacienteService.formatDate(item.fecha_inicio_tratamiento)}` :
-                                    'Sin fecha de inicio'
-                                  }
-                                </Typography>
-                                {item.fecha_inicio_tratamiento && (
-                                  <Typography variant="caption" display="block" color="text.secondary">
-                                    Tiempo: {PacienteService.calculateTiempoTratamiento(item.fecha_inicio_tratamiento, item.fecha_fin_tratamiento)}
-                                  </Typography>
-                                )}
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Chip 
-                                label={estadoInfo.label} 
-                                color={estadoInfo.color}
-                                size="small"
-                              />
-                              <Typography variant="caption" display="block" color="text.secondary">
-                                Ingreso: {PacienteService.formatDate(item.fecha_ingreso)}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Stack direction="row" spacing={1}>
-                                <Tooltip title="Ver detalles">
-                                  <IconButton 
-                                    color="info" 
-                                    size="small"
-                                    onClick={() => handleViewDetail(item)}
-                                  >
-                                    <Visibility />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Editar">
-                                  <IconButton 
-                                    color="primary" 
-                                    size="small"
-                                    onClick={() => handleEdit(item)}
-                                  >
-                                    <Edit />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Eliminar">
-                                  <IconButton 
-                                    color="error" 
-                                    size="small"
-                                    onClick={() => handleDelete(item.id)}
-                                  >
-                                    <Delete />
-                                  </IconButton>
-                                </Tooltip>
-                              </Stack>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                  </TableBody>
-                </Table>
-
-                <TablePagination
-                  component="div"
-                  count={filteredPacientes.length}
-                  page={page}
-                  onPageChange={(e, newPage) => setPage(newPage)}
-                  rowsPerPage={rowsPerPage}
-                  onRowsPerPageChange={(e) => {
-                    setRowsPerPage(parseInt(e.target.value, 10));
-                    setPage(0);
-                  }}
-                  rowsPerPageOptions={[5, 10, 25, 50]}
-                  labelRowsPerPage="Filas por página:"
-                  labelDisplayedRows={({ from, to, count }) => 
-                    `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
-                  }
-                />
-              </CardContent>
-            </Card>
-          </TabPanel>
-
-          {/* Tab Panel 1 - Formulario */}
-          <TabPanel value={activeTab} index={1}>
-            <Paper elevation={3} sx={{ borderRadius: 2, p: 3 }}>
-              <Typography variant="h6" textAlign="center" fontWeight="bold" color="primary.main" mb={3}>
-                {editingId ? 'Editar Paciente' : 'Registrar Nuevo Paciente'}
+          {/* Mostrar Persona y Tutor Seleccionados */}
+          {(personaEncontrada || tutorEncontrado) && (
+            <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: '#f8f9ff' }}>
+              <Typography variant="h6" gutterBottom color="primary">
+                ✅ Selección Actual
               </Typography>
-              
-              <Box component="form" onSubmit={handleSubmit}>
-                <Grid container spacing={3}>
-                  {/* Información del Paciente */}
-                  <Grid item xs={12}>
-                    <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
-                      <AccountBox sx={{ mr: 1 }} />
-                      Información del Paciente
-                    </Typography>
-                    <Divider sx={{ mb: 2 }} />
-                  </Grid>
-
+              <Grid container spacing={3}>
+                {personaEncontrada && (
                   <Grid item xs={12} md={6}>
-                    <Typography variant="body1" mb={1}>Persona: *</Typography>
-                    {selectedPerson ? (
-                      <Box>
-                        <Paper 
-                          elevation={1} 
-                          sx={{ 
-                            p: 2, 
-                            bgcolor: 'success.50', 
-                            border: '1px solid', 
-                            borderColor: 'success.main',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                          }}
-                        >
-                          <Box>
-                            <Typography variant="body1" fontWeight="bold">
-                              {PersonaService.getFullName(selectedPerson)}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Cédula: {selectedPerson.cedula}
-                            </Typography>
-                          </Box>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => {
-                              setSelectedPerson(null);
-                              setFormData(prev => ({ ...prev, persona_id: '' }));
-                              setShowPersonSelector(true);
-                            }}
-                          >
-                            Cambiar
-                          </Button>
-                        </Paper>
-                        {errors.persona_id && (
-                          <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
-                            {errors.persona_id}
-                          </Typography>
-                        )}
-                      </Box>
-                    ) : (
-                      <Box>
-                        <Button
-                          fullWidth
-                          variant="outlined"
-                          size="large"
-                          onClick={() => setShowPersonSelector(true)}
-                          startIcon={<Search />}
-                          sx={{ 
-                            py: 2,
-                            borderStyle: errors.persona_id ? 'solid' : 'dashed',
-                            borderColor: errors.persona_id ? 'error.main' : 'primary.main'
-                          }}
-                        >
-                          Buscar y Seleccionar Persona
-                        </Button>
-                        {errors.persona_id && (
-                          <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
-                            {errors.persona_id}
-                          </Typography>
-                        )}
-                      </Box>
-                    )}
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body1" mb={1}>Tutor: *</Typography>
-                    {selectedTutor ? (
-                      <Box>
-                        <Paper 
-                          elevation={1} 
-                          sx={{ 
-                            p: 2, 
-                            bgcolor: 'info.50', 
-                            border: '1px solid', 
-                            borderColor: 'info.main',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                          }}
-                        >
-                          <Box>
-                            <Typography variant="body1" fontWeight="bold">
-                              {PersonaService.getFullName(selectedTutor)}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Cédula: {selectedTutor.cedula}
-                            </Typography>
-                          </Box>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => {
-                              setSelectedTutor(null);
-                              setFormData(prev => ({ ...prev, tutor_id: '' }));
-                              setShowTutorSelector(true);
-                            }}
-                          >
-                            Cambiar
-                          </Button>
-                        </Paper>
-                        {errors.tutor_id && (
-                          <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
-                            {errors.tutor_id}
-                          </Typography>
-                        )}
-                      </Box>
-                    ) : (
-                      <Box>
-                        <Button
-                          fullWidth
-                          variant="outlined"
-                          size="large"
-                          onClick={() => setShowTutorSelector(true)}
-                          startIcon={<FamilyRestroom />}
-                          sx={{ 
-                            py: 2,
-                            borderStyle: errors.tutor_id ? 'solid' : 'dashed',
-                            borderColor: errors.tutor_id ? 'error.main' : 'info.main'
-                          }}
-                        >
-                          Buscar y Seleccionar Tutor
-                        </Button>
-                        {errors.tutor_id && (
-                          <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
-                            {errors.tutor_id}
-                          </Typography>
-                        )}
-                      </Box>
-                    )}
-                  </Grid>
-
-                  {/* Información de Tratamiento */}
-                  <Grid item xs={12}>
-                    <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center" sx={{ mt: 2 }}>
-                      <MedicalServices sx={{ mr: 1 }} />
-                      Información de Tratamiento
-                    </Typography>
-                    <Divider sx={{ mb: 2 }} />
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body1" mb={1}>Especialidad:</Typography>
-                    <TextField
-                      select
-                      fullWidth
-                      name="especialidad_id"
-                      value={formData.especialidad_id}
-                      onChange={handleChange}
-                      error={!!errors.especialidad_id}
-                      helperText={errors.especialidad_id}
-                    >
-                      <MenuItem value="">Sin especialidad asignada</MenuItem>
-                      {especialidades.map((esp) => (
-                        <MenuItem key={esp.id} value={esp.id}>
-                          {esp.nombre} - {EspecialidadService.getAreaLabel(esp.area)}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body1" mb={1}>Fecha de Ingreso: *</Typography>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      name="fecha_ingreso"
-                      value={formData.fecha_ingreso}
-                      onChange={handleChange}
-                      error={!!errors.fecha_ingreso}
-                      helperText={errors.fecha_ingreso}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body1" mb={1}>Fecha Inicio Tratamiento:</Typography>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      name="fecha_inicio_tratamiento"
-                      value={formData.fecha_inicio_tratamiento}
-                      onChange={handleChange}
-                      error={!!errors.fecha_inicio_tratamiento}
-                      helperText={errors.fecha_inicio_tratamiento}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body1" mb={1}>Fecha Fin Tratamiento:</Typography>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      name="fecha_fin_tratamiento"
-                      value={formData.fecha_fin_tratamiento}
-                      onChange={handleChange}
-                      error={!!errors.fecha_fin_tratamiento}
-                      helperText={errors.fecha_fin_tratamiento}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body1" mb={1}>Estado de Tratamiento:</Typography>
-                    <TextField
-                      select
-                      fullWidth
-                      name="estado_tratamiento"
-                      value={formData.estado_tratamiento}
-                      onChange={handleChange}
-                    >
-                      {PacienteService.getEstadosTratamiento().map((estado) => (
-                        <MenuItem key={estado.value} value={estado.value}>
-                          {estado.label}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body1" mb={1}>Estado:</Typography>
-                    <TextField
-                      select
-                      fullWidth
-                      name="estado"
-                      value={formData.estado}
-                      onChange={handleChange}
-                    >
-                      {PacienteService.getEstados().map((estado) => (
-                        <MenuItem key={estado.value} value={estado.value}>
-                          {estado.label}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Typography variant="body1" mb={1}>Observaciones de Tratamiento:</Typography>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={3}
-                      name="observaciones_tratamiento"
-                      value={formData.observaciones_tratamiento}
-                      onChange={handleChange}
-                      placeholder="Observaciones específicas del tratamiento..."
-                    />
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Typography variant="body1" mb={1}>Observaciones Generales:</Typography>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={3}
-                      name="observaciones"
-                      value={formData.observaciones}
-                      onChange={handleChange}
-                      placeholder="Observaciones generales del paciente..."
-                    />
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Divider sx={{ my: 2 }} />
-                    <Stack direction="row" spacing={2} justifyContent="center">
-                      <Button 
-                        variant="contained" 
-                        type="submit" 
-                        color="primary"
-                        startIcon={editingId ? <Edit /> : <PersonAdd />}
-                        size="large"
-                        disabled={!formData.persona_id || !formData.tutor_id || !formData.fecha_ingreso}
-                      >
-                        {editingId ? 'Actualizar Paciente' : 'Registrar Paciente'}
-                      </Button>
-                      <Button 
-                        variant="outlined" 
-                        onClick={() => {
-                          resetForm();
-                          setActiveTab(0);
-                        }}
-                        color="secondary"
-                        size="large"
-                      >
-                        Cancelar
-                      </Button>
-                    </Stack>
-                  </Grid>
-                </Grid>
-              </Box>
-            </Paper>
-          </TabPanel>
-
-          {/* Modal del Buscador de Personas */}
-          <Dialog
-            open={showPersonSelector}
-            onClose={() => setShowPersonSelector(false)}
-            maxWidth="lg"
-            fullWidth
-          >
-            <DialogTitle>
-              <Box display="flex" alignItems="center">
-                <Search sx={{ mr: 2 }} />
-                Seleccionar Persona para Paciente
-              </Box>
-            </DialogTitle>
-            <DialogContent>
-              <BuscadorPersonas
-                onPersonaSelect={handlePersonaSelect}
-                showTutores={false}
-                showPersonas={true}
-                compact={true}
-                maxHeight={400}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setShowPersonSelector(false)}>Cancelar</Button>
-            </DialogActions>
-          </Dialog>
-
-          {/* Modal del Buscador de Tutores */}
-          <Dialog
-            open={showTutorSelector}
-            onClose={() => setShowTutorSelector(false)}
-            maxWidth="lg"
-            fullWidth
-          >
-            <DialogTitle>
-              <Box display="flex" alignItems="center">
-                <FamilyRestroom sx={{ mr: 2 }} />
-                Seleccionar Tutor para Paciente
-              </Box>
-            </DialogTitle>
-            <DialogContent>
-              <BuscadorPersonas
-                onPersonaSelect={handleTutorSelect}
-                showTutores={true}
-                showPersonas={false}
-                compact={true}
-                maxHeight={400}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setShowTutorSelector(false)}>Cancelar</Button>
-            </DialogActions>
-          </Dialog>
-
-          {/* Dialog de detalles */}
-          <Dialog 
-            open={detailDialog.open} 
-            onClose={() => setDetailDialog({ open: false, data: null })}
-            maxWidth="lg"
-            fullWidth
-          >
-            <DialogTitle>
-              <Box display="flex" alignItems="center">
-                <LocalHospital sx={{ mr: 2 }} />
-                Detalles del Paciente
-              </Box>
-            </DialogTitle>
-            <DialogContent>
-              {detailDialog.data && (
-                <Grid container spacing={3} sx={{ mt: 1 }}>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="primary">Información Personal</Typography>
-                    <Typography variant="body2">
-                      <strong>Nombre:</strong> {PacienteService.getFullName(detailDialog.data)}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Cédula:</strong> {detailDialog.data.cedula}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Edad:</strong> {PacienteService.calculateAge(detailDialog.data.fecha_nacimiento)}
-                    </Typography>
-                    <Typography variant="body2" display="flex" alignItems="center">
-                      <Phone fontSize="small" sx={{ mr: 1 }} />
-                      {detailDialog.data.telefono || 'Sin teléfono'}
-                    </Typography>
-                    <Typography variant="body2" display="flex" alignItems="center">
-                      <Email fontSize="small" sx={{ mr: 1 }} />
-                      {detailDialog.data.correo || 'Sin email'}
-                    </Typography>
-                  </Grid>
-                  
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="primary">Información del Tutor</Typography>
-                    {(() => {
-                      const tutorInfo = PacienteService.getTutorContactInfo(detailDialog.data);
-                      return (
-                        <Box>
-                          <Typography variant="body2">
-                            <strong>Nombre:</strong> {tutorInfo.nombre}
-                          </Typography>
-                          <Typography variant="body2" display="flex" alignItems="center">
-                            <Phone fontSize="small" sx={{ mr: 1 }} />
-                            {tutorInfo.telefono}
-                          </Typography>
-                          <Typography variant="body2">
-                            <strong>Parentesco:</strong> {tutorInfo.parentesco}
-                          </Typography>
-                        </Box>
-                      );
-                    })()}
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="primary">Tratamiento</Typography>
-                    <Typography variant="body2">
-                      <strong>Especialidad:</strong> {detailDialog.data.especialidad_nombre || 'Sin especialidad'}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Fecha de ingreso:</strong> {PacienteService.formatDate(detailDialog.data.fecha_ingreso)}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Inicio tratamiento:</strong> {PacienteService.formatDate(detailDialog.data.fecha_inicio_tratamiento)}
-                    </Typography>
-                    <Typography variant="body2">
-                      <strong>Fin tratamiento:</strong> {PacienteService.formatDate(detailDialog.data.fecha_fin_tratamiento)}
-                    </Typography>
-                    {detailDialog.data.fecha_inicio_tratamiento && (
-                      <Typography variant="body2">
-                        <strong>Tiempo en tratamiento:</strong> {PacienteService.calculateTiempoTratamiento(detailDialog.data.fecha_inicio_tratamiento, detailDialog.data.fecha_fin_tratamiento)}
+                    <Box sx={{ p: 2, border: '1px solid', borderColor: 'primary.light', borderRadius: 1 }}>
+                      <Typography variant="subtitle2" color="primary" gutterBottom>
+                        👤 PERSONA SELECCIONADA
                       </Typography>
-                    )}
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="subtitle2" color="primary">Estado</Typography>
-                    <Box mt={1}>
-                      <Chip 
-                        label={PacienteService.getEstadoInfo(detailDialog.data.estado).label} 
-                        color={PacienteService.getEstadoInfo(detailDialog.data.estado).color}
-                        size="small"
-                        sx={{ mr: 1 }}
-                      />
-                      <Chip 
-                        label={PacienteService.getEstadoTratamientoInfo(detailDialog.data.estado_tratamiento).label} 
-                        color={PacienteService.getEstadoTratamientoInfo(detailDialog.data.estado_tratamiento).color}
-                        size="small"
-                      />
+                      <Typography><strong>Nombre:</strong> {personaEncontrada.nombre_completo || `${personaEncontrada.nombre} ${personaEncontrada.apellido}`}</Typography>
+                      <Typography><strong>Cédula:</strong> {personaEncontrada.cedula}</Typography>
                     </Box>
                   </Grid>
+                )}
+                {tutorEncontrado && (
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ p: 2, border: '1px solid', borderColor: 'secondary.light', borderRadius: 1 }}>
+                      <Typography variant="subtitle2" color="secondary" gutterBottom>
+                        👥 TUTOR SELECCIONADO
+                      </Typography>
+                      <Typography><strong>Nombre:</strong> {tutorEncontrado.nombre_completo || `${tutorEncontrado.nombre} ${tutorEncontrado.apellido}`}</Typography>
+                      <Typography><strong>Cédula:</strong> {tutorEncontrado.cedula}</Typography>
+                    </Box>
+                  </Grid>
+                )}
+              </Grid>
+            </Paper>
+          )}
 
-                  {(detailDialog.data.observaciones_tratamiento || detailDialog.data.observaciones) && (
+          {/* Formulario Principal */}
+          <Card
+            elevation={8}
+            sx={{
+              borderRadius: 4,
+              mb: 4,
+              background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+              border: '1px solid',
+              borderColor: 'divider',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Header dinámico */}
+            <Box
+              sx={{
+                background: editingId
+                  ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
+                  : 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+                color: 'white',
+                p: 3,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Box>
+                <Typography variant="h6" fontWeight="bold">
+                  {editingId ? 'Editar Paciente' : 'Registrar Paciente'}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  {editingId
+                    ? 'Modifica los campos necesarios y guarda los cambios'
+                    : 'Selecciona persona y tutor, asigna especialidad y define fechas'}
+                </Typography>
+              </Box>
+            </Box>
+
+            <CardContent sx={{ p: { xs: 2, md: 4 }, maxWidth: 1100, mx: 'auto' }}>
+              {/* ===== Bloque: Asignación ===== */}
+              <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+                <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                  Asignación
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+
+                {/* Fila: Especialidad */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+                    gap: 2,
+                    alignItems: 'center',
+                    mb: 2,
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Especialidad Asignada *</Typography>
+                  <TextField
+                    select
+                    fullWidth
+                    name="especialidad_id"
+                    value={formData.especialidad_id}
+                    onChange={handleChange}
+                    error={!!errors.especialidad_id}
+                    helperText={errors.especialidad_id || 'Selecciona la especialidad del plan'}
+                    size="medium"
+                  >
+                    <MenuItem value="">Seleccione una especialidad</MenuItem>
+                    {especialidades.map((e) => (
+                      <MenuItem key={e.id} value={e.id}>
+                        {e.nombre} {e.area ? `— ${e.area}` : ''}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Box>
+
+                {/* Fila: Estado Tratamiento */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+                    gap: 2,
+                    alignItems: 'center',
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Estado del Tratamiento *</Typography>
+                  <TextField
+                    select
+                    fullWidth
+                    name="estado_tratamiento"
+                    value={formData.estado_tratamiento}
+                    onChange={handleChange}
+                    error={!!errors.estado_tratamiento}
+                    helperText={errors.estado_tratamiento || 'Define el estado actual'}
+                    size="medium"
+                  >
+                    {['activo', 'en pausa', 'completado', 'suspendido'].map((opt) => (
+                      <MenuItem key={opt} value={opt}>
+                        {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Box>
+              </Box>
+
+              {/* ===== Bloque: Fechas ===== */}
+              <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+                <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                  Fechas del Tratamiento
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+
+                {/* Fecha de Ingreso */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+                    gap: 2,
+                    alignItems: 'center',
+                    mb: 2,
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Fecha de Ingreso *</Typography>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    name="fecha_ingreso"
+                    InputLabelProps={{ shrink: true }}
+                    inputProps={{ max: getCurrentDateForInput() }}
+                    value={formData.fecha_ingreso}
+                    onChange={handleChange}
+                    error={!!errors.fecha_ingreso}
+                    helperText={errors.fecha_ingreso || 'Fecha en que el paciente ingresó al centro'}
+                    size="medium"
+                  />
+                </Box>
+
+                {/* Inicio Tratamiento */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+                    gap: 2,
+                    alignItems: 'center',
+                    mb: 2,
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Inicio Tratamiento *</Typography>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    name="fecha_inicio_tratamiento"
+                    InputLabelProps={{ shrink: true }}
+                    value={formData.fecha_inicio_tratamiento}
+                    onChange={handleChange}
+                    error={!!errors.fecha_inicio_tratamiento}
+                    helperText={errors.fecha_inicio_tratamiento || 'Fecha de inicio del tratamiento'}
+                    size="medium"
+                  />
+                </Box>
+
+                {/* Fin Tratamiento */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+                    gap: 2,
+                    alignItems: 'center',
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Fin Tratamiento</Typography>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    name="fecha_fin_tratamiento"
+                    InputLabelProps={{ shrink: true }}
+                    value={formData.fecha_fin_tratamiento}
+                    onChange={handleChange}
+                    helperText="(Opcional) Fecha estimada de finalización"
+                    size="medium"
+                  />
+                </Box>
+              </Box>
+
+              {/* ===== Bloque: Observaciones ===== */}
+              <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+                <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                  Observaciones
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+
+                {/* Observaciones del Tratamiento */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+                    gap: 2,
+                    alignItems: 'flex-start',
+                    mb: 2,
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 600, color: 'text.primary', pt: { md: 1 } }}>
+                    Observaciones del Tratamiento
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    multiline
+                    minRows={3}
+                    name="observaciones_tratamiento"
+                    placeholder="Objetivos, progreso esperado, notas del plan terapéutico..."
+                    value={formData.observaciones_tratamiento}
+                    onChange={handleChange}
+                    size="medium"
+                  />
+                </Box>
+
+                {/* Observaciones Generales */}
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+                    gap: 2,
+                    alignItems: 'flex-start',
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 600, color: 'text.primary', pt: { md: 1 } }}>
+                    Observaciones Generales
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    multiline
+                    minRows={3}
+                    name="observaciones"
+                    placeholder="Información relevante: diagnóstico, necesidades especiales, etc."
+                    value={formData.observaciones}
+                    onChange={handleChange}
+                    size="medium"
+                  />
+                </Box>
+              </Box>
+
+              {/* ===== Acciones ===== */}
+              <Box
+                sx={{
+                  mt: 3,
+                  pt: 2,
+                  display: 'flex',
+                  gap: 2,
+                  maxWidth: 600,
+                  mx: 'auto',
+                  borderTop: '1px solid',
+                  borderColor: 'divider'
+                }}
+              >
+                <Button
+                  variant="contained"
+                  color="success"
+                  fullWidth
+                  onClick={handleGuardar}
+                  sx={{ py: 1.4, fontWeight: 'bold', textTransform: 'none' }}
+                >
+                  {editingId ? 'Actualizar' : 'Guardar Paciente'}
+                </Button>
+
+                {editingId && (
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={resetForm}
+                    sx={{ py: 1.4, fontWeight: 'bold', textTransform: 'none' }}
+                  >
+                    Cancelar Edición
+                  </Button>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Tabla */}
+          <Paper elevation={3} sx={{ p: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>
+                Listado de Pacientes ({filteredPacientes.length})
+              </Typography>
+
+              <TextField
+                size="small"
+                placeholder="Buscar por nombre, cédula, tutor, especialidad o estado…"
+                value={searchTerm}
+                onChange={(e) => {
+                  setPage(0);
+                  setSearchTerm(e.target.value);
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search sx={{ color: 'text.secondary' }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ minWidth: { xs: 220, sm: 320 } }}
+              />
+            </Box>
+
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Nombre</TableCell>
+                  <TableCell>Cédula</TableCell>
+                  <TableCell>Tutor</TableCell>
+                  <TableCell>Fecha Ingreso</TableCell>
+                  <TableCell>Especialidad</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>Acciones</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredPacientes.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                      <Box>
+                        <Search sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+                        <Typography variant="h6" color="text.secondary" gutterBottom>
+                          No se encontraron pacientes
+                        </Typography>
+                        <Typography variant="body2" color="text.disabled">
+                          {hasActiveFilters() 
+                            ? 'Intenta modificar o limpiar los filtros de búsqueda'
+                            : 'No hay pacientes registrados en el sistema'
+                          }
+                        </Typography>
+                        {hasActiveFilters() && (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={clearFilters}
+                            sx={{ mt: 2 }}
+                          >
+                            Limpiar Filtros
+                          </Button>
+                        )}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredPacientes.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell>{p.nombre_completo}</TableCell>
+                    <TableCell>{p.cedula}</TableCell>
+                    <TableCell>{p.nombre_tutor || 'Sin tutor'}</TableCell>
+                    <TableCell>{formatDateLocal(p.fecha_ingreso)}</TableCell>
+                    <TableCell>{p.especialidad_nombre || '—'}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                      <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'nowrap' }}>
+                        <Tooltip title="Ver Detalles">
+                          <IconButton color="primary" onClick={() => setDetalle(p)} size="small">
+                            <Visibility fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Editar">
+                          <IconButton color="success" onClick={() => handleEdit(p)} size="small">
+                            <Edit fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Eliminar">
+                          <IconButton color="error" onClick={() => handleDelete(p.id)} size="small">
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Documentos">
+                          <IconButton color="info" onClick={() => handleDocs(p)} size="small">
+                            <Description fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+            <TablePagination
+              component="div"
+              count={filteredPacientes.length}
+              page={page}
+              onPageChange={(e, newPage) => setPage(newPage)}
+              rowsPerPage={rowsPerPage}
+              rowsPerPageOptions={[]}
+            />
+          </Paper>
+
+          {/* Detalles */}
+          <Dialog open={!!detalle} onClose={() => setDetalle(null)} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ bgcolor: 'primary.main', color: 'white', display: 'flex', alignItems: 'center' }}>
+              <Visibility sx={{ mr: 1 }} />
+              Detalle del Paciente
+            </DialogTitle>
+            <DialogContent sx={{ p: 3, mt: 2 }}>
+              {detalle && (
+                <Box>
+                  <Grid container spacing={2}>
                     <Grid item xs={12}>
-                      <Typography variant="subtitle2" color="primary">Observaciones</Typography>
-                      {detailDialog.data.observaciones_tratamiento && (
-                        <Typography variant="body2">
-                          <strong>Tratamiento:</strong> {detailDialog.data.observaciones_tratamiento}
-                        </Typography>
-                      )}
-                      {detailDialog.data.observaciones && (
-                        <Typography variant="body2">
-                          <strong>Generales:</strong> {detailDialog.data.observaciones}
-                        </Typography>
-                      )}
+                      <Typography variant="body2" color="text.secondary">Nombre</Typography>
+                      <Typography variant="body1" fontWeight="bold">{detalle.nombre_completo}</Typography>
                     </Grid>
-                  )}
-                </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2" color="text.secondary">Cédula</Typography>
+                      <Typography variant="body1" fontWeight="bold">{detalle.cedula}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2" color="text.secondary">Tutor</Typography>
+                      <Typography variant="body1" fontWeight="bold">{detalle.nombre_tutor || 'Sin tutor'}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2" color="text.secondary">Fecha Ingreso</Typography>
+                      <Typography variant="body1" fontWeight="bold">{formatDateLocal(detalle.fecha_ingreso)}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2" color="text.secondary">Especialidad</Typography>
+                      <Typography variant="body1" fontWeight="bold">{detalle.especialidad_nombre || '—'}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2" color="text.secondary">Estado Tratamiento</Typography>
+                      <Typography variant="body1" fontWeight="bold">{detalle.estado_tratamiento || '—'}</Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2" color="text.secondary">Inicio Tratamiento</Typography>
+                      <Typography variant="body1" fontWeight="bold">
+                        {formatDateLocal(detalle.fecha_inicio_tratamiento)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Typography variant="body2" color="text.secondary">Fin Tratamiento</Typography>
+                      <Typography variant="body1" fontWeight="bold">{formatDateLocal(detalle.fecha_fin_tratamiento)}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="body2" color="text.secondary">Obs. Tratamiento</Typography>
+                      <Typography variant="body1" fontWeight="bold">{detalle.observaciones_tratamiento || '—'}</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Typography variant="body2" color="text.secondary">Obs. Generales</Typography>
+                      <Typography variant="body1" fontWeight="bold">{detalle.observaciones || '—'}</Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
               )}
             </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setDetailDialog({ open: false, data: null })}>
+            <DialogActions sx={{ p: 3 }}>
+              <Button onClick={() => setDetalle(null)} variant="contained" color="primary">
                 Cerrar
               </Button>
-              {detailDialog.data && (
-                <Button 
-                  variant="contained" 
-                  onClick={() => {
-                    handleEdit(detailDialog.data);
-                    setDetailDialog({ open: false, data: null });
-                  }}
-                  startIcon={<Edit />}
-                >
-                  Editar
-                </Button>
-              )}
             </DialogActions>
           </Dialog>
 
-          {/* Dialog de confirmación */}
-          <ConfirmDialog
-            open={confirmDialog.open}
-            onClose={() => setConfirmDialog({ open: false, id: null })}
-            onConfirm={confirmDelete}
-            title="¿Eliminar paciente?"
-            message="Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este paciente?"
-            confirmText="Eliminar"
-            confirmColor="error"
-            severity="error"
-          />
-
-          {/* Notificaciones */}
-          <CustomSnackbar
+          {/* Snackbar */}
+          <Snackbar
             open={snackbar.open}
-            message={snackbar.message}
-            severity={snackbar.severity}
+            autoHideDuration={4000}
             onClose={hideSnackbar}
-          />
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          >
+            <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
         </Container>
       </Box>
     </ErrorBoundary>
