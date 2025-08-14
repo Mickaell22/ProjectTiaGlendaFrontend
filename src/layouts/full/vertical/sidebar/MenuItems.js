@@ -2,17 +2,11 @@
 import {
   Dashboard,
   People,
-  Group,
   AdminPanelSettings,
   LocalHospital,
-  SchoolOutlined,
   AccountCircle,
-  Favorite,
   School,
   CalendarMonth,
-  InsertChart,
-  Login,
-  PersonAdd,
   TrendingUp,
   Person,
   SupervisorAccount,
@@ -20,23 +14,18 @@ import {
   MedicalServices,
   Psychology,
   MenuBook,
-  Assignment,
   Assessment,
-  Timeline,
-  Event,
-  Schedule,
   BarChart,
   PictureAsPdf,
   AutoGraph,
   Security,
-  EventAvailable,
   CheckCircle,
   PersonSearch,
-  Today,
   DateRange,
   Groups,
   Work,
-  Business
+  Business,
+  Logout
 } from '@mui/icons-material';
 
 // Función simple para generar IDs únicos
@@ -140,40 +129,8 @@ const Menuitems = [
   {
     id: uniqueId(),
     title: 'Área Terapéutica',
-    icon: LocalHospital,
+    icon: Psychology,
     href: '/terapeutico',
-    children: [
-      {
-        id: uniqueId(),
-        title: 'Sesiones Terapéuticas',
-        icon: MedicalServices,
-        href: '/terapeutico/sesiones',
-      },
-      {
-        id: uniqueId(),
-        title: 'Cronogramas',
-        icon: Schedule,
-        href: '/terapeutico/cronogramas',
-      },
-      {
-        id: uniqueId(),
-        title: 'Control de Asistencia',
-        icon: CheckCircle,
-        href: '/terapeutico/asistencia',
-      },
-      {
-        id: uniqueId(),
-        title: 'Sesiones de Hoy',
-        icon: Today,
-        href: '/terapeutico/hoy',
-      },
-      {
-        id: uniqueId(),
-        title: 'Estadísticas Terapéuticas',
-        icon: BarChart,
-        href: '/terapeutico/estadisticas',
-      },
-    ],
   },
   {
     id: uniqueId(),
@@ -300,6 +257,18 @@ const Menuitems = [
         href: '/configuracion/general',
       },
     ],
+  },
+
+  {
+    navlabel: true,
+    subheader: 'Sesión',
+  },
+  {
+    id: uniqueId(),
+    title: 'Cerrar Sesión',
+    icon: Logout,
+    href: '/auth/logout',
+    action: 'logout'
   },
 ];
 

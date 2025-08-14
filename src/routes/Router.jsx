@@ -1,6 +1,5 @@
 // src/routes/Router.jsx - Versión completa con páginas en desarrollo
 import { Navigate } from 'react-router-dom';
-import { lazy } from 'react';
 
 // Layouts
 import FullLayout from 'src/layouts/full/FullLayout';
@@ -17,7 +16,7 @@ import TutorModern from 'src/views/pacientes/TutorModern';
 import UsuarioModern from 'src/views/administracion/UsuarioModern';
 import EspecialidadModern from 'src/views/personal/EspecialidadModern';
 import PersonalModern from 'src/views/personal/PersonalModern';
-import SesionesTerapeuticas from 'src/views/terapeutico/SesionesTerapeuticas';
+import TerapeuticoMain from 'src/views/terapeutico/TerapeuticoMain';
 import SesionesPedagogicas from 'src/views/pedagogico/SesionesPedagogicas';
 import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
 
@@ -29,42 +28,7 @@ import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
 import ComingSoon from 'src/components/shared/ComingSoon';
 import ProtectedRoute from 'src/components/shared/ProtectedRoute';
 
-// Páginas específicas del área terapéutica
-const TerapeuticoCronogramas = () => (
-  <ComingSoon
-    title="Cronogramas Terapéuticos"
-    description="Gestión y visualización de cronogramas de sesiones terapéuticas"
-    module="Terapéutico"
-    progress={40}
-  />
-);
-
-const TerapeuticoAsistencia = () => (
-  <ComingSoon
-    title="Control de Asistencia"
-    description="Sistema de registro y seguimiento de asistencia a sesiones"
-    module="Terapéutico"
-    progress={45}
-  />
-);
-
-const TerapeuticoHoy = () => (
-  <ComingSoon
-    title="Sesiones de Hoy"
-    description="Vista de sesiones programadas para el día actual"
-    module="Terapéutico"
-    progress={60}
-  />
-);
-
-const TerapeuticoEstadisticas = () => (
-  <ComingSoon
-    title="Estadísticas Terapéuticas"
-    description="Dashboard con métricas y análisis del área terapéutica"
-    module="Terapéutico"
-    progress={35}
-  />
-);
+// Páginas específicas del área pedagógica
 
 const PedagogicoCronogramas = () => (
   <ComingSoon
@@ -259,11 +223,7 @@ const Router = [
 
 
       // Módulo Terapéutico
-      { path: '/terapeutico/sesiones', element: <SesionesTerapeuticas /> },
-      { path: '/terapeutico/cronogramas', element: <TerapeuticoCronogramas /> },
-      { path: '/terapeutico/asistencia', element: <TerapeuticoAsistencia /> },
-      { path: '/terapeutico/hoy', element: <TerapeuticoHoy /> },
-      { path: '/terapeutico/estadisticas', element: <TerapeuticoEstadisticas /> },
+      { path: '/terapeutico/*', element: <TerapeuticoMain /> },
       
       // Módulo Pedagógico
       { path: '/pedagogico/sesiones', element: <SesionesPedagogicas /> },

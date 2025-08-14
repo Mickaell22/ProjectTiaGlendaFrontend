@@ -4,6 +4,7 @@ import { useTheme } from '@mui/material/styles';
 import { ListItemButton, ListItemIcon, ListItemText, styled, useMediaQuery } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { useAuth } from 'src/contexts/AuthContext';
 import PropTypes from 'prop-types';
 
 const NavItem = ({ item, level, pathDirect, hideMenu, onClick }) => {
@@ -11,9 +12,21 @@ const NavItem = ({ item, level, pathDirect, hideMenu, onClick }) => {
   const customizer = useSelector((state) => state.customizer);
   const { pathname } = useLocation();
   const theme = useTheme();
+  const { logout } = useAuth();
   
   const Icon = item.icon;
   const itemIcon = <Icon stroke={1.5} size="1.3rem" />;
+
+  const handleClick = (e) => {
+    if (item.action === 'logout') {
+      e.preventDefault();
+      logout();
+      return;
+    }
+    if (onClick && !lgUp) {
+      onClick();
+    }
+  };
 
   const ListItemStyled = styled(ListItemButton)(({ theme }) => ({
     padding: '8px 10px',
@@ -37,12 +50,13 @@ const NavItem = ({ item, level, pathDirect, hideMenu, onClick }) => {
 
   return (
     <ListItemStyled
-      component={Link}
-      to={item.href}
+      component={item.action === 'logout' ? 'div' : Link}
+      to={item.action === 'logout' ? undefined : item.href}
       disabled={item.disabled}
       selected={pathDirect === item.href}
       target={item.external ? '_blank' : ''}
-      onClick={lgUp ? null : onClick}
+      onClick={handleClick}
+      sx={{ cursor: 'pointer' }}
     >
       <ListItemIcon
         sx={{
