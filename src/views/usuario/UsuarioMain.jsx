@@ -231,7 +231,9 @@ const UsuarioMain = () => {
                 '0%': { backgroundPosition: '0% 50%' }, 
                 '100%': { backgroundPosition: '100% 50%' } 
               }, 
-              backgroundSize: '300% 100%' 
+              backgroundSize: '300% 100%' ,
+              maxWidth: '90%',
+              mx: 'auto'
             }}
           >
             <Box sx={{ p: 3, pb: 0 }}>

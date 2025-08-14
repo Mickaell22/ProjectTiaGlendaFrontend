@@ -1,3 +1,4 @@
+// src/views/usuarios/UsuarioRoles.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -17,13 +18,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  Switch,
-  FormControlLabel,
   Divider,
   Alert,
   Tooltip,
@@ -36,27 +34,25 @@ import {
   School,
   Person,
   Edit,
-  Add,
-  Security,
-  Check,
-  Close,
-  Info,
-  Group,
-  Assignment,
   Visibility,
-  Delete
+  Group
 } from '@mui/icons-material';
 
 import UsuarioService from '../../services/usuarioService.js';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
+const cardWidthSX = {
+  width: '100%',
+  maxWidth: { xs: '100%', sm: 800, md: 900 },
+  mx: 'auto'
+};
+
 const UsuarioRoles = ({ usuarios = [] }) => {
   const [rolesStats, setRolesStats] = useState({});
   const [selectedRole, setSelectedRole] = useState(null);
   const [roleDialog, setRoleDialog] = useState({ open: false, type: 'view', data: null });
-  const [loading, setLoading] = useState(false);
 
-  const { showSuccess, showError } = useSnackbar();
+  const { showError } = useSnackbar();
 
   useEffect(() => {
     calculateRolesStats();
@@ -65,15 +61,17 @@ const UsuarioRoles = ({ usuarios = [] }) => {
   const calculateRolesStats = () => {
     const stats = {};
     const roles = UsuarioService.getRoles();
-    
-    roles.forEach(rol => {
-      const usuariosConRol = usuarios.filter(u => u.rol_id === rol.value || u.rol_nombre === rol.label);
+
+    roles.forEach((rol) => {
+      const usuariosConRol = usuarios.filter(
+        (u) => u.rol_id === rol.value || u.rol_nombre === rol.label
+      );
       stats[rol.value] = {
         ...rol,
         count: usuariosConRol.length,
         usuarios: usuariosConRol,
-        activos: usuariosConRol.filter(u => u.estado === 'activo').length,
-        inactivos: usuariosConRol.filter(u => u.estado === 'inactivo').length
+        activos: usuariosConRol.filter((u) => u.estado === 'activo').length,
+        inactivos: usuariosConRol.filter((u) => u.estado === 'inactivo').length
       };
     });
 
@@ -113,31 +111,60 @@ const UsuarioRoles = ({ usuarios = [] }) => {
 
   return (
     <Box>
-      {/* Resumen de roles */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" mb={2} display="flex" alignItems="center">
+      {/* Tarjeta resumen de roles */}
+      <Card
+        elevation={8}
+        sx={{
+          borderRadius: 4,
+          mb: 4,
+          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          overflow: 'hidden',
+          ...cardWidthSX
+        }}
+      >
+        {/* Header morado */}
+        <Box
+          sx={{
+            background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+            color: 'white',
+            p: 3,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Box display="flex" alignItems="center">
             <Group sx={{ mr: 1 }} />
-            Gestión de Roles y Permisos del Sistema
-            <Chip 
-              label={`${Object.keys(rolesStats).length} roles configurados`}
-              color="primary"
-              size="small"
-              sx={{ ml: 2 }}
-            />
-          </Typography>
+            <Box>
+              <Typography variant="h6" fontWeight="bold">
+                Gestión de Roles y Permisos
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                Visualiza y gestiona los roles de usuario del sistema
+              </Typography>
+            </Box>
+          </Box>
 
+          <Chip
+            label={`${Object.keys(rolesStats).length} roles`}
+            color="default"
+            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+            size="small"
+          />
+        </Box>
+
+        <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Grid container spacing={2}>
             {Object.entries(rolesStats).map(([roleKey, roleData]) => (
-              <Grid item xs={12} sm={6} md={3} key={roleKey}>
-                <Card 
+              <Grid item xs={12} sm={6} md={6} key={roleKey}>
+                <Card
                   elevation={selectedRole === roleKey ? 3 : 1}
-                  sx={{ 
+                  sx={{
                     cursor: 'pointer',
-                    border: selectedRole === roleKey ? 2 : 0,
+                    borderRadius: 3,
+                    border: selectedRole === roleKey ? '2px solid' : 'none',
                     borderColor: selectedRole === roleKey ? 'primary.main' : 'transparent',
                     '&:hover': {
-                      elevation: 2,
                       transform: 'translateY(-2px)',
                       transition: 'all 0.2s ease-in-out'
                     }
@@ -145,10 +172,10 @@ const UsuarioRoles = ({ usuarios = [] }) => {
                   onClick={() => handleRoleClick(roleKey)}
                 >
                   <CardContent sx={{ textAlign: 'center' }}>
-                    <Avatar 
-                      sx={{ 
-                        bgcolor: `${roleData.color}.main`, 
-                        mx: 'auto', 
+                    <Avatar
+                      sx={{
+                        bgcolor: `${roleData.color}.main`,
+                        mx: 'auto',
                         mb: 2,
                         width: 56,
                         height: 56
@@ -156,18 +183,12 @@ const UsuarioRoles = ({ usuarios = [] }) => {
                     >
                       {getRoleIcon(roleData.icon)}
                     </Avatar>
-                    
+
                     <Typography variant="h6" gutterBottom>
                       {roleData.label}
                     </Typography>
-                    
-                    <Box display="flex" justifyContent="center" gap={1} mb={2}>
-                      <Chip 
-                        label={`${roleData.count} usuarios`}
-                        color="primary"
-                        size="small"
-                      />
-                    </Box>
+
+                    <Chip label={`${roleData.count} usuarios`} color="primary" size="small" />
 
                     <Grid container spacing={1} sx={{ mt: 1 }}>
                       <Grid item xs={6}>
@@ -202,23 +223,34 @@ const UsuarioRoles = ({ usuarios = [] }) => {
         </CardContent>
       </Card>
 
-      {/* Información detallada del rol seleccionado */}
+      {/* Detalle del rol seleccionado */}
       {selectedRole && rolesStats[selectedRole] && (
-        <Card>
-          <CardContent>
-            <Typography variant="h6" mb={2} display="flex" alignItems="center">
+        <Card
+          elevation={8}
+          sx={{
+            borderRadius: 4,
+            mb: 4,
+            background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+            overflow: 'hidden',
+            ...cardWidthSX
+          }}
+        >
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              color: 'white',
+              p: 2
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
               {getRoleIcon(rolesStats[selectedRole].icon)}
-              <Box ml={1}>
-                Detalles del Rol: {rolesStats[selectedRole].label}
-              </Box>
+              <Box ml={1}>Detalles del Rol: {rolesStats[selectedRole].label}</Box>
             </Typography>
+          </Box>
 
+          <CardContent>
             <Alert severity="info" sx={{ mb: 2 }}>
-              <Typography variant="body2">
-                Este rol tiene asignados {rolesStats[selectedRole].count} usuarios en el sistema.
-                {rolesStats[selectedRole].activos > 0 && ` ${rolesStats[selectedRole].activos} están activos.`}
-                {rolesStats[selectedRole].inactivos > 0 && ` ${rolesStats[selectedRole].inactivos} están inactivos.`}
-              </Typography>
+              Este rol tiene {rolesStats[selectedRole].count} usuarios.
             </Alert>
 
             <Table size="small">
@@ -235,7 +267,7 @@ const UsuarioRoles = ({ usuarios = [] }) => {
                 {rolesStats[selectedRole].usuarios.map((usuario) => {
                   const estadoInfo = UsuarioService.getEstadoInfo(usuario.estado);
                   const securityInfo = UsuarioService.getSecurityInfo(usuario);
-                  
+
                   return (
                     <TableRow key={usuario.id}>
                       <TableCell>
@@ -248,23 +280,11 @@ const UsuarioRoles = ({ usuarios = [] }) => {
                           </Typography>
                         </Box>
                       </TableCell>
+                      <TableCell>{usuario.nombre_usuario}</TableCell>
                       <TableCell>
-                        <Typography variant="body2" fontWeight="bold">
-                          {usuario.nombre_usuario}
-                        </Typography>
+                        <Chip label={estadoInfo.label} color={estadoInfo.color} size="small" />
                       </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={estadoInfo.label}
-                          color={estadoInfo.color}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="caption">
-                          {securityInfo.tiempoUltimoAcceso}
-                        </Typography>
-                      </TableCell>
+                      <TableCell>{securityInfo.tiempoUltimoAcceso}</TableCell>
                       <TableCell>
                         <Tooltip title="Ver detalles">
                           <IconButton size="small" color="info">
@@ -282,93 +302,57 @@ const UsuarioRoles = ({ usuarios = [] }) => {
                 })}
               </TableBody>
             </Table>
-
-            {rolesStats[selectedRole].usuarios.length === 0 && (
-              <Box textAlign="center" py={4}>
-                <Typography variant="body2" color="text.secondary">
-                  No hay usuarios asignados a este rol
-                </Typography>
-              </Box>
-            )}
           </CardContent>
         </Card>
       )}
 
-      {/* Dialog para ver usuarios de un rol */}
-      <Dialog
-        open={roleDialog.open}
-        onClose={handleCloseDialog}
-        maxWidth="md"
-        fullWidth
-      >
+      {/* Dialog usuarios por rol */}
+      <Dialog open={roleDialog.open} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>
           <Box display="flex" alignItems="center">
             {roleDialog.data && getRoleIcon(roleDialog.data.icon)}
-            <Box ml={1}>
-              Usuarios con rol: {roleDialog.data?.label}
-            </Box>
-            <Chip 
+            <Box ml={1}>Usuarios con rol: {roleDialog.data?.label}</Box>
+            <Chip
               label={`${roleDialog.data?.count || 0} usuarios`}
               size="small"
               sx={{ ml: 2 }}
             />
           </Box>
         </DialogTitle>
-        
         <DialogContent>
-          {roleDialog.data && (
-            <>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                <Typography variant="body2">
-                  Este rol incluye {roleDialog.data.activos} usuarios activos y {roleDialog.data.inactivos} inactivos.
-                </Typography>
-              </Alert>
-
-              {roleDialog.data.usuarios.length > 0 ? (
-                <List>
-                  {roleDialog.data.usuarios.map((usuario, index) => (
-                    <React.Fragment key={usuario.id}>
-                      <ListItem>
-                        <ListItemIcon>
-                          <Avatar sx={{ width: 40, height: 40 }}>
-                            <Person />
-                          </Avatar>
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={UsuarioService.getFullName(usuario)}
-                          secondary={
-                            <Box>
-                              <Typography variant="caption" display="block">
-                                Usuario: {usuario.nombre_usuario}
-                              </Typography>
-                              <Chip 
-                                label={UsuarioService.getEstadoInfo(usuario.estado).label}
-                                color={UsuarioService.getEstadoInfo(usuario.estado).color}
-                                size="small"
-                              />
-                            </Box>
-                          }
+          {roleDialog.data && roleDialog.data.usuarios.length > 0 ? (
+            <List>
+              {roleDialog.data.usuarios.map((usuario, index) => (
+                <React.Fragment key={usuario.id}>
+                  <ListItem>
+                    <ListItemIcon>
+                      <Avatar sx={{ width: 40, height: 40 }}>
+                        <Person />
+                      </Avatar>
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={UsuarioService.getFullName(usuario)}
+                      secondary={
+                        <Chip
+                          label={UsuarioService.getEstadoInfo(usuario.estado).label}
+                          color={UsuarioService.getEstadoInfo(usuario.estado).color}
+                          size="small"
                         />
-                      </ListItem>
-                      {index < roleDialog.data.usuarios.length - 1 && <Divider />}
-                    </React.Fragment>
-                  ))}
-                </List>
-              ) : (
-                <Box textAlign="center" py={4}>
-                  <Typography variant="body1" color="text.secondary">
-                    No hay usuarios asignados a este rol
-                  </Typography>
-                </Box>
-              )}
-            </>
+                      }
+                    />
+                  </ListItem>
+                  {index < roleDialog.data.usuarios.length - 1 && <Divider />}
+                </React.Fragment>
+              ))}
+            </List>
+          ) : (
+            <Typography variant="body2" align="center">
+              No hay usuarios en este rol
+            </Typography>
           )}
         </DialogContent>
-        
         <DialogActions>
-          <Button onClick={handleCloseDialog}>
-            Cerrar
-          </Button>
+          <Button onClick={handleCloseDialog}>Cerrar</Button>
         </DialogActions>
       </Dialog>
     </Box>
