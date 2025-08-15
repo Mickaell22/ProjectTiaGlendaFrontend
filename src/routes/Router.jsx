@@ -17,6 +17,10 @@ import UsuarioMain from 'src/views/usuario/UsuarioMain';
 import EspecialidadMain from 'src/views/especialidad/EspecialidadMain';
 import PersonalMain from 'src/views/personal/PersonalMain';
 import TerapeuticoMain from 'src/views/terapeutico/TerapeuticoMain';
+import SesionTerapeuticaDetalle from 'src/views/terapeutico/SesionTerapeuticaDetalle';
+import DebugSesiones from 'src/views/terapeutico/DebugSesiones';
+import TestAsistencias from 'src/views/terapeutico/TestAsistencias';
+import EndpointTester from 'src/views/terapeutico/EndpointTester';
 import SesionesPedagogicas from 'src/views/pedagogico/SesionesPedagogicas';
 import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
 import ConfiguracionMain from 'src/views/configuracion/ConfiguracionMain';
@@ -224,6 +228,10 @@ const Router = [
 
       // Módulo Terapéutico
       { path: '/terapeutico/*', element: <TerapeuticoMain /> },
+      { path: '/terapeutico/sesion/:id', element: <SesionTerapeuticaDetalle /> },
+      { path: '/debug/sesiones', element: <DebugSesiones /> },
+      { path: '/test/asistencias', element: <TestAsistencias /> },
+      { path: '/test/endpoints', element: <EndpointTester /> },
       
       // Módulo Pedagógico
       { path: '/pedagogico/sesiones', element: <SesionesPedagogicas /> },

@@ -14,6 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
+import { formatDateLocal, parseGMTDateAsLocal, parseLocalDate } from 'src/utils/dateUtils';
 
 const TerapeuticoAsistencia = () => {
   const [sesiones, setSesiones] = useState([]);
@@ -63,8 +64,50 @@ const TerapeuticoAsistencia = () => {
         sesionTerapiaService.getPacientesSesion(sesionId)
       ]);
       
-      setCronogramas(cronogramasRes.data || []);
+      // Show ALL cronogramas for attendance registration (removed date restriction)
+      const allCronogramas = cronogramasRes.data || [];
+      console.log('=== CRONOGRAMA DEBUG START ===');
+      console.log('Raw cronogramasRes:', cronogramasRes);
+      console.log('All cronogramas array length:', allCronogramas.length);
+      console.log('All cronogramas for session:', sesionId, allCronogramas);
+      
+      const today = new Date();
+      today.setHours(23, 59, 59, 999); // End of today
+      
+      // For debugging: show all cronogramas without filtering by date
+      const availableCronogramas = allCronogramas.map((cronograma, index) => {
+        const fechaSesion = new Date(cronograma.fecha_programada);
+        const isToday = fechaSesion <= today;
+        
+        console.log(`Cronograma ${index + 1}:`, {
+          id: cronograma.id,
+          numero_sesion: cronograma.numero_sesion,
+          fecha_programada_raw: cronograma.fecha_programada,
+          fecha_programada_parsed: fechaSesion,
+          fecha_programada_formatted: formatDateLocal(cronograma.fecha_programada),
+          today: today,
+          today_formatted: formatDateLocal(today.toISOString().split('T')[0]),
+          isPastOrToday: isToday,
+          estado: cronograma.estado
+        });
+        
+        return cronograma; // Return all cronogramas
+      });
+      
+      console.log('Available cronogramas count:', availableCronogramas.length);
+      console.log('Available cronogramas for attendance:', availableCronogramas);
+      console.log('=== CRONOGRAMA DEBUG END ===');
+      setCronogramas(availableCronogramas);
       setPacientesSesion(pacientesRes.data || []);
+      
+      // Debug: Also try to get all asistencias for this session to see what exists
+      try {
+        const allSessionAsistencias = await sesionTerapiaService.getAsistenciasSession(sesionId);
+        console.log('All session asistencias for debug:', allSessionAsistencias);
+      } catch (debugError) {
+        console.log('Debug - could not fetch all session asistencias:', debugError);
+      }
+      
     } catch (err) {
       console.error('Error fetching cronogramas:', err);
       const errorMessage = sesionTerapiaService.handleError(err);
@@ -77,8 +120,16 @@ const TerapeuticoAsistencia = () => {
   const fetchAsistencias = async (cronogramaId) => {
     setLoading(true);
     try {
+      // Get asistencias for the specific cronograma
+      console.log('Fetching asistencias for cronograma:', cronogramaId);
       const response = await sesionTerapiaService.getAsistencia(cronogramaId);
-      setAsistencias(response.data || []);
+      console.log('Raw asistencias response:', response);
+      console.log('Asistencias data:', response.data);
+      
+      // Handle different response formats
+      const asistenciasData = response.data || response || [];
+      console.log('Final asistencias array:', asistenciasData);
+      setAsistencias(Array.isArray(asistenciasData) ? asistenciasData : []);
     } catch (err) {
       console.error('Error fetching asistencias:', err);
       const errorMessage = sesionTerapiaService.handleError(err);
@@ -149,7 +200,12 @@ const TerapeuticoAsistencia = () => {
   const handleSubmitAsistencia = async () => {
     try {
       const { paciente, cronograma_id } = asistenciaDialog.data;
-      const pacienteId = paciente?.id || asistenciaDialog.data.paciente_id;
+      const pacienteId = paciente?.paciente_id || paciente?.id || asistenciaDialog.data.paciente_id;
+      
+      // Debug logging
+      console.log('DEBUG - asistenciaDialog.data:', asistenciaDialog.data);
+      console.log('DEBUG - paciente object:', paciente);
+      console.log('DEBUG - final pacienteId:', pacienteId);
       
       const asistenciaData = {
         asistio: formData.asistio,
@@ -169,7 +225,11 @@ const TerapeuticoAsistencia = () => {
       }
       
       setAsistenciaDialog({ open: false, data: null, isEdit: false });
-      fetchAsistencias(selectedCronograma);
+      // Refresh both asistencias and cronogramas to update all related data
+      await fetchAsistencias(selectedCronograma);
+      if (selectedSesion) {
+        await fetchCronogramas(selectedSesion);
+      }
     } catch (error) {
       console.error('Error saving asistencia:', error);
       const errorMessage = sesionTerapiaService.handleError(error);
@@ -182,13 +242,8 @@ const TerapeuticoAsistencia = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
+    // Use the utility function from dateUtils that handles timezone issues correctly
+    return formatDateLocal(dateString);
   };
 
   const formatTime = (timeString) => {
@@ -261,12 +316,36 @@ const TerapeuticoAsistencia = () => {
                     onChange={handleCronogramaChange}
                     label="Fecha de Sesión"
                   >
-                    <MenuItem value="">Seleccione una fecha</MenuItem>
-                    {cronogramas.map((cronograma) => (
-                      <MenuItem key={cronograma.id} value={cronograma.id}>
-                        {`Sesión ${cronograma.numero_sesion} - ${formatDate(cronograma.fecha_programada)} ${formatTime(cronograma.hora_programada)}`}
+                    <MenuItem value="">
+                      {cronogramas.length === 0 ? 'No hay sesiones disponibles para registro' : 'Seleccione una fecha'}
+                    </MenuItem>
+                    {(() => {
+                      console.log('=== RENDERING MENU ITEMS ===');
+                      console.log('cronogramas state length:', cronogramas.length);
+                      console.log('cronogramas state:', cronogramas);
+                      
+                      return cronogramas.map((cronograma, index) => {
+                        const formattedDate = formatDate(cronograma.fecha_programada);
+                        console.log(`Rendering MenuItem ${index + 1}:`, {
+                          cronograma_id: cronograma.id,
+                          numero_sesion: cronograma.numero_sesion,
+                          fecha_raw: cronograma.fecha_programada,
+                          fecha_formatted: formattedDate,
+                          hora: cronograma.hora_programada
+                        });
+                        
+                        return (
+                          <MenuItem key={cronograma.id} value={cronograma.id}>
+                            {`Sesión ${cronograma.numero_sesion} - ${formattedDate} ${formatTime(cronograma.hora_programada)}`}
+                          </MenuItem>
+                        );
+                      });
+                    })()}
+                    {cronogramas.length === 0 && selectedSesion && (
+                      <MenuItem disabled>
+                        Solo se puede registrar asistencia para fechas pasadas o de hoy
                       </MenuItem>
-                    ))}
+                    )}
                   </Select>
                 </FormControl>
               </Grid>
@@ -353,9 +432,10 @@ const TerapeuticoAsistencia = () => {
                   </TableHead>
                   <TableBody>
                     {pacientesSesion.map((paciente) => {
-                      const asistencia = getPacienteAsistencia(paciente.paciente_id);
+                      const pacienteId = paciente.paciente_id || paciente.id;
+                      const asistencia = getPacienteAsistencia(pacienteId);
                       return (
-                        <TableRow key={paciente.paciente_id}>
+                        <TableRow key={pacienteId}>
                           <TableCell>
                             <Box display="flex" alignItems="center">
                               <Avatar sx={{ mr: 2, bgcolor: 'primary.light' }}>
@@ -363,10 +443,10 @@ const TerapeuticoAsistencia = () => {
                               </Avatar>
                               <Box>
                                 <Typography variant="body2" fontWeight="bold">
-                                  {paciente.paciente_nombre}
+                                  {paciente.paciente_nombre || paciente.nombre_completo}
                                 </Typography>
                                 <Typography variant="caption" color="text.secondary">
-                                  {paciente.paciente_cedula}
+                                  {paciente.paciente_cedula || paciente.cedula}
                                 </Typography>
                               </Box>
                             </Box>

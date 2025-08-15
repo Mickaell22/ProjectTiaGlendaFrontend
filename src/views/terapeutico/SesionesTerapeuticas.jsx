@@ -59,7 +59,7 @@ const SesionesTerapeuticas = () => {
   };
 
   const handleViewDetail = (item) => {
-    setDetailDialog({ open: true, data: item });
+    navigate(`/terapeutico/sesion/${item.id}`);
   };
 
   const getEstadoColor = (estado) => {
@@ -211,9 +211,10 @@ const SesionesTerapeuticas = () => {
                       </TableCell>
                       <TableCell>
                         <Box display="flex" alignItems="center">
-                          {item.total_pacientes > 1 ? <Group sx={{ mr: 1 }} /> : <Person sx={{ mr: 1 }} />}
+                          {(item.total_pacientes || item.pacientes_count || (item.pacientes && item.pacientes.length) || 0) > 1 ? 
+                            <Group sx={{ mr: 1 }} /> : <Person sx={{ mr: 1 }} />}
                           <Typography variant="body2">
-                            {item.total_pacientes || 0}
+                            {item.total_pacientes || item.pacientes_count || (item.pacientes && item.pacientes.length) || 0}
                           </Typography>
                         </Box>
                       </TableCell>

@@ -55,15 +55,41 @@ const CrearSesionTerapeutica = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      console.log('Fetching data for session creation...');
+      
       const [pacientesRes, terapeutasRes, especialidadesRes] = await Promise.all([
         sesionTerapiaService.getPacientesDisponibles(),
         sesionTerapiaService.getTerapeutasDisponibles(),
         sesionTerapiaService.getEspecialidades()
       ]);
       
-      setPacientesDisponibles(pacientesRes.data || []);
-      setTerapeutasDisponibles(terapeutasRes.data || []);
-      setEspecialidades(especialidadesRes.data || []);
+      console.log('Pacientes response:', pacientesRes);
+      console.log('Terapeutas response:', terapeutasRes);
+      console.log('Especialidades response:', especialidadesRes);
+      
+      // Handle different response formats
+      const pacientes = pacientesRes?.data || pacientesRes || [];
+      const terapeutas = terapeutasRes?.data || terapeutasRes || [];
+      const especialidades = especialidadesRes?.data || especialidadesRes || [];
+      
+      console.log('Processed pacientes:', pacientes);
+      console.log('Processed terapeutas:', terapeutas);
+      console.log('Processed especialidades:', especialidades);
+      
+      setPacientesDisponibles(pacientes);
+      setTerapeutasDisponibles(terapeutas);
+      setEspecialidades(especialidades);
+      
+      if (pacientes.length === 0) {
+        console.warn('No patients available');
+      }
+      if (terapeutas.length === 0) {
+        console.warn('No therapists available');
+      }
+      if (especialidades.length === 0) {
+        console.warn('No specialties available');
+      }
+      
     } catch (err) {
       console.error('Error fetching data:', err);
       const errorMessage = sesionTerapiaService.handleError(err);
@@ -210,13 +236,18 @@ const CrearSesionTerapeutica = () => {
                   value={formData.terapeuta_id}
                   onChange={handleChange}
                   label="Terapeuta"
+                  disabled={loading}
                 >
-                  <MenuItem value="">Seleccione un terapeuta</MenuItem>
-                  {terapeutasDisponibles.map((terapeuta) => (
-                    <MenuItem key={terapeuta.id} value={terapeuta.id}>
-                      {`${terapeuta.nombre} - ${terapeuta.especialidad_nombre}`}
-                    </MenuItem>
-                  ))}
+                  <MenuItem value="">{loading ? 'Cargando terapeutas...' : 'Seleccione un terapeuta'}</MenuItem>
+                  {!loading && terapeutasDisponibles.length === 0 ? (
+                    <MenuItem disabled>No hay terapeutas disponibles</MenuItem>
+                  ) : (
+                    terapeutasDisponibles.map((terapeuta) => (
+                      <MenuItem key={terapeuta.id} value={terapeuta.id}>
+                        {`${terapeuta.nombre_completo || terapeuta.nombre || 'Sin nombre'} - ${terapeuta.titulo_profesional || terapeuta.especialidad_nombre || 'Especialista'}`}
+                      </MenuItem>
+                    ))
+                  )}
                 </Select>
                 {errors.terapeuta_id && <FormHelperText>{errors.terapeuta_id}</FormHelperText>}
               </FormControl>
@@ -230,13 +261,18 @@ const CrearSesionTerapeutica = () => {
                   value={formData.especialidad_id}
                   onChange={handleChange}
                   label="Especialidad"
+                  disabled={loading}
                 >
-                  <MenuItem value="">Seleccione una especialidad</MenuItem>
-                  {especialidades.map((especialidad) => (
-                    <MenuItem key={especialidad.id} value={especialidad.id}>
-                      {`${especialidad.nombre} - ${especialidad.area}`}
-                    </MenuItem>
-                  ))}
+                  <MenuItem value="">{loading ? 'Cargando especialidades...' : 'Seleccione una especialidad'}</MenuItem>
+                  {!loading && especialidades.length === 0 ? (
+                    <MenuItem disabled>No hay especialidades disponibles</MenuItem>
+                  ) : (
+                    especialidades.map((especialidad) => (
+                      <MenuItem key={especialidad.id} value={especialidad.id}>
+                        {`${especialidad.nombre || 'Sin nombre'} - ${especialidad.area || 'General'}`}
+                      </MenuItem>
+                    ))
+                  )}
                 </Select>
                 {errors.especialidad_id && <FormHelperText>{errors.especialidad_id}</FormHelperText>}
               </FormControl>
@@ -250,13 +286,18 @@ const CrearSesionTerapeutica = () => {
                   value={formData.paciente_id}
                   onChange={handleChange}
                   label="Paciente (Opcional - Sesión Individual)"
+                  disabled={loading}
                 >
-                  <MenuItem value="">Sin paciente asignado (Sesión grupal)</MenuItem>
-                  {pacientesDisponibles.map((paciente) => (
-                    <MenuItem key={paciente.id} value={paciente.id}>
-                      {`${paciente.nombre} - ${paciente.numero_historial || paciente.cedula}`}
-                    </MenuItem>
-                  ))}
+                  <MenuItem value="">{loading ? 'Cargando pacientes...' : 'Sin paciente asignado (Sesión grupal)'}</MenuItem>
+                  {!loading && pacientesDisponibles.length === 0 ? (
+                    <MenuItem disabled>No hay pacientes disponibles</MenuItem>
+                  ) : (
+                    pacientesDisponibles.map((paciente) => (
+                      <MenuItem key={paciente.id} value={paciente.id}>
+                        {`${paciente.nombre_completo || paciente.nombre || 'Sin nombre'} - ${paciente.numero_historial || paciente.cedula || 'Sin ID'}`}
+                      </MenuItem>
+                    ))
+                  )}
                 </Select>
                 {errors.paciente_id && <FormHelperText>{errors.paciente_id}</FormHelperText>}
               </FormControl>

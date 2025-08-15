@@ -182,11 +182,40 @@ class SesionTerapiaService {
    */
   async getAsistencia(cronogramaId) {
     try {
+      console.log('Getting asistencias for cronograma:', cronogramaId);
+      
+      // Use the actual backend endpoint that exists
       const response = await this.api.get(`/api/sesiones-terapia/cronograma/${cronogramaId}/asistencia`);
-      return response.data;
+      console.log('Cronograma asistencias received:', response.data);
+      
+      // Ensure we always return data in the expected format
+      return {
+        data: response.data?.data || response.data || [],
+        message: response.data?.message || 'Asistencias obtenidas exitosamente',
+        status: response.data?.status || 'success'
+      };
+      
     } catch (error) {
       console.error(`Error fetching attendance for cronograma ${cronogramaId}:`, error);
-      throw error;
+      
+      // Try alternative endpoint format if main fails
+      try {
+        console.log('Trying alternative endpoint for cronograma:', cronogramaId);
+        const altResponse = await this.api.get(`/api/cronograma-sesiones/${cronogramaId}/asistencias`);
+        console.log('Alternative endpoint success:', altResponse.data);
+        return {
+          data: altResponse.data?.data || altResponse.data || [],
+          message: 'Asistencias obtenidas (endpoint alternativo)',
+          status: 'success'
+        };
+      } catch (altError) {
+        console.error('Alternative endpoint also failed:', altError);
+        return { 
+          data: [], 
+          message: 'No se pudieron cargar las asistencias',
+          status: 'error'
+        };
+      }
     }
   }
 
@@ -194,15 +223,37 @@ class SesionTerapiaService {
    * Register attendance for a patient in a specific session
    */
   async registrarAsistencia(cronogramaId, patientId, attendanceData) {
-    try {
-      const response = await this.api.post(
-        `/api/sesiones-terapia/cronograma/${cronogramaId}/pacientes/${patientId}/asistencia`,
-        attendanceData
-      );
-      return response.data;
-    } catch (error) {
-      console.error(`Error registering attendance for patient ${patientId}:`, error);
-      throw error;
+    console.log('Registering attendance:', { cronogramaId, patientId, attendanceData });
+    
+    // Use the actual backend endpoints that exist
+    const endpointsToTry = [
+      // Main endpoint from backend routes
+      {
+        url: `/api/sesiones-terapia/cronograma/${cronogramaId}/pacientes/${patientId}/asistencia`,
+        data: attendanceData
+      },
+      // Alternative endpoint format if the first fails
+      {
+        url: `/api/cronograma-sesiones/${cronogramaId}/asistencias/${patientId}`,
+        data: attendanceData
+      }
+    ];
+    
+    for (let i = 0; i < endpointsToTry.length; i++) {
+      const attempt = endpointsToTry[i];
+      try {
+        console.log(`Trying endpoint ${i + 1}:`, attempt.url, 'with data:', attempt.data);
+        const response = await this.api.post(attempt.url, attempt.data);
+        console.log('Attendance registration success:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error(`Endpoint ${i + 1} failed (${attempt.url}):`, error.response?.status, error.response?.data?.message || error.message);
+        
+        // If this is the last attempt, throw the error
+        if (i === endpointsToTry.length - 1) {
+          throw error;
+        }
+      }
     }
   }
 
@@ -211,10 +262,12 @@ class SesionTerapiaService {
    */
   async updateAsistencia(cronogramaId, patientId, attendanceData) {
     try {
+      // Use the actual PUT endpoint from backend routes
       const response = await this.api.put(
         `/api/sesiones-terapia/cronograma/${cronogramaId}/pacientes/${patientId}/asistencia`,
         attendanceData
       );
+      console.log('Attendance update success:', response.data);
       return response.data;
     } catch (error) {
       console.error(`Error updating attendance for patient ${patientId}:`, error);
@@ -231,6 +284,78 @@ class SesionTerapiaService {
       return response.data;
     } catch (error) {
       console.error(`Error fetching attendance for patient ${patientId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all asistencias for a session
+   */
+  async getAsistenciasSession(sessionId) {
+    try {
+      console.log('Getting asistencias for session:', sessionId);
+      const response = await this.api.get(`/api/sesiones-terapia/${sessionId}/asistencias`);
+      console.log('Session asistencias received:', response.data);
+      
+      // Ensure we always return data in the expected format
+      return {
+        data: response.data?.data || response.data || [],
+        message: response.data?.message || 'Asistencias de sesión obtenidas exitosamente',
+        status: response.data?.status || 'success'
+      };
+    } catch (error) {
+      console.error(`Error fetching asistencias for session ${sessionId}:`, error);
+      
+      // Return empty array instead of throwing to avoid breaking the UI
+      return { 
+        data: [], 
+        message: `No se pudieron cargar las asistencias de la sesión ${sessionId}`,
+        status: 'error'
+      };
+    }
+  }
+
+  /**
+   * Get attendance statistics for a session
+   */
+  async getEstadisticasAsistencia(sessionId) {
+    try {
+      const response = await this.api.get(`/api/sesiones-terapia/${sessionId}/estadisticas-asistencia`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching attendance statistics for session ${sessionId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reschedule a specific cronograma session
+   */
+  async reprogramarSesion(cronogramaId, reprogramData) {
+    try {
+      console.log('Rescheduling session:', { cronogramaId, reprogramData });
+      const response = await this.api.put(`/api/cronograma-sesiones/${cronogramaId}/reprogramar`, reprogramData);
+      console.log('Session rescheduled successfully:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error rescheduling session ${cronogramaId}:`, error);
+      console.error('Error details:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      throw error;
+    }
+  }
+
+  /**
+   * Cancel a specific cronograma session
+   */
+  async cancelarSesion(cronogramaId, cancelData) {
+    try {
+      console.log('Canceling session:', { cronogramaId, cancelData });
+      const response = await this.api.put(`/api/cronograma-sesiones/${cronogramaId}/cancelar`, cancelData);
+      console.log('Session canceled successfully:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error canceling session ${cronogramaId}:`, error);
       throw error;
     }
   }
