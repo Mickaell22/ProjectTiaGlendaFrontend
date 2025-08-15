@@ -1,4 +1,3 @@
-// src/views/personal/PersonalFormulario.jsx
 import React from 'react';
 import {
   Card,
@@ -12,7 +11,8 @@ import {
   Divider,
   Box,
   Autocomplete,
-  Avatar
+  Avatar,
+  Chip
 } from '@mui/material';
 import {
   Add,
@@ -23,7 +23,6 @@ import {
   Work
 } from '@mui/icons-material';
 
-// Servicios
 import PersonalService from '../../services/personalService.js';
 import EspecialidadService from '../../services/especialidadService.js';
 
@@ -66,9 +65,9 @@ const PersonalFormulario = ({
   };
 
   const canSubmit =
-    (selectedPerson?.id || formData.persona_id) && 
+    (selectedPerson?.id || formData.persona_id) &&
     !!formData.titulo_profesional?.trim() &&
-    formData.especialidades && 
+    formData.especialidades &&
     formData.especialidades.length > 0;
 
   const fullName =
@@ -110,6 +109,7 @@ const PersonalFormulario = ({
               getOptionLabel={(option) =>
                 `${option.nombre} ${option.apellido} - ${option.cedula}`
               }
+              isOptionEqualToValue={(opt, val) => opt.id === val.id}
               noOptionsText="No se encontraron personas"
               renderOption={(props, option) => (
                 <Box component="li" {...props}>
@@ -334,8 +334,11 @@ const PersonalFormulario = ({
                       });
                     }}
                     options={especialidades.filter(esp => esp.estado === 'activo')}
-                    getOptionLabel={(option) => `${option.nombre} (${EspecialidadService.getAreaLabel(option.area)})`}
+                    getOptionLabel={(option) =>
+                      `${option.nombre} (${EspecialidadService.getAreaLabel(option.area)})`
+                    }
                     groupBy={(option) => EspecialidadService.getAreaLabel(option.area)}
+                    isOptionEqualToValue={(opt, val) => opt.id === val.id}
                     renderTags={(tagValue, getTagProps) =>
                       tagValue.map((option, index) => (
                         <Chip
