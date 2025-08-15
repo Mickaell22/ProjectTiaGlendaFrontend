@@ -1,10 +1,9 @@
+// src/views/pacientes/PacienteMain.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Box, Container, Paper, Typography, Tabs, Tab
 } from '@mui/material';
-import { 
-  LocalHospital, PersonAdd, Visibility, Description
-} from '@mui/icons-material';
+import { LocalHospital, PersonAdd } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
 import PacienteLista from './PacienteLista';
@@ -50,17 +49,23 @@ function a11yProps(index) {
 
 const PacienteMain = () => {
   const navigate = useNavigate();
-  const [value, setValue] = useState(0);
+
+  // Tabs/UI
+  const [activeTab, setActiveTab] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Datos
   const [pacientes, setPacientes] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  // Edición
   const [editingData, setEditingData] = useState(null);
-  
-  // Estados para diálogos
+
+  // Diálogos
   const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
   const [confirmDialog, setConfirmDialog] = useState({ open: false, id: null });
 
-  // Hooks personalizados
+  // Hooks
   const { snackbar, showSuccess, showError, hideSnackbar } = useSnackbar();
   const { requireAuth } = useAuth();
 
@@ -68,6 +73,7 @@ const PacienteMain = () => {
     if (requireAuth()) {
       fetchData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchData = async () => {
@@ -77,33 +83,30 @@ const PacienteMain = () => {
         PacienteService.getAll(),
         EspecialidadService.getAll()
       ]);
-      
       setPacientes(pacientesData);
       setEspecialidades(especialidadesData);
     } catch (error) {
-      showError(error.message);
+      showError(error?.message || 'Error al cargar pacientes');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-    // Limpiar datos de edición cuando cambie de tab
-    if (newValue !== 1) {
-      setEditingData(null);
-    }
+  /* ===== Handlers de Tabs ===== */
+  const handleChangeTab = (_, newValue) => {
+    setActiveTab(newValue);
+    if (newValue !== 1) setEditingData(null);
   };
 
-  // Manejadores para PacienteLista
+  /* ===== Lista: acciones ===== */
   const handleNewPatient = () => {
     setEditingData(null);
-    setValue(1); // Ir a la pestaña de formulario
+    setActiveTab(1);
   };
 
   const handleEdit = (item) => {
     setEditingData(item);
-    setValue(1); // Ir a la pestaña de formulario
+    setActiveTab(1);
   };
 
   const handleDelete = (id) => {
@@ -116,7 +119,7 @@ const PacienteMain = () => {
       showSuccess('Paciente eliminado correctamente');
       fetchData();
     } catch (error) {
-      showError(error.message);
+      showError(error?.message || 'Error al eliminar paciente');
     }
     setConfirmDialog({ open: false, id: null });
   };
@@ -129,7 +132,7 @@ const PacienteMain = () => {
     navigate(`/pacientes/${paciente.id}/documentos`);
   };
 
-  // Manejadores para PacienteFormulario
+  /* ===== Formulario ===== */
   const handleFormSubmit = async (payload, isEditing) => {
     try {
       if (isEditing && editingData) {
@@ -139,19 +142,18 @@ const PacienteMain = () => {
         await PacienteService.create(payload);
         showSuccess('Paciente registrado exitosamente');
       }
-      
       setEditingData(null);
       await fetchData();
-      setValue(0); // Volver a la lista
+      setActiveTab(0);
     } catch (error) {
-      showError(error.message);
+      showError(error?.message || 'Error al guardar paciente');
       throw error;
     }
   };
 
   const handleFormCancel = () => {
     setEditingData(null);
-    setValue(0); // Volver a la lista
+    setActiveTab(0);
   };
 
   const tabs = [
@@ -185,73 +187,76 @@ const PacienteMain = () => {
   ];
 
   if (loading) {
-    return <LoadingSpinner message="Cargando datos de pacientes..." fullHeight />;
+    return <LoadingSpinner message="Cargando pacientes..." fullHeight />;
   }
 
   return (
     <ErrorBoundary>
       <Box>
+        {/* Header principal con borde arcoíris y ancho consistente */}
         <Container maxWidth="xl" sx={{ py: 2 }}>
-          <Paper 
-            elevation={4} 
-            sx={{ 
-              borderRadius: 3, 
-              backgroundColor: '#fff', 
-              mb: 4, 
-              overflow: 'hidden', 
-              border: '4px solid transparent', 
-              backgroundImage: 'linear-gradient(white, white), linear-gradient(270deg, #4CAF50, #2196F3, #9C27B0, #FF9800)', 
-              backgroundOrigin: 'border-box', 
-              backgroundClip: 'padding-box, border-box', 
-              animation: 'rainbow 5s linear infinite', 
-              '@keyframes rainbow': { 
-                '0%': { backgroundPosition: '0% 50%' }, 
-                '100%': { backgroundPosition: '100% 50%' } 
-              }, 
-              backgroundSize: '300% 100%' 
+          <Paper
+            elevation={4}
+            sx={{
+              borderRadius: 3,
+              backgroundColor: '#fff',
+              mb: 4,
+              overflow: 'hidden',
+              border: '4px solid transparent',
+              backgroundImage:
+                'linear-gradient(white, white), linear-gradient(270deg, #673AB7, #E91E63, #FF9800, #4CAF50)',
+              backgroundOrigin: 'border-box',
+              backgroundClip: 'padding-box, border-box',
+              animation: 'rainbow 5s linear infinite',
+              '@keyframes rainbow': {
+                '0%': { backgroundPosition: '0% 50%' },
+                '100%': { backgroundPosition: '100% 50%' }
+              },
+              backgroundSize: '300% 100%',
+              maxWidth: '90%',
+              mx: 'auto'
             }}
           >
             <Box sx={{ p: 3, pb: 0 }}>
-              <Typography variant="h4" fontWeight="bold" color="black" display="flex" alignItems="center" mb={2}>
+              <Typography
+                variant="h4"
+                fontWeight="bold"
+                color="black"
+                display="flex"
+                alignItems="center"
+                mb={2}
+              >
                 <LocalHospital sx={{ mr: 2, fontSize: 40 }} />
                 Gestión de Pacientes
               </Typography>
               <Typography variant="body1" color="text.secondary" mb={3}>
-                Administración completa de pacientes, tratamientos, especialidades y seguimiento médico
+                Administración de pacientes, tratamientos y seguimiento médico
               </Typography>
 
-              <Tabs 
-                value={value} 
-                onChange={handleChange} 
+              <Tabs
+                value={activeTab}
+                onChange={handleChangeTab}
                 aria-label="Pestañas de gestión de pacientes"
                 variant="scrollable"
                 scrollButtons="auto"
                 sx={{
-                  '& .MuiTabs-flexContainer': {
-                    gap: 2
-                  },
+                  '& .MuiTabs-flexContainer': { gap: 2 },
                   '& .MuiTab-root': {
                     minHeight: 64,
                     fontSize: '0.9rem',
                     fontWeight: 500,
                     textTransform: 'none',
                     color: 'text.secondary',
-                    '&.Mui-selected': {
-                      color: 'primary.main',
-                      fontWeight: 600
-                    }
+                    '&.Mui-selected': { color: 'primary.main', fontWeight: 600 }
                   },
-                  '& .MuiTabs-indicator': {
-                    height: 3,
-                    borderRadius: '3px 3px 0 0'
-                  }
+                  '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0' }
                 }}
               >
                 {tabs.map((tab, index) => (
-                  <Tab 
+                  <Tab
                     key={index}
-                    label={tab.label} 
-                    icon={tab.icon} 
+                    label={tab.label}
+                    icon={tab.icon}
                     iconPosition="start"
                     {...a11yProps(index)}
                     sx={{
@@ -267,8 +272,9 @@ const PacienteMain = () => {
           </Paper>
         </Container>
 
+        {/* Contenido de pestañas */}
         {tabs.map((tab, index) => (
-          <TabPanel key={index} value={value} index={index}>
+          <TabPanel key={index} value={activeTab} index={index}>
             {tab.component}
           </TabPanel>
         ))}
@@ -287,7 +293,7 @@ const PacienteMain = () => {
           onClose={() => setConfirmDialog({ open: false, id: null })}
           onConfirm={confirmDelete}
           title="¿Eliminar paciente?"
-          message="Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este paciente del sistema?"
+          message="Esta acción no se puede deshacer. ¿Deseas eliminar este paciente?"
           confirmText="Eliminar"
           confirmColor="error"
           severity="error"

@@ -1,10 +1,7 @@
+// src/views/personas/PersonaMain.jsx
 import React, { useState, useEffect } from 'react';
-import {
-  Box, Container, Paper, Typography, Tabs, Tab
-} from '@mui/material';
-import { 
-  Person, Add
-} from '@mui/icons-material';
+import { Box, Container, Paper, Typography, Tabs, Tab } from '@mui/material';
+import { Person, Add } from '@mui/icons-material';
 
 import PersonaLista from './PersonaLista';
 import PersonaFormulario from './PersonaFormulario';
@@ -30,11 +27,7 @@ function TabPanel({ children, value, index, ...other }) {
       aria-labelledby={`persona-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box sx={{ py: 3 }}>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
     </div>
   );
 }
@@ -51,12 +44,12 @@ const PersonaMain = () => {
   const [personas, setPersonas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingData, setEditingData] = useState(null);
-  
-  // Estados para diálogos
+
+  // Diálogos
   const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
   const [confirmDialog, setConfirmDialog] = useState({ open: false, id: null });
 
-  // Hooks personalizados
+  // Hooks
   const { snackbar, showSuccess, showError, hideSnackbar } = useSnackbar();
   const { requireAuth } = useAuth();
 
@@ -64,6 +57,7 @@ const PersonaMain = () => {
     if (requireAuth()) {
       fetchPersonas();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchPersonas = async () => {
@@ -78,29 +72,21 @@ const PersonaMain = () => {
     }
   };
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (_e, newValue) => {
     setValue(newValue);
-    // Limpiar datos de edición cuando cambie de tab
-    if (newValue !== 1) {
-      setEditingData(null);
-    }
+    if (newValue !== 1) setEditingData(null); // limpiar edición al salir del form
   };
 
-  // Manejadores para PersonaLista
+  // Lista
   const handleNewPersona = () => {
     setEditingData(null);
-    setValue(1); // Ir a la pestaña de formulario
+    setValue(1);
   };
-
   const handleEdit = (item) => {
     setEditingData(item);
-    setValue(1); // Ir a la pestaña de formulario
+    setValue(1);
   };
-
-  const handleDelete = (id) => {
-    setConfirmDialog({ open: true, id });
-  };
-
+  const handleDelete = (id) => setConfirmDialog({ open: true, id });
   const confirmDelete = async () => {
     try {
       await PersonaService.delete(confirmDialog.id);
@@ -111,12 +97,9 @@ const PersonaMain = () => {
     }
     setConfirmDialog({ open: false, id: null });
   };
+  const handleViewDetail = (item) => setDetailDialog({ open: true, data: item });
 
-  const handleViewDetail = (item) => {
-    setDetailDialog({ open: true, data: item });
-  };
-
-  // Manejadores para PersonaFormulario
+  // Form
   const handleFormSubmit = async (backendData, isEditing) => {
     try {
       if (isEditing && editingData) {
@@ -126,24 +109,22 @@ const PersonaMain = () => {
         await PersonaService.create(backendData);
         showSuccess('Persona creada correctamente');
       }
-      
       setEditingData(null);
       await fetchPersonas();
-      setValue(0); // Volver a la lista
+      setValue(0);
     } catch (error) {
       showError(error.message);
       throw error;
     }
   };
-
   const handleFormCancel = () => {
     setEditingData(null);
-    setValue(0); // Volver a la lista
+    setValue(0);
   };
 
   const tabs = [
     {
-      label: 'Lista de Personas',
+      label: 'Lista',
       icon: <Person />,
       component: (
         <PersonaLista
@@ -154,10 +135,10 @@ const PersonaMain = () => {
           onNewPersona={handleNewPersona}
           loading={loading}
         />
-      )
+      ),
     },
     {
-      label: editingData ? 'Editar Persona' : 'Nueva Persona',
+      label: editingData ? 'Editar' : 'Crear',
       icon: <Add />,
       component: (
         <PersonaFormulario
@@ -167,8 +148,8 @@ const PersonaMain = () => {
           onCancel={handleFormCancel}
           loading={loading}
         />
-      )
-    }
+      ),
+    },
   ];
 
   if (loading) {
@@ -179,27 +160,37 @@ const PersonaMain = () => {
     <ErrorBoundary>
       <Box>
         <Container maxWidth="xl" sx={{ py: 2 }}>
-          <Paper 
-            elevation={4} 
-            sx={{ 
-              borderRadius: 3, 
-              backgroundColor: '#fff', 
-              mb: 4, 
-              overflow: 'hidden', 
-              border: '4px solid transparent', 
-              backgroundImage: 'linear-gradient(white, white), linear-gradient(270deg, #8BC34A, #4CAF50, #009688, #00BCD4)', 
-              backgroundOrigin: 'border-box', 
-              backgroundClip: 'padding-box, border-box', 
-              animation: 'rainbow 5s linear infinite', 
-              '@keyframes rainbow': { 
-                '0%': { backgroundPosition: '0% 50%' }, 
-                '100%': { backgroundPosition: '100% 50%' } 
-              }, 
-              backgroundSize: '300% 100%' 
+          <Paper
+            elevation={4}
+            sx={{
+              borderRadius: 3,
+              backgroundColor: '#fff',
+              mb: 4,
+              overflow: 'hidden',
+              border: '4px solid transparent',
+              backgroundImage:
+                'linear-gradient(white, white), linear-gradient(270deg, #673AB7, #E91E63, #FF9800, #4CAF50)',
+              backgroundOrigin: 'border-box',
+              backgroundClip: 'padding-box, border-box',
+              animation: 'rainbow 5s linear infinite',
+              '@keyframes rainbow': {
+                '0%': { backgroundPosition: '0% 50%' },
+                '100%': { backgroundPosition: '100% 50%' },
+              },
+              backgroundSize: '300% 100%',
+              maxWidth: '90%',
+              mx: 'auto',
             }}
           >
             <Box sx={{ p: 3, pb: 0 }}>
-              <Typography variant="h4" fontWeight="bold" color="black" display="flex" alignItems="center" mb={2}>
+              <Typography
+                variant="h4"
+                fontWeight="bold"
+                color="black"
+                display="flex"
+                alignItems="center"
+                mb={2}
+              >
                 <Person sx={{ mr: 2, fontSize: 40 }} />
                 Gestión de Personas
               </Typography>
@@ -207,16 +198,14 @@ const PersonaMain = () => {
                 Administración completa del registro de personas en el sistema
               </Typography>
 
-              <Tabs 
-                value={value} 
-                onChange={handleChange} 
+              <Tabs
+                value={value}
+                onChange={handleChange}
                 aria-label="Pestañas de gestión de personas"
                 variant="scrollable"
                 scrollButtons="auto"
                 sx={{
-                  '& .MuiTabs-flexContainer': {
-                    gap: 2
-                  },
+                  '& .MuiTabs-flexContainer': { gap: 2 },
                   '& .MuiTab-root': {
                     minHeight: 64,
                     fontSize: '0.9rem',
@@ -225,27 +214,27 @@ const PersonaMain = () => {
                     color: 'text.secondary',
                     '&.Mui-selected': {
                       color: 'primary.main',
-                      fontWeight: 600
-                    }
+                      fontWeight: 600,
+                    },
                   },
                   '& .MuiTabs-indicator': {
                     height: 3,
-                    borderRadius: '3px 3px 0 0'
-                  }
+                    borderRadius: '3px 3px 0 0',
+                  },
                 }}
               >
                 {tabs.map((tab, index) => (
-                  <Tab 
+                  <Tab
                     key={index}
-                    label={tab.label} 
-                    icon={tab.icon} 
+                    label={tab.label}
+                    icon={tab.icon}
                     iconPosition="start"
                     {...a11yProps(index)}
                     sx={{
                       display: 'flex',
                       flexDirection: 'row',
                       alignItems: 'center',
-                      gap: 1
+                      gap: 1,
                     }}
                   />
                 ))}

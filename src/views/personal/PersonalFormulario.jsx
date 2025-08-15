@@ -1,3 +1,4 @@
+// src/views/personal/PersonalFormulario.jsx
 import React from 'react';
 import {
   Card,
@@ -6,7 +7,6 @@ import {
   TextField,
   Button,
   Grid,
-  MenuItem,
   Stack,
   Divider,
   Box,
@@ -23,18 +23,13 @@ import {
   Work
 } from '@mui/icons-material';
 
-import PersonalService from '../../services/personalService.js';
 import EspecialidadService from '../../services/especialidadService.js';
 
-const purpleOutlineSX = {
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': { borderColor: 'primary.main' },
-    '&:hover fieldset': { borderColor: 'primary.main' },
-    '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: 2 }
-  }
-};
+/* ---------- Estilos coherentes con PersonaFormulario ---------- */
+// Inputs sin estilos morados: usamos el tema por defecto
+const neutralInputSX = {};
 
-// 🔹 Ancho/estilo consistente con los formularios de Usuario
+// Misma “carcasa”/tamaño que Persona/Usuario
 const cardShellSX = {
   borderRadius: 4,
   mb: 4,
@@ -45,6 +40,15 @@ const cardShellSX = {
   width: '100%',
   maxWidth: { xs: '100%', sm: 680, md: 820, lg: 900 },
   mx: 'auto'
+};
+
+// Fila con etiqueta a la izquierda y campo a la derecha
+const rowGridSX = {
+  display: 'grid',
+  gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+  gap: 2,
+  alignItems: 'center',
+  mb: 2
 };
 
 const PersonalFormulario = ({
@@ -75,10 +79,12 @@ const PersonalFormulario = ({
       ? `${selectedPerson?.nombre || ''} ${selectedPerson?.apellido || ''}`.trim()
       : '';
 
-  /* ======================== RENDER ======================== */
+  // Iconos con mismo color que el texto
+  const iconColor = { color: 'text.primary' };
+
   return (
     <Box>
-      {/* ====== Card: Buscar Persona (cuando NO hay seleccion) ====== */}
+      {/* ====== Card: Buscar Persona (cuando NO hay selección) ====== */}
       {!selectedPerson && (
         <Card elevation={8} sx={cardShellSX}>
           <Box
@@ -132,7 +138,7 @@ const PersonalFormulario = ({
                   placeholder="Buscar y seleccionar persona..."
                   error={!!errors.persona_id}
                   helperText={errors.persona_id}
-                  sx={purpleOutlineSX}
+                  sx={neutralInputSX}
                 />
               )}
             />
@@ -140,7 +146,7 @@ const PersonalFormulario = ({
         </Card>
       )}
 
-      {/* ====== Card: Persona Seleccionada (cuando SÍ hay seleccion) ====== */}
+      {/* ====== Card: Persona Seleccionada (cuando SÍ hay selección) ====== */}
       {selectedPerson && (
         <Card elevation={8} sx={cardShellSX}>
           <Box
@@ -203,7 +209,7 @@ const PersonalFormulario = ({
 
       {/* ====== Card Principal (form) ====== */}
       <Card elevation={8} sx={cardShellSX}>
-        {/* Header dinámico (azul crear / naranja editar) */}
+        {/* Header dinámico (azul crear / naranja editar), igual a PersonaFormulario */}
         <Box
           sx={{
             background: editingId
@@ -223,7 +229,7 @@ const PersonalFormulario = ({
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>
               {editingId
-                ? 'Modifica los datos necesarios y guarda los cambios'
+                ? 'Modifica los campos necesarios y guarda los cambios'
                 : 'Selecciona la persona y completa la información del personal'}
             </Typography>
           </Box>
@@ -254,15 +260,7 @@ const PersonalFormulario = ({
               <Divider sx={{ mb: 2 }} />
 
               {/* Persona (solo lectura, viene del selector de arriba) */}
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
-                  gap: 2,
-                  alignItems: 'center',
-                  mb: 2
-                }}
-              >
+              <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
                   Persona *
                 </Typography>
@@ -273,6 +271,7 @@ const PersonalFormulario = ({
                   InputProps={{ readOnly: true }}
                   error={!!errors.persona_id}
                   helperText={errors.persona_id}
+                  sx={neutralInputSX}
                 />
               </Box>
             </Box>
@@ -299,105 +298,84 @@ const PersonalFormulario = ({
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              <Grid container spacing={2}>
-                {/* Título Profesional */}
-                <Grid item xs={12}>
-                  <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
-                    Título Profesional *
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    name="titulo_profesional"
-                    value={formData.titulo_profesional}
-                    onChange={onChange}
-                    error={!!errors.titulo_profesional}
-                    helperText={errors.titulo_profesional || 'Ej: Licenciado en Psicología'}
-                    placeholder="Ej: Licenciado en Psicología, Doctor en Medicina, etc."
-                    sx={purpleOutlineSX}
-                  />
-                </Grid>
+              {/* Título Profesional */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Título Profesional *
+                </Typography>
+                <TextField
+                  fullWidth
+                  name="titulo_profesional"
+                  value={formData.titulo_profesional}
+                  onChange={onChange}
+                  error={!!errors.titulo_profesional}
+                  helperText={errors.titulo_profesional || 'Ej: Licenciado en Psicología'}
+                  placeholder="Ej: Licenciado en Psicología, Doctor en Medicina, etc."
+                  sx={neutralInputSX}
+                />
+              </Box>
 
-                {/* Especialidades */}
-                <Grid item xs={12}>
-                  <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
-                    Especialidades *
-                  </Typography>
-                  <Autocomplete
-                    multiple
-                    value={formData.especialidades || []}
-                    onChange={(event, newValue) => {
-                      onChange({
-                        target: {
-                          name: 'especialidades',
-                          value: newValue
-                        }
-                      });
-                    }}
-                    options={especialidades.filter(esp => esp.estado === 'activo')}
-                    getOptionLabel={(option) =>
-                      `${option.nombre} (${EspecialidadService.getAreaLabel(option.area)})`
-                    }
-                    groupBy={(option) => EspecialidadService.getAreaLabel(option.area)}
-                    isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                    renderTags={(tagValue, getTagProps) =>
-                      tagValue.map((option, index) => (
-                        <Chip
-                          {...getTagProps({ index })}
-                          key={option.id}
-                          label={option.nombre}
-                          color={EspecialidadService.getAreaColor(option.area)}
-                          size="small"
-                          icon={<Work />}
-                        />
-                      ))
-                    }
-                    renderOption={(props, option) => (
-                      <Box component="li" {...props}>
-                        <Work sx={{ mr: 1, color: `${EspecialidadService.getAreaColor(option.area)}.main` }} />
-                        <Box>
-                          <Typography variant="body2" fontWeight="bold">
-                            {option.nombre}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            Área: {EspecialidadService.getAreaLabel(option.area)}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    )}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder="Selecciona las especialidades del personal..."
-                        error={!!errors.especialidades}
-                        helperText={errors.especialidades || 'Selecciona al menos una especialidad'}
-                        sx={purpleOutlineSX}
+              {/* Especialidades */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Especialidades *
+                </Typography>
+                <Autocomplete
+                  multiple
+                  value={formData.especialidades || []}
+                  onChange={(event, newValue) => {
+                    onChange({
+                      target: {
+                        name: 'especialidades',
+                        value: newValue
+                      }
+                    });
+                  }}
+                  options={especialidades.filter(esp => esp.estado === 'activo')}
+                  getOptionLabel={(option) =>
+                    `${option.nombre} (${EspecialidadService.getAreaLabel(option.area)})`
+                  }
+                  groupBy={(option) => EspecialidadService.getAreaLabel(option.area)}
+                  isOptionEqualToValue={(opt, val) => opt.id === val.id}
+                  renderTags={(tagValue, getTagProps) =>
+                    tagValue.map((option, index) => (
+                      <Chip
+                        {...getTagProps({ index })}
+                        key={option.id}
+                        label={option.nombre}
+                        color={EspecialidadService.getAreaColor(option.area)}
+                        size="small"
+                        icon={<Work />}
                       />
-                    )}
-                    noOptionsText="No hay especialidades disponibles"
-                  />
-                </Grid>
+                    ))
+                  }
+                  renderOption={(props, option) => (
+                    <Box component="li" {...props}>
+                      <Work sx={{ mr: 1, color: `${EspecialidadService.getAreaColor(option.area)}.main` }} />
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold">
+                          {option.nombre}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Área: {EspecialidadService.getAreaLabel(option.area)}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Selecciona las especialidades del personal..."
+                      error={!!errors.especialidades}
+                      helperText={errors.especialidades || 'Selecciona al menos una especialidad'}
+                      sx={neutralInputSX}
+                    />
+                  )}
+                  noOptionsText="No hay especialidades disponibles"
+                />
+              </Box>
 
-                {/* Estado */}
-                <Grid item xs={12} md={6}>
-                  <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
-                    Estado
-                  </Typography>
-                  <TextField
-                    select
-                    fullWidth
-                    name="estado"
-                    value={formData.estado}
-                    onChange={onChange}
-                    sx={purpleOutlineSX}
-                  >
-                    {PersonalService.getEstados().map((estado) => (
-                      <MenuItem key={estado.value} value={estado.value}>
-                        {estado.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-              </Grid>
+              {/* 🚫 Campo Estado eliminado */}
             </Box>
 
             {/* ===== Acciones ===== */}

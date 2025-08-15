@@ -1,10 +1,9 @@
+// src/views/tutores/TutorMain.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Box, Container, Paper, Typography, Tabs, Tab
 } from '@mui/material';
-import { 
-  FamilyRestroom, PersonAdd, Visibility
-} from '@mui/icons-material';
+import { FamilyRestroom, PersonAdd } from '@mui/icons-material';
 
 import TutorLista from './TutorLista';
 import TutorFormulario from './TutorFormulario';
@@ -48,17 +47,18 @@ function a11yProps(index) {
 }
 
 const TutorMain = () => {
-  const [value, setValue] = useState(0);
+  // Estado principal
+  const [activeTab, setActiveTab] = useState(0);
   const [tutores, setTutores] = useState([]);
   const [personasDisponibles, setPersonasDisponibles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingData, setEditingData] = useState(null);
-  
-  // Estados para diálogos
+
+  // Diálogos
   const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
   const [confirmDialog, setConfirmDialog] = useState({ open: false, id: null });
 
-  // Hooks personalizados
+  // Hooks
   const { snackbar, showSuccess, showError, hideSnackbar } = useSnackbar();
   const { requireAuth } = useAuth();
 
@@ -66,6 +66,7 @@ const TutorMain = () => {
     if (requireAuth()) {
       fetchData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchData = async () => {
@@ -75,33 +76,30 @@ const TutorMain = () => {
         TutorService.getAll().catch(() => []),
         PersonaService.getAll().catch(() => [])
       ]);
-      
       setTutores(tutoresData);
       setPersonasDisponibles(personasData);
     } catch (error) {
-      showError('Error al cargar datos: ' + error.message);
+      showError('Error al cargar datos: ' + (error?.message || 'Desconocido'));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-    // Limpiar datos de edición cuando cambie de tab
-    if (newValue !== 1) {
-      setEditingData(null);
-    }
+  // Tabs
+  const handleChangeTab = (_, newValue) => {
+    setActiveTab(newValue);
+    if (newValue !== 1) setEditingData(null);
   };
 
-  // Manejadores para TutorLista
+  // Lista: acciones
   const handleNewTutor = () => {
     setEditingData(null);
-    setValue(1); // Ir a la pestaña de formulario
+    setActiveTab(1);
   };
 
   const handleEdit = (item) => {
     setEditingData(item);
-    setValue(1); // Ir a la pestaña de formulario
+    setActiveTab(1);
   };
 
   const handleDelete = (id) => {
@@ -114,7 +112,7 @@ const TutorMain = () => {
       showSuccess('Tutor eliminado correctamente');
       fetchData();
     } catch (error) {
-      showError('Error al eliminar tutor: ' + error.message);
+      showError('Error al eliminar tutor: ' + (error?.message || 'Desconocido'));
     }
     setConfirmDialog({ open: false, id: null });
   };
@@ -123,7 +121,7 @@ const TutorMain = () => {
     setDetailDialog({ open: true, data: item });
   };
 
-  // Manejadores para TutorFormulario
+  // Formulario
   const handleFormSubmit = async (backendData, isEditing) => {
     try {
       if (isEditing && editingData) {
@@ -133,24 +131,23 @@ const TutorMain = () => {
         await TutorService.create(backendData);
         showSuccess('Tutor creado correctamente');
       }
-      
       setEditingData(null);
       await fetchData();
-      setValue(0); // Volver a la lista
+      setActiveTab(0);
     } catch (error) {
-      showError('Error al guardar tutor: ' + error.message);
+      showError('Error al guardar tutor: ' + (error?.message || 'Desconocido'));
       throw error;
     }
   };
 
   const handleFormCancel = () => {
     setEditingData(null);
-    setValue(0); // Volver a la lista
+    setActiveTab(0);
   };
 
   const tabs = [
     {
-      label: 'Lista de Tutores',
+      label: 'Lista',
       icon: <FamilyRestroom />,
       component: (
         <TutorLista
@@ -164,7 +161,7 @@ const TutorMain = () => {
       )
     },
     {
-      label: editingData ? 'Editar Tutor' : 'Nuevo Tutor',
+      label: editingData ? 'Editar' : 'Crear',
       icon: <PersonAdd />,
       component: (
         <TutorFormulario
@@ -179,73 +176,76 @@ const TutorMain = () => {
   ];
 
   if (loading) {
-    return <LoadingSpinner message="Cargando datos de tutores..." fullHeight />;
+    return <LoadingSpinner message="Cargando tutores..." fullHeight />;
   }
 
   return (
     <ErrorBoundary>
       <Box>
+        {/* Header principal con borde arcoíris (mismo tamaño/estilo) */}
         <Container maxWidth="xl" sx={{ py: 2 }}>
-          <Paper 
-            elevation={4} 
-            sx={{ 
-              borderRadius: 3, 
-              backgroundColor: '#fff', 
-              mb: 4, 
-              overflow: 'hidden', 
-              border: '4px solid transparent', 
-              backgroundImage: 'linear-gradient(white, white), linear-gradient(270deg, #FF5722, #795548, #607D8B, #9E9E9E)', 
-              backgroundOrigin: 'border-box', 
-              backgroundClip: 'padding-box, border-box', 
-              animation: 'rainbow 5s linear infinite', 
-              '@keyframes rainbow': { 
-                '0%': { backgroundPosition: '0% 50%' }, 
-                '100%': { backgroundPosition: '100% 50%' } 
-              }, 
-              backgroundSize: '300% 100%' 
+          <Paper
+            elevation={4}
+            sx={{
+              borderRadius: 3,
+              backgroundColor: '#fff',
+              mb: 4,
+              overflow: 'hidden',
+              border: '4px solid transparent',
+              backgroundImage:
+                'linear-gradient(white, white), linear-gradient(270deg, #673AB7, #E91E63, #FF9800, #4CAF50)',
+              backgroundOrigin: 'border-box',
+              backgroundClip: 'padding-box, border-box',
+              animation: 'rainbow 5s linear infinite',
+              '@keyframes rainbow': {
+                '0%': { backgroundPosition: '0% 50%' },
+                '100%': { backgroundPosition: '100% 50%' }
+              },
+              backgroundSize: '300% 100%',
+              maxWidth: '90%',
+              mx: 'auto'
             }}
           >
             <Box sx={{ p: 3, pb: 0 }}>
-              <Typography variant="h4" fontWeight="bold" color="black" display="flex" alignItems="center" mb={2}>
+              <Typography
+                variant="h4"
+                fontWeight="bold"
+                color="black"
+                display="flex"
+                alignItems="center"
+                mb={2}
+              >
                 <FamilyRestroom sx={{ mr: 2, fontSize: 40 }} />
                 Gestión de Tutores
               </Typography>
               <Typography variant="body1" color="text.secondary" mb={3}>
-                Administración completa de tutores y representantes legales de los pacientes
+                Administración de tutores y representantes legales
               </Typography>
 
-              <Tabs 
-                value={value} 
-                onChange={handleChange} 
+              <Tabs
+                value={activeTab}
+                onChange={handleChangeTab}
                 aria-label="Pestañas de gestión de tutores"
                 variant="scrollable"
                 scrollButtons="auto"
                 sx={{
-                  '& .MuiTabs-flexContainer': {
-                    gap: 2
-                  },
+                  '& .MuiTabs-flexContainer': { gap: 2 },
                   '& .MuiTab-root': {
                     minHeight: 64,
                     fontSize: '0.9rem',
                     fontWeight: 500,
                     textTransform: 'none',
                     color: 'text.secondary',
-                    '&.Mui-selected': {
-                      color: 'primary.main',
-                      fontWeight: 600
-                    }
+                    '&.Mui-selected': { color: 'primary.main', fontWeight: 600 }
                   },
-                  '& .MuiTabs-indicator': {
-                    height: 3,
-                    borderRadius: '3px 3px 0 0'
-                  }
+                  '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0' }
                 }}
               >
                 {tabs.map((tab, index) => (
-                  <Tab 
+                  <Tab
                     key={index}
-                    label={tab.label} 
-                    icon={tab.icon} 
+                    label={tab.label}
+                    icon={tab.icon}
                     iconPosition="start"
                     {...a11yProps(index)}
                     sx={{
@@ -261,13 +261,14 @@ const TutorMain = () => {
           </Paper>
         </Container>
 
+        {/* Contenido de pestañas */}
         {tabs.map((tab, index) => (
-          <TabPanel key={index} value={value} index={index}>
+          <TabPanel key={index} value={activeTab} index={index}>
             {tab.component}
           </TabPanel>
         ))}
 
-        {/* Diálogos */}
+        {/* Diálogo de detalles */}
         <TutorDetalles
           open={detailDialog.open}
           onClose={() => setDetailDialog({ open: false, data: null })}
@@ -275,12 +276,13 @@ const TutorMain = () => {
           onEdit={handleEdit}
         />
 
+        {/* Diálogo de confirmación */}
         <ConfirmDialog
           open={confirmDialog.open}
           onClose={() => setConfirmDialog({ open: false, id: null })}
           onConfirm={confirmDelete}
           title="¿Eliminar tutor?"
-          message="Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este tutor del sistema?"
+          message="Esta acción no se puede deshacer. ¿Deseas eliminar este tutor?"
           confirmText="Eliminar"
           confirmColor="error"
           severity="error"

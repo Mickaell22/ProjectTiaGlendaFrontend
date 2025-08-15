@@ -1,6 +1,6 @@
+// src/views/pacientes/PacienteFormulario.jsx
 import React, { useState, useEffect } from 'react';
 import {
-  Paper,
   Typography,
   Box,
   Grid,
@@ -24,7 +24,7 @@ import PacienteService from '../../services/pacienteService.js';
 import BuscadorPersonas from '../../components/shared/BuscadorPersonas.jsx';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
-// Helper functions
+/* ---------- Helpers ---------- */
 function getCurrentDateForInput() {
   const today = new Date();
   return today.toISOString().split('T')[0];
@@ -48,12 +48,33 @@ function getUsuarioId() {
   return null;
 }
 
-const PacienteFormulario = ({ 
-  editingData = null, 
-  especialidades = [], 
-  onSubmit, 
+/* ---------- Estilos coherentes con Usuario/Personal/Tutor ---------- */
+const neutralInputSX = {};
+const cardShellSX = {
+  borderRadius: 4,
+  mb: 4,
+  background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+  border: '1px solid',
+  borderColor: 'divider',
+  overflow: 'hidden',
+  width: '100%',
+  maxWidth: { xs: '100%', sm: 680, md: 820, lg: 900 },
+  mx: 'auto'
+};
+const rowGridSX = {
+  display: 'grid',
+  gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+  gap: 2,
+  alignItems: 'center',
+  mb: 2
+};
+
+const PacienteFormulario = ({
+  editingData = null,
+  especialidades = [],
+  onSubmit,
   onCancel,
-  loading = false 
+  loading = false
 }) => {
   const [formData, setFormData] = useState({
     persona_id: '',
@@ -64,7 +85,7 @@ const PacienteFormulario = ({
     fecha_fin_tratamiento: '',
     estado_tratamiento: 'activo',
     observaciones_tratamiento: '',
-    observaciones: '',
+    observaciones: ''
   });
   const [errors, setErrors] = useState({});
   const [personaEncontrada, setPersonaEncontrada] = useState(null);
@@ -73,21 +94,27 @@ const PacienteFormulario = ({
   const { showError } = useSnackbar();
   const isEditing = !!editingData;
 
+  /* ---------- Effects ---------- */
   useEffect(() => {
     if (editingData) {
       setFormData({
         persona_id: editingData.persona_id || '',
         tutor_id: editingData.tutor_id || '',
         especialidad_id: editingData.especialidad_id || '',
-        fecha_ingreso: editingData.fecha_ingreso ? editingData.fecha_ingreso.split('T')[0] : getCurrentDateForInput(),
-        fecha_inicio_tratamiento: editingData.fecha_inicio_tratamiento ? editingData.fecha_inicio_tratamiento.split('T')[0] : getCurrentDateForInput(),
-        fecha_fin_tratamiento: editingData.fecha_fin_tratamiento ? editingData.fecha_fin_tratamiento.split('T')[0] : '',
+        fecha_ingreso: editingData.fecha_ingreso
+          ? editingData.fecha_ingreso.split('T')[0]
+          : getCurrentDateForInput(),
+        fecha_inicio_tratamiento: editingData.fecha_inicio_tratamiento
+          ? editingData.fecha_inicio_tratamiento.split('T')[0]
+          : getCurrentDateForInput(),
+        fecha_fin_tratamiento: editingData.fecha_fin_tratamiento
+          ? editingData.fecha_fin_tratamiento.split('T')[0]
+          : '',
         estado_tratamiento: editingData.estado_tratamiento || 'activo',
         observaciones_tratamiento: editingData.observaciones_tratamiento || '',
-        observaciones: editingData.observaciones || '',
+        observaciones: editingData.observaciones || ''
       });
-      
-      // Si estamos editando, cargar la persona y tutor actuales
+
       if (editingData.persona_id) {
         setPersonaEncontrada({
           id: editingData.persona_id,
@@ -107,6 +134,7 @@ const PacienteFormulario = ({
     }
   }, [editingData]);
 
+  /* ---------- Handlers ---------- */
   const resetForm = () => {
     setFormData({
       persona_id: '',
@@ -117,7 +145,7 @@ const PacienteFormulario = ({
       fecha_fin_tratamiento: '',
       estado_tratamiento: 'activo',
       observaciones_tratamiento: '',
-      observaciones: '',
+      observaciones: ''
     });
     setErrors({});
     setPersonaEncontrada(null);
@@ -126,43 +154,45 @@ const PacienteFormulario = ({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const handlePersonaSelectBuscador = (persona) => {
     setPersonaEncontrada(persona);
-    setFormData(prev => ({ ...prev, persona_id: persona.id }));
-    if (errors.persona_id) setErrors(prev => ({ ...prev, persona_id: '' }));
+    setFormData((prev) => ({ ...prev, persona_id: persona.id }));
+    if (errors.persona_id) setErrors((prev) => ({ ...prev, persona_id: '' }));
   };
 
   const handleTutorSelectBuscador = (tutor) => {
     setTutorEncontrado(tutor);
-    setFormData(prev => ({ ...prev, tutor_id: tutor.id }));
-    if (errors.tutor_id) setErrors(prev => ({ ...prev, tutor_id: '' }));
+    setFormData((prev) => ({ ...prev, tutor_id: tutor.id }));
+    if (errors.tutor_id) setErrors((prev) => ({ ...prev, tutor_id: '' }));
   };
 
   const validateForm = () => {
     const backendData = PacienteService.formatForBackend(formData);
     const validation = PacienteService.validatePacienteData(backendData);
-    
-    // Validaciones adicionales específicas
-    if (!formData.persona_id) validation.errors.persona_id = 'Debe seleccionar una persona';
-    if (!formData.tutor_id) validation.errors.tutor_id = 'Debe seleccionar un tutor';
-    if (!formData.especialidad_id) validation.errors.especialidad_id = 'Debe seleccionar una especialidad';
-    
-    // Validación de fecha de ingreso (obligatoria)
-    if (!formData.fecha_ingreso) {
-      validation.errors.fecha_ingreso = 'Debe especificar la fecha de ingreso';
-    }
 
-    // Validación de fecha de inicio de tratamiento (obligatoria)
-    if (!formData.fecha_inicio_tratamiento) {
-      validation.errors.fecha_inicio_tratamiento = 'Debe especificar la fecha de inicio del tratamiento';
-    }
+    if (!formData.persona_id)
+      validation.errors.persona_id = 'Debe seleccionar una persona';
+    if (!formData.tutor_id)
+      validation.errors.tutor_id = 'Debe seleccionar un tutor';
+    if (!formData.especialidad_id)
+      validation.errors.especialidad_id = 'Debe seleccionar una especialidad';
+    if (!formData.fecha_ingreso)
+      validation.errors.fecha_ingreso = 'Debe especificar la fecha de ingreso';
+    if (!formData.fecha_inicio_tratamiento)
+      validation.errors.fecha_inicio_tratamiento =
+        'Debe especificar la fecha de inicio del tratamiento';
 
     setErrors(validation.errors);
-    return validation.isValid && !validation.errors.persona_id && !validation.errors.tutor_id && !validation.errors.especialidad_id;
+    return (
+      validation.isValid &&
+      !validation.errors.persona_id &&
+      !validation.errors.tutor_id &&
+      !validation.errors.especialidad_id
+    );
   };
 
   const buildPayload = (isEdit) => {
@@ -176,98 +206,202 @@ const PacienteFormulario = ({
       fecha_fin_tratamiento: formData.fecha_fin_tratamiento || null,
       estado_tratamiento: formData.estado_tratamiento || 'activo',
       observaciones_tratamiento: formData.observaciones_tratamiento || '',
-      observaciones: formData.observaciones || '',
+      observaciones: formData.observaciones || ''
     };
-
-    if (!isEdit && usuarioId) {
-      payload.created_by = usuarioId;
-    }
-
+    if (!isEdit && usuarioId) payload.created_by = usuarioId;
     return payload;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     try {
       const payload = buildPayload(isEditing);
       await onSubmit(payload, isEditing);
       resetForm();
     } catch (error) {
-      showError(error.message);
+      showError(error?.message || 'Ocurrió un error al guardar');
     }
   };
 
+  const personaNombre =
+    personaEncontrada?.nombre_completo ||
+    '' /* ya viene armado desde el buscador */;
+  const tutorNombre =
+    tutorEncontrado?.nombre_completo || '' /* idem */;
+
+  const canSubmit =
+    !!formData.persona_id &&
+    !!formData.tutor_id &&
+    !!formData.especialidad_id &&
+    !!formData.fecha_ingreso &&
+    !!formData.fecha_inicio_tratamiento;
+
   return (
     <Box>
-      {/* Buscador de Personas */}
-      {!isEditing && (
-        <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h6" gutterBottom color="primary">
-            🔍 Buscar Persona y Tutor
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Busca y selecciona la persona (paciente) y el tutor/representante
-          </Typography>
-          <BuscadorPersonas
-            onPersonaSelect={handlePersonaSelectBuscador}
-            onTutorSelect={handleTutorSelectBuscador}
-            showPersonas={true}
-            showTutores={true}
-            compact={true}
-            maxHeight={350}
-            hideRegisteredPatients={true}
-            editingPatientId={editingData?.id}
-          />
-        </Paper>
+      {/* ====== Card: Buscar Persona y Tutor (integrado, morado) ====== */}
+      {(!personaEncontrada || !tutorEncontrado) && !isEditing && (
+        <Card elevation={8} sx={cardShellSX}>
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              color: 'white',
+              p: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Box>
+              <Typography variant="h6" fontWeight="bold">
+                🔍 Buscar Persona y Tutor
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                Selecciona la persona (paciente) y su tutor/representante.
+              </Typography>
+            </Box>
+          </Box>
+
+          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+            <BuscadorPersonas
+              onPersonaSelect={handlePersonaSelectBuscador}
+              onTutorSelect={handleTutorSelectBuscador}
+              showPersonas
+              showTutores
+              compact
+              maxHeight={350}
+              hideRegisteredPatients
+              editingPatientId={editingData?.id}
+            />
+            {(errors.persona_id || errors.tutor_id) && (
+              <Box sx={{ mt: 1 }}>
+                {errors.persona_id && (
+                  <Typography
+                    variant="caption"
+                    color="error"
+                    display="block"
+                  >
+                    {errors.persona_id}
+                  </Typography>
+                )}
+                {errors.tutor_id && (
+                  <Typography
+                    variant="caption"
+                    color="error"
+                    display="block"
+                  >
+                    {errors.tutor_id}
+                  </Typography>
+                )}
+              </Box>
+            )}
+          </CardContent>
+        </Card>
       )}
 
-      {/* Mostrar Persona y Tutor Seleccionados */}
+      {/* ====== Card: Selección Actual (morado) ====== */}
       {(personaEncontrada || tutorEncontrado) && (
-        <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: '#f8f9ff' }}>
-          <Typography variant="h6" gutterBottom color="primary">
-            ✅ Selección Actual
-          </Typography>
-          <Grid container spacing={3}>
-            {personaEncontrada && (
-              <Grid item xs={12} md={6}>
-                <Box sx={{ p: 2, border: '1px solid', borderColor: 'primary.light', borderRadius: 1 }}>
-                  <Typography variant="subtitle2" color="primary" gutterBottom>
-                    👤 PERSONA SELECCIONADA
-                  </Typography>
-                  <Typography><strong>Nombre:</strong> {personaEncontrada.nombre_completo || `${personaEncontrada.nombre} ${personaEncontrada.apellido}`}</Typography>
-                  <Typography><strong>Cédula:</strong> {personaEncontrada.cedula}</Typography>
-                </Box>
-              </Grid>
+        <Card elevation={8} sx={cardShellSX}>
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              color: 'white',
+              p: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Box>
+              <Typography variant="h6" fontWeight="bold">
+                ✅ Selección Actual
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                Verifica la persona y el tutor antes de continuar.
+              </Typography>
+            </Box>
+
+            {!isEditing && (
+              <Stack direction="row" spacing={1}>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  onClick={() => {
+                    setPersonaEncontrada(null);
+                    setFormData((p) => ({ ...p, persona_id: '' }));
+                  }}
+                >
+                  Cambiar Persona
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  onClick={() => {
+                    setTutorEncontrado(null);
+                    setFormData((p) => ({ ...p, tutor_id: '' }));
+                  }}
+                >
+                  Cambiar Tutor
+                </Button>
+              </Stack>
             )}
-            {tutorEncontrado && (
-              <Grid item xs={12} md={6}>
-                <Box sx={{ p: 2, border: '1px solid', borderColor: 'secondary.light', borderRadius: 1 }}>
-                  <Typography variant="subtitle2" color="secondary" gutterBottom>
-                    👥 TUTOR SELECCIONADO
-                  </Typography>
-                  <Typography><strong>Nombre:</strong> {tutorEncontrado.nombre_completo || `${tutorEncontrado.nombre} ${tutorEncontrado.apellido}`}</Typography>
-                  <Typography><strong>Cédula:</strong> {tutorEncontrado.cedula}</Typography>
-                </Box>
-              </Grid>
-            )}
-          </Grid>
-        </Paper>
+          </Box>
+
+          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+            <Grid container spacing={3}>
+              {personaEncontrada && (
+                <Grid item xs={12} md={6}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      border: '1px solid',
+                      borderColor: 'primary.light',
+                      borderRadius: 1,
+                      bgcolor: '#fff'
+                    }}
+                  >
+                    <Typography variant="subtitle2" color="primary" gutterBottom>
+                      👤 PERSONA
+                    </Typography>
+                    <Typography>
+                      <strong>Nombre:</strong> {personaNombre || '—'}
+                    </Typography>
+                    <Typography>
+                      <strong>Cédula:</strong> {personaEncontrada?.cedula || '—'}
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
+              {tutorEncontrado && (
+                <Grid item xs={12} md={6}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      border: '1px solid',
+                      borderColor: 'secondary.light',
+                      borderRadius: 1,
+                      bgcolor: '#fff'
+                    }}
+                  >
+                    <Typography variant="subtitle2" color="secondary" gutterBottom>
+                      👥 TUTOR
+                    </Typography>
+                    <Typography>
+                      <strong>Nombre:</strong> {tutorNombre || '—'}
+                    </Typography>
+                    <Typography>
+                      <strong>Cédula:</strong> {tutorEncontrado?.cedula || '—'}
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
+            </Grid>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Formulario Principal */}
-      <Card
-        elevation={8}
-        sx={{
-          borderRadius: 4,
-          mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
-          border: '1px solid',
-          borderColor: 'divider',
-          overflow: 'hidden'
-        }}
-      >
+      {/* ====== Card Principal (form) ====== */}
+      <Card elevation={8} sx={cardShellSX}>
         {/* Header dinámico */}
         <Box
           sx={{
@@ -294,27 +428,67 @@ const PacienteFormulario = ({
           </Box>
         </Box>
 
-        <CardContent sx={{ p: { xs: 2, md: 4 }, maxWidth: 1100, mx: 'auto' }}>
+        <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Box component="form" onSubmit={handleSubmit}>
             {/* ===== Bloque: Asignación ===== */}
-            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
-              <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }} display="flex" alignItems="center">
+            <Box
+              sx={{
+                mb: 3,
+                p: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+                bgcolor: '#fff'
+              }}
+            >
+              <Typography
+                variant="overline"
+                sx={{ fontWeight: 'bold', color: 'text.secondary' }}
+                display="flex"
+                alignItems="center"
+              >
                 <Assignment sx={{ mr: 1 }} />
                 Asignación
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
+              {/* Persona (solo lectura) */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Persona *
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={personaNombre || ''}
+                  placeholder="Seleccione una persona desde el buscador"
+                  InputProps={{ readOnly: true }}
+                  error={!!errors.persona_id}
+                  helperText={errors.persona_id}
+                  sx={neutralInputSX}
+                />
+              </Box>
+
+              {/* Tutor (solo lectura) */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Tutor *
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={tutorNombre || ''}
+                  placeholder="Seleccione un tutor desde el buscador"
+                  InputProps={{ readOnly: true }}
+                  error={!!errors.tutor_id}
+                  helperText={errors.tutor_id}
+                  sx={neutralInputSX}
+                />
+              </Box>
+
               {/* Especialidad */}
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
-                  gap: 2,
-                  alignItems: 'center',
-                  mb: 2,
-                }}
-              >
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Especialidad Asignada *</Typography>
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Especialidad Asignada *
+                </Typography>
                 <TextField
                   select
                   fullWidth
@@ -322,8 +496,10 @@ const PacienteFormulario = ({
                   value={formData.especialidad_id}
                   onChange={handleChange}
                   error={!!errors.especialidad_id}
-                  helperText={errors.especialidad_id || 'Selecciona la especialidad del plan'}
-                  size="medium"
+                  helperText={
+                    errors.especialidad_id || 'Selecciona la especialidad del plan'
+                  }
+                  sx={neutralInputSX}
                 >
                   <MenuItem value="">Seleccione una especialidad</MenuItem>
                   {especialidades.map((e) => (
@@ -334,16 +510,11 @@ const PacienteFormulario = ({
                 </TextField>
               </Box>
 
-              {/* Estado Tratamiento */}
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
-                  gap: 2,
-                  alignItems: 'center',
-                }}
-              >
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Estado del Tratamiento *</Typography>
+              {/* Estado de Tratamiento */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Estado del Tratamiento *
+                </Typography>
                 <TextField
                   select
                   fullWidth
@@ -352,7 +523,7 @@ const PacienteFormulario = ({
                   onChange={handleChange}
                   error={!!errors.estado_tratamiento}
                   helperText={errors.estado_tratamiento || 'Define el estado actual'}
-                  size="medium"
+                  sx={neutralInputSX}
                 >
                   {['activo', 'en pausa', 'completado', 'suspendido'].map((opt) => (
                     <MenuItem key={opt} value={opt}>
@@ -364,128 +535,174 @@ const PacienteFormulario = ({
             </Box>
 
             {/* ===== Bloque: Fechas ===== */}
-            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
-              <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }} display="flex" alignItems="center">
+            <Box
+              sx={{
+                mb: 3,
+                p: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+                bgcolor: '#fff'
+              }}
+            >
+              <Typography
+                variant="overline"
+                sx={{ fontWeight: 'bold', color: 'text.secondary' }}
+                display="flex"
+                alignItems="center"
+              >
                 <CalendarToday sx={{ mr: 1 }} />
                 Fechas del Tratamiento
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              <Grid container spacing={2}>
-                {/* Fecha de Ingreso */}
-                <Grid item xs={12} md={6}>
-                  <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>Fecha de Ingreso *</Typography>
-                  <TextField
-                    fullWidth
-                    type="date"
-                    name="fecha_ingreso"
-                    InputLabelProps={{ shrink: true }}
-                    inputProps={{ max: getCurrentDateForInput() }}
-                    value={formData.fecha_ingreso}
-                    onChange={handleChange}
-                    error={!!errors.fecha_ingreso}
-                    helperText={errors.fecha_ingreso || 'Fecha en que el paciente ingresó al centro'}
-                    size="medium"
-                  />
-                </Grid>
+              {/* Fecha de Ingreso */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Fecha de Ingreso *
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="date"
+                  name="fecha_ingreso"
+                  InputLabelProps={{ shrink: true }}
+                  inputProps={{ max: getCurrentDateForInput() }}
+                  value={formData.fecha_ingreso}
+                  onChange={handleChange}
+                  error={!!errors.fecha_ingreso}
+                  helperText={
+                    errors.fecha_ingreso ||
+                    'Fecha en que el paciente ingresó al centro'
+                  }
+                  sx={neutralInputSX}
+                />
+              </Box>
 
-                {/* Inicio Tratamiento */}
-                <Grid item xs={12} md={6}>
-                  <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>Inicio Tratamiento *</Typography>
-                  <TextField
-                    fullWidth
-                    type="date"
-                    name="fecha_inicio_tratamiento"
-                    InputLabelProps={{ shrink: true }}
-                    value={formData.fecha_inicio_tratamiento}
-                    onChange={handleChange}
-                    error={!!errors.fecha_inicio_tratamiento}
-                    helperText={errors.fecha_inicio_tratamiento || 'Fecha de inicio del tratamiento'}
-                    size="medium"
-                  />
-                </Grid>
+              {/* Inicio Tratamiento */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Inicio Tratamiento *
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="date"
+                  name="fecha_inicio_tratamiento"
+                  InputLabelProps={{ shrink: true }}
+                  value={formData.fecha_inicio_tratamiento}
+                  onChange={handleChange}
+                  error={!!errors.fecha_inicio_tratamiento}
+                  helperText={
+                    errors.fecha_inicio_tratamiento ||
+                    'Fecha de inicio del tratamiento'
+                  }
+                  sx={neutralInputSX}
+                />
+              </Box>
 
-                {/* Fin Tratamiento */}
-                <Grid item xs={12} md={6}>
-                  <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>Fin Tratamiento</Typography>
-                  <TextField
-                    fullWidth
-                    type="date"
-                    name="fecha_fin_tratamiento"
-                    InputLabelProps={{ shrink: true }}
-                    value={formData.fecha_fin_tratamiento}
-                    onChange={handleChange}
-                    error={!!errors.fecha_fin_tratamiento}
-                    helperText={errors.fecha_fin_tratamiento || 'Fecha estimada de finalización (opcional)'}
-                    size="medium"
-                  />
-                </Grid>
-              </Grid>
+              {/* Fin Tratamiento */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Fin Tratamiento
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="date"
+                  name="fecha_fin_tratamiento"
+                  InputLabelProps={{ shrink: true }}
+                  value={formData.fecha_fin_tratamiento}
+                  onChange={handleChange}
+                  error={!!errors.fecha_fin_tratamiento}
+                  helperText={
+                    errors.fecha_fin_tratamiento ||
+                    'Fecha estimada de finalización (opcional)'
+                  }
+                  sx={neutralInputSX}
+                />
+              </Box>
             </Box>
 
             {/* ===== Bloque: Observaciones ===== */}
-            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
-              <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+            <Box
+              sx={{
+                mb: 3,
+                p: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+                bgcolor: '#fff'
+              }}
+            >
+              <Typography
+                variant="overline"
+                sx={{ fontWeight: 'bold', color: 'text.secondary' }}
+              >
                 Observaciones
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              <Grid container spacing={2}>
-                {/* Observaciones del Tratamiento */}
-                <Grid item xs={12} md={6}>
-                  <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>Observaciones del Tratamiento</Typography>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    name="observaciones_tratamiento"
-                    value={formData.observaciones_tratamiento}
-                    onChange={handleChange}
-                    error={!!errors.observaciones_tratamiento}
-                    helperText={errors.observaciones_tratamiento || 'Notas específicas del tratamiento'}
-                    placeholder="Detalles específicos del plan de tratamiento..."
-                  />
-                </Grid>
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Observaciones del Tratamiento
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  name="observaciones_tratamiento"
+                  value={formData.observaciones_tratamiento}
+                  onChange={handleChange}
+                  error={!!errors.observaciones_tratamiento}
+                  helperText={
+                    errors.observaciones_tratamiento ||
+                    'Notas específicas del tratamiento'
+                  }
+                  placeholder="Detalles específicos del plan de tratamiento..."
+                  sx={neutralInputSX}
+                />
+              </Box>
 
-                {/* Observaciones Generales */}
-                <Grid item xs={12} md={6}>
-                  <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>Observaciones Generales</Typography>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    name="observaciones"
-                    value={formData.observaciones}
-                    onChange={handleChange}
-                    error={!!errors.observaciones}
-                    helperText={errors.observaciones || 'Notas generales sobre el paciente'}
-                    placeholder="Información adicional relevante..."
-                  />
-                </Grid>
-              </Grid>
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Observaciones Generales
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  name="observaciones"
+                  value={formData.observaciones}
+                  onChange={handleChange}
+                  error={!!errors.observaciones}
+                  helperText={
+                    errors.observaciones || 'Notas generales sobre el paciente'
+                  }
+                  placeholder="Información adicional relevante..."
+                  sx={neutralInputSX}
+                />
+              </Box>
             </Box>
 
-            {/* Botones de acción */}
+            {/* ===== Acciones ===== */}
             <Divider sx={{ my: 3 }} />
             <Stack direction="row" spacing={2} justifyContent="center">
-              <Button 
-                variant="contained" 
-                type="submit" 
+              <Button
+                variant="contained"
+                type="submit"
                 color="primary"
                 startIcon={isEditing ? <Edit /> : <PersonAdd />}
                 size="large"
-                disabled={loading || !formData.persona_id || !formData.tutor_id || !formData.especialidad_id}
+                disabled={loading || !canSubmit}
               >
                 {isEditing ? 'Actualizar Paciente' : 'Registrar Paciente'}
               </Button>
-              <Button 
-                variant="outlined" 
+              <Button
+                variant="outlined"
                 onClick={onCancel}
                 color="secondary"
                 size="large"
                 disabled={loading}
               >
-                Cancelar xd
+                Cancelar
               </Button>
             </Stack>
           </Box>

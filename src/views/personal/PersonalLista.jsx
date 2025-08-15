@@ -31,8 +31,7 @@ import {
   Visibility,
   Search,
   Person,
-  Phone,
-  Email
+  Phone
 } from '@mui/icons-material';
 
 // Servicios
@@ -71,13 +70,12 @@ const PersonalLista = ({
         mb: 4,
         background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
         overflow: 'hidden',
-        // mismo ancho que el form/lista de usuarios
         width: '100%',
         maxWidth: { xs: '100%', sm: 800, md: 900 },
         mx: 'auto'
       }}
     >
-      {/* Header morado estilo usuarios */}
+      {/* Header morado */}
       <Box
         sx={{
           background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
@@ -107,7 +105,7 @@ const PersonalLista = ({
       </Box>
 
       <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-        {/* Toolbar en una sola fila (scroll horizontal en móvil) */}
+        {/* Toolbar */}
         <Box
           sx={{
             display: 'flex',
@@ -120,7 +118,7 @@ const PersonalLista = ({
             '& > *': { flex: '0 0 auto' }
           }}
         >
-          {/* Buscar (flexible) */}
+          {/* Buscar */}
           <TextField
             size="small"
             value={searchTerm}
@@ -140,7 +138,7 @@ const PersonalLista = ({
             }}
           />
 
-          {/* Filtro Área (fijo) */}
+          {/* Filtro Área */}
           <FormControl size="small" sx={{ ...purpleOutlineSX, width: 200 }}>
             <Select
               value={filterArea}
@@ -159,7 +157,7 @@ const PersonalLista = ({
             </Select>
           </FormControl>
 
-          {/* Nuevo personal (fijo) */}
+          {/* Nuevo personal */}
           <Button
             variant="contained"
             startIcon={<Add />}
@@ -170,120 +168,104 @@ const PersonalLista = ({
           </Button>
         </Box>
 
-        {/* Tabla (manteniendo TODAS las columnas) */}
+        {/* Tabla */}
         <Box sx={{ width: '100%', overflowX: 'auto' }}>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Empleado</TableCell>
-                <TableCell>Título Profesional</TableCell>
+                <TableCell>Colaborador</TableCell>
+                <TableCell>Título</TableCell>
                 <TableCell>Especialidades</TableCell>
                 <TableCell>Contacto</TableCell>
-                <TableCell>Estado</TableCell>
                 <TableCell>Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredPersonal
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((item) => {
-                  const estadoInfo = PersonalService.getEstadoInfo(item.estado);
-                  return (
-                    <TableRow key={item.id}>
-                      {/* Empleado */}
-                      <TableCell>
-                        <Box display="flex" alignItems="center">
-                          <Avatar sx={{ mr: 2, bgcolor: 'primary.light' }}>
-                            <Person />
-                          </Avatar>
-                          <Box>
-                            <Typography variant="body2" fontWeight="bold">
-                              {PersonalService.getFullName(item)}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {item.cedula}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </TableCell>
-
-                      {/* Título Profesional */}
-                      <TableCell>
-                        <Typography variant="body2" fontWeight="bold">
-                          {item.titulo_profesional || '—'}
-                        </Typography>
-                      </TableCell>
-
-                      {/* Especialidades */}
-                      <TableCell>
-                        <Box>
-                          {item.especialidades?.length > 0 ? (
-                            item.especialidades.map((esp, index) => (
-                              <Chip
-                                key={index}
-                                label={esp.nombre}
-                                color={PersonalService.getEspecialidadColor(esp.area)}
-                                size="small"
-                                sx={{ mr: 0.5, mb: 0.5 }}
-                              />
-                            ))
-                          ) : (
-                            <Typography variant="caption" color="text.secondary">
-                              Sin especialidades asignadas
-                            </Typography>
-                          )}
-                        </Box>
-                      </TableCell>
-
-                      {/* Contacto */}
-                      <TableCell>
-                        <Typography variant="body2" display="flex" alignItems="center" fontSize="0.75rem">
-                          <Phone sx={{ fontSize: 14, mr: 0.5 }} />
-                          {item.telefono || 'Sin teléfono'}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          display="flex"
-                          alignItems="center"
-                          fontSize="0.75rem"
-                          color="text.secondary"
+                .map((item) => (
+                  <TableRow key={item.id}>
+                    {/* Colaborador */}
+                    <TableCell>
+                      <Box display="flex" alignItems="center">
+                        <Avatar
+                          sx={{
+                            mr: 2,
+                            bgcolor: '#7e57c2' // Morado para el icono
+                          }}
                         >
-                          <Email sx={{ fontSize: 14, mr: 0.5 }} />
-                          {item.correo || 'Sin email'}
+                          <Person />
+                        </Avatar>
+                        <Typography variant="body2" fontWeight="bold">
+                          {PersonalService.getFullName(item)}
                         </Typography>
-                      </TableCell>
+                      </Box>
+                    </TableCell>
 
-                      {/* Estado */}
-                      <TableCell>
-                        <Chip label={estadoInfo.label} color={estadoInfo.color} size="small" />
-                        <Typography variant="caption" display="block" color="text.secondary">
-                          Desde: {PersonalService.formatDate(item.fecha_creacion)}
-                        </Typography>
-                      </TableCell>
+                    {/* Título Profesional */}
+                    <TableCell>
+                      <Typography variant="body2" color="text.primary">
+                        {item.titulo_profesional || '—'}
+                      </Typography>
+                    </TableCell>
 
-                      {/* Acciones */}
-                      <TableCell>
-                        <Stack direction="row" spacing={1}>
-                          <Tooltip title="Ver detalles">
-                            <IconButton color="info" size="small" onClick={() => onViewDetail(item)}>
-                              <Visibility />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Editar">
-                            <IconButton color="primary" size="small" onClick={() => onEdit(item)}>
-                              <Edit />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Eliminar">
-                            <IconButton color="error" size="small" onClick={() => onDelete(item.id)}>
-                              <Delete />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                    {/* Especialidades */}
+                    <TableCell>
+                      <Box>
+                        {item.especialidades?.length > 0 ? (
+                          item.especialidades.map((esp, index) => (
+                            <Chip
+                              key={index}
+                              label={esp.nombre}
+                              color={PersonalService.getEspecialidadColor(esp.area)}
+                              size="small"
+                              sx={{ mr: 0.5, mb: 0.5 }}
+                            />
+                          ))
+                        ) : (
+                          <Typography variant="caption" color="text.primary">
+                            Sin especialidades asignadas
+                          </Typography>
+                        )}
+                      </Box>
+                    </TableCell>
+
+                    {/* Contacto */}
+                    <TableCell>
+                      <Typography
+                        variant="body2"
+                        color="text.primary"
+                        display="flex"
+                        alignItems="center"
+                        fontSize="0.75rem"
+                      >
+                        <Phone sx={{ fontSize: 14, mr: 0.5 }} />
+                        {item.telefono || 'Sin teléfono'}
+                      </Typography>
+                    </TableCell>
+
+                    {/* Acciones */}
+                    <TableCell>
+                      <Stack direction="row" spacing={1}>
+                        <Tooltip title="Ver detalles">
+                          <IconButton color="info" size="small" onClick={() => onViewDetail(item)}>
+                            <Visibility />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Editar">
+                          <IconButton color="primary" size="small" onClick={() => onEdit(item)}>
+                            <Edit />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Eliminar">
+                          <IconButton color="error" size="small" onClick={() => onDelete(item.id)}>
+                            <Delete />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </Box>

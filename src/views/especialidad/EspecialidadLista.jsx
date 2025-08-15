@@ -1,3 +1,4 @@
+// src/views/especialidades/EspecialidadLista.jsx
 import React, { useState } from 'react';
 import {
   Card,
@@ -12,14 +13,15 @@ import {
   TableBody,
   TablePagination,
   IconButton,
-  Grid,
-  MenuItem,
   InputAdornment,
   Stack,
   Avatar,
   Chip,
   Tooltip,
-  Box
+  Box,
+  FormControl,
+  Select,
+  MenuItem
 } from '@mui/material';
 import {
   MedicalServices,
@@ -36,19 +38,28 @@ import {
 // Servicios
 import EspecialidadService from '../../services/especialidadService.js';
 
-const EspecialidadLista = ({ 
-  especialidades = [], 
-  onEdit, 
-  onDelete, 
-  onViewDetail, 
-  onAddNew 
+/* ---------------- Helpers (estilo unificado con otras listas) ---------------- */
+const purpleOutlineSX = {
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': { borderColor: 'primary.main' },
+    '&:hover fieldset': { borderColor: 'primary.main' },
+    '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: 2 }
+  }
+};
+
+const EspecialidadLista = ({
+  especialidades = [],
+  onEdit,
+  onDelete,
+  onViewDetail,
+  onAddNew
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterArea, setFilterArea] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Datos filtrados
+  // Datos filtrados (servicio)
   let filteredEspecialidades = EspecialidadService.filterEspecialidades(especialidades, searchTerm);
   filteredEspecialidades = EspecialidadService.filterByArea(filteredEspecialidades, filterArea);
 
@@ -64,45 +75,92 @@ const EspecialidadLista = ({
   };
 
   return (
-    <Card>
-      <CardContent>
-        <Typography variant="h6" mb={2} display="flex" alignItems="center">
-          <MedicalServices sx={{ mr: 1 }} />
-          Lista de Especialidades
-          <Chip 
-            label={`${filteredEspecialidades.length} especialidad${filteredEspecialidades.length !== 1 ? 'es' : ''}`} 
-            color="primary" 
-            size="small" 
-            sx={{ ml: 2 }}
+    <Card
+      elevation={8}
+      sx={{
+        borderRadius: 4,
+        mb: 4,
+        background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+        overflow: 'hidden',
+        width: '100%',
+        maxWidth: { xs: '100%', sm: 800, md: 900 },
+        mx: 'auto'
+      }}
+    >
+      {/* Header morado con contador (consistente con otras vistas) */}
+      <Box
+        sx={{
+          background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+          color: 'white',
+          p: 3,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Box>
+          <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
+            <MedicalServices sx={{ mr: 1 }} />
+            Lista de Especialidades
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9 }}>
+            Busca, filtra por área y gestiona las especialidades
+          </Typography>
+        </Box>
+
+        <Chip
+          label={`${filteredEspecialidades.length} especialidad${filteredEspecialidades.length !== 1 ? 'es' : ''}`}
+          color="default"
+          sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+          size="small"
+        />
+      </Box>
+
+      <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+        {/* Toolbar (búsqueda + filtro área + botón nuevo) */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            mb: 3,
+            flexWrap: 'nowrap',
+            overflowX: 'auto',
+            pb: 1,
+            '& > *': { flex: '0 0 auto' }
+          }}
+        >
+          {/* Buscar */}
+          <TextField
+            size="small"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar por nombre..."
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              )
+            }}
+            sx={{
+              ...purpleOutlineSX,
+              minWidth: 260,
+              flex: '1 1 380px'
+            }}
           />
-        </Typography>
-        
-        <Grid container spacing={2} mb={3}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Buscar especialidades"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search />
-                  </InputAdornment>
-                )
-              }}
-              placeholder="Buscar por nombre o descripción..."
-            />
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <TextField
-              select
-              fullWidth
-              size="small"
-              label="Filtrar por área"
+
+          {/* Filtro Área */}
+          <FormControl size="small" sx={{ ...purpleOutlineSX, width: 200 }}>
+            <Select
               value={filterArea}
               onChange={(e) => setFilterArea(e.target.value)}
+              displayEmpty
+              renderValue={(val) =>
+                val === ''
+                  ? 'Todas las áreas'
+                  : (EspecialidadService.getAreas().find((a) => a.value === val)?.label || 'Área')
+              }
             >
               <MenuItem value="">Todas las áreas</MenuItem>
               {EspecialidadService.getAreas().map((area) => (
@@ -110,114 +168,112 @@ const EspecialidadLista = ({
                   {area.label}
                 </MenuItem>
               ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Button
-              fullWidth
-              variant="contained"
-              startIcon={<Add />}
-              onClick={onAddNew}
-              sx={{ height: '40px' }}
-            >
-              Nueva Especialidad
-            </Button>
-          </Grid>
-        </Grid>
+            </Select>
+          </FormControl>
 
+          {/* Nueva especialidad */}
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={onAddNew}
+            sx={{ height: 40, px: 2 }}
+          >
+            Nueva Especialidad
+          </Button>
+        </Box>
+
+        {/* Tabla */}
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>Especialidad</TableCell>
               <TableCell>Área</TableCell>
-              <TableCell>Descripción</TableCell>
               <TableCell>Estado</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredEspecialidades
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((item) => {
-                const estadoInfo = EspecialidadService.getEstadoInfo(item.estado);
-                const areaInfo = EspecialidadService.getAreaInfo(item.area);
-                return (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <Box display="flex" alignItems="center">
-                        <Avatar sx={{ mr: 2, bgcolor: areaInfo.color }}>
-                          {renderAreaIcon(areaInfo.icon)}
-                        </Avatar>
-                        <Box>
-                          <Typography variant="body2" fontWeight="bold">
-                            {item.nombre}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            ID: {item.id}
-                          </Typography>
+            {filteredEspecialidades.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {searchTerm || filterArea
+                      ? 'No se encontraron especialidades con los filtros aplicados'
+                      : 'No hay especialidades registradas'}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredEspecialidades
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((item) => {
+                  const estadoInfo = EspecialidadService.getEstadoInfo(item.estado);
+                  const areaInfo = EspecialidadService.getAreaInfo(item.area);
+                  return (
+                    <TableRow key={item.id}>
+                      {/* Especialidad */}
+                      <TableCell>
+                        <Box display="flex" alignItems="center">
+                          <Avatar sx={{ mr: 2, bgcolor: areaInfo.color }}>
+                            {renderAreaIcon(areaInfo.icon)}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body2" fontWeight="bold">
+                              {item.nombre}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              ID: {item.id}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={areaInfo.label} 
-                        color={areaInfo.color}
-                        size="small"
-                        icon={renderAreaIcon(areaInfo.icon)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" fontSize="0.75rem">
-                        {item.descripcion || 'Sin descripción'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={estadoInfo.label} 
-                        color={estadoInfo.color}
-                        size="small"
-                      />
-                      <Typography variant="caption" display="block" color="text.secondary">
-                        Desde: {EspecialidadService.formatDate(item.fecha_creacion)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1}>
-                        <Tooltip title="Ver detalles">
-                          <IconButton 
-                            color="info" 
-                            size="small"
-                            onClick={() => onViewDetail(item)}
-                          >
-                            <Visibility />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Editar">
-                          <IconButton 
-                            color="primary" 
-                            size="small"
-                            onClick={() => onEdit(item)}
-                          >
-                            <Edit />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Eliminar">
-                          <IconButton 
-                            color="error" 
-                            size="small"
-                            onClick={() => onDelete(item.id)}
-                          >
-                            <Delete />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                      </TableCell>
+
+                      {/* Área */}
+                      <TableCell>
+                        <Chip
+                          label={areaInfo.label}
+                          color={areaInfo.color}
+                          size="small"
+                          icon={renderAreaIcon(areaInfo.icon)}
+                        />
+                      </TableCell>
+
+                      {/* Estado */}
+                      <TableCell>
+                        <Chip label={estadoInfo.label} color={estadoInfo.color} size="small" />
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          Desde: {EspecialidadService.formatDate(item.fecha_creacion)}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Acciones */}
+                      <TableCell>
+                        <Stack direction="row" spacing={1}>
+                          <Tooltip title="Ver detalles">
+                            <IconButton color="info" size="small" onClick={() => onViewDetail(item)}>
+                              <Visibility />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Editar">
+                            <IconButton color="primary" size="small" onClick={() => onEdit(item)}>
+                              <Edit />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Eliminar">
+                            <IconButton color="error" size="small" onClick={() => onDelete(item.id)}>
+                              <Delete />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+            )}
           </TableBody>
         </Table>
 
+        {/* Paginación */}
         <TablePagination
           component="div"
           count={filteredEspecialidades.length}
@@ -230,7 +286,7 @@ const EspecialidadLista = ({
           }}
           rowsPerPageOptions={[5, 10, 25, 50]}
           labelRowsPerPage="Filas por página:"
-          labelDisplayedRows={({ from, to, count }) => 
+          labelDisplayedRows={({ from, to, count }) =>
             `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
           }
         />

@@ -29,8 +29,6 @@ import {
   Visibility,
   Search,
   Person,
-  Phone,
-  Email,
   PersonAdd,
   VpnKey,
   AdminPanelSettings,
@@ -113,7 +111,7 @@ const UsuarioLista = ({
       </Box>
 
       <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-        {/* Toolbar en UNA sola fila */}
+        {/* Toolbar */}
         <Box
           sx={{
             display: 'flex',
@@ -126,7 +124,6 @@ const UsuarioLista = ({
             '& > *': { flex: '0 0 auto' }
           }}
         >
-          {/* Buscar (flexible) */}
           <TextField
             size="small"
             value={searchTerm}
@@ -146,13 +143,12 @@ const UsuarioLista = ({
             }}
           />
 
-          {/* Estado (ancho fijo) */}
           <FormControl size="small" sx={{ ...purpleOutlineSX, width: 160 }}>
             <Select
               value={filterEstado}
               onChange={(e) => setFilterEstado(e.target.value)}
               displayEmpty
-              renderValue={(val) => (val === '' ? 'Todos' : (val === 'activo' ? 'Activo' : 'Inactivo'))}
+              renderValue={(val) => (val === '' ? 'Todos' : val === 'activo' ? 'Activo' : 'Inactivo')}
             >
               <MenuItem value="">Todos</MenuItem>
               <MenuItem value="activo">Activo</MenuItem>
@@ -160,7 +156,6 @@ const UsuarioLista = ({
             </Select>
           </FormControl>
 
-          {/* Botón Nuevo Usuario (ancho fijo) */}
           <Button
             variant="contained"
             startIcon={<PersonAdd />}
@@ -176,7 +171,6 @@ const UsuarioLista = ({
           <TableHead>
             <TableRow>
               <TableCell>Usuario</TableCell>
-              {/* Se elimina la columna "Nombre de Usuario" */}
               <TableCell>Rol</TableCell>
               <TableCell>Último Acceso</TableCell>
               <TableCell>Estado</TableCell>
@@ -194,7 +188,7 @@ const UsuarioLista = ({
 
                 return (
                   <TableRow key={item.id}>
-                    {/* Columna "Usuario" con etiqueta a la izquierda para el username */}
+                    {/* Usuario: solo nombre y teléfono */}
                     <TableCell>
                       <Box display="flex" alignItems="flex-start">
                         <Avatar sx={{ mr: 2, bgcolor: 'primary.light' }}>
@@ -204,26 +198,9 @@ const UsuarioLista = ({
                           <Typography variant="body2" fontWeight="bold">
                             {UsuarioService.getFullName(item)}
                           </Typography>
-
-                          {/* Etiqueta a la izquierda -> valor */}
-                          <Box sx={{ display: 'grid', gridTemplateColumns: '72px 1fr', columnGap: 1, mt: 0.5 }}>
-                            <Typography variant="caption" color="text.secondary">
-                              Usuario:
-                            </Typography>
-                            <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                              {item.usuario} <Typography component="span" variant="caption" color="text.secondary">• ID: {item.id}</Typography>
-                            </Typography>
-
-                            <Typography variant="caption" color="text.secondary">
-                              Teléfono:
-                            </Typography>
-                            <Typography variant="caption">{contactInfo.telefono}</Typography>
-
-                            <Typography variant="caption" color="text.secondary">
-                              Correo:
-                            </Typography>
-                            <Typography variant="caption">{contactInfo.correo}</Typography>
-                          </Box>
+                          <Typography variant="caption" color="text.secondary">
+                            {contactInfo.telefono || 'Sin teléfono'}
+                          </Typography>
                         </Box>
                       </Box>
                     </TableCell>

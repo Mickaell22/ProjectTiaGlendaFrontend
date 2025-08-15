@@ -1,16 +1,14 @@
+// src/views/personas/PersonaFormulario.jsx
 import React, { useState, useEffect } from 'react';
 import {
-  Paper,
-  Typography,
-  Box,
-  Grid,
-  TextField,
-  Button,
-  MenuItem,
-  Stack,
-  Divider,
   Card,
   CardContent,
+  Typography,
+  TextField,
+  Button,
+  Stack,
+  Divider,
+  Box,
   InputAdornment
 } from '@mui/material';
 import {
@@ -27,12 +25,79 @@ import {
 import PersonaService from '../../services/personaService.js';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
-const PersonaFormulario = ({ 
-  editingData = null, 
+/* ---------- Estilos coherentes con UsuarioFormulario ---------- */
+const neutralInputSX = {};
+
+const cardShellSX = {
+  borderRadius: 4,
+  mb: 4,
+  background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+  border: '1px solid',
+  borderColor: 'divider',
+  overflow: 'hidden',
+  width: '100%',
+  maxWidth: { xs: '100%', sm: 680, md: 820, lg: 900 },
+  mx: 'auto'
+};
+
+const rowGridSX = {
+  display: 'grid',
+  gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+  gap: 2,
+  alignItems: 'center',
+  mb: 2
+};
+
+/* ---------- Helper robusto para normalizar fechas al input date ---------- */
+function toInputDate(value) {
+  if (!value) return '';
+  try {
+    // Si ya viene en YYYY-MM-DD
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return value;
+    }
+    // Si viene como DD/MM/YYYY
+    if (typeof value === 'string' && /^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+      const [dd, mm, yyyy] = value.split('/');
+      return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+    }
+    // Si es ISO con hora u otra variante parseable por Date
+    if (typeof value === 'string' && !isNaN(Date.parse(value))) {
+      const d = new Date(value);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    // Si es Date
+    if (value instanceof Date && !isNaN(value.getTime())) {
+      const y = value.getFullYear();
+      const m = String(value.getMonth() + 1).padStart(2, '0');
+      const d = String(value.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    // Si es timestamp numérico
+    if (typeof value === 'number') {
+      const d = new Date(value);
+      if (!isNaN(d.getTime())) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+    }
+  } catch {
+    // ignorar y devolver vacío
+  }
+  return '';
+}
+
+const PersonaFormulario = ({
+  editingData = null,
   personas = [],
-  onSubmit, 
+  onSubmit,
   onCancel,
-  loading = false 
+  loading = false
 }) => {
   const [formData, setFormData] = useState({
     nombre: '',
@@ -42,20 +107,32 @@ const PersonaFormulario = ({
     telefono: '',
     correo: '',
     direccion: '',
-    estado: 'activo'
+    estado: 'activo' // se mantiene en el payload, pero NO se muestra en UI
   });
   const [errors, setErrors] = useState({});
-
   const { showError } = useSnackbar();
   const isEditing = !!editingData;
 
   useEffect(() => {
     if (editingData) {
-      console.log('editingData:', editingData);
-      console.log('fecha_nacimiento original:', editingData.fecha_nacimiento);
-      const formattedDate = PersonaService.formatDateForInput(editingData.fecha_nacimiento);
-      console.log('fecha_nacimiento formatted:', formattedDate);
-      
+      // Toma en cuenta variantes de la propiedad por si vienen con otro nombre
+      const rawFecha =
+        editingData.fecha_nacimiento ??
+        editingData.fechaNacimiento ??
+        editingData.fechaNacimientoISO ??
+        editingData.fecha_nac ??
+        '';
+
+      // 1) Intento robusto local
+      let formattedDate = toInputDate(rawFecha);
+
+      // 2) Fallback a tu PersonaService si no logró formatear
+      if (!formattedDate && typeof PersonaService?.formatDateForInput === 'function') {
+        formattedDate = PersonaService.formatDateForInput(rawFecha) || '';
+        // garantizar que sea YYYY-MM-DD
+        formattedDate = toInputDate(formattedDate) || '';
+      }
+
       setFormData({
         nombre: editingData.nombre || '',
         apellido: editingData.apellido || '',
@@ -69,6 +146,7 @@ const PersonaFormulario = ({
     } else {
       resetForm();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingData]);
 
   const resetForm = () => {
@@ -95,14 +173,13 @@ const PersonaFormulario = ({
     const backendData = PersonaService.formatForBackend(formData);
     const validation = PersonaService.validatePersonaData(backendData);
 
-    // Verificar cédula duplicada
-    if (PersonaService.checkCedulaExists && PersonaService.checkCedulaExists(personas, formData.cedula, editingData?.id)) {
+    if (PersonaService.checkCedulaExists &&
+        PersonaService.checkCedulaExists(personas, formData.cedula, editingData?.id)) {
       validation.errors.cedula = 'Esta cédula ya está registrada';
       validation.isValid = false;
     }
-
-    // Verificar email duplicado si existe
-    if (formData.correo && PersonaService.checkEmailExists(personas, formData.correo, editingData?.id)) {
+    if (formData.correo &&
+        PersonaService.checkEmailExists(personas, formData.correo, editingData?.id)) {
       validation.errors.correo = 'Este email ya está registrado';
       validation.isValid = false;
     }
@@ -114,219 +191,239 @@ const PersonaFormulario = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     try {
       const backendData = PersonaService.formatForBackend(formData);
       await onSubmit(backendData, isEditing);
       resetForm();
     } catch (error) {
-      showError(error.message);
+      showError(error?.message || 'Ocurrió un error al guardar');
     }
   };
 
+  const iconColor = { color: 'text.primary' };
+
   return (
-    <Paper elevation={3} sx={{ borderRadius: 2, p: 3, maxWidth: 800, mx: 'auto' }}>
-      <Typography variant="h6" textAlign="center" fontWeight="bold" color="primary.main" mb={3}>
-        {isEditing ? 'Editar Persona' : 'Crear Nueva Persona'}
-      </Typography>
-      
-      <Box component="form" onSubmit={handleSubmit}>
-        <Grid container spacing={3}>
-          {/* Información Personal */}
-          <Grid item xs={12}>
-            <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
+    <Box>
+      {/* Header dinámico (azul crear / naranja editar) */}
+      <Card elevation={8} sx={cardShellSX}>
+        <Box
+          sx={{
+            background: isEditing
+              ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
+              : 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+            color: 'white',
+            p: 3,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Box>
+            <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
               <Person sx={{ mr: 1 }} />
-              Información Personal
+              {isEditing ? 'Editar Persona' : 'Registrar Persona'}
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Typography variant="body1" mb={1}>Nombre: *</Typography>
-            <TextField
-              fullWidth
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              error={!!errors.nombre}
-              helperText={errors.nombre}
-              placeholder="Ingrese el nombre"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Person color="primary" />
-                  </InputAdornment>
-                )
-              }}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Typography variant="body1" mb={1}>Apellido: *</Typography>
-            <TextField
-              fullWidth
-              name="apellido"
-              value={formData.apellido}
-              onChange={handleChange}
-              error={!!errors.apellido}
-              helperText={errors.apellido}
-              placeholder="Ingrese el apellido"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Person color="primary" />
-                  </InputAdornment>
-                )
-              }}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Typography variant="body1" mb={1}>Cédula: *</Typography>
-            <TextField
-              fullWidth
-              name="cedula"
-              value={formData.cedula}
-              onChange={handleChange}
-              error={!!errors.cedula}
-              helperText={errors.cedula}
-              placeholder="Ej: 12345678"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Badge color="primary" />
-                  </InputAdornment>
-                )
-              }}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Typography variant="body1" mb={1}>Fecha de Nacimiento:</Typography>
-            <TextField
-              fullWidth
-              type="date"
-              name="fecha_nacimiento"
-              value={formData.fecha_nacimiento}
-              onChange={handleChange}
-              error={!!errors.fecha_nacimiento}
-              helperText={errors.fecha_nacimiento}
-              InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <CalendarToday color="primary" />
-                  </InputAdornment>
-                )
-              }}
-            />
-          </Grid>
-
-          {/* Información de Contacto */}
-          <Grid item xs={12}>
-            <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center" sx={{ mt: 2 }}>
-              <Phone sx={{ mr: 1 }} />
-              Información de Contacto
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              {isEditing
+                ? 'Modifica los campos necesarios y guarda los cambios'
+                : 'Completa la información personal y de contacto'}
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-          </Grid>
+          </Box>
+        </Box>
 
-          <Grid item xs={12} md={6}>
-            <Typography variant="body1" mb={1}>Teléfono:</Typography>
-            <TextField
-              fullWidth
-              name="telefono"
-              value={formData.telefono}
-              onChange={handleChange}
-              error={!!errors.telefono}
-              helperText={errors.telefono}
-              placeholder="Ej: +58 414 1234567"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Phone color="primary" />
-                  </InputAdornment>
-                )
-              }}
-            />
-          </Grid>
+        <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+          <Box component="form" onSubmit={handleSubmit}>
+            {/* ===== Información Personal ===== */}
+            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+              <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }} display="flex" alignItems="center">
+                <Person sx={{ mr: 1 }} />
+                Información Personal
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
 
-          <Grid item xs={12} md={6}>
-            <Typography variant="body1" mb={1}>Correo Electrónico:</Typography>
-            <TextField
-              fullWidth
-              type="email"
-              name="correo"
-              value={formData.correo}
-              onChange={handleChange}
-              error={!!errors.correo}
-              helperText={errors.correo}
-              placeholder="ejemplo@correo.com"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Email color="primary" />
-                  </InputAdornment>
-                )
-              }}
-            />
-          </Grid>
+              {/* Nombre */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Nombre *</Typography>
+                <TextField
+                  fullWidth
+                  name="nombre"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  error={!!errors.nombre}
+                  helperText={errors.nombre}
+                  placeholder="Ingrese el nombre"
+                  sx={neutralInputSX}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Person sx={iconColor} />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
 
-          <Grid item xs={12}>
-            <Typography variant="body1" mb={1}>Dirección:</Typography>
-            <TextField
-              fullWidth
-              multiline
-              rows={2}
-              name="direccion"
-              value={formData.direccion}
-              onChange={handleChange}
-              error={!!errors.direccion}
-              helperText={errors.direccion}
-              placeholder="Ingrese la dirección completa"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1 }}>
-                    <LocationOn color="primary" />
-                  </InputAdornment>
-                )
-              }}
-            />
-          </Grid>
+              {/* Apellido */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Apellido *</Typography>
+                <TextField
+                  fullWidth
+                  name="apellido"
+                  value={formData.apellido}
+                  onChange={handleChange}
+                  error={!!errors.apellido}
+                  helperText={errors.apellido}
+                  placeholder="Ingrese el apellido"
+                  sx={neutralInputSX}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Person sx={iconColor} />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
 
-          {/* Estado */}
-          <Grid item xs={12} md={6}>
-            <Typography variant="body1" mb={1}>Estado:</Typography>
-            <TextField
-              select
-              fullWidth
-              name="estado"
-              value={formData.estado}
-              onChange={handleChange}
-              error={!!errors.estado}
-              helperText={errors.estado}
-            >
-              <MenuItem value="activo">Activo</MenuItem>
-              <MenuItem value="inactivo">Inactivo</MenuItem>
-            </TextField>
-          </Grid>
+              {/* Cédula */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Cédula *</Typography>
+                <TextField
+                  fullWidth
+                  name="cedula"
+                  value={formData.cedula}
+                  onChange={handleChange}
+                  error={!!errors.cedula}
+                  helperText={errors.cedula}
+                  placeholder="Ej: 0932XXXXXX"
+                  sx={neutralInputSX}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Badge sx={iconColor} />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
 
-          {/* Botones de acción */}
-          <Grid item xs={12}>
-            <Divider sx={{ my: 2 }} />
+              {/* Fecha de nacimiento */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Fecha de Nacimiento</Typography>
+                <TextField
+                  fullWidth
+                  type="date"
+                  name="fecha_nacimiento"
+                  value={formData.fecha_nacimiento}
+                  onChange={handleChange}
+                  error={!!errors.fecha_nacimiento}
+                  helperText={errors.fecha_nacimiento}
+                  sx={neutralInputSX}
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CalendarToday sx={iconColor} />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
+            </Box>
+
+            {/* ===== Información de Contacto ===== */}
+            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+              <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }} display="flex" alignItems="center">
+                <Phone sx={{ mr: 1 }} />
+                Información de Contacto
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+
+              {/* Teléfono */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Teléfono</Typography>
+                <TextField
+                  fullWidth
+                  name="telefono"
+                  value={formData.telefono}
+                  onChange={handleChange}
+                  error={!!errors.telefono}
+                  helperText={errors.telefono}
+                  placeholder="Ej: 09XXXXXXXX"
+                  sx={neutralInputSX}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Phone sx={iconColor} />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
+
+              {/* Correo */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Correo Electrónico</Typography>
+                <TextField
+                  fullWidth
+                  type="email"
+                  name="correo"
+                  value={formData.correo}
+                  onChange={handleChange}
+                  error={!!errors.correo}
+                  helperText={errors.correo}
+                  placeholder="ejemplo@correo.com"
+                  sx={neutralInputSX}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Email sx={iconColor} />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
+
+              {/* Dirección */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Dirección</Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  name="direccion"
+                  value={formData.direccion}
+                  onChange={handleChange}
+                  error={!!errors.direccion}
+                  helperText={errors.direccion}
+                  placeholder="Ingrese la dirección completa"
+                  sx={neutralInputSX}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1 }}>
+                        <LocationOn sx={iconColor} />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
+            </Box>
+
+            {/* ===== Acciones ===== */}
+            <Divider sx={{ my: 3 }} />
             <Stack direction="row" spacing={2} justifyContent="center">
-              <Button 
-                variant="contained" 
-                type="submit" 
+              <Button
+                variant="contained"
+                type="submit"
                 color="primary"
                 startIcon={isEditing ? <Edit /> : <Add />}
                 size="large"
                 disabled={loading || !formData.nombre || !formData.apellido || !formData.cedula}
               >
-                {isEditing ? 'Actualizar Persona' : 'Crear Persona'}
+                {isEditing ? 'Actualizar Persona' : 'Registrar Persona'}
               </Button>
-              <Button 
-                variant="outlined" 
+              <Button
+                variant="outlined"
                 onClick={onCancel}
                 color="secondary"
                 size="large"
@@ -335,10 +432,10 @@ const PersonaFormulario = ({
                 Cancelar
               </Button>
             </Stack>
-          </Grid>
-        </Grid>
-      </Box>
-    </Paper>
+          </Box>
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
 

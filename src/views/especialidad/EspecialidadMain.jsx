@@ -1,10 +1,7 @@
+// src/views/especialidades/EspecialidadMain.jsx
 import React, { useState, useEffect } from 'react';
-import {
-  Box, Container, Paper, Typography, Tabs, Tab
-} from '@mui/material';
-import { 
-  MedicalServices, Add
-} from '@mui/icons-material';
+import { Box, Container, Paper, Typography, Tabs, Tab } from '@mui/material';
+import { MedicalServices, Add } from '@mui/icons-material';
 
 // Servicios y hooks
 import EspecialidadService from '../../services/especialidadService.js';
@@ -31,13 +28,16 @@ function TabPanel({ children, value, index, ...other }) {
       aria-labelledby={`especialidad-tab-${index}`}
       {...other}
     >
-      {value === index && (
-        <Box sx={{ py: 3 }}>
-          {children}
-        </Box>
-      )}
+      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
     </div>
   );
+}
+
+function a11yProps(index) {
+  return {
+    id: `especialidad-tab-${index}`,
+    'aria-controls': `especialidad-tabpanel-${index}`,
+  };
 }
 
 const EspecialidadMain = () => {
@@ -46,59 +46,53 @@ const EspecialidadMain = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Estados del formulario
+  // Form (⚠️ mantenemos el campo `estado`)
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
     area: '',
-    estado: 'activo'
+    estado: 'activo',
   });
   const [editingId, setEditingId] = useState(null);
   const [errors, setErrors] = useState({});
 
-  // Estados de UI
+  // UI
   const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
   const [confirmDialog, setConfirmDialog] = useState({ open: false, id: null });
 
-  // Hooks personalizados
+  // Hooks
   const { snackbar, showSuccess, showError, hideSnackbar } = useSnackbar();
   const { requireAuth } = useAuth();
 
-  // Efectos
   useEffect(() => {
-    if (requireAuth()) {
-      fetchEspecialidades();
-    }
+    if (requireAuth()) fetchEspecialidades();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Funciones de API
+  // Carga
   const fetchEspecialidades = async () => {
     try {
       setLoading(true);
       const data = await EspecialidadService.getAll();
       setEspecialidades(data);
     } catch (error) {
-      showError(error.message);
+      showError(error?.message || 'Error al cargar especialidades');
     } finally {
       setLoading(false);
     }
   };
 
-  // Manejadores del formulario
+  // Form
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const validateForm = () => {
     const backendData = EspecialidadService.formatForBackend(formData);
     const validation = EspecialidadService.validateEspecialidadData(backendData);
-    
-    // Verificar nombre duplicado
+
     if (EspecialidadService.checkNombreExists(especialidades, formData.nombre, editingId)) {
       validation.errors.nombre = 'Esta especialidad ya está registrada';
       validation.isValid = false;
@@ -110,10 +104,8 @@ const EspecialidadMain = () => {
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
-
     try {
       const backendData = EspecialidadService.formatForBackend(formData);
-      
       if (editingId) {
         await EspecialidadService.update(editingId, backendData);
         showSuccess('Especialidad actualizada correctamente');
@@ -121,12 +113,11 @@ const EspecialidadMain = () => {
         await EspecialidadService.create(backendData);
         showSuccess('Especialidad creada correctamente');
       }
-      
       resetForm();
       fetchEspecialidades();
       setActiveTab(0);
     } catch (error) {
-      showError(error.message);
+      showError(error?.message || 'Error al guardar especialidad');
     }
   };
 
@@ -135,27 +126,25 @@ const EspecialidadMain = () => {
       nombre: '',
       descripcion: '',
       area: '',
-      estado: 'activo'
+      estado: 'activo',
     });
     setEditingId(null);
     setErrors({});
   };
 
-  // Manejadores de acciones
+  // Acciones lista
   const handleEdit = (item) => {
     setFormData({
       nombre: item.nombre,
       descripcion: item.descripcion || '',
       area: item.area,
-      estado: item.estado
+      estado: item.estado, // ✅ se mantiene
     });
     setEditingId(item.id);
     setActiveTab(1);
   };
 
-  const handleDelete = (id) => {
-    setConfirmDialog({ open: true, id });
-  };
+  const handleDelete = (id) => setConfirmDialog({ open: true, id });
 
   const confirmDelete = async () => {
     try {
@@ -163,14 +152,12 @@ const EspecialidadMain = () => {
       showSuccess('Especialidad eliminada correctamente');
       fetchEspecialidades();
     } catch (error) {
-      showError(error.message);
+      showError(error?.message || 'Error al eliminar especialidad');
     }
     setConfirmDialog({ open: false, id: null });
   };
 
-  const handleViewDetail = (item) => {
-    setDetailDialog({ open: true, data: item });
-  };
+  const handleViewDetail = (item) => setDetailDialog({ open: true, data: item });
 
   const handleAddNew = () => {
     resetForm();
@@ -182,7 +169,7 @@ const EspecialidadMain = () => {
     setActiveTab(0);
   };
 
-  // Configuración de tabs
+  // Tabs (estilo unificado como en los otros módulos/listas)
   const tabs = [
     {
       label: 'Lista',
@@ -195,7 +182,7 @@ const EspecialidadMain = () => {
           onViewDetail={handleViewDetail}
           onAddNew={handleAddNew}
         />
-      )
+      ),
     },
     {
       label: editingId ? 'Editar' : 'Crear',
@@ -209,76 +196,102 @@ const EspecialidadMain = () => {
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />
-      )
-    }
+      ),
+    },
   ];
 
-  if (loading) {
-    return <LoadingSpinner message="Cargando especialidades..." fullHeight />;
-  }
+  if (loading) return <LoadingSpinner message="Cargando especialidades..." fullHeight />;
 
   return (
     <ErrorBoundary>
       <Box>
+        {/* Header con tabs integrados y estilo del resto de *listas* */}
         <Container maxWidth="xl" sx={{ py: 2 }}>
-          <Paper 
-            elevation={4} 
-            sx={{ 
-              borderRadius: 3, 
-              backgroundColor: '#fff', 
-              mb: 4, 
-              overflow: 'hidden', 
-              border: '4px solid transparent', 
-              backgroundImage: 'linear-gradient(white, white), linear-gradient(270deg, #FF5722, #E91E63, #9C27B0, #673AB7)', 
-              backgroundOrigin: 'border-box', 
-              backgroundClip: 'padding-box, border-box', 
-              animation: 'rainbow 5s linear infinite', 
-              '@keyframes rainbow': { 
-                '0%': { backgroundPosition: '0% 50%' }, 
-                '100%': { backgroundPosition: '100% 50%' } 
-              }, 
-              backgroundSize: '300% 100%' 
+          <Paper
+            elevation={4}
+            sx={{
+              borderRadius: 3,
+              backgroundColor: '#fff',
+              mb: 4,
+              overflow: 'hidden',
+              border: '4px solid transparent',
+              backgroundImage:
+                'linear-gradient(white, white), linear-gradient(270deg, #FF5722, #E91E63, #9C27B0, #673AB7)',
+              backgroundOrigin: 'border-box',
+              backgroundClip: 'padding-box, border-box',
+              animation: 'rainbow 5s linear infinite',
+              '@keyframes rainbow': {
+                '0%': { backgroundPosition: '0% 50%' },
+                '100%': { backgroundPosition: '100% 50%' },
+              },
+              backgroundSize: '300% 100%',
+              maxWidth: '90%',
+              mx: 'auto',
             }}
           >
             <Box sx={{ p: 3, pb: 0 }}>
-              <Typography variant="h4" fontWeight="bold" color="black" display="flex" alignItems="center" mb={2}>
+              <Typography
+                variant="h4"
+                fontWeight="bold"
+                color="black"
+                display="flex"
+                alignItems="center"
+                mb={2}
+              >
                 <MedicalServices sx={{ mr: 2, fontSize: 40 }} />
                 Gestión de Especialidades
               </Typography>
               <Typography variant="body1" color="text.secondary" mb={3}>
                 Administración de especialidades médicas y áreas de tratamiento
               </Typography>
+
+              <Tabs
+                value={activeTab}
+                onChange={(_, v) => setActiveTab(v)}
+                aria-label="Pestañas de gestión de especialidades"
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{
+                  '& .MuiTabs-flexContainer': { gap: 2 },
+                  '& .MuiTab-root': {
+                    minHeight: 64,
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                    textTransform: 'none',
+                    color: 'text.secondary',
+                    '&.Mui-selected': { color: 'primary.main', fontWeight: 600 },
+                  },
+                  '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0' },
+                }}
+              >
+                {tabs.map((tab, index) => (
+                  <Tab
+                    key={index}
+                    label={tab.label}
+                    icon={tab.icon}
+                    iconPosition="start"
+                    {...a11yProps(index)}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 1,
+                    }}
+                  />
+                ))}
+              </Tabs>
             </Box>
           </Paper>
         </Container>
 
-        {/* Navegación por pestañas */}
-        <Container maxWidth="xl">
-          <Paper elevation={2} sx={{ mb: 3 }}>
-            <Tabs 
-              value={activeTab} 
-              onChange={(e, newValue) => setActiveTab(newValue)} 
-              sx={{ borderBottom: 1, borderColor: 'divider' }}
-            >
-              {tabs.map((tab, index) => (
-                <Tab 
-                  key={index}
-                  label={tab.label} 
-                  icon={tab.icon} 
-                />
-              ))}
-            </Tabs>
-          </Paper>
+        {/* Contenido de pestañas */}
+        {tabs.map((tab, index) => (
+          <TabPanel key={index} value={activeTab} index={index}>
+            {tab.component}
+          </TabPanel>
+        ))}
 
-          {/* Contenido de pestañas */}
-          {tabs.map((tab, index) => (
-            <TabPanel key={index} value={activeTab} index={index}>
-              {tab.component}
-            </TabPanel>
-          ))}
-        </Container>
-
-        {/* Dialog de detalles */}
+        {/* Detalles */}
         <EspecialidadDetalles
           open={detailDialog.open}
           data={detailDialog.data}
@@ -286,7 +299,7 @@ const EspecialidadMain = () => {
           onEdit={handleEdit}
         />
 
-        {/* Dialog de confirmación */}
+        {/* Confirmación */}
         <ConfirmDialog
           open={confirmDialog.open}
           onClose={() => setConfirmDialog({ open: false, id: null })}
@@ -298,7 +311,7 @@ const EspecialidadMain = () => {
           severity="error"
         />
 
-        {/* Notificaciones */}
+        {/* Snackbar */}
         <CustomSnackbar
           open={snackbar.open}
           message={snackbar.message}

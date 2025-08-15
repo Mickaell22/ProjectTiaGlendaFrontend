@@ -1,142 +1,198 @@
+// src/views/especialidades/EspecialidadFormulario.jsx
 import React from 'react';
 import {
-  Paper,
+  Card,
+  CardContent,
   Typography,
   TextField,
   Button,
-  Grid,
-  MenuItem,
   Stack,
   Divider,
-  Box
+  Box,
+  MenuItem,
+  InputAdornment
 } from '@mui/material';
 import {
   Add,
-  Edit
+  Edit,
+  MedicalServices,
+  Work
 } from '@mui/icons-material';
 
 // Servicios
 import EspecialidadService from '../../services/especialidadService.js';
 
-const EspecialidadFormulario = ({ 
-  formData, 
-  errors, 
-  editingId, 
-  onChange, 
-  onSubmit, 
-  onCancel 
-}) => {
+/* ---------- Estilos ---------- */
+const neutralInputSX = {};
 
+const cardShellSX = {
+  borderRadius: 4,
+  mb: 4,
+  background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+  border: '1px solid',
+  borderColor: 'divider',
+  overflow: 'hidden',
+  width: '100%',
+  maxWidth: { xs: '100%', sm: 680, md: 820, lg: 900 },
+  mx: 'auto'
+};
+
+const rowGridSX = {
+  display: 'grid',
+  gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+  gap: 2,
+  alignItems: 'center',
+  mb: 2
+};
+
+const EspecialidadFormulario = ({
+  formData,
+  errors,
+  editingId,
+  onChange,
+  onSubmit,
+  onCancel
+}) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit();
   };
 
+  const canSubmit = Boolean(formData?.nombre) && Boolean(formData?.area);
+  const iconColor = { color: 'text.primary' };
+
   return (
-    <Paper elevation={3} sx={{ borderRadius: 2, p: 3, maxWidth: 800, mx: 'auto' }}>
-      <Typography variant="h6" textAlign="center" fontWeight="bold" color="primary.main" mb={3}>
-        {editingId ? 'Editar Especialidad' : 'Registrar Nueva Especialidad'}
-      </Typography>
-      
-      <Box component="form" onSubmit={handleSubmit}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <Typography variant="h6" color="primary" gutterBottom>
+    <Card elevation={8} sx={cardShellSX}>
+      {/* Header dinámico (azul crear / naranja editar) */}
+      <Box
+        sx={{
+          background: editingId
+            ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
+            : 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+          color: 'white',
+          p: 3,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}
+      >
+        <Box>
+          <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
+            <MedicalServices sx={{ mr: 1 }} />
+            {editingId ? 'Editar Especialidad' : 'Registrar Especialidad'}
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9 }}>
+            {editingId
+              ? 'Modifica los campos necesarios y guarda los cambios'
+              : 'Completa la información básica de la especialidad'}
+          </Typography>
+        </Box>
+      </Box>
+
+      <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+        <Box component="form" onSubmit={handleSubmit}>
+          {/* ===== Información de la Especialidad ===== */}
+          <Box
+            sx={{
+              mb: 3,
+              p: 3,
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 2,
+              bgcolor: '#fff'
+            }}
+          >
+            <Typography
+              variant="overline"
+              sx={{ fontWeight: 'bold', color: 'text.secondary' }}
+              display="flex" alignItems="center"
+            >
+              <MedicalServices sx={{ mr: 1 }} />
               Información de la Especialidad
             </Typography>
             <Divider sx={{ mb: 2 }} />
-          </Grid>
 
-          <Grid item xs={12} md={6}>
-            <Typography variant="body1" mb={1}>Nombre: *</Typography>
-            <TextField
-              fullWidth
-              name="nombre"
-              value={formData.nombre}
-              onChange={onChange}
-              error={!!errors.nombre}
-              helperText={errors.nombre}
-              placeholder="Ej: Psicología Clínica, Terapia Ocupacional..."
-            />
-          </Grid>
+            {/* Nombre */}
+            <Box sx={rowGridSX}>
+              <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                Nombre *
+              </Typography>
+              <TextField
+                fullWidth
+                name="nombre"
+                value={formData.nombre}
+                onChange={onChange}
+                error={!!errors.nombre}
+                helperText={errors.nombre}
+                placeholder="Ej: Psicología Clínica, Terapia Ocupacional…"
+                sx={neutralInputSX}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <MedicalServices sx={iconColor} />
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Box>
 
-          <Grid item xs={12} md={6}>
-            <Typography variant="body1" mb={1}>Área: *</Typography>
-            <TextField
-              select
-              fullWidth
-              name="area"
-              value={formData.area}
-              onChange={onChange}
-              error={!!errors.area}
-              helperText={errors.area}
-            >
-              {EspecialidadService.getAreas().map((area) => (
-                <MenuItem key={area.value} value={area.value}>
-                  {area.label}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Typography variant="body1" mb={1}>Descripción:</Typography>
-            <TextField
-              fullWidth
-              multiline
-              rows={3}
-              name="descripcion"
-              value={formData.descripcion}
-              onChange={onChange}
-              error={!!errors.descripcion}
-              helperText={errors.descripcion}
-              placeholder="Describe los servicios y enfoques de esta especialidad..."
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Typography variant="body1" mb={1}>Estado:</Typography>
-            <TextField
-              select
-              fullWidth
-              name="estado"
-              value={formData.estado}
-              onChange={onChange}
-            >
-              {EspecialidadService.getEstados().map((estado) => (
-                <MenuItem key={estado.value} value={estado.value}>
-                  {estado.label}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-
-          <Grid item xs={12}>
-            <Divider sx={{ my: 2 }} />
-            <Stack direction="row" spacing={2} justifyContent="center">
-              <Button 
-                variant="contained" 
-                type="submit" 
-                color="primary"
-                startIcon={editingId ? <Edit /> : <Add />}
-                size="large"
-                disabled={!formData.nombre || !formData.area}
+            {/* Área */}
+            <Box sx={rowGridSX}>
+              <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                Área *
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                name="area"
+                value={formData.area}
+                onChange={onChange}
+                error={!!errors.area}
+                helperText={errors.area || 'Selecciona el área de esta especialidad'}
+                sx={neutralInputSX}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Work sx={iconColor} />
+                    </InputAdornment>
+                  )
+                }}
               >
-                {editingId ? 'Actualizar Especialidad' : 'Crear Especialidad'}
-              </Button>
-              <Button 
-                variant="outlined" 
-                onClick={onCancel}
-                color="secondary"
-                size="large"
-              >
-                Cancelar
-              </Button>
-            </Stack>
-          </Grid>
-        </Grid>
-      </Box>
-    </Paper>
+                <MenuItem value="">Seleccione un área</MenuItem>
+                {EspecialidadService.getAreas().map((area) => (
+                  <MenuItem key={area.value} value={area.value}>
+                    {area.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
+          </Box>
+
+          {/* ===== Acciones ===== */}
+          <Divider sx={{ my: 3 }} />
+          <Stack direction="row" spacing={2} justifyContent="center">
+            <Button
+              variant="contained"
+              type="submit"
+              color="primary"
+              startIcon={editingId ? <Edit /> : <Add />}
+              size="large"
+              disabled={!canSubmit}
+            >
+              {editingId ? 'Actualizar Especialidad' : 'Crear Especialidad'}
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={onCancel}
+              color="secondary"
+              size="large"
+            >
+              Cancelar
+            </Button>
+          </Stack>
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
 
