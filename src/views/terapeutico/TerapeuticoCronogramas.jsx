@@ -4,16 +4,40 @@ import {
   Box, Button, Card, CardContent, Container, IconButton, Paper, Snackbar,
   Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
   Tooltip, Typography, Alert, Grid, MenuItem, Dialog, DialogTitle, DialogContent,
-  DialogActions, Chip, Avatar, Stack, FormControl, InputLabel, Select
+  DialogActions, Chip, Avatar, FormControl, InputLabel, Select, InputAdornment
 } from '@mui/material';
-import { 
-  CalendarMonth, Edit, Search, Visibility, Refresh, CheckCircle, Cancel, 
-  Schedule, AccessTime, Today, Person, Psychology, EventNote, EditCalendar
+import {
+  CalendarMonth, Edit, Search, Visibility, Refresh, CheckCircle, Cancel,
+  Schedule, AccessTime, Today, Person, EventNote, EditCalendar
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 import { formatDateLocal } from 'src/utils/dateUtils';
+
+/* ---------- Estilos compartidos tipo "listar" ---------- */
+const purpleOutlineSX = {
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': { borderColor: 'primary.main' },
+    '&:hover fieldset': { borderColor: 'primary.main' },
+    '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: 2 }
+  }
+};
+
+// Evita “saltos” al seleccionar opciones y trunca texto largo
+const selectStableSX = {
+  width: '100%',
+  '& .MuiSelect-select': {
+    display: 'block',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    minHeight: '1.4375em',
+    lineHeight: '1.4375em'
+  }
+};
+
+const menuProps = { PaperProps: { sx: { maxHeight: 280 } } };
 
 const TerapeuticoCronogramas = () => {
   const [sesiones, setSesiones] = useState([]);
@@ -90,7 +114,6 @@ const TerapeuticoCronogramas = () => {
 
   const refreshCronograma = () => {
     if (selectedSesion) {
-      console.log('Refreshing cronograma for session:', selectedSesion);
       fetchCronograma(selectedSesion);
     }
   };
@@ -110,27 +133,17 @@ const TerapeuticoCronogramas = () => {
   const confirmarReprogramacion = async (reprogramData) => {
     try {
       setLoading(true);
-      console.log('Confirming reprogramacion with data:', reprogramData);
       await sesionTerapiaService.reprogramarSesion(reprogramDialog.data.id, reprogramData);
       setSnackbar({ open: true, message: 'Sesión reprogramada exitosamente', severity: 'success' });
       setReprogramDialog({ open: false, data: null });
-      if (selectedSesion) {
-        fetchCronograma(selectedSesion);
-      }
+      if (selectedSesion) fetchCronograma(selectedSesion);
     } catch (error) {
       console.error('Error reprogramming session:', error);
-      
       let errorMessage = 'Error al reprogramar la sesión';
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.status === 400) {
-        errorMessage = 'Datos de reprogramación inválidos. Verifique la fecha y hora.';
-      } else if (error.response?.status === 404) {
-        errorMessage = 'Sesión no encontrada';
-      } else if (error.response?.status === 500) {
-        errorMessage = 'Error del servidor. Intente nuevamente.';
-      }
-      
+      if (error.response?.data?.message) errorMessage = error.response.data.message;
+      else if (error.response?.status === 400) errorMessage = 'Datos de reprogramación inválidos. Verifique la fecha y hora.';
+      else if (error.response?.status === 404) errorMessage = 'Sesión no encontrada';
+      else if (error.response?.status === 500) errorMessage = 'Error del servidor. Intente nuevamente.';
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
       setLoading(false);
@@ -143,9 +156,7 @@ const TerapeuticoCronogramas = () => {
       await sesionTerapiaService.cancelarSesion(cancelDialog.data.id, cancelData);
       setSnackbar({ open: true, message: 'Sesión cancelada exitosamente', severity: 'success' });
       setCancelDialog({ open: false, data: null });
-      if (selectedSesion) {
-        fetchCronograma(selectedSesion);
-      }
+      if (selectedSesion) fetchCronograma(selectedSesion);
     } catch (error) {
       console.error('Error canceling session:', error);
       const errorMessage = sesionTerapiaService.handleError(error);
@@ -175,186 +186,264 @@ const TerapeuticoCronogramas = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    // Use the utility function from dateUtils
-    return formatDateLocal(dateString);
-  };
+  const formatDate = (dateString) => formatDateLocal(dateString);
 
   const formatTime = (timeString) => {
     if (!timeString) return '';
-    // Handle both full datetime and time-only strings
     if (timeString.includes('T') || timeString.includes(' ')) {
       const date = new Date(timeString);
-      return date.toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+      return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
     }
-    return timeString; // Already formatted as HH:MM
+    return timeString;
   };
 
-  const getSesionInfo = (sesionId) => {
-    return sesiones.find(s => s.id === parseInt(sesionId));
-  };
+  const getSesionInfo = (sesionId) => sesiones.find(s => s.id === parseInt(sesionId));
 
-  const filteredCronogramas = cronogramas.filter(c => {
-    const sesionInfo = getSesionInfo(selectedSesion);
-    const matchesSearch = (
-      sesionInfo?.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sesionInfo?.terapeuta_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.numero_sesion?.toString().includes(searchTerm.toLowerCase())
-    );
-    const matchesEstado = filterEstado === '' || c.estado === filterEstado;
-    return matchesSearch && matchesEstado;
-  }).sort((a, b) => {
-    // Ordenar por fecha programada (cronológico)
-    const fechaA = new Date(a.fecha_programada);
-    const fechaB = new Date(b.fecha_programada);
-    return fechaA - fechaB;
-  });
+  const filteredCronogramas = cronogramas
+    .filter(c => {
+      const sesionInfo = getSesionInfo(selectedSesion);
+      const matchesSearch = (
+        sesionInfo?.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sesionInfo?.terapeuta_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.numero_sesion?.toString().includes(searchTerm.toLowerCase())
+      );
+      const matchesEstado = filterEstado === '' || c.estado === filterEstado;
+      return matchesSearch && matchesEstado;
+    })
+    .sort((a, b) => new Date(a.fecha_programada) - new Date(b.fecha_programada));
 
-  // Función para truncar observaciones largas
   const truncateObservations = (text, maxLength = 40) => {
     if (!text) return '-';
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
+    return text.length <= maxLength ? text : text.substring(0, maxLength) + '...';
   };
 
   return (
     <Container maxWidth="xl" sx={{ py: 0 }}>
 
-        <Card sx={{ mb: 4 }}>
-          <CardContent>
-            <Typography variant="h6" mb={3}>Seleccionar Sesión Terapéutica</Typography>
-            
-            <Grid container spacing={3} alignItems="center">
-              <Grid item xs={12} md={8}>
-                <FormControl fullWidth>
-                  <InputLabel>Sesión Terapéutica</InputLabel>
-                  <Select
-                    value={selectedSesion}
-                    onChange={handleSesionChange}
-                    label="Sesión Terapéutica"
-                  >
-                    <MenuItem value="">Seleccione una sesión</MenuItem>
-                    {sesiones.map((sesion) => (
-                      <MenuItem key={sesion.id} value={sesion.id}>
-                        {`${sesion.codigo_sesion} - ${sesion.titulo} (${sesion.terapeuta_nombre})`}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              
-              {selectedSesion && (
-                <Grid item xs={12} md={4}>
-                  <Grid container spacing={1}>
-                    <Grid item xs={6}>
-                      <Button
-                        variant="outlined"
-                        color="secondary"
-                        startIcon={<Refresh />}
-                        onClick={refreshCronograma}
-                        disabled={loading}
-                        fullWidth
-                        size="small"
-                      >
-                        Actualizar
-                      </Button>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Button
-                        variant="outlined"
-                        color="primary"
-                        startIcon={<Refresh />}
-                        onClick={() => regenerarCronograma(selectedSesion)}
-                        disabled={loading}
-                        fullWidth
-                        size="small"
-                      >
-                        Regenerar
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </Grid>
-              )}
+      {/* Card de selección de sesión con header degradado */}
+      <Card
+        elevation={8}
+        sx={{
+          borderRadius: 4,
+          mb: 4,
+          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          overflow: 'hidden',
+          width: '100%',
+          maxWidth: { xs: '100%', sm: 1200 },
+          mx: 'auto'
+        }}
+      >
+        <Box
+          sx={{
+            background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+            color: 'white',
+            p: 3,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Box>
+            <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
+              <CalendarMonth sx={{ mr: 1 }} />
+              Cronogramas de Sesiones
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              Selecciona una sesión y gestiona su cronograma
+            </Typography>
+          </Box>
+
+          <Chip
+            label={`${sesiones.length} sesión${sesiones.length !== 1 ? 'es' : ''}`}
+            color="default"
+            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+            size="small"
+          />
+        </Box>
+
+        <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+          <Grid container spacing={3} alignItems="center">
+            <Grid item xs={12} md={8}>
+              <FormControl fullWidth>
+                <InputLabel shrink>Sesión Terapéutica</InputLabel>
+                <Select
+                  sx={{ ...selectStableSX, ...purpleOutlineSX }}
+                  value={selectedSesion}
+                  onChange={handleSesionChange}
+                  label="Sesión Terapéutica"
+                  displayEmpty
+                  MenuProps={menuProps}
+                  renderValue={(val) => {
+                    if (!val) return 'Seleccione una sesión';
+                    const s = sesiones.find(x => String(x.id) === String(val));
+                    return s
+                      ? `${s.titulo} — ${s.terapeuta_nombre}`
+                      : 'Seleccione una sesión';
+                  }}
+                >
+                  <MenuItem value="">Seleccione una sesión</MenuItem>
+                  {sesiones.map((sesion) => (
+                    <MenuItem key={sesion.id} value={sesion.id}>
+                      {`${sesion.titulo} — ${sesion.terapeuta_nombre}`}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
 
-            {selectedSesion && getSesionInfo(selectedSesion) && (
-              <Paper sx={{ mt: 3, p: 2, backgroundColor: 'grey.50' }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={3}>
-                    <Typography variant="subtitle2">Código:</Typography>
-                    <Typography variant="body2">{getSesionInfo(selectedSesion).codigo_sesion}</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <Typography variant="subtitle2">Terapeuta:</Typography>
-                    <Typography variant="body2">{getSesionInfo(selectedSesion).terapeuta_nombre}</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <Typography variant="subtitle2">Especialidad:</Typography>
-                    <Typography variant="body2">{getSesionInfo(selectedSesion).especialidad_nombre}</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <Typography variant="subtitle2">Estado:</Typography>
-                    <Chip 
-                      label={getSesionInfo(selectedSesion).estado} 
-                      color={getEstadoColor(getSesionInfo(selectedSesion).estado)}
-                      size="small"
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
-            )}
-          </CardContent>
-        </Card>
-
-        {selectedSesion && (
-          <Card>
-            <CardContent>
-              <Typography variant="h6" mb={2}>
-                Cronograma - {cronogramas.length} sesiones programadas
-              </Typography>
-              
-              <Grid container spacing={2} mb={2}>
-                <Grid item xs={12} md={8}>
-                  <Box display="flex" alignItems="center">
-                    <Search sx={{ mr: 1 }} />
-                    <TextField
-                      label="Buscar..."
+            {selectedSesion && (
+              <Grid item xs={12} md={4}>
+                <Grid container spacing={1}>
+                  <Grid item xs={6}>
+                    <Button
                       variant="outlined"
-                      size="small"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      color="secondary"
+                      startIcon={<Refresh />}
+                      onClick={refreshCronograma}
+                      disabled={loading}
                       fullWidth
-                      placeholder="Buscar por número de sesión..."
-                    />
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <FormControl fullWidth size="small">
-                    <InputLabel>Filtrar por estado</InputLabel>
-                    <Select
-                      value={filterEstado}
-                      onChange={(e) => setFilterEstado(e.target.value)}
-                      label="Filtrar por estado"
+                      size="small"
                     >
-                      <MenuItem value="">Todos los estados</MenuItem>
-                      <MenuItem value="programada">Programada</MenuItem>
-                      <MenuItem value="realizada">Realizada</MenuItem>
-                      <MenuItem value="cancelada">Cancelada</MenuItem>
-                      <MenuItem value="reprogramada">Reprogramada</MenuItem>
-                    </Select>
-                  </FormControl>
+                      Actualizar
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<Refresh />}
+                      onClick={() => regenerarCronograma(selectedSesion)}
+                      disabled={loading}
+                      fullWidth
+                      size="small"
+                    >
+                      Regenerar
+                    </Button>
+                  </Grid>
                 </Grid>
               </Grid>
+            )}
+          </Grid>
 
-              {loading ? (
-                <Box display="flex" justifyContent="center" p={4}>
-                  <Typography>Cargando cronograma...</Typography>
-                </Box>
-              ) : (
-                <>
+          {selectedSesion && getSesionInfo(selectedSesion) && (
+            <Paper sx={{ mt: 3, p: 2, backgroundColor: 'grey.50' }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle2">Título:</Typography>
+                  <Typography variant="body2">{getSesionInfo(selectedSesion).titulo}</Typography>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle2">Terapeuta:</Typography>
+                  <Typography variant="body2">{getSesionInfo(selectedSesion).terapeuta_nombre}</Typography>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle2">Especialidad:</Typography>
+                  <Typography variant="body2">{getSesionInfo(selectedSesion).especialidad_nombre}</Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Card de listado con toolbar tipo “listar” */}
+      {selectedSesion ? (
+        <Card
+          elevation={8}
+          sx={{
+            borderRadius: 4,
+            mb: 4,
+            background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+            overflow: 'hidden',
+            width: '100%',
+            maxWidth: { xs: '100%', sm: 1200 },
+            mx: 'auto'
+          }}
+        >
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              color: 'white',
+              p: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Box>
+              <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
+                <Schedule sx={{ mr: 1 }} />
+                Cronograma
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                {cronogramas.length} sesión{cronogramas.length !== 1 ? 'es' : ''} programada{cronogramas.length !== 1 ? 's' : ''}
+              </Typography>
+            </Box>
+
+            <Chip
+              label={`${cronogramas.length} ítem${cronogramas.length !== 1 ? 's' : ''}`}
+              color="default"
+              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+              size="small"
+            />
+          </Box>
+
+          <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+            {/* Toolbar (búsqueda + filtro) */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                mb: 3,
+                flexWrap: 'nowrap',
+                overflowX: 'auto',
+                pb: 1,
+                '& > *': { flex: '0 0 auto' }
+              }}
+            >
+              <TextField
+                size="small"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar por título/terapeuta o # de sesión…"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{ ...purpleOutlineSX, minWidth: 260, flex: '1 1 380px' }}
+              />
+
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel shrink>Filtrar por estado</InputLabel>
+                <Select
+                  sx={{ ...selectStableSX, ...purpleOutlineSX }}
+                  value={filterEstado}
+                  onChange={(e) => setFilterEstado(e.target.value)}
+                  label="Filtrar por estado"
+                  displayEmpty
+                  MenuProps={menuProps}
+                  renderValue={(val) => (val ? val : 'Todos los estados')}
+                >
+                  <MenuItem value="">Todos los estados</MenuItem>
+                  <MenuItem value="programada">Programada</MenuItem>
+                  <MenuItem value="realizada">Realizada</MenuItem>
+                  <MenuItem value="cancelada">Cancelada</MenuItem>
+                  <MenuItem value="reprogramada">Reprogramada</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            {loading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <Typography>Cargando cronograma...</Typography>
+              </Box>
+            ) : (
+              <>
+                <Box sx={{ width: '100%', overflowX: 'auto' }}>
                   <Table>
                     <TableHead>
                       <TableRow>
@@ -394,8 +483,8 @@ const TerapeuticoCronogramas = () => {
                               </Box>
                             </TableCell>
                             <TableCell>
-                              <Chip 
-                                label={item.estado} 
+                              <Chip
+                                label={item.estado}
                                 color={getEstadoColor(item.estado)}
                                 size="small"
                                 icon={getEstadoIcon(item.estado)}
@@ -407,52 +496,59 @@ const TerapeuticoCronogramas = () => {
                                   {formatDate(item.fecha_realizacion)}
                                 </Typography>
                               ) : (
-                                <Typography variant="body2" color="text.secondary">
-                                  -
-                                </Typography>
+                                <Typography variant="body2" color="text.secondary">-</Typography>
                               )}
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2" title={item.observaciones_cronograma || item.observaciones || item.observaciones_asistencias || item.notas_progreso_sesion || ''}>
+                              <Typography
+                                variant="body2"
+                                title={
+                                  item.observaciones_cronograma ||
+                                  item.observaciones ||
+                                  item.observaciones_asistencias ||
+                                  item.notas_progreso_sesion ||
+                                  ''
+                                }
+                              >
                                 {truncateObservations(
-                                  item.observaciones_cronograma || 
-                                  item.observaciones || 
-                                  item.observaciones_asistencias || 
+                                  item.observaciones_cronograma ||
+                                  item.observaciones ||
+                                  item.observaciones_asistencias ||
                                   item.notas_progreso_sesion
                                 )}
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Box display="flex" gap={1}>
+                              <Box sx={{ display: 'flex', gap: 0.5 }}>
                                 <Tooltip title="Ver detalles">
-                                  <IconButton 
-                                    color="info" 
+                                  <IconButton
+                                    color="info"
                                     size="small"
                                     onClick={() => handleViewDetail(item)}
                                   >
-                                    <Visibility />
+                                    <Visibility fontSize="small" />
                                   </IconButton>
                                 </Tooltip>
-                                
+
                                 {item.estado === 'programada' && (
                                   <>
                                     <Tooltip title="Reprogramar">
-                                      <IconButton 
-                                        color="warning" 
+                                      <IconButton
+                                        color="warning"
                                         onClick={() => handleReprogramar(item)}
                                         size="small"
                                       >
-                                        <EditCalendar />
+                                        <EditCalendar fontSize="small" />
                                       </IconButton>
                                     </Tooltip>
-                                    
+
                                     <Tooltip title="Cancelar">
-                                      <IconButton 
-                                        color="error" 
+                                      <IconButton
+                                        color="error"
                                         onClick={() => handleCancelar(item)}
                                         size="small"
                                       >
-                                        <Cancel />
+                                        <Cancel fontSize="small" />
                                       </IconButton>
                                     </Tooltip>
                                   </>
@@ -463,184 +559,160 @@ const TerapeuticoCronogramas = () => {
                         ))}
                     </TableBody>
                   </Table>
+                </Box>
 
-                  <TablePagination
-                    component="div"
-                    count={filteredCronogramas.length}
-                    page={page}
-                    onPageChange={(e, newPage) => setPage(newPage)}
-                    rowsPerPage={rowsPerPage}
-                    onRowsPerPageChange={(e) => {
-                      setRowsPerPage(parseInt(e.target.value, 10));
-                      setPage(0);
-                    }}
-                    rowsPerPageOptions={[5, 10, 25, 50]}
-                    labelRowsPerPage="Filas por página:"
-                    labelDisplayedRows={({ from, to, count }) => 
-                      `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
-                    }
-                  />
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {!selectedSesion && (
-          <Card>
-            <CardContent>
-              <Box 
-                display="flex" 
-                flexDirection="column" 
-                alignItems="center" 
-                justifyContent="center" 
-                py={8}
-              >
-                <CalendarMonth sx={{ fontSize: 80, color: 'grey.400', mb: 2 }} />
-                <Typography variant="h6" color="text.secondary" mb={1}>
-                  Seleccione una Sesión Terapéutica
-                </Typography>
-                <Typography variant="body2" color="text.secondary" textAlign="center">
-                  Para ver el cronograma, seleccione una sesión terapéutica del menú desplegable
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Dialog de detalles */}
-        <Dialog 
-          open={detailDialog.open} 
-          onClose={() => setDetailDialog({ open: false, data: null })}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>
-            <Box display="flex" alignItems="center">
-              <EventNote sx={{ mr: 2 }} />
-              Detalles de la Sesión del Cronograma
+                <TablePagination
+                  component="div"
+                  count={filteredCronogramas.length}
+                  page={page}
+                  onPageChange={(e, newPage) => setPage(newPage)}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={(e) => {
+                    setRowsPerPage(parseInt(e.target.value, 10));
+                    setPage(0);
+                  }}
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  labelRowsPerPage="Filas por página:"
+                  labelDisplayedRows={({ from, to, count }) =>
+                    `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+                  }
+                />
+              </>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent>
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              py={8}
+            >
+              <CalendarMonth sx={{ fontSize: 80, color: 'grey.400', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" mb={1}>
+                Seleccione una Sesión Terapéutica
+              </Typography>
+              <Typography variant="body2" color="text.secondary" textAlign="center">
+                Para ver el cronograma, seleccione una sesión terapéutica del menú desplegable
+              </Typography>
             </Box>
-          </DialogTitle>
-          <DialogContent>
-            {detailDialog.data && (
-              <Grid container spacing={3} sx={{ mt: 1 }}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" color="primary">Información de la Sesión</Typography>
-                  <Typography variant="body2">
-                    <strong>Número de Sesión:</strong> {detailDialog.data.numero_sesion}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Fecha Programada:</strong> {formatDate(detailDialog.data.fecha_programada)}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Hora Programada:</strong> {formatTime(detailDialog.data.hora_programada)}
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" color="primary">Estado y Realización</Typography>
-                  <Typography variant="body2" display="flex" alignItems="center">
-                    <strong>Estado:</strong> 
-                    <Chip 
-                      label={detailDialog.data.estado} 
-                      color={getEstadoColor(detailDialog.data.estado)}
-                      size="small"
-                      sx={{ ml: 1 }}
-                    />
-                  </Typography>
-                  {detailDialog.data.fecha_realizacion && (
-                    <Typography variant="body2">
-                      <strong>Fecha de Realización:</strong> {formatDate(detailDialog.data.fecha_realizacion)}
-                    </Typography>
-                  )}
-                </Grid>
+          </CardContent>
+        </Card>
+      )}
 
-                {(detailDialog.data.observaciones_cronograma || detailDialog.data.observaciones) && (
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="primary">Observaciones</Typography>
-                    <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
-                      <Typography variant="body2">
-                        {detailDialog.data.observaciones_cronograma || detailDialog.data.observaciones}
-                      </Typography>
-                    </Paper>
-                  </Grid>
-                )}
+      {/* Dialog de detalles (sin cambios de lógica) */}
+      <Dialog
+        open={detailDialog.open}
+        onClose={() => setDetailDialog({ open: false, data: null })}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <EventNote sx={{ mr: 2 }} />
+            Detalles de la Sesión del Cronograma
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {detailDialog.data && (
+            <Grid container spacing={3} sx={{ mt: 1 }}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="primary">Información de la Sesión</Typography>
+                <Typography variant="body2"><strong>Número de Sesión:</strong> {detailDialog.data.numero_sesion}</Typography>
+                <Typography variant="body2"><strong>Fecha Programada:</strong> {formatDate(detailDialog.data.fecha_programada)}</Typography>
+                <Typography variant="body2"><strong>Hora Programada:</strong> {formatTime(detailDialog.data.hora_programada)}</Typography>
+              </Grid>
 
-                {detailDialog.data.motivo_reprogramacion && (
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="primary">Motivo de Reprogramación</Typography>
-                    <Paper sx={{ p: 2, backgroundColor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
-                      <Typography variant="body2">{detailDialog.data.motivo_reprogramacion}</Typography>
-                    </Paper>
-                  </Grid>
-                )}
-
-                {selectedSesion && getSesionInfo(selectedSesion) && (
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="primary">Información de la Sesión Terapéutica</Typography>
-                    <Paper sx={{ p: 2, backgroundColor: 'primary.50', border: '1px solid', borderColor: 'primary.200' }}>
-                      <Typography variant="body2">
-                        <strong>Código:</strong> {getSesionInfo(selectedSesion).codigo_sesion}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Título:</strong> {getSesionInfo(selectedSesion).titulo}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Terapeuta:</strong> {getSesionInfo(selectedSesion).terapeuta_nombre}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Especialidad:</strong> {getSesionInfo(selectedSesion).especialidad_nombre}
-                      </Typography>
-                    </Paper>
-                  </Grid>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="primary">Estado y Realización</Typography>
+                <Typography variant="body2" display="flex" alignItems="center">
+                  <strong>Estado:</strong>
+                  <Chip
+                    label={detailDialog.data.estado}
+                    color={getEstadoColor(detailDialog.data.estado)}
+                    size="small"
+                    sx={{ ml: 1 }}
+                  />
+                </Typography>
+                {detailDialog.data.fecha_realizacion && (
+                  <Typography variant="body2"><strong>Fecha de Realización:</strong> {formatDate(detailDialog.data.fecha_realizacion)}</Typography>
                 )}
               </Grid>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDetailDialog({ open: false, data: null })}>
-              Cerrar
-            </Button>
-          </DialogActions>
-        </Dialog>
 
-        {/* Reprogramar Dialog */}
-        <ReprogramarDialog 
-          open={reprogramDialog.open}
-          data={reprogramDialog.data}
-          onClose={() => setReprogramDialog({ open: false, data: null })}
-          onConfirm={confirmarReprogramacion}
-          loading={loading}
-        />
+              {(detailDialog.data.observaciones_cronograma || detailDialog.data.observaciones) && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Observaciones</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
+                    <Typography variant="body2">
+                      {detailDialog.data.observaciones_cronograma || detailDialog.data.observaciones}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              )}
 
-        {/* Cancelar Dialog */}
-        <CancelarDialog 
-          open={cancelDialog.open}
-          data={cancelDialog.data}
-          onClose={() => setCancelDialog({ open: false, data: null })}
-          onConfirm={confirmarCancelacion}
-          loading={loading}
-        />
+              {detailDialog.data.motivo_reprogramacion && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Motivo de Reprogramación</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
+                    <Typography variant="body2">{detailDialog.data.motivo_reprogramacion}</Typography>
+                  </Paper>
+                </Grid>
+              )}
 
-        <Snackbar
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-          open={snackbar.open}
-          autoHideDuration={4000}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-        >
-          <Alert 
-            severity={snackbar.severity} 
-            variant="filled" 
-            sx={{ width: '100%' }}
-          >
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+              {selectedSesion && getSesionInfo(selectedSesion) && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Información de la Sesión Terapéutica</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: 'primary.50', border: '1px solid', borderColor: 'primary.200' }}>
+                    <Typography variant="body2"><strong>Título:</strong> {getSesionInfo(selectedSesion).titulo}</Typography>
+                    <Typography variant="body2"><strong>Terapeuta:</strong> {getSesionInfo(selectedSesion).terapeuta_nombre}</Typography>
+                    <Typography variant="body2"><strong>Especialidad:</strong> {getSesionInfo(selectedSesion).especialidad_nombre}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetailDialog({ open: false, data: null })}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Reprogramar */}
+      <ReprogramarDialog
+        open={reprogramDialog.open}
+        data={reprogramDialog.data}
+        onClose={() => setReprogramDialog({ open: false, data: null })}
+        onConfirm={confirmarReprogramacion}
+        loading={loading}
+      />
+
+      {/* Cancelar */}
+      <CancelarDialog
+        open={cancelDialog.open}
+        data={cancelDialog.data}
+        onClose={() => setCancelDialog({ open: false, data: null })}
+        onConfirm={confirmarCancelacion}
+        loading={loading}
+      />
+
+      <Snackbar
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
 
-// Componente para Reprogramar Sesión
+// Reprogramar
 const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
   const [nuevaFecha, setNuevaFecha] = useState('');
   const [nuevaHora, setNuevaHora] = useState('');
@@ -649,56 +721,40 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
 
   useEffect(() => {
     if (data) {
-      // Pre-llenar con datos actuales
       const fechaBase = data.fecha_programada?.split('T')[0] || '';
       setFechaOriginal(fechaBase);
       setNuevaFecha(fechaBase);
       setNuevaHora(data.hora_programada || '');
-      setMotivo('Reprogramación de sesión terapéutica'); // Motivo por defecto
+      setMotivo('Reprogramación de sesión terapéutica');
     }
   }, [data]);
 
   const moverFecha = (dias) => {
     if (!fechaOriginal) return;
-    
     const fecha = new Date(fechaOriginal);
     fecha.setDate(fecha.getDate() + dias);
-    
     const nuevaFechaStr = fecha.toISOString().split('T')[0];
     setNuevaFecha(nuevaFechaStr);
-    
-    // Siempre actualizar motivo con el movimiento
     const diasTexto = dias > 0 ? `+${dias}` : dias.toString();
     const motivoMovimiento = `Sesión movida ${diasTexto} día${Math.abs(dias) !== 1 ? 's' : ''}`;
     setMotivo(motivoMovimiento);
   };
 
   const handleConfirm = () => {
-    if (!nuevaFecha || !nuevaHora) {
-      return;
-    }
-    
-    // Asegurar que siempre haya un motivo válido
-    const motivoFinal = motivo && motivo.trim() 
-      ? motivo.trim() 
-      : 'Reprogramación de sesión terapéutica';
-    
+    if (!nuevaFecha || !nuevaHora) return;
+    const motivoFinal = motivo && motivo.trim() ? motivo.trim() : 'Reprogramación de sesión terapéutica';
     const dataToSend = {
       nueva_fecha: nuevaFecha,
       nueva_hora: nuevaHora,
       motivo_reprogramacion: motivoFinal,
-      motivo: motivoFinal // Agregar ambos campos para asegurar compatibilidad
+      motivo: motivoFinal
     };
-    
-    console.log('Sending reprogramacion data:', dataToSend);
     onConfirm(dataToSend);
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        Reprogramar Sesión #{data?.numero_sesion}
-      </DialogTitle>
+      <DialogTitle>Reprogramar Sesión #{data?.numero_sesion}</DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
           <Grid item xs={12}>
@@ -707,30 +763,17 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
             </Typography>
           </Grid>
 
-          {/* Botones rápidos para mover fechas */}
           <Grid item xs={12}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              Mover fecha rápidamente:
-            </Typography>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>Mover fecha rápidamente:</Typography>
             <Box display="flex" gap={1} flexWrap="wrap">
-              <Button size="small" variant="outlined" onClick={() => moverFecha(1)}>
-                +1 día
-              </Button>
-              <Button size="small" variant="outlined" onClick={() => moverFecha(2)}>
-                +2 días
-              </Button>
-              <Button size="small" variant="outlined" onClick={() => moverFecha(7)}>
-                +1 semana
-              </Button>
-              <Button size="small" variant="outlined" onClick={() => moverFecha(-1)}>
-                -1 día
-              </Button>
-              <Button size="small" variant="outlined" onClick={() => moverFecha(-2)}>
-                -2 días
-              </Button>
+              <Button size="small" variant="outlined" onClick={() => moverFecha(1)}>+1 día</Button>
+              <Button size="small" variant="outlined" onClick={() => moverFecha(2)}>+2 días</Button>
+              <Button size="small" variant="outlined" onClick={() => moverFecha(7)}>+1 semana</Button>
+              <Button size="small" variant="outlined" onClick={() => moverFecha(-1)}>-1 día</Button>
+              <Button size="small" variant="outlined" onClick={() => moverFecha(-2)}>-2 días</Button>
             </Box>
           </Grid>
-          
+
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
@@ -742,7 +785,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
               required
             />
           </Grid>
-          
+
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
@@ -754,7 +797,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
               required
             />
           </Grid>
-          
+
           <Grid item xs={12}>
             <TextField
               fullWidth
@@ -766,20 +809,14 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
               placeholder="Explique el motivo de la reprogramación..."
               required
               error={!motivo || !motivo.trim()}
-              helperText={(!motivo || !motivo.trim()) ? "El motivo es requerido" : ""}
+              helperText={(!motivo || !motivo.trim()) ? 'El motivo es requerido' : ''}
             />
           </Grid>
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
-          Cancelar
-        </Button>
-        <Button 
-          onClick={handleConfirm} 
-          variant="contained" 
-          disabled={loading || !nuevaFecha || !nuevaHora || !motivo || !motivo.trim()}
-        >
+        <Button onClick={onClose} disabled={loading}>Cancelar</Button>
+        <Button onClick={handleConfirm} variant="contained" disabled={loading || !nuevaFecha || !nuevaHora || !motivo || !motivo.trim()}>
           Reprogramar
         </Button>
       </DialogActions>
@@ -787,27 +824,21 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
   );
 };
 
-// Componente para Cancelar Sesión
+// Cancelar
 const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
   const [motivo, setMotivo] = useState('');
 
   useEffect(() => {
-    if (data) {
-      setMotivo('');
-    }
+    if (data) setMotivo('');
   }, [data]);
 
   const handleConfirm = () => {
-    onConfirm({
-      motivo_cancelacion: motivo || 'Cancelada por el usuario'
-    });
+    onConfirm({ motivo_cancelacion: motivo || 'Cancelada por el usuario' });
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        Cancelar Sesión #{data?.numero_sesion}
-      </DialogTitle>
+      <DialogTitle>Cancelar Sesión #{data?.numero_sesion}</DialogTitle>
       <DialogContent>
         <Grid container spacing={2} sx={{ mt: 1 }}>
           <Grid item xs={12}>
@@ -818,7 +849,7 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
               ⚠️ Esta acción marcará la sesión como cancelada y no se podrá deshacer.
             </Typography>
           </Grid>
-          
+
           <Grid item xs={12}>
             <TextField
               fullWidth
@@ -833,15 +864,8 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
         </Grid>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
-          Cancelar
-        </Button>
-        <Button 
-          onClick={handleConfirm} 
-          variant="contained" 
-          color="error"
-          disabled={loading}
-        >
+        <Button onClick={onClose} disabled={loading}>Cancelar</Button>
+        <Button onClick={handleConfirm} variant="contained" color="error" disabled={loading}>
           Confirmar Cancelación
         </Button>
       </DialogActions>

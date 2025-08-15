@@ -17,6 +17,30 @@ import { useAuth } from 'src/contexts/AuthContext';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 import { formatDateLocal } from 'src/utils/dateUtils';
 
+/* ---------- Estilos tipo "listar" ---------- */
+const purpleOutlineSX = {
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': { borderColor: 'primary.main' },
+    '&:hover fieldset': { borderColor: 'primary.main' },
+    '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: 2 }
+  }
+};
+
+// Evita “saltos” al seleccionar y trunca texto largo
+const selectStableSX = {
+  width: '100%',
+  '& .MuiSelect-select': {
+    display: 'block',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    minHeight: '1.4375em',
+    lineHeight: '1.4375em'
+  }
+};
+
+const menuProps = { PaperProps: { sx: { maxHeight: 280 } } };
+
 function TabPanel({ children, value, index, ...other }) {
   return (
     <div
@@ -46,7 +70,7 @@ const SesionTerapeuticaDetalle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   const [tabValue, setTabValue] = useState(0);
   const [sesion, setSesion] = useState(null);
   const [cronograma, setCronograma] = useState([]);
@@ -56,11 +80,11 @@ const SesionTerapeuticaDetalle = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   // Dialogs state
-  const [attendanceDialog, setAttendanceDialog] = useState({ 
-    open: false, 
-    cronogramaId: null, 
-    pacienteId: null, 
-    data: null 
+  const [attendanceDialog, setAttendanceDialog] = useState({
+    open: false,
+    cronogramaId: null,
+    pacienteId: null,
+    data: null
   });
   const [addPatientDialog, setAddPatientDialog] = useState({ open: false });
   const [pacientesDisponibles, setPacientesDisponibles] = useState([]);
@@ -79,7 +103,7 @@ const SesionTerapeuticaDetalle = () => {
         sesionTerapiaService.getSesionById(id),
         sesionTerapiaService.getCronograma(id),
         sesionTerapiaService.getPacientesSesion(id),
-        sesionTerapiaService.getAsistenciasSession(id) // Assuming this method exists
+        sesionTerapiaService.getAsistenciasSession(id)
       ]);
 
       setSesion(sessionRes.data);
@@ -87,7 +111,6 @@ const SesionTerapeuticaDetalle = () => {
       setPacientes(pacientesRes.data || []);
       setAsistencias(asistenciasRes.data || []);
     } catch (err) {
-      console.error('Error fetching session data:', err);
       const errorMessage = sesionTerapiaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
@@ -116,19 +139,15 @@ const SesionTerapeuticaDetalle = () => {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
-      // For detailed view, we want a more descriptive format
       const formattedDate = formatDateLocal(dateString);
       if (formattedDate === '—') return 'N/A';
-      
-      // Convert DD/MM/YYYY back to a date object for localized formatting
       const [day, month, year] = formattedDate.split('/');
       const date = new Date(year, month - 1, day);
-      
-      return date.toLocaleDateString('es-ES', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      return date.toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       });
     } catch {
       return dateString;
@@ -141,9 +160,9 @@ const SesionTerapeuticaDetalle = () => {
       const [hours, minutes] = timeString.split(':');
       const date = new Date();
       date.setHours(parseInt(hours), parseInt(minutes));
-      return date.toLocaleTimeString('es-ES', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+      return date.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
       });
     } catch {
       return timeString;
@@ -152,15 +171,11 @@ const SesionTerapeuticaDetalle = () => {
 
   const handleRegisterAttendance = async (cronogramaId, pacienteId, attendanceData) => {
     try {
-      console.log('Registering attendance in detail view:', { cronogramaId, pacienteId, attendanceData });
       await sesionTerapiaService.registrarAsistencia(cronogramaId, pacienteId, attendanceData);
       setSnackbar({ open: true, message: 'Asistencia registrada correctamente', severity: 'success' });
-      
-      // Refresh all data to show updated status and observations
       await fetchSessionData();
       setAttendanceDialog({ open: false, cronogramaId: null, pacienteId: null, data: null });
     } catch (err) {
-      console.error('Error registering attendance:', err);
       const errorMessage = sesionTerapiaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     }
@@ -168,7 +183,6 @@ const SesionTerapeuticaDetalle = () => {
 
   const handleAddPatient = async () => {
     if (!newPatientId) return;
-    
     try {
       await sesionTerapiaService.addPacienteToSesion(id, {
         paciente_id: newPatientId,
@@ -179,7 +193,6 @@ const SesionTerapeuticaDetalle = () => {
       setAddPatientDialog({ open: false });
       setNewPatientId('');
     } catch (err) {
-      console.error('Error adding patient:', err);
       const errorMessage = sesionTerapiaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     }
@@ -189,9 +202,7 @@ const SesionTerapeuticaDetalle = () => {
     try {
       const response = await sesionTerapiaService.getPacientesDisponibles();
       setPacientesDisponibles(response.data || []);
-    } catch (err) {
-      console.error('Error fetching available patients:', err);
-    }
+    } catch {}
   };
 
   if (!sesion) {
@@ -204,45 +215,85 @@ const SesionTerapeuticaDetalle = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 2 }}>
-      {/* Header */}
-      <Paper elevation={3} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
-        <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+
+      {/* ===== Header estilo "listar" con degradado morado ===== */}
+      <Card
+        elevation={8}
+        sx={{
+          borderRadius: 4,
+          mb: 3,
+          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          overflow: 'hidden'
+        }}
+      >
+        <Box
+          sx={{
+            background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+            color: 'white',
+            p: 3,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
           <Box display="flex" alignItems="center">
-            <IconButton onClick={() => navigate(-1)} sx={{ mr: 2 }}>
+            <IconButton onClick={() => navigate(-1)} sx={{ mr: 2, color: 'white' }}>
               <ArrowBack />
             </IconButton>
             <Box>
-              <Typography variant="h5" fontWeight="bold" display="flex" alignItems="center">
-                <Psychology sx={{ mr: 2, color: 'primary.main' }} />
+              <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
+                <Psychology sx={{ mr: 1 }} />
                 {sesion.titulo}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
                 {sesion.codigo_sesion} • {sesion.terapeuta?.nombre} • {sesion.especialidad?.nombre}
               </Typography>
             </Box>
           </Box>
-          <Chip 
-            label={sesion.estado} 
-            color={sesion.estado === 'activo' ? 'success' : 'default'}
-            size="large"
-          />
+
+          <Box display="flex" alignItems="center" gap={1}>
+            <Chip
+              label={`${pacientes.length} paciente${pacientes.length !== 1 ? 's' : ''}`}
+              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+              size="small"
+            />
+            <Chip
+              label={sesion.estado}
+              color={sesion.estado === 'activo' ? 'success' : 'default'}
+              size="small"
+              sx={{ bgcolor: sesion.estado === 'activo' ? undefined : 'rgba(255,255,255,0.2)', color: 'white' }}
+            />
+          </Box>
         </Box>
 
-        <Tabs 
-          value={tabValue} 
-          onChange={(e, newValue) => setTabValue(newValue)}
-          aria-label="Pestañas de detalle de sesión"
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          <Tab icon={<Psychology />} label="Información" {...a11yProps(0)} />
-          <Tab icon={<CalendarMonth />} label="Cronograma" {...a11yProps(1)} />
-          <Tab icon={<Group />} label="Pacientes" {...a11yProps(2)} />
-          <Tab icon={<Assignment />} label="Asistencias" {...a11yProps(3)} />
-        </Tabs>
-      </Paper>
+        {/* Tabs (mantengo lógica, solo estética del contenedor) */}
+        <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+          <Tabs
+            value={tabValue}
+            onChange={(e, newValue) => setTabValue(newValue)}
+            aria-label="Pestañas de detalle de sesión"
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              '& .MuiTabs-flexContainer': { gap: 1 },
+              '& .MuiTab-root': {
+                minHeight: 56,
+                textTransform: 'none',
+                fontWeight: 500,
+                '&.Mui-selected': { fontWeight: 600 }
+              },
+              '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0' }
+            }}
+          >
+            <Tab icon={<Psychology />} label="Información" {...a11yProps(0)} />
+            <Tab icon={<CalendarMonth />} label="Cronograma" {...a11yProps(1)} />
+            <Tab icon={<Group />} label="Pacientes" {...a11yProps(2)} />
+            <Tab icon={<Assignment />} label="Asistencias" {...a11yProps(3)} />
+          </Tabs>
+        </CardContent>
+      </Card>
 
-      {/* Tab Panels */}
+      {/* ===== Tab Panels ===== */}
       <TabPanel value={tabValue} index={0}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
@@ -271,7 +322,7 @@ const SesionTerapeuticaDetalle = () => {
                 <Box sx={{ '& > *': { mb: 1 } }}>
                   <Typography><strong>Período:</strong> {formatDate(sesion.fecha_inicio)} - {formatDate(sesion.fecha_fin)}</Typography>
                   <Typography><strong>Días:</strong> {sesion.dias_semana?.join(', ')}</Typography>
-                  <Typography><strong>Hora:</strong> {formatTime(sesion.hora_inicio)}</Typography>
+                  <Typography><strong>Hora:</strong> {sesion.hora_inicio}</Typography>
                   <Typography><strong>Sesiones contratadas:</strong> {sesion.numero_sesiones_contratadas}</Typography>
                 </Box>
               </CardContent>
@@ -326,106 +377,141 @@ const SesionTerapeuticaDetalle = () => {
       </TabPanel>
 
       <TabPanel value={tabValue} index={1}>
-        <Card>
-          <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6">Cronograma de Sesiones</Typography>
-              <Button
-                startIcon={<Refresh />}
-                onClick={fetchSessionData}
-                variant="outlined"
-                size="small"
-              >
-                Actualizar
-              </Button>
-            </Box>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>#</TableCell>
-                  <TableCell>Fecha</TableCell>
-                  <TableCell>Hora</TableCell>
-                  <TableCell>Estado</TableCell>
-                  <TableCell>Observaciones</TableCell>
-                  <TableCell>Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {cronograma.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>{item.numero_sesion}</TableCell>
-                    <TableCell>{formatDate(item.fecha_programada)}</TableCell>
-                    <TableCell>{formatTime(item.hora_programada)}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={item.estado_actual || item.estado}
-                        color={getEstadoCronogramaColor(item.estado)}
-                        size="small"
-                        icon={getEstadoCronogramaIcon(item)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {item.observaciones_cronograma || 
-                       item.observaciones || 
-                       item.observaciones_asistencias || 
-                       item.notas_progreso_sesion || 
-                       '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Tooltip title="Registrar asistencia">
-                        <IconButton 
-                          size="small"
-                          color="primary"
-                          onClick={() => setAttendanceDialog({
-                            open: true,
-                            cronogramaId: item.id,
-                            pacienteId: null,
-                            data: item
-                          })}
-                        >
-                          <Assignment />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
+        <Card
+          elevation={8}
+          sx={{
+            borderRadius: 4,
+            overflow: 'hidden'
+          }}
+        >
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              color: 'white',
+              p: 2.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold">Cronograma de Sesiones</Typography>
+            <Button
+              startIcon={<Refresh />}
+              onClick={fetchSessionData}
+              variant="outlined"
+              size="small"
+              sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.6)' }}
+            >
+              Actualizar
+            </Button>
+          </Box>
+
+          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+            <Box sx={{ width: '100%', overflowX: 'auto' }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>#</TableCell>
+                    <TableCell>Fecha</TableCell>
+                    <TableCell>Hora</TableCell>
+                    <TableCell>Estado</TableCell>
+                    <TableCell>Observaciones</TableCell>
+                    <TableCell>Acciones</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {cronograma.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>{item.numero_sesion}</TableCell>
+                      <TableCell>{formatDate(item.fecha_programada)}</TableCell>
+                      <TableCell>{formatTime(item.hora_programada)}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={item.estado_actual || item.estado}
+                          color={getEstadoCronogramaColor(item.estado)}
+                          size="small"
+                          icon={getEstadoCronogramaIcon(item)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {item.observaciones_cronograma ||
+                          item.observaciones ||
+                          item.observaciones_asistencias ||
+                          item.notas_progreso_sesion ||
+                          '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Tooltip title="Registrar asistencia">
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => setAttendanceDialog({
+                              open: true,
+                              cronogramaId: item.id,
+                              pacienteId: null,
+                              data: item
+                            })}
+                          >
+                            <Assignment />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
           </CardContent>
         </Card>
       </TabPanel>
 
       <TabPanel value={tabValue} index={2}>
-        <Card>
-          <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-              <Typography variant="h6">Pacientes Asignados ({pacientes.length})</Typography>
-              <Button
-                startIcon={<Add />}
-                onClick={() => {
-                  fetchAvailablePatients();
-                  setAddPatientDialog({ open: true });
-                }}
-                variant="contained"
-                size="small"
-              >
-                Agregar Paciente
-              </Button>
-            </Box>
+        <Card
+          elevation={8}
+          sx={{ borderRadius: 4, overflow: 'hidden' }}
+        >
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              color: 'white',
+              p: 2.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold">
+              Pacientes Asignados ({pacientes.length})
+            </Typography>
+            <Button
+              startIcon={<Add />}
+              onClick={() => {
+                fetchAvailablePatients();
+                setAddPatientDialog({ open: true });
+              }}
+              variant="contained"
+              size="small"
+              sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}
+            >
+              Agregar Paciente
+            </Button>
+          </Box>
+
+          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
             <List>
               {pacientes.map((paciente) => (
                 <ListItem key={paciente.id || paciente.paciente_id} divider>
                   <ListItemAvatar>
-                    <Avatar>
+                    <Avatar sx={{ bgcolor: '#7e57c2' }}>
                       <Person />
                     </Avatar>
                   </ListItemAvatar>
                   <ListItemText
                     primary={paciente.paciente_nombre || paciente.nombre_completo}
-                    secondary={`Cédula: ${paciente.paciente_cedula || paciente.cedula} • Incorporado: ${formatDate(paciente.fecha_incorporacion)}`}
+                    secondary={`Cédula: ${paciente.paciente_cedula || paciente.cedula} • Incorporado: ${formatDateLocal(paciente.fecha_incorporacion)}`}
                   />
-                  <Chip 
-                    label={paciente.estado} 
+                  <Chip
+                    label={paciente.estado}
                     color={paciente.estado === 'activo' ? 'success' : 'default'}
                     size="small"
                   />
@@ -437,54 +523,68 @@ const SesionTerapeuticaDetalle = () => {
       </TabPanel>
 
       <TabPanel value={tabValue} index={3}>
-        <Card>
-          <CardContent>
-            <Typography variant="h6" mb={2}>Registro de Asistencias</Typography>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Fecha</TableCell>
-                  <TableCell>Paciente</TableCell>
-                  <TableCell>Asistió</TableCell>
-                  <TableCell>Tardanza</TableCell>
-                  <TableCell>Notas</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {asistencias.map((asistencia) => (
-                  <TableRow key={`${asistencia.cronograma_sesion_id}_${asistencia.paciente_id}`}>
-                    <TableCell>{formatDate(asistencia.fecha_programada)}</TableCell>
-                    <TableCell>{asistencia.paciente_nombre}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={asistencia.asistio ? 'Sí' : 'No'}
-                        color={asistencia.asistio ? 'success' : 'error'}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {asistencia.llegada_tardanza_minutos > 0 ? 
-                        `${asistencia.llegada_tardanza_minutos} min` : '-'}
-                    </TableCell>
-                    <TableCell>{asistencia.notas_progreso || '-'}</TableCell>
+        <Card
+          elevation={8}
+          sx={{ borderRadius: 4, overflow: 'hidden' }}
+        >
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              color: 'white',
+              p: 2.5
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold">Registro de Asistencias</Typography>
+          </Box>
+
+          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+            <Box sx={{ width: '100%', overflowX: 'auto' }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Fecha</TableCell>
+                    <TableCell>Paciente</TableCell>
+                    <TableCell>Asistió</TableCell>
+                    <TableCell>Tardanza</TableCell>
+                    <TableCell>Notas</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHead>
+                <TableBody>
+                  {asistencias.map((asistencia) => (
+                    <TableRow key={`${asistencia.cronograma_sesion_id}_${asistencia.paciente_id}`}>
+                      <TableCell>{formatDate(asistencia.fecha_programada)}</TableCell>
+                      <TableCell>{asistencia.paciente_nombre}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={asistencia.asistio ? 'Sí' : 'No'}
+                          color={asistencia.asistio ? 'success' : 'error'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {asistencia.llegada_tardanza_minutos > 0 ?
+                          `${asistencia.llegada_tardanza_minutos} min` : '-'}
+                      </TableCell>
+                      <TableCell>{asistencia.notas_progreso || '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
           </CardContent>
         </Card>
       </TabPanel>
 
       {/* Attendance Dialog */}
-      <Dialog 
-        open={attendanceDialog.open} 
+      <Dialog
+        open={attendanceDialog.open}
         onClose={() => setAttendanceDialog({ open: false, cronogramaId: null, pacienteId: null, data: null })}
         maxWidth="md"
         fullWidth
       >
         <DialogTitle>Registrar Asistencia</DialogTitle>
         <DialogContent>
-          <AttendanceForm 
+          <AttendanceForm
             cronogramaData={attendanceDialog.data}
             pacientes={pacientes}
             onSubmit={handleRegisterAttendance}
@@ -493,8 +593,8 @@ const SesionTerapeuticaDetalle = () => {
       </Dialog>
 
       {/* Add Patient Dialog */}
-      <Dialog 
-        open={addPatientDialog.open} 
+      <Dialog
+        open={addPatientDialog.open}
         onClose={() => setAddPatientDialog({ open: false })}
         maxWidth="sm"
         fullWidth
@@ -502,12 +602,21 @@ const SesionTerapeuticaDetalle = () => {
         <DialogTitle>Agregar Paciente a la Sesión</DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel>Seleccionar Paciente</InputLabel>
+            <InputLabel shrink>Seleccionar Paciente</InputLabel>
             <Select
+              sx={{ ...selectStableSX, ...purpleOutlineSX }}
               value={newPatientId}
               onChange={(e) => setNewPatientId(e.target.value)}
               label="Seleccionar Paciente"
+              displayEmpty
+              MenuProps={menuProps}
+              renderValue={(val) => {
+                if (!val) return 'Seleccione un paciente';
+                const p = pacientesDisponibles.find(x => String(x.id) === String(val));
+                return p ? `${p.nombre_completo} - ${p.cedula}` : 'Seleccione un paciente';
+              }}
             >
+              <MenuItem value="">Seleccione un paciente</MenuItem>
               {pacientesDisponibles.map((paciente) => (
                 <MenuItem key={paciente.id} value={paciente.id}>
                   {paciente.nombre_completo} - {paciente.cedula}
@@ -532,9 +641,9 @@ const SesionTerapeuticaDetalle = () => {
         autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alert 
-          severity={snackbar.severity} 
-          variant="filled" 
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
           sx={{ width: '100%' }}
         >
           {snackbar.message}
@@ -564,16 +673,25 @@ const AttendanceForm = ({ cronogramaData, pacientes, onSubmit }) => {
   return (
     <Box>
       <Typography variant="subtitle1" mb={2}>
-        Sesión #{cronogramaData?.numero_sesion} - {cronogramaData?.fecha_programada}
+        Sesión #{cronogramaData?.numero_sesion} - {formatDateLocal(cronogramaData?.fecha_programada)}
       </Typography>
-      
+
       <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel>Paciente</InputLabel>
+        <InputLabel shrink>Paciente</InputLabel>
         <Select
+          sx={{ ...selectStableSX, ...purpleOutlineSX }}
           value={selectedPatient}
           onChange={(e) => setSelectedPatient(e.target.value)}
           label="Paciente"
+          displayEmpty
+          MenuProps={{ PaperProps: { sx: { maxHeight: 300 } } }}
+          renderValue={(val) => {
+            if (!val) return 'Seleccione un paciente';
+            const p = pacientes.find(x => String(x.paciente_id || x.id) === String(val));
+            return p ? (p.paciente_nombre || p.nombre_completo) : 'Seleccione un paciente';
+          }}
         >
+          <MenuItem value="">Seleccione un paciente</MenuItem>
           {pacientes.map((paciente) => (
             <MenuItem key={paciente.paciente_id || paciente.id} value={paciente.paciente_id || paciente.id}>
               {paciente.paciente_nombre || paciente.nombre_completo}
