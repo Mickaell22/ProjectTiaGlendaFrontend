@@ -35,6 +35,12 @@ export class PersonaService {
     return extractData(response);
   }
 
+  // Obtener personas disponibles para crear usuarios
+  static async getAvailableForUsers() {
+    const response = await ApiService.get(API_ENDPOINTS.PERSONAS.DISPONIBLES);
+    return extractData(response);
+  }
+
   // Validar datos de persona
   static validatePersonaData(data) {
     const errors = {};
@@ -49,29 +55,21 @@ export class PersonaService {
 
     if (!data.cedula?.trim()) {
       errors.cedula = 'La cédula es requerida';
-    } else if (!/^\d{10}$/.test(data.cedula)) {
-      errors.cedula = 'La cédula debe tener 10 dígitos';
+    } else if (data.cedula.trim().length < 6) {
+      errors.cedula = 'La cédula debe tener al menos 6 caracteres';
     }
 
-    if (!data.telefono?.trim()) {
-      errors.telefono = 'El teléfono es requerido';
-    } else if (!/^\d{10}$/.test(data.telefono)) {
-      errors.telefono = 'El teléfono debe tener 10 dígitos';
+    if (data.telefono && data.telefono.trim() && data.telefono.trim().length < 7) {
+      errors.telefono = 'El teléfono debe tener al menos 7 caracteres';
     }
 
-    if (!data.correo?.trim()) {
-      errors.correo = 'El correo es requerido';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.correo)) {
+    if (data.correo && data.correo.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.correo)) {
       errors.correo = 'El formato del correo no es válido';
     }
 
-    if (!data.direccion?.trim()) {
-      errors.direccion = 'La dirección es requerida';
-    }
+    // La dirección es opcional
 
-    if (!data.fecha_nacimiento) {
-      errors.fecha_nacimiento = 'La fecha de nacimiento es requerida';
-    }
+    // La fecha de nacimiento es opcional
 
     return {
       isValid: Object.keys(errors).length === 0,
@@ -88,7 +86,7 @@ export class PersonaService {
       telefono: frontendData.telefono?.trim(),
       correo: frontendData.correo?.trim(),
       direccion: frontendData.direccion?.trim(),
-      fecha_nacimiento: frontendData.fechaNacimiento || frontendData.fecha_nacimiento,
+      fecha_nacimiento: PersonaService.formatDateForBackend(frontendData.fecha_nacimiento),
       estado: frontendData.estado || 'activo'
     };
   }
@@ -118,6 +116,14 @@ export class PersonaService {
   static checkCedulaExists(personas, cedula, excludeId = null) {
     return personas.some(persona => 
       persona.cedula === cedula && persona.id !== excludeId
+    );
+  }
+
+  // Verificar si un email ya existe
+  static checkEmailExists(personas, email, excludeId = null) {
+    if (!email) return false;
+    return personas.some(persona => 
+      persona.correo?.toLowerCase() === email.toLowerCase() && persona.id !== excludeId
     );
   }
 
@@ -154,6 +160,72 @@ export class PersonaService {
       month: '2-digit',
       day: '2-digit'
     });
+  }
+
+  // Formatear fecha para input de tipo date (evita problemas de zona horaria)
+  static formatDateForInput(dateString) {
+    console.log('formatDateForInput input:', dateString);
+    
+    if (!dateString) {
+      console.log('formatDateForInput: dateString is empty');
+      return '';
+    }
+    
+    // Si ya está en formato YYYY-MM-DD, devolverla tal cual
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      console.log('formatDateForInput: already in YYYY-MM-DD format');
+      return dateString;
+    }
+    
+    // Si viene del backend como timestamp (formato GMT), usar split('T')[0]
+    if (dateString.includes('T')) {
+      const result = dateString.split('T')[0];
+      console.log('formatDateForInput: extracted from ISO format:', result);
+      return result;
+    }
+    
+    // Si viene en formato "Wed, 06 Aug 2025 00:00:00 GMT", convertir
+    if (dateString.includes('GMT') || dateString.includes(',')) {
+      try {
+        const date = new Date(dateString);
+        // Usar getFullYear, getMonth, getDate para evitar zona horaria
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const result = `${year}-${month}-${day}`;
+        console.log('formatDateForInput: converted from GMT format:', result);
+        return result;
+      } catch (error) {
+        console.log('formatDateForInput: error converting GMT format:', error);
+        return '';
+      }
+    }
+    
+    // Si es una fecha completa, convertirla
+    try {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const result = `${year}-${month}-${day}`;
+      console.log('formatDateForInput: converted from generic date:', result);
+      return result;
+    } catch (error) {
+      console.log('formatDateForInput: error converting date:', error);
+      return '';
+    }
+  }
+
+  // Formatear fecha para enviar al backend
+  static formatDateForBackend(dateString) {
+    if (!dateString) return null;
+    
+    // Si ya está en formato YYYY-MM-DD, está bien
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+    
+    return dateString;
   }
 
   // Obtener estados disponibles

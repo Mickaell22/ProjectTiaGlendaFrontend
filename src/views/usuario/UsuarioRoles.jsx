@@ -51,23 +51,49 @@ const UsuarioRoles = ({ usuarios = [] }) => {
   const [rolesStats, setRolesStats] = useState({});
   const [selectedRole, setSelectedRole] = useState(null);
   const [roleDialog, setRoleDialog] = useState({ open: false, type: 'view', data: null });
+  const [rolesDisponibles, setRolesDisponibles] = useState([]);
 
   const { showError } = useSnackbar();
 
   useEffect(() => {
-    calculateRolesStats();
-  }, [usuarios]);
+    const cargarRoles = async () => {
+      try {
+        const roles = await UsuarioService.getRolesFromBackend();
+        setRolesDisponibles(roles);
+      } catch (error) {
+        console.error('Error cargando roles:', error);
+        setRolesDisponibles(UsuarioService.getRoles());
+      }
+    };
+    
+    cargarRoles();
+  }, []);
+
+  useEffect(() => {
+    if (rolesDisponibles.length > 0) {
+      calculateRolesStats();
+    }
+  }, [usuarios, rolesDisponibles]);
 
   const calculateRolesStats = () => {
     const stats = {};
-    const roles = UsuarioService.getRoles();
 
-    roles.forEach((rol) => {
-      const usuariosConRol = usuarios.filter(
-        (u) => u.rol_id === rol.value || u.rol_nombre === rol.label
-      );
+    rolesDisponibles.forEach((rol) => {
+      const usuariosConRol = usuarios.filter((u) => {
+        // Comparar por ID numérico principalmente
+        if (u.rol_id === rol.value) return true;
+        // Compatibilidad con nombres de rol
+        if (u.rol_nombre === rol.label) return true;
+        if (u.rol_nombre === rol.name) return true;
+        return false;
+      });
+      
+      // Obtener información adicional del rol (icono, color)
+      const rolInfo = UsuarioService.getRolInfo(rol.value, rol.label);
+      
       stats[rol.value] = {
         ...rol,
+        ...rolInfo,
         count: usuariosConRol.length,
         usuarios: usuariosConRol,
         activos: usuariosConRol.filter((u) => u.estado === 'activo').length,

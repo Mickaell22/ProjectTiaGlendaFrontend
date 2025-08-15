@@ -49,6 +49,10 @@ export class PersonalService {
       errors.titulo_profesional = 'El título profesional debe tener al menos 3 caracteres';
     }
 
+    if (!data.especialidades || data.especialidades.length === 0) {
+      errors.especialidades = 'Debe seleccionar al menos una especialidad';
+    }
+
     return {
       isValid: Object.keys(errors).length === 0,
       errors
@@ -60,6 +64,7 @@ export class PersonalService {
     return {
       persona_id: parseInt(frontendData.persona_id),
       titulo_profesional: frontendData.titulo_profesional?.trim(),
+      especialidades: frontendData.especialidades || [],
       estado: frontendData.estado || 'activo'
     };
   }

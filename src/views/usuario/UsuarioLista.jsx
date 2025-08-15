@@ -211,7 +211,7 @@ const UsuarioLista = ({
                               Usuario:
                             </Typography>
                             <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                              {item.nombre_usuario} <Typography component="span" variant="caption" color="text.secondary">• ID: {item.id}</Typography>
+                              {item.usuario} <Typography component="span" variant="caption" color="text.secondary">• ID: {item.id}</Typography>
                             </Typography>
 
                             <Typography variant="caption" color="text.secondary">

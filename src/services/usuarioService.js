@@ -3,6 +3,7 @@
 
 import ApiService, { extractData } from './apiService.js';
 import { API_ENDPOINTS } from '../config/api.js';
+import RolService from './rolService.js';
 
 export class UsuarioService {
   // Obtener todos los usuarios
@@ -99,7 +100,7 @@ export class UsuarioService {
   static formatForBackend(frontendData) {
     return {
       persona_id: parseInt(frontendData.persona_id),
-      nombre_usuario: frontendData.nombre_usuario?.trim().toLowerCase(),
+      usuario: frontendData.nombre_usuario?.trim().toLowerCase(),
       contrasenia: frontendData.contrasenia,
       rol_id: parseInt(frontendData.rol_id),
       estado: frontendData.estado || 'activo'
@@ -124,8 +125,9 @@ export class UsuarioService {
       item.nombre?.toLowerCase().includes(term) ||
       item.apellido?.toLowerCase().includes(term) ||
       item.cedula?.includes(term) ||
-      item.nombre_usuario?.toLowerCase().includes(term) ||
-      item.rol_nombre?.toLowerCase().includes(term)
+      item.usuario?.toLowerCase().includes(term) ||
+      item.rol_nombre?.toLowerCase().includes(term) ||
+      item.rol?.toLowerCase().includes(term)
     );
   }
 
@@ -151,28 +153,30 @@ export class UsuarioService {
     ];
   }
 
-  // Obtener roles disponibles
+  // Obtener roles disponibles (estáticos - fallback)
   static getRoles() {
     return [
-      { value: 'admin', label: 'Administrador', icon: 'AdminPanelSettings' },
-      { value: 'usuario', label: 'Usuario', icon: 'Person' },
-      { value: 'terapeuta', label: 'Terapeuta', icon: 'Psychology' },
-      { value: 'pedagogo', label: 'Pedagogo', icon: 'School' },
-      { value: 'supervisor', label: 'Supervisor', icon: 'SupervisorAccount' }
+      { value: 1, label: 'Administrador', name: 'administrador', icon: 'AdminPanelSettings' },
+      { value: 2, label: 'Terapeuta', name: 'terapeuta', icon: 'Psychology' },
+      { value: 3, label: 'Pedagógico', name: 'pedagogico', icon: 'School' },
+      { value: 4, label: 'Cliente', name: 'cliente', icon: 'Person' }
     ];
+  }
+
+  // Obtener roles del backend dinámicamente
+  static async getRolesFromBackend() {
+    try {
+      const rolesData = await RolService.getAll();
+      return RolService.formatRolesForSelect(rolesData);
+    } catch (error) {
+      console.warn('Error obteniendo roles del backend, usando roles estáticos:', error);
+      return this.getRoles();
+    }
   }
 
   // Obtener información del rol con icono y color
   static getRolInfo(rol) {
-    const rolMap = {
-      admin: { label: 'Administrador', color: 'error', icon: 'AdminPanelSettings' },
-      administrador: { label: 'Administrador', color: 'error', icon: 'AdminPanelSettings' },
-      usuario: { label: 'Usuario', color: 'default', icon: 'Person' },
-      terapeuta: { label: 'Terapeuta', color: 'primary', icon: 'Psychology' },
-      pedagogo: { label: 'Pedagogo', color: 'secondary', icon: 'School' },
-      supervisor: { label: 'Supervisor', color: 'warning', icon: 'SupervisorAccount' }
-    };
-    return rolMap[rol] || { label: rol || 'Sin rol', color: 'default', icon: 'Person' };
+    return RolService.getRolInfo(rol);
   }
 
   // Obtener estado con color para UI
@@ -189,18 +193,9 @@ export class UsuarioService {
 
   // Obtener color del rol para UI
   static getRolColor(rolNombre) {
-    const colorMap = {
-      'administrador': 'error',
-      'admin': 'error',
-      'supervisor': 'warning',
-      'terapeuta': 'primary',
-      'pedagogo': 'secondary',
-      'usuario': 'default',
-      'invitado': 'default'
-    };
-    
-    const rol = rolNombre?.toLowerCase() || '';
-    return colorMap[rol] || 'default';
+    // Usar getRolInfo que ya tiene la lógica completa
+    const rolInfo = this.getRolInfo(rolNombre);
+    return rolInfo.color;
   }
 
   // Generar nombre completo
@@ -212,7 +207,7 @@ export class UsuarioService {
   // Verificar si un nombre de usuario ya existe
   static checkNombreUsuarioExists(usuarios, nombreUsuario, excludeId = null) {
     return usuarios.some(u => 
-      u.nombre_usuario?.toLowerCase() === nombreUsuario?.toLowerCase() && u.id !== excludeId
+      u.usuario?.toLowerCase() === nombreUsuario?.toLowerCase() && u.id !== excludeId
     );
   }
 
@@ -324,9 +319,19 @@ export class UsuarioService {
 
   // Obtener usuarios activos por rol
   static getActivosByRol(usuarios, rolId) {
-    return usuarios.filter(u => 
-      u.rol_id === parseInt(rolId) && u.estado === 'activo'
-    );
+    const rolIdNum = parseInt(rolId);
+    return usuarios.filter(u => {
+      if (u.rol_id === rolIdNum && u.estado === 'activo') return true;
+      // Compatibilidad con nombres de rol si no hay ID
+      if (!u.rol_id && u.rol_nombre) {
+        const roles = this.getRoles();
+        const rol = roles.find(r => r.value === rolIdNum);
+        if (rol && (u.rol_nombre === rol.label || u.rol_nombre === rol.name)) {
+          return u.estado === 'activo';
+        }
+      }
+      return false;
+    });
   }
 
   // Validar antes de eliminar (verificar dependencias)

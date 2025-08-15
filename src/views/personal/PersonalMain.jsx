@@ -62,6 +62,7 @@ const PersonalMainComponent = () => {
   const [formData, setFormData] = useState({
     persona_id: '',
     titulo_profesional: '',
+    especialidades: [],
     estado: 'activo'
   });
   const [editingId, setEditingId] = useState(null);
@@ -161,6 +162,7 @@ const PersonalMainComponent = () => {
     setFormData({
       persona_id: '',
       titulo_profesional: '',
+      especialidades: [],
       estado: 'activo'
     });
     setEditingId(null);
@@ -173,6 +175,7 @@ const PersonalMainComponent = () => {
     setFormData({
       persona_id: item.persona_id,
       titulo_profesional: item.titulo_profesional || '',
+      especialidades: item.especialidades || [],
       estado: item.estado
     });
 
@@ -236,6 +239,7 @@ const PersonalMainComponent = () => {
           errors={errors}
           editingId={editingId}
           personasDisponibles={personasDisponibles}
+          especialidades={especialidades}
           selectedPerson={selectedPerson}
           onChange={handleChange}
           onPersonChange={handlePersonChange}

@@ -19,11 +19,13 @@ import {
   Edit,
   Person,
   Assignment,
-  LocalHospital
+  LocalHospital,
+  Work
 } from '@mui/icons-material';
 
 // Servicios
 import PersonalService from '../../services/personalService.js';
+import EspecialidadService from '../../services/especialidadService.js';
 
 const purpleOutlineSX = {
   '& .MuiOutlinedInput-root': {
@@ -51,6 +53,7 @@ const PersonalFormulario = ({
   errors,
   editingId,
   personasDisponibles = [],
+  especialidades = [],
   selectedPerson,
   onChange,
   onPersonChange,
@@ -63,7 +66,10 @@ const PersonalFormulario = ({
   };
 
   const canSubmit =
-    (selectedPerson?.id || formData.persona_id) && !!formData.titulo_profesional?.trim();
+    (selectedPerson?.id || formData.persona_id) && 
+    !!formData.titulo_profesional?.trim() &&
+    formData.especialidades && 
+    formData.especialidades.length > 0;
 
   const fullName =
     selectedPerson
@@ -308,6 +314,63 @@ const PersonalFormulario = ({
                     helperText={errors.titulo_profesional || 'Ej: Licenciado en Psicología'}
                     placeholder="Ej: Licenciado en Psicología, Doctor en Medicina, etc."
                     sx={purpleOutlineSX}
+                  />
+                </Grid>
+
+                {/* Especialidades */}
+                <Grid item xs={12}>
+                  <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
+                    Especialidades *
+                  </Typography>
+                  <Autocomplete
+                    multiple
+                    value={formData.especialidades || []}
+                    onChange={(event, newValue) => {
+                      onChange({
+                        target: {
+                          name: 'especialidades',
+                          value: newValue
+                        }
+                      });
+                    }}
+                    options={especialidades.filter(esp => esp.estado === 'activo')}
+                    getOptionLabel={(option) => `${option.nombre} (${EspecialidadService.getAreaLabel(option.area)})`}
+                    groupBy={(option) => EspecialidadService.getAreaLabel(option.area)}
+                    renderTags={(tagValue, getTagProps) =>
+                      tagValue.map((option, index) => (
+                        <Chip
+                          {...getTagProps({ index })}
+                          key={option.id}
+                          label={option.nombre}
+                          color={EspecialidadService.getAreaColor(option.area)}
+                          size="small"
+                          icon={<Work />}
+                        />
+                      ))
+                    }
+                    renderOption={(props, option) => (
+                      <Box component="li" {...props}>
+                        <Work sx={{ mr: 1, color: `${EspecialidadService.getAreaColor(option.area)}.main` }} />
+                        <Box>
+                          <Typography variant="body2" fontWeight="bold">
+                            {option.nombre}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Área: {EspecialidadService.getAreaLabel(option.area)}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Selecciona las especialidades del personal..."
+                        error={!!errors.especialidades}
+                        helperText={errors.especialidades || 'Selecciona al menos una especialidad'}
+                        sx={purpleOutlineSX}
+                      />
+                    )}
+                    noOptionsText="No hay especialidades disponibles"
                   />
                 </Grid>
 

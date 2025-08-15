@@ -71,6 +71,7 @@ const UsuarioFormulario = ({
   const [errors, setErrors] = useState({});
   const [personaSeleccionada, setPersonaSeleccionada] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [rolesDisponibles, setRolesDisponibles] = useState([]);
 
   const { showError } = useSnackbar();
   const isEditing = !!editingData;
@@ -89,29 +90,45 @@ const UsuarioFormulario = ({
 
   /* ---------- Effects ---------- */
   useEffect(() => {
+    const cargarRoles = async () => {
+      try {
+        const roles = await UsuarioService.getRolesFromBackend();
+        setRolesDisponibles(roles);
+      } catch (error) {
+        console.error('Error cargando roles:', error);
+        setRolesDisponibles(UsuarioService.getRoles());
+      }
+    };
+    
+    cargarRoles();
+  }, []);
+
+  useEffect(() => {
     if (editingData) {
       const personaIdStr = editingData.persona_id != null ? String(editingData.persona_id) : '';
       const rolIdStr = editingData.rol_id != null ? String(editingData.rol_id) : '';
 
       setFormData({
         persona_id: personaIdStr,
-        nombre_usuario: editingData.nombre_usuario || '',
+        nombre_usuario: editingData.usuario || editingData.nombre_usuario || '',
         contrasenia: '',
         rol_id: rolIdStr,
         estado: editingData.estado || 'activo'
       });
 
       if (editingData.persona_id) {
-        setPersonaSeleccionada({
+        const personaData = {
           id: editingData.persona_id,
           nombre: editingData.nombre_persona || editingData.nombre || '',
           apellido: editingData.apellido_persona || editingData.apellido || '',
           nombre_completo:
             editingData.nombre_persona_completo ||
             editingData.nombre_completo ||
-            undefined,
-          cedula: editingData.cedula || ''
-        });
+            `${editingData.nombre_persona || editingData.nombre || ''} ${editingData.apellido_persona || editingData.apellido || ''}`.trim(),
+          cedula: editingData.cedula || editingData.cedula_persona || ''
+        };
+        
+        setPersonaSeleccionada(personaData);
       }
     } else {
       resetForm();
@@ -160,13 +177,14 @@ const UsuarioFormulario = ({
     const personaIdNum = parseInt(formData.persona_id, 10);
     const rolIdNum = parseInt(formData.rol_id, 10);
 
-    const backendData = UsuarioService.formatForBackend({
+    // Usar datos del frontend para validación (sin formatear para backend)
+    const frontendData = {
       ...formData,
       persona_id: Number.isInteger(personaIdNum) ? personaIdNum : null,
       rol_id: Number.isInteger(rolIdNum) ? rolIdNum : null
-    });
+    };
 
-    const validation = UsuarioService.validateUsuarioData(backendData);
+    const validation = UsuarioService.validateUsuarioData(frontendData);
 
     // Reglas del UI
     if (!Number.isInteger(personaIdNum) || personaIdNum <= 0) {
@@ -251,8 +269,6 @@ const UsuarioFormulario = ({
   const rolOk = Number.isInteger(parseInt(formData.rol_id, 10)) && parseInt(formData.rol_id, 10) > 0;
   const userOk = !!formData.nombre_usuario?.trim();
   const passOk = isEditing || !!formData.contrasenia;
-
-  const roles = UsuarioService.getRoles();
 
   return (
     <Box>
@@ -455,7 +471,7 @@ const UsuarioFormulario = ({
                   size="medium"
                 >
                   <MenuItem value="">Seleccione un rol</MenuItem>
-                  {roles.map((rol) => (
+                  {rolesDisponibles.map((rol) => (
                     <MenuItem key={String(rol.value)} value={String(rol.value)}>
                       {rol.label}
                     </MenuItem>

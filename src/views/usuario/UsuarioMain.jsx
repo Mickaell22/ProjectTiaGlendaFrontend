@@ -76,7 +76,7 @@ const UsuarioMain = () => {
       setLoading(true);
       const [usuariosData, personasData] = await Promise.all([
         UsuarioService.getAll(),
-        PersonaService.getAll()
+        PersonaService.getAvailableForUsers()
       ]);
       
       setUsuarios(usuariosData);

@@ -28,6 +28,7 @@ export const API_ENDPOINTS = {
   PERSONAS: {
     BASE: '/api/personas',
     BY_ID: (id) => `/api/personas/${id}`,
+    DISPONIBLES: '/api/personas/disponibles',
   },
 
   // Usuarios

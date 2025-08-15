@@ -51,11 +51,16 @@ const PersonaFormulario = ({
 
   useEffect(() => {
     if (editingData) {
+      console.log('editingData:', editingData);
+      console.log('fecha_nacimiento original:', editingData.fecha_nacimiento);
+      const formattedDate = PersonaService.formatDateForInput(editingData.fecha_nacimiento);
+      console.log('fecha_nacimiento formatted:', formattedDate);
+      
       setFormData({
         nombre: editingData.nombre || '',
         apellido: editingData.apellido || '',
         cedula: editingData.cedula || '',
-        fecha_nacimiento: editingData.fecha_nacimiento ? editingData.fecha_nacimiento.split('T')[0] : '',
+        fecha_nacimiento: formattedDate,
         telefono: editingData.telefono || '',
         correo: editingData.correo || '',
         direccion: editingData.direccion || '',
@@ -97,7 +102,7 @@ const PersonaFormulario = ({
     }
 
     // Verificar email duplicado si existe
-    if (formData.correo && PersonaService.checkEmailExists && PersonaService.checkEmailExists(personas, formData.correo, editingData?.id)) {
+    if (formData.correo && PersonaService.checkEmailExists(personas, formData.correo, editingData?.id)) {
       validation.errors.correo = 'Este email ya está registrado';
       validation.isValid = false;
     }
