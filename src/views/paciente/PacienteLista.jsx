@@ -33,6 +33,7 @@ import {
   LocalHospital,
   CalendarToday
 } from '@mui/icons-material';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useNavigate } from 'react-router-dom';
 
 /* ---------------- Helpers ---------------- */
@@ -58,6 +59,123 @@ function formatDateLocal(dateString) {
   }
 }
 
+function slug(text = '') {
+  return text
+    .toString()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 40);
+}
+
+/**
+ * Genera un PDF con la info del paciente.
+ * Se hace import dinámico para no cargar jspdf en el bundle si no se usa.
+ */
+async function exportPacientePDF(paciente) {
+  const { jsPDF } = await import('jspdf');
+  const autoTable = (await import('jspdf-autotable')).default;
+
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const marginX = 48;
+  let cursorY = 56;
+
+  // Encabezado
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.text('Centro Tía Glenda', marginX, cursorY);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 595 - marginX, cursorY, { align: 'right' });
+
+  cursorY += 24;
+  doc.setDrawColor(103, 58, 183); // morado
+  doc.setLineWidth(1.2);
+  doc.line(marginX, cursorY, 595 - marginX, cursorY);
+  cursorY += 24;
+
+  // Título
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.text('Ficha del Paciente', marginX, cursorY);
+  cursorY += 18;
+
+  // Ficha (dos columnas)
+  const leftColX = marginX;
+  const rightColX = 300;
+
+  const field = (label, value, x, y) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text(label, x, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.text(value || '—', x, y + 14);
+  };
+
+  field('Nombre completo', paciente?.nombre_completo, leftColX, cursorY);
+  field('Cédula', paciente?.cedula, rightColX, cursorY);
+
+  cursorY += 38;
+  field('Tutor', paciente?.nombre_tutor, leftColX, cursorY);
+  field('Especialidad', paciente?.especialidad_nombre, rightColX, cursorY);
+
+  cursorY += 38;
+  field('Fecha de ingreso', formatDateLocal(paciente?.fecha_ingreso), leftColX, cursorY);
+  field('Estado tratamiento', paciente?.estado_tratamiento, rightColX, cursorY);
+
+  cursorY += 48;
+
+  // Sección adicionales con tabla (autoTable)
+  const adicionales = [
+    ['ID', String(paciente?.id ?? '—')],
+    ['Teléfono', paciente?.telefono ?? '—'],
+    ['Correo', paciente?.correo ?? '—'],
+    ['Dirección', paciente?.direccion ?? '—'],
+    ['Fecha nacimiento', formatDateLocal(paciente?.fecha_nacimiento)],
+    ['Diagnóstico', paciente?.diagnostico ?? '—'],
+    ['Observaciones', paciente?.observaciones ?? '—'],
+  ].filter(([_, v]) => v && v !== '—'); // omitimos filas totalmente vacías
+
+  if (adicionales.length) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Datos adicionales', marginX, cursorY);
+    cursorY += 10;
+
+    autoTable(doc, {
+      startY: cursorY + 8,
+      margin: { left: marginX, right: marginX },
+      head: [['Campo', 'Valor']],
+      body: adicionales,
+      styles: { font: 'helvetica', fontSize: 10, cellPadding: 6, overflow: 'linebreak' },
+      headStyles: { fillColor: [103, 58, 183] }, // morado MUI
+      columnStyles: {
+        0: { cellWidth: 180 },
+        1: { cellWidth: 595 - marginX * 2 - 180 }
+      }
+    });
+  }
+
+  // Footer
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(
+      `Documento generado por el sistema — Página ${i} de ${pageCount}`,
+      595 / 2,
+      842 - 24,
+      { align: 'center' }
+    );
+  }
+
+  const filename = `Paciente_${paciente?.id ?? ''}_${slug(paciente?.nombre_completo ?? '')}.pdf`;
+  doc.save(filename || 'paciente.pdf');
+}
+
 /* ---------------- Componente ---------------- */
 const PacienteLista = ({
   pacientes = [],
@@ -75,6 +193,16 @@ const PacienteLista = ({
 
   const handleDocs = (paciente) => {
     navigate(`/pacientes/${paciente.id}/documentos`);
+  };
+
+  const handleExportPdf = async (paciente) => {
+    try {
+      await exportPacientePDF(paciente);
+    } catch (err) {
+      // En producción podrías usar tu Snackbar aquí
+      console.error('Error generando PDF del paciente:', err);
+      alert('No se pudo generar el PDF. Revisa la consola para más detalles.');
+    }
   };
 
   // Filtrar pacientes (búsqueda + estado)
@@ -215,7 +343,9 @@ const PacienteLista = ({
                 <TableCell>Fecha Ingreso</TableCell>
                 <TableCell>Especialidad</TableCell>
                 {/* Estado eliminado */}
-                <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 220 }}>Acciones</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 260 /* +40 para el nuevo botón */ }}>
+                  Acciones
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -301,8 +431,8 @@ const PacienteLista = ({
                         />
                       </TableCell>
 
-                      {/* Acciones (minWidth para que entren todos los iconos) */}
-                      <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 220 }}>
+                      {/* Acciones */}
+                      <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 260 }}>
                         <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'nowrap' }}>
                           <Tooltip title="Ver Detalles">
                             <IconButton color="info" onClick={() => onViewDetail(p)} size="small">
@@ -322,6 +452,12 @@ const PacienteLista = ({
                           <Tooltip title="Documentos">
                             <IconButton color="info" onClick={() => handleDocs(p)} size="small">
                               <Description fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          {/* NUEVO: Exportar PDF */}
+                          <Tooltip title="Exportar PDF">
+                            <IconButton color="secondary" onClick={() => handleExportPdf(p)} size="small">
+                              <PictureAsPdfIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         </Box>
