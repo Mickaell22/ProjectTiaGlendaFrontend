@@ -51,15 +51,11 @@ const Login = () => {
           contrasenia: values.contrasenia,
         });
         
-        // Extraer datos de la respuesta
         const data = response?.data || response;
         
         if (data.status === 'success' && data.data?.token) {
-          // Usar el hook de autenticación para manejar el login
           const loginSuccess = login(data.data.token, data.data.user);
-          
           if (loginSuccess) {
-            console.log('Login successful, navigating...');
             const from = location.state?.from?.pathname || '/dashboard';
             navigate(from, { replace: true });
           } else {
@@ -85,7 +81,12 @@ const Login = () => {
       <Box
         sx={{
           minHeight: '100vh',
-          background: 'linear-gradient(135deg, #e3eafc 0%, #f8f9ff 100%)',
+          // ⬇️ Imagen de fondo con overlay sutil
+          backgroundImage: `linear-gradient(rgba(227,234,252,0.75), rgba(248,249,255,0.75)), url('/fondo-login1.jpg')`,
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: { md: 'fixed' },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -100,6 +101,7 @@ const Login = () => {
             overflow: 'hidden',
             boxShadow: '0 8px 32px rgba(33, 150, 243, 0.12)',
             position: 'relative',
+            backdropFilter: 'saturate(1.1) blur(0px)', // opcional
           }}
         >
           {/* Barra superior con título y logo alineados */}
@@ -127,7 +129,6 @@ const Login = () => {
               style={{ width: '74px', height: 'auto', marginLeft: 12 }}
             />
           </Box>
-          {/* Fin barra superior */}
 
           <CardContent sx={{ px: 4, py: 5 }}>
             <Typography
@@ -233,21 +234,18 @@ const Login = () => {
                 )}
               </Stack>
             </form>
-
-           
           </CardContent>
 
           {/* Barra inferior decorativa */}
-          {/* Barra inferior decorativa */}
-        <Box
-           sx={{
-            width: '100%',
-           height: 18,
-           bgcolor: '#6C4ACF',
-           position: 'absolute',
-           left: 0,
-           bottom: 0,
-          }}
+          <Box
+            sx={{
+              width: '100%',
+              height: 18,
+              bgcolor: '#6C4ACF',
+              position: 'absolute',
+              left: 0,
+              bottom: 0,
+            }}
           >
             <Box sx={{ flex: 1, bgcolor: '#6C4ACF' }} />
             <Box sx={{ flex: 1, bgcolor: '#fff' }} />
