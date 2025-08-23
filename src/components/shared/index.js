@@ -21,3 +21,4 @@ export { default as Spinner } from './Spinner';
 export { default as StatusChip } from './StatusChip';
 export { default as FotoPerfil } from './FotoPerfil';
 export { default as FotoPerfilConAutorizacion } from './FotoPerfilConAutorizacion';
+export { default as FotoPerfilTabla } from './FotoPerfilTabla';

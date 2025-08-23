@@ -40,6 +40,7 @@ import {
 
 import UsuarioService from '../../services/usuarioService.js';
 import useSnackbar from '../../hooks/useSnackbar.js';
+import { FotoPerfilTabla } from '../../components/shared/index.js';
 
 const purpleOutlineSX = {
   '& .MuiOutlinedInput-root': {
@@ -189,17 +190,23 @@ const UsuarioLista = ({
 
                 return (
                   <TableRow key={item.id}>
-                    {/* Usuario: solo nombre y teléfono */}
+                    {/* Usuario: foto, nombre y teléfono */}
                     <TableCell>
                       <Box display="flex" alignItems="flex-start">
-                        <Avatar sx={{ mr: 2, bgcolor: 'primary.light' }}>
-                          <Person />
-                        </Avatar>
+                        <FotoPerfilTabla
+                          rutaFoto={item.foto_perfil}
+                          nombreCompleto={UsuarioService.getFullName(item)}
+                          size={40}
+                          sx={{ mr: 2 }}
+                        />
                         <Box>
                           <Typography variant="body2" fontWeight="bold">
                             {UsuarioService.getFullName(item)}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
+                            @{item.usuario}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" display="block">
                             {contactInfo.telefono || 'Sin teléfono'}
                           </Typography>
                         </Box>
