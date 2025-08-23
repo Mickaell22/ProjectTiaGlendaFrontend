@@ -57,6 +57,7 @@ const PersonalFormulario = ({
   editingId,
   personasDisponibles = [],
   especialidades = [],
+  centros = [],
   selectedPerson,
   onChange,
   onPersonChange,
@@ -70,9 +71,12 @@ const PersonalFormulario = ({
 
   const canSubmit =
     (selectedPerson?.id || formData.persona_id) &&
-    !!formData.titulo_profesional?.trim() &&
-    formData.especialidades &&
-    formData.especialidades.length > 0;
+    formData.id_especialidad &&
+    formData.fecha_ingreso &&
+    formData.titulo_profesional?.trim() &&
+    formData.cargo?.trim() &&
+    formData.tipo_contrato &&
+    formData.id_centro;
 
   const fullName =
     selectedPerson
@@ -298,36 +302,18 @@ const PersonalFormulario = ({
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              {/* Título Profesional */}
+              {/* Especialidad Principal */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Título Profesional *
-                </Typography>
-                <TextField
-                  fullWidth
-                  name="titulo_profesional"
-                  value={formData.titulo_profesional}
-                  onChange={onChange}
-                  error={!!errors.titulo_profesional}
-                  helperText={errors.titulo_profesional || 'Ej: Licenciado en Psicología'}
-                  placeholder="Ej: Licenciado en Psicología, Doctor en Medicina, etc."
-                  sx={neutralInputSX}
-                />
-              </Box>
-
-              {/* Especialidades */}
-              <Box sx={rowGridSX}>
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Especialidades *
+                  Especialidad Principal *
                 </Typography>
                 <Autocomplete
-                  multiple
-                  value={formData.especialidades || []}
+                  value={especialidades.find(esp => esp.id === formData.id_especialidad) || null}
                   onChange={(event, newValue) => {
                     onChange({
                       target: {
-                        name: 'especialidades',
-                        value: newValue
+                        name: 'id_especialidad',
+                        value: newValue?.id || ''
                       }
                     });
                   }}
@@ -337,18 +323,6 @@ const PersonalFormulario = ({
                   }
                   groupBy={(option) => EspecialidadService.getAreaLabel(option.area)}
                   isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                  renderTags={(tagValue, getTagProps) =>
-                    tagValue.map((option, index) => (
-                      <Chip
-                        {...getTagProps({ index })}
-                        key={option.id}
-                        label={option.nombre}
-                        color={EspecialidadService.getAreaColor(option.area)}
-                        size="small"
-                        icon={<Work />}
-                      />
-                    ))
-                  }
                   renderOption={(props, option) => (
                     <Box component="li" {...props}>
                       <Work sx={{ mr: 1, color: `${EspecialidadService.getAreaColor(option.area)}.main` }} />
@@ -365,13 +339,170 @@ const PersonalFormulario = ({
                   renderInput={(params) => (
                     <TextField
                       {...params}
-                      placeholder="Selecciona las especialidades del personal..."
-                      error={!!errors.especialidades}
-                      helperText={errors.especialidades || 'Selecciona al menos una especialidad'}
+                      placeholder="Selecciona la especialidad principal..."
+                      error={!!errors.id_especialidad}
+                      helperText={errors.id_especialidad || 'Selecciona la especialidad principal del personal'}
                       sx={neutralInputSX}
                     />
                   )}
                   noOptionsText="No hay especialidades disponibles"
+                />
+              </Box>
+
+              {/* Fecha de Ingreso */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Fecha de Ingreso *
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="date"
+                  name="fecha_ingreso"
+                  value={formData.fecha_ingreso}
+                  onChange={onChange}
+                  error={!!errors.fecha_ingreso}
+                  helperText={errors.fecha_ingreso || 'Fecha en que inicia el personal'}
+                  sx={neutralInputSX}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Box>
+
+              {/* Fecha de Salida */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Fecha de Salida
+                </Typography>
+                <TextField
+                  fullWidth
+                  type="date"
+                  name="fecha_salida"
+                  value={formData.fecha_salida || ''}
+                  onChange={onChange}
+                  error={!!errors.fecha_salida}
+                  helperText={errors.fecha_salida || 'Fecha de finalización (opcional)'}
+                  sx={neutralInputSX}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Box>
+
+              {/* Título Profesional */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Título Profesional *
+                </Typography>
+                <TextField
+                  fullWidth
+                  name="titulo_profesional"
+                  value={formData.titulo_profesional}
+                  onChange={onChange}
+                  error={!!errors.titulo_profesional}
+                  helperText={errors.titulo_profesional || 'Ej: Licenciado en Psicología, Doctor en Medicina'}
+                  placeholder="Ej: Licenciado en Psicología, Doctor en Medicina, etc."
+                  sx={neutralInputSX}
+                />
+              </Box>
+
+              {/* Cargo */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Cargo *
+                </Typography>
+                <TextField
+                  fullWidth
+                  name="cargo"
+                  value={formData.cargo}
+                  onChange={onChange}
+                  error={!!errors.cargo}
+                  helperText={errors.cargo || 'Ej: Psicólogo Clínico, Terapeuta Físico'}
+                  placeholder="Ej: Psicólogo Clínico, Terapeuta Físico, etc."
+                  sx={neutralInputSX}
+                />
+              </Box>
+
+              {/* Tipo de Contrato */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Tipo de Contrato *
+                </Typography>
+                <Autocomplete
+                  value={{ value: formData.tipo_contrato, label: formData.tipo_contrato ? 
+                    formData.tipo_contrato.charAt(0).toUpperCase() + formData.tipo_contrato.slice(1) : '' } || null}
+                  onChange={(event, newValue) => {
+                    onChange({
+                      target: {
+                        name: 'tipo_contrato',
+                        value: newValue?.value || ''
+                      }
+                    });
+                  }}
+                  options={[
+                    { value: 'indefinido', label: 'Indefinido' },
+                    { value: 'temporal', label: 'Temporal' },
+                    { value: 'honorarios', label: 'Honorarios' },
+                    { value: 'practicante', label: 'Practicante' }
+                  ]}
+                  getOptionLabel={(option) => option.label}
+                  isOptionEqualToValue={(opt, val) => opt.value === val.value}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Selecciona el tipo de contrato..."
+                      error={!!errors.tipo_contrato}
+                      helperText={errors.tipo_contrato || 'Tipo de contrato del personal'}
+                      sx={neutralInputSX}
+                    />
+                  )}
+                  noOptionsText="No hay tipos de contrato disponibles"
+                />
+              </Box>
+
+              {/* Centro */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Centro *
+                </Typography>
+                <Autocomplete
+                  value={centros.find(centro => centro.id === formData.id_centro) || null}
+                  onChange={(event, newValue) => {
+                    onChange({
+                      target: {
+                        name: 'id_centro',
+                        value: newValue?.id || ''
+                      }
+                    });
+                  }}
+                  options={centros}
+                  getOptionLabel={(option) => option.nombre}
+                  isOptionEqualToValue={(opt, val) => opt.id === val.id}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder="Selecciona el centro..."
+                      error={!!errors.id_centro}
+                      helperText={errors.id_centro || 'Centro donde trabajará el personal'}
+                      sx={neutralInputSX}
+                    />
+                  )}
+                  noOptionsText="No hay centros disponibles"
+                />
+              </Box>
+
+              {/* Observaciones */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Observaciones
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  name="observaciones"
+                  value={formData.observaciones || ''}
+                  onChange={onChange}
+                  error={!!errors.observaciones}
+                  helperText={errors.observaciones || 'Observaciones adicionales (opcional)'}
+                  placeholder="Observaciones adicionales sobre el personal..."
+                  sx={neutralInputSX}
                 />
               </Box>
 

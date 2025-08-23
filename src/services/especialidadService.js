@@ -84,16 +84,16 @@ export class EspecialidadService {
   // Obtener áreas disponibles
   static getAreas() {
     return [
-      { value: 'terapeutico', label: 'Terapéutico' },
-      { value: 'pedagogico', label: 'Pedagógico' }
+      { value: 'Especialidad terapéutica', label: 'Especialidad terapéutica' },
+      { value: 'Especialidad pedagógica', label: 'Especialidad pedagógica' }
     ];
   }
 
   // Obtener icono por área
   static getAreaIcon(area) {
     const iconMap = {
-      terapeutico: 'LocalHospital',
-      pedagogico: 'School'
+      'Especialidad terapéutica': 'LocalHospital',
+      'Especialidad pedagógica': 'School'
     };
     return iconMap[area] || 'Work';
   }
@@ -101,8 +101,8 @@ export class EspecialidadService {
   // Obtener color por área
   static getAreaColor(area) {
     const colorMap = {
-      terapeutico: 'primary',
-      pedagogico: 'secondary'
+      'Especialidad terapéutica': 'primary',
+      'Especialidad pedagógica': 'secondary'
     };
     return colorMap[area] || 'default';
   }
@@ -118,8 +118,8 @@ export class EspecialidadService {
   // Obtener áreas disponibles
   static getAreas() {
     return [
-      { value: 'terapeutico', label: 'Terapéutico' },
-      { value: 'pedagogico', label: 'Pedagógico' }
+      { value: 'Especialidad terapéutica', label: 'Especialidad terapéutica' },
+      { value: 'Especialidad pedagógica', label: 'Especialidad pedagógica' }
     ];
   }
 
@@ -136,8 +136,8 @@ export class EspecialidadService {
   // Obtener label del área
   static getAreaLabel(area) {
     const labelMap = {
-      terapeutico: 'Terapéutico',
-      pedagogico: 'Pedagógico'
+      'Especialidad terapéutica': 'Especialidad terapéutica',
+      'Especialidad pedagógica': 'Especialidad pedagógica'
     };
     return labelMap[area] || area;
   }
@@ -145,13 +145,13 @@ export class EspecialidadService {
   // Obtener información completa del área con icono y color
   static getAreaInfo(area) {
     const areaMap = {
-      terapeutico: { 
-        label: 'Terapéutico', 
+      'Especialidad terapéutica': { 
+        label: 'Especialidad terapéutica', 
         color: 'primary',
         icon: 'LocalHospital'
       },
-      pedagogico: { 
-        label: 'Pedagógico', 
+      'Especialidad pedagógica': { 
+        label: 'Especialidad pedagógica', 
         color: 'secondary',
         icon: 'School'
       }

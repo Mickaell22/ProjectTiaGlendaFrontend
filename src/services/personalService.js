@@ -43,14 +43,41 @@ export class PersonalService {
       errors.persona_id = 'Debe seleccionar una persona';
     }
 
+    if (!data.id_especialidad) {
+      errors.id_especialidad = 'Debe seleccionar una especialidad principal';
+    }
+
+    if (!data.fecha_ingreso) {
+      errors.fecha_ingreso = 'La fecha de ingreso es requerida';
+    }
+
     if (!data.titulo_profesional?.trim()) {
       errors.titulo_profesional = 'El título profesional es requerido';
     } else if (data.titulo_profesional.trim().length < 3) {
       errors.titulo_profesional = 'El título profesional debe tener al menos 3 caracteres';
     }
 
-    if (!data.especialidades || data.especialidades.length === 0) {
-      errors.especialidades = 'Debe seleccionar al menos una especialidad';
+    if (!data.cargo?.trim()) {
+      errors.cargo = 'El cargo es requerido';
+    } else if (data.cargo.trim().length < 3) {
+      errors.cargo = 'El cargo debe tener al menos 3 caracteres';
+    }
+
+    if (!data.tipo_contrato) {
+      errors.tipo_contrato = 'Debe seleccionar un tipo de contrato';
+    }
+
+    if (!data.id_centro) {
+      errors.id_centro = 'Debe seleccionar un centro';
+    }
+
+    // Validar que fecha_salida sea posterior a fecha_ingreso si existe
+    if (data.fecha_salida && data.fecha_ingreso) {
+      const fechaIngreso = new Date(data.fecha_ingreso);
+      const fechaSalida = new Date(data.fecha_salida);
+      if (fechaSalida <= fechaIngreso) {
+        errors.fecha_salida = 'La fecha de salida debe ser posterior a la fecha de ingreso';
+      }
     }
 
     return {
@@ -61,12 +88,27 @@ export class PersonalService {
 
   // Formatear datos para el backend
   static formatForBackend(frontendData) {
-    return {
-      persona_id: parseInt(frontendData.persona_id),
-      titulo_profesional: frontendData.titulo_profesional?.trim(),
-      especialidades: frontendData.especialidades || [],
-      estado: frontendData.estado || 'activo'
+    console.log('Formatting data:', JSON.stringify(frontendData, null, 2));
+    
+    const backendData = {
+      id_persona: parseInt(frontendData.persona_id),
+      id_especialidad: parseInt(frontendData.id_especialidad),
+      fecha_ingreso: frontendData.fecha_ingreso,
+      cargo: frontendData.titulo_profesional?.trim() || frontendData.cargo?.trim(),
+      tipo_contrato: frontendData.tipo_contrato,
+      id_centro: parseInt(frontendData.id_centro)
     };
+
+    // Campos opcionales
+    if (frontendData.fecha_salida) {
+      backendData.fecha_salida = frontendData.fecha_salida;
+    }
+    
+    if (frontendData.observaciones?.trim()) {
+      backendData.observaciones = frontendData.observaciones.trim();
+    }
+
+    return backendData;
   }
 
   // Buscar personal por término
@@ -151,37 +193,6 @@ export class PersonalService {
     return new Date(dateString).toLocaleDateString();
   }
 
-  // Filtrar personal por término de búsqueda
-  static filterPersonal(personal, searchTerm) {
-    if (!searchTerm?.trim()) return personal;
-
-    const term = searchTerm.toLowerCase();
-    return personal.filter(p =>
-      p.nombre?.toLowerCase().includes(term) ||
-      p.apellido?.toLowerCase().includes(term) ||
-      p.titulo_profesional?.toLowerCase().includes(term) ||
-      p.especialidades?.some(e => e.nombre?.toLowerCase().includes(term))
-    );
-  }
-
-  // Filtrar por área
-  static filterByArea(personal, area) {
-    if (!area) return personal;
-    return personal.filter(p => 
-      p.especialidades?.some(e => e.area === area)
-    );
-  }
-
-  // Obtener áreas únicas del personal
-  static getUniqueAreas(personal) {
-    const areas = new Set();
-    personal.forEach(p => {
-      p.especialidades?.forEach(e => {
-        if (e.area) areas.add(e.area);
-      });
-    });
-    return Array.from(areas);
-  }
 
   // Obtener estados disponibles
   static getEstados() {

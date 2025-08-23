@@ -11,8 +11,10 @@ import {
 import PersonalService from '../../services/personalService.js';
 import PersonaService from '../../services/personaService.js';
 import EspecialidadService from '../../services/especialidadService.js';
+import CentroService from '../../services/centroService.js';
 import useSnackbar from '../../hooks/useSnackbar.js';
 import useAuth from '../../hooks/useAuth.js';
+import { formatDateForInput } from '../../utils/dateUtils.js';
 
 // Componentes compartidos
 import CustomSnackbar from '../../components/shared/CustomSnackbar.jsx';
@@ -55,15 +57,21 @@ const PersonalMainComponent = () => {
   const [personal, setPersonal] = useState([]);
   const [personasDisponibles, setPersonasDisponibles] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
+  const [centros, setCentros] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
 
   // Estados del formulario
   const [formData, setFormData] = useState({
     persona_id: '',
+    id_especialidad: '',
+    fecha_ingreso: '',
+    fecha_salida: '',
     titulo_profesional: '',
-    especialidades: [],
-    estado: 'activo'
+    cargo: '',
+    tipo_contrato: '',
+    observaciones: '',
+    id_centro: ''
   });
   const [editingId, setEditingId] = useState(null);
   const [errors, setErrors] = useState({});
@@ -88,15 +96,18 @@ const PersonalMainComponent = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [personalData, personasData, especialidadesData] = await Promise.all([
+      const [personalData, personasData, especialidadesData, centrosData] = await Promise.all([
         PersonalService.getAll(),
         PersonaService.getAll(),
-        EspecialidadService.getAll()
+        EspecialidadService.getAll(),
+        CentroService.getAll()
       ]);
 
+      console.log('Personas disponibles cargadas:', personasData);
       setPersonal(personalData);
       setPersonasDisponibles(personasData);
       setEspecialidades(especialidadesData);
+      setCentros(centrosData);
     } catch (error) {
       showError(error.message);
     } finally {
@@ -115,16 +126,21 @@ const PersonalMainComponent = () => {
   };
 
   const handlePersonChange = (newValue) => {
+    console.log('Person changed:', newValue);
     setSelectedPerson(newValue);
-    setFormData(prev => ({ ...prev, persona_id: newValue ? newValue.id : '' }));
+    setFormData(prev => {
+      const newFormData = { ...prev, persona_id: newValue ? newValue.id : '' };
+      console.log('FormData updated:', newFormData);
+      return newFormData;
+    });
     if (errors.persona_id) {
       setErrors(prev => ({ ...prev, persona_id: '' }));
     }
   };
 
   const validateForm = () => {
-    const backendData = PersonalService.formatForBackend(formData);
-    const validation = PersonalService.validatePersonalData(backendData);
+    // Validar con datos del frontend primero
+    const validation = PersonalService.validatePersonalData(formData);
 
     // Verificar persona duplicada
     if (PersonalService.checkPersonaExists(personal, formData.persona_id, editingId)) {
@@ -137,10 +153,14 @@ const PersonalMainComponent = () => {
   };
 
   const handleSubmit = async () => {
+    console.log('FormData antes de validar:', JSON.stringify(formData, null, 2));
+    console.log('SelectedPerson:', JSON.stringify(selectedPerson, null, 2));
+    
     if (!validateForm()) return;
 
     try {
       const backendData = PersonalService.formatForBackend(formData);
+      console.log('BackendData to send:', JSON.stringify(backendData, null, 2));
 
       if (editingId) {
         await PersonalService.update(editingId, backendData);
@@ -154,6 +174,7 @@ const PersonalMainComponent = () => {
       fetchData();
       setActiveTab(0);
     } catch (error) {
+      console.error('Error en submit:', error);
       showError(error.message);
     }
   };
@@ -161,9 +182,14 @@ const PersonalMainComponent = () => {
   const resetForm = () => {
     setFormData({
       persona_id: '',
+      id_especialidad: '',
+      fecha_ingreso: '',
+      fecha_salida: '',
       titulo_profesional: '',
-      especialidades: [],
-      estado: 'activo'
+      cargo: '',
+      tipo_contrato: '',
+      observaciones: '',
+      id_centro: ''
     });
     setEditingId(null);
     setErrors({});
@@ -172,14 +198,33 @@ const PersonalMainComponent = () => {
 
   // Manejadores de acciones
   const handleEdit = (item) => {
+    console.log('Editing item:', JSON.stringify(item, null, 2));
+    
     setFormData({
-      persona_id: item.persona_id,
+      persona_id: item.id_persona || item.persona_id,
+      id_especialidad: item.id_especialidad || '',
+      fecha_ingreso: formatDateForInput(item.fecha_ingreso) || '',
+      fecha_salida: formatDateForInput(item.fecha_salida) || '',
       titulo_profesional: item.titulo_profesional || '',
-      especialidades: item.especialidades || [],
-      estado: item.estado
+      cargo: item.cargo || '',
+      tipo_contrato: item.tipo_contrato || '',
+      observaciones: item.observaciones || '',
+      id_centro: item.id_centro || ''
+    });
+    
+    console.log('FormData set to:', {
+      persona_id: item.id_persona || item.persona_id,
+      id_especialidad: item.id_especialidad || '',
+      fecha_ingreso: formatDateForInput(item.fecha_ingreso) || '',
+      fecha_salida: formatDateForInput(item.fecha_salida) || '',
+      titulo_profesional: item.titulo_profesional || '',
+      cargo: item.cargo || '',
+      tipo_contrato: item.tipo_contrato || '',
+      observaciones: item.observaciones || '',
+      id_centro: item.id_centro || ''
     });
 
-    const persona = personasDisponibles.find(p => p.id === item.persona_id);
+    const persona = personasDisponibles.find(p => p.id === (item.id_persona || item.persona_id));
     if (persona) setSelectedPerson(persona);
 
     setEditingId(item.id);
@@ -240,6 +285,7 @@ const PersonalMainComponent = () => {
           editingId={editingId}
           personasDisponibles={personasDisponibles}
           especialidades={especialidades}
+          centros={centros}
           selectedPerson={selectedPerson}
           onChange={handleChange}
           onPersonChange={handlePersonChange}

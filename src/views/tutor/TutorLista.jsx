@@ -234,7 +234,7 @@ const TutorLista = ({
                           fontSize="0.75rem"
                         >
                           <Phone sx={{ fontSize: 14, mr: 0.5 }} />
-                          {t.telefono || t.telefono_emergencia || 'Sin teléfono'}
+                          {t.telefono || t.telefono_empresa || 'Sin teléfono'}
                         </Typography>
                       </TableCell>
 

@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
     BASE: '/api/personas',
     BY_ID: (id) => `/api/personas/${id}`,
     DISPONIBLES: '/api/personas/disponibles',
+    DISPONIBLES_PERSONAL: '/api/personas',
   },
 
   // Usuarios
@@ -47,7 +48,7 @@ export const API_ENDPOINTS = {
   // Especialidades
   ESPECIALIDADES: {
     BASE: '/api/especialidades',
-    BY_ID: (id) => `/api/especialidades/${id}`,
+    BY_ID: (id) => `/api/especialidades/id/${id}`,
   },
 
   // Pacientes
@@ -97,6 +98,13 @@ export const API_ENDPOINTS = {
   ROLES: {
     BASE: '/api/roles',
     BY_ID: (id) => `/api/roles/${id}`,
+  },
+
+  // Centros
+  CENTROS: {
+    BASE: '/api/centros-disponibles',
+    BY_ID: (id) => `/api/centros/${id}`,
+    DISPONIBLES: '/api/centros-disponibles',
   },
 
   // Sistema

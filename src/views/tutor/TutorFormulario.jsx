@@ -126,11 +126,10 @@ const TutorFormulario = ({
   const [formData, setFormData] = useState({
     id_persona: '',
     parentesco: '',
-    telefono_emergencia: '',
-    direccion_trabajo: '',
-    empresa_trabajo: '',
-    cargo_trabajo: '',
-    observaciones: ''
+    ocupacion: '',
+    direccion_empresa: '',
+    telefono_empresa: '',
+    nombre_empresa: ''
     // estado eliminado de la UI
   });
   const [errors, setErrors] = useState({});
@@ -146,11 +145,10 @@ const TutorFormulario = ({
       setFormData({
         id_persona: editingData.id_persona || editingData.persona_id || editingData.personaId || '',
         parentesco: editingData.parentesco || '',
-        telefono_emergencia: editingData.telefono_empresa || editingData.telefono_emergencia || '',
-        direccion_trabajo: editingData.direccion_empresa || editingData.direccion_trabajo || '',
-        empresa_trabajo: editingData.nombre_empresa || editingData.empresa_trabajo || '',
-        cargo_trabajo: editingData.ocupacion || editingData.cargo_trabajo || '',
-        observaciones: editingData.observaciones || ''
+        ocupacion: editingData.ocupacion || '',
+        direccion_empresa: editingData.direccion_empresa || '',
+        telefono_empresa: editingData.telefono_empresa || '',
+        nombre_empresa: editingData.nombre_empresa || ''
       });
 
       // Resolver persona seleccionada desde distintas formas de payload
@@ -166,11 +164,10 @@ const TutorFormulario = ({
     setFormData({
       id_persona: '',
       parentesco: '',
-      telefono_emergencia: '',
-      direccion_trabajo: '',
-      empresa_trabajo: '',
-      cargo_trabajo: '',
-      observaciones: ''
+      ocupacion: '',
+      direccion_empresa: '',
+      telefono_empresa: '',
+      nombre_empresa: ''
     });
     setErrors({});
     setSelectedPerson(null);
@@ -432,44 +429,26 @@ const TutorFormulario = ({
                 </TextField>
               </Box>
 
-              {/* Teléfono de emergencia */}
+              {/* Ocupación */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Teléfono de Emergencia
+                  Ocupación
                 </Typography>
                 <TextField
                   fullWidth
-                  name="telefono_emergencia"
-                  value={formData.telefono_emergencia}
+                  name="ocupacion"
+                  value={formData.ocupacion}
                   onChange={handleChange}
-                  error={!!errors.telefono_emergencia}
-                  helperText={errors.telefono_emergencia}
+                  error={!!errors.ocupacion}
+                  helperText={errors.ocupacion || 'Profesión u ocupación del tutor'}
                   sx={neutralInputSX}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Phone sx={iconColor} />
+                        <Work sx={iconColor} />
                       </InputAdornment>
                     )
                   }}
-                />
-              </Box>
-
-              {/* Observaciones */}
-              <Box sx={rowGridSX}>
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Observaciones
-                </Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  name="observaciones"
-                  value={formData.observaciones}
-                  onChange={handleChange}
-                  error={!!errors.observaciones}
-                  helperText={errors.observaciones || 'Información adicional sobre el tutor'}
-                  sx={neutralInputSX}
                 />
               </Box>
             </Box>
@@ -481,55 +460,62 @@ const TutorFormulario = ({
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              {/* Empresa */}
+              {/* Nombre de empresa */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Empresa / Lugar de Trabajo
+                  Nombre de Empresa
                 </Typography>
                 <TextField
                   fullWidth
-                  name="empresa_trabajo"
-                  value={formData.empresa_trabajo}
+                  name="nombre_empresa"
+                  value={formData.nombre_empresa}
                   onChange={handleChange}
-                  error={!!errors.empresa_trabajo}
-                  helperText={errors.empresa_trabajo}
+                  error={!!errors.nombre_empresa}
+                  helperText={errors.nombre_empresa}
                   sx={neutralInputSX}
                 />
               </Box>
 
-              {/* Cargo */}
+              {/* Dirección de empresa */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Cargo
+                  Dirección de Empresa
                 </Typography>
                 <TextField
                   fullWidth
-                  name="cargo_trabajo"
-                  value={formData.cargo_trabajo}
+                  name="direccion_empresa"
+                  value={formData.direccion_empresa}
                   onChange={handleChange}
-                  error={!!errors.cargo_trabajo}
-                  helperText={errors.cargo_trabajo}
-                  sx={neutralInputSX}
-                />
-              </Box>
-
-              {/* Dirección de trabajo */}
-              <Box sx={rowGridSX}>
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Dirección de Trabajo
-                </Typography>
-                <TextField
-                  fullWidth
-                  name="direccion_trabajo"
-                  value={formData.direccion_trabajo}
-                  onChange={handleChange}
-                  error={!!errors.direccion_trabajo}
-                  helperText={errors.direccion_trabajo}
+                  error={!!errors.direccion_empresa}
+                  helperText={errors.direccion_empresa}
                   sx={neutralInputSX}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
                         <Home sx={iconColor} />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
+
+              {/* Teléfono de empresa */}
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Teléfono de Empresa
+                </Typography>
+                <TextField
+                  fullWidth
+                  name="telefono_empresa"
+                  value={formData.telefono_empresa}
+                  onChange={handleChange}
+                  error={!!errors.telefono_empresa}
+                  helperText={errors.telefono_empresa}
+                  sx={neutralInputSX}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Phone sx={iconColor} />
                       </InputAdornment>
                     )
                   }}

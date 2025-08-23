@@ -183,17 +183,17 @@ const TutorDetalles = ({
                   <Divider sx={{ mb: 2 }} />
                   
                   <Stack spacing={2}>
-                    {tutorData.telefono_emergencia ? (
+                    {tutorData.telefono_empresa ? (
                       <Box>
-                        <Typography variant="body2" color="text.secondary">Teléfono de Emergencia</Typography>
+                        <Typography variant="body2" color="text.secondary">Teléfono de Empresa</Typography>
                         <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center" color="error.main">
                           <Phone sx={{ fontSize: 16, mr: 0.5 }} />
-                          {tutorData.telefono_emergencia}
+                          {tutorData.telefono_empresa}
                         </Typography>
                       </Box>
                     ) : (
                       <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                        Sin teléfono de emergencia registrado
+                        Sin teléfono de empresa registrado
                       </Typography>
                     )}
 
@@ -217,7 +217,7 @@ const TutorDetalles = ({
             </Grid>
 
             {/* Información Laboral */}
-            {(tutorData.empresa_trabajo || tutorData.cargo_trabajo || tutorData.direccion_trabajo) && (
+            {(tutorData.nombre_empresa || tutorData.ocupacion || tutorData.direccion_empresa) && (
               <Grid item xs={12}>
                 <Card elevation={1}>
                   <CardContent>
@@ -228,31 +228,31 @@ const TutorDetalles = ({
                     <Divider sx={{ mb: 2 }} />
                     
                     <Grid container spacing={3}>
-                      {tutorData.empresa_trabajo && (
+                      {tutorData.nombre_empresa && (
                         <Grid item xs={12} sm={6}>
                           <Box>
                             <Typography variant="body2" color="text.secondary">Empresa</Typography>
-                            <Typography variant="body1" fontWeight="bold">{tutorData.empresa_trabajo}</Typography>
+                            <Typography variant="body1" fontWeight="bold">{tutorData.nombre_empresa}</Typography>
                           </Box>
                         </Grid>
                       )}
                       
-                      {tutorData.cargo_trabajo && (
+                      {tutorData.ocupacion && (
                         <Grid item xs={12} sm={6}>
                           <Box>
-                            <Typography variant="body2" color="text.secondary">Cargo</Typography>
-                            <Typography variant="body1" fontWeight="bold">{tutorData.cargo_trabajo}</Typography>
+                            <Typography variant="body2" color="text.secondary">Ocupación</Typography>
+                            <Typography variant="body1" fontWeight="bold">{tutorData.ocupacion}</Typography>
                           </Box>
                         </Grid>
                       )}
 
-                      {tutorData.direccion_trabajo && (
+                      {tutorData.direccion_empresa && (
                         <Grid item xs={12}>
                           <Box>
-                            <Typography variant="body2" color="text.secondary">Dirección de Trabajo</Typography>
+                            <Typography variant="body2" color="text.secondary">Dirección de Empresa</Typography>
                             <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center">
                               <Home sx={{ fontSize: 16, mr: 0.5 }} />
-                              {tutorData.direccion_trabajo}
+                              {tutorData.direccion_empresa}
                             </Typography>
                           </Box>
                         </Grid>
@@ -263,29 +263,6 @@ const TutorDetalles = ({
               </Grid>
             )}
 
-            {/* Observaciones */}
-            {tutorData.observaciones && (
-              <Grid item xs={12}>
-                <Card elevation={1}>
-                  <CardContent>
-                    <Typography variant="h6" color="primary" gutterBottom>
-                      Observaciones
-                    </Typography>
-                    <Divider sx={{ mb: 2 }} />
-                    
-                    <Typography variant="body1" sx={{ 
-                      p: 2, 
-                      bgcolor: 'grey.50', 
-                      borderRadius: 1,
-                      border: '1px solid',
-                      borderColor: 'grey.200'
-                    }}>
-                      {tutorData.observaciones}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
           </Grid>
         </Box>
       </DialogContent>
