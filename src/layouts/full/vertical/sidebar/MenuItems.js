@@ -25,7 +25,8 @@ import {
   Groups,
   Work,
   Business,
-  Logout
+  Logout,
+  AccountBox
 } from '@mui/icons-material';
 
 // Función simple para generar IDs únicos
@@ -261,7 +262,13 @@ const Menuitems = [
 
   {
     navlabel: true,
-    subheader: 'Sesión',
+    subheader: 'Mi Cuenta',
+  },
+  {
+    id: uniqueId(),
+    title: 'Mi Perfil',
+    icon: AccountBox,
+    href: '/mi-perfil',
   },
   {
     id: uniqueId(),

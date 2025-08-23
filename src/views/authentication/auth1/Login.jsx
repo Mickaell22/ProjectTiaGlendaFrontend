@@ -54,8 +54,9 @@ const Login = () => {
         const data = response?.data || response;
         
         if (data.status === 'success' && data.data?.token) {
-          const loginSuccess = login(data.data.token, data.data.user);
+          const loginSuccess = login(data.data.token, data.data.user, data);
           if (loginSuccess) {
+            console.log('Login data saved:', data);
             const from = location.state?.from?.pathname || '/dashboard';
             navigate(from, { replace: true });
           } else {

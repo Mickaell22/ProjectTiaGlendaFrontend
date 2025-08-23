@@ -19,3 +19,5 @@ export { default as ProtectedRoute } from './ProtectedRoute';
 export { default as SearchAndFilters } from './SearchAndFilters';
 export { default as Spinner } from './Spinner';
 export { default as StatusChip } from './StatusChip';
+export { default as FotoPerfil } from './FotoPerfil';
+export { default as FotoPerfilConAutorizacion } from './FotoPerfilConAutorizacion';

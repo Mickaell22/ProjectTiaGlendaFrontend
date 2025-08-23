@@ -24,6 +24,7 @@ import EndpointTester from 'src/views/terapeutico/EndpointTester';
 import SesionesPedagogicas from 'src/views/pedagogico/SesionesPedagogicas';
 import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
 import ConfiguracionMain from 'src/views/configuracion/ConfiguracionMain';
+import MiPerfil from 'src/views/perfil/MiPerfil';
 
 
 
@@ -211,6 +212,7 @@ const Router = [
     children: [
       { path: '/', element: <Navigate to="/dashboard" /> },
       { path: '/dashboard', element: <Dashboard /> },
+      { path: '/mi-perfil', element: <MiPerfil /> },
       
       // Gestión de Personas
       { path: '/apps/contacts', element: <PacientesAlumnos /> },

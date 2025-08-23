@@ -32,6 +32,7 @@ import {
 
 import UsuarioService from '../../services/usuarioService.js';
 import PersonaService from '../../services/personaService.js';
+import CentroService from '../../services/centroService.js';
 import BuscadorPersonas from '../../components/shared/BuscadorPersonas.jsx';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
@@ -66,12 +67,14 @@ const UsuarioFormulario = ({
     nombre_usuario: '',
     contrasenia: '',
     rol_id: '',
+    centro_id: '',
     estado: 'activo' // default interno; NO se muestra en UI
   });
   const [errors, setErrors] = useState({});
   const [personaSeleccionada, setPersonaSeleccionada] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [rolesDisponibles, setRolesDisponibles] = useState([]);
+  const [centrosDisponibles, setCentrosDisponibles] = useState([]);
 
   const { showError } = useSnackbar();
   const isEditing = !!editingData;
@@ -90,29 +93,36 @@ const UsuarioFormulario = ({
 
   /* ---------- Effects ---------- */
   useEffect(() => {
-    const cargarRoles = async () => {
+    const cargarDatos = async () => {
       try {
-        const roles = await UsuarioService.getRolesFromBackend();
+        const [roles, centros] = await Promise.all([
+          UsuarioService.getRolesFromBackend().catch(() => UsuarioService.getRoles()),
+          CentroService.getAll().catch(() => [])
+        ]);
         setRolesDisponibles(roles);
+        setCentrosDisponibles(centros);
       } catch (error) {
-        console.error('Error cargando roles:', error);
-        setRolesDisponibles(UsuarioService.getRoles());
+        console.error('Error cargando datos:', error);
+        showError('Error cargando datos del sistema');
       }
     };
     
-    cargarRoles();
-  }, []);
+    cargarDatos();
+  }, [showError]);
 
   useEffect(() => {
     if (editingData) {
       const personaIdStr = editingData.persona_id != null ? String(editingData.persona_id) : '';
       const rolIdStr = editingData.rol_id != null ? String(editingData.rol_id) : '';
 
+      const centroIdStr = editingData.centro_id != null ? String(editingData.centro_id) : '';
+
       setFormData({
         persona_id: personaIdStr,
         nombre_usuario: editingData.usuario || editingData.nombre_usuario || '',
         contrasenia: '',
         rol_id: rolIdStr,
+        centro_id: centroIdStr,
         estado: editingData.estado || 'activo'
       });
 
@@ -154,6 +164,7 @@ const UsuarioFormulario = ({
       nombre_usuario: '',
       contrasenia: '',
       rol_id: '',
+      centro_id: '',
       estado: 'activo'
     });
     setErrors({});
@@ -167,6 +178,7 @@ const UsuarioFormulario = ({
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
+
   const handlePersonaSelect = (persona) => {
     setPersonaSeleccionada(persona);
     setFormData(prev => ({ ...prev, persona_id: String(persona.id) }));
@@ -176,12 +188,14 @@ const UsuarioFormulario = ({
   const validateForm = () => {
     const personaIdNum = parseInt(formData.persona_id, 10);
     const rolIdNum = parseInt(formData.rol_id, 10);
+    const centroIdNum = parseInt(formData.centro_id, 10);
 
     // Usar datos del frontend para validación (sin formatear para backend)
     const frontendData = {
       ...formData,
       persona_id: Number.isInteger(personaIdNum) ? personaIdNum : null,
-      rol_id: Number.isInteger(rolIdNum) ? rolIdNum : null
+      rol_id: Number.isInteger(rolIdNum) ? rolIdNum : null,
+      centro_id: Number.isInteger(centroIdNum) ? centroIdNum : null
     };
 
     const validation = UsuarioService.validateUsuarioData(frontendData);
@@ -192,6 +206,9 @@ const UsuarioFormulario = ({
     }
     if (!Number.isInteger(rolIdNum) || rolIdNum <= 0) {
       validation.errors.rol_id = 'Debe seleccionar un rol';
+    }
+    if (!Number.isInteger(centroIdNum) || centroIdNum <= 0) {
+      validation.errors.centro_id = 'Debe seleccionar un centro';
     }
     if (!formData.nombre_usuario?.trim()) {
       validation.errors.nombre_usuario = 'Ingrese un nombre de usuario';
@@ -209,8 +226,13 @@ const UsuarioFormulario = ({
       persona_id: parseInt(formData.persona_id, 10),
       nombre_usuario: formData.nombre_usuario?.trim(),
       rol_id: parseInt(formData.rol_id, 10),
+      centro_id: parseInt(formData.centro_id, 10),
       estado: formData.estado
     };
+    
+    // Don't include photo in user creation/update payload
+    // Photos are handled separately via dedicated endpoint
+    
     if (!isEdit) {
       payload.contrasenia = formData.contrasenia;
       const uid = getUsuarioId();
@@ -267,6 +289,7 @@ const UsuarioFormulario = ({
   /* ---------- Render ---------- */
   const personaOk = Number.isInteger(parseInt(formData.persona_id, 10)) && parseInt(formData.persona_id, 10) > 0;
   const rolOk = Number.isInteger(parseInt(formData.rol_id, 10)) && parseInt(formData.rol_id, 10) > 0;
+  const centroOk = Number.isInteger(parseInt(formData.centro_id, 10)) && parseInt(formData.centro_id, 10) > 0;
   const userOk = !!formData.nombre_usuario?.trim();
   const passOk = isEditing || !!formData.contrasenia;
 
@@ -456,7 +479,8 @@ const UsuarioFormulario = ({
                   display: 'grid',
                   gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
                   gap: 2,
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  mb: 2
                 }}
               >
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Rol *</Typography>
@@ -474,6 +498,35 @@ const UsuarioFormulario = ({
                   {rolesDisponibles.map((rol) => (
                     <MenuItem key={String(rol.value)} value={String(rol.value)}>
                       {rol.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+
+              {/* Centro */}
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
+                  gap: 2,
+                  alignItems: 'center'
+                }}
+              >
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Centro *</Typography>
+                <TextField
+                  select
+                  fullWidth
+                  name="centro_id"
+                  value={formData.centro_id}
+                  onChange={handleChange}
+                  error={!!errors.centro_id}
+                  helperText={errors.centro_id || 'Seleccione el centro donde trabajará'}
+                  size="medium"
+                >
+                  <MenuItem value="">Seleccione un centro</MenuItem>
+                  {centrosDisponibles.map((centro) => (
+                    <MenuItem key={String(centro.id)} value={String(centro.id)}>
+                      {centro.nombre}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -540,7 +593,7 @@ const UsuarioFormulario = ({
                 color="primary"
                 startIcon={isEditing ? <Edit /> : <PersonAdd />}
                 size="large"
-                disabled={loading || !personaOk || !rolOk || !userOk || !passOk}
+                disabled={loading || !personaOk || !rolOk || !centroOk || !userOk || !passOk}
               >
                 {isEditing ? 'Actualizar Usuario' : 'Registrar Usuario'}
               </Button>

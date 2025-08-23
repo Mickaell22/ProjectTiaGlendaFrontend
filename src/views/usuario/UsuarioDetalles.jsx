@@ -35,7 +35,8 @@ import {
   Work,
   School,
   Psychology,
-  SupervisorAccount
+  SupervisorAccount,
+  Business
 } from '@mui/icons-material';
 
 import UsuarioService from '../../services/usuarioService.js';
@@ -93,6 +94,7 @@ const UsuarioDetalles = ({
               <CardContent>
                 <Box display="flex" alignItems="center" mb={2}>
                   <Avatar 
+                    src={userData.foto_perfil || undefined}
                     sx={{ 
                       width: 80, 
                       height: 80, 
@@ -101,7 +103,7 @@ const UsuarioDetalles = ({
                       fontSize: '2rem'
                     }}
                   >
-                    <Person fontSize="large" />
+                    {!userData.foto_perfil && <Person fontSize="large" />}
                   </Avatar>
                   <Box flex={1}>
                     <Typography variant="h5" fontWeight="bold" gutterBottom>
@@ -192,6 +194,16 @@ const UsuarioDetalles = ({
                       />
                     </ListItem>
                   )}
+
+                  <ListItem>
+                    <ListItemIcon>
+                      <Business color="primary" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary="Centro de Trabajo"
+                      secondary={userData.centro_nombre || 'Centro Tía Glenda'}
+                    />
+                  </ListItem>
                 </List>
               </CardContent>
             </Card>

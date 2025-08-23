@@ -14,6 +14,7 @@ import {
   Divider
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   setSidebarCollapse,
   toggleMobileSidebar
@@ -28,10 +29,12 @@ import LogoutIcon from '@mui/icons-material/Logout';
 const Header = () => {
   const customizer = useSelector((state) => state.customizer);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
+  const [userData, setUserData] = useState(null);
 
   const [horaActual, setHoraActual] = useState('');
 
@@ -47,6 +50,35 @@ const Header = () => {
     actualizarHora();
     const interval = setInterval(actualizarHora, 60000); // cada minuto
 
+    // Cargar datos del usuario
+    const loadUserData = () => {
+      try {
+        const userData = localStorage.getItem('user_data');
+        if (userData) {
+          const parsedData = JSON.parse(userData);
+          setUserData(parsedData);
+        } else {
+          // Fallback al JWT si no hay user_data
+          const token = localStorage.getItem('jwt_token');
+          if (token && token.split('.').length === 3) {
+            try {
+              const payload = JSON.parse(atob(token.split('.')[1]));
+              setUserData({
+                name: payload.name || payload.nombre || 'Usuario',
+                rol: payload.rol || 'Usuario'
+              });
+            } catch (jwtError) {
+              console.error('Error parsing JWT:', jwtError);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+
+    loadUserData();
+
     return () => clearInterval(interval);
   }, []);
 
@@ -56,6 +88,38 @@ const Header = () => {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleMiPerfil = () => {
+    handleClose();
+    navigate('/mi-perfil');
+  };
+
+  const handleConfiguracion = () => {
+    handleClose();
+    navigate('/configuracion/general');
+  };
+
+  const handleLogout = () => {
+    handleClose();
+    // Limpiar datos de localStorage
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('user_data');
+    localStorage.removeItem('refreshToken');
+    // Recargar la página para limpiar estado
+    window.location.href = '/auth/login';
+  };
+
+  // Obtener initials del usuario
+  const getUserInitials = () => {
+    if (userData?.name) {
+      const names = userData.name.split(' ');
+      if (names.length >= 2) {
+        return (names[0][0] + names[1][0]).toUpperCase();
+      }
+      return names[0][0].toUpperCase();
+    }
+    return 'U';
   };
 
   const AppBarStyled = styled(AppBar)(({ theme }) => ({
@@ -140,26 +204,39 @@ const Header = () => {
             <NotificationsIcon />
           </IconButton>
 
-          {/* Avatar / Menú */}
-          <IconButton
-            onClick={handleProfileClick}
-            sx={{
-              '&:hover': {
-                backgroundColor: 'primary.light'
-              }
-            }}
-          >
-            <Avatar
+          {/* Usuario info + Avatar / Menú */}
+          <Stack direction="row" spacing={1} alignItems="center">
+            {userData && (
+              <Stack direction="column" alignItems="flex-end" sx={{ display: { xs: 'none', sm: 'flex' } }}>
+                <Typography variant="body2" fontWeight="bold" color="text.primary">
+                  {userData.name || 'Usuario'}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {userData.rol || 'Usuario'}
+                </Typography>
+              </Stack>
+            )}
+            
+            <IconButton
+              onClick={handleProfileClick}
               sx={{
-                width: 35,
-                height: 35,
-                backgroundColor: 'primary.main',
-                fontSize: '0.875rem'
+                '&:hover': {
+                  backgroundColor: 'primary.light'
+                }
               }}
             >
-              U
-            </Avatar>
-          </IconButton>
+              <Avatar
+                sx={{
+                  width: 35,
+                  height: 35,
+                  backgroundColor: 'primary.main',
+                  fontSize: '0.875rem'
+                }}
+              >
+                {getUserInitials()}
+              </Avatar>
+            </IconButton>
+          </Stack>
 
           <Menu
             anchorEl={anchorEl}
@@ -196,16 +273,16 @@ const Header = () => {
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
-            <MenuItem onClick={handleClose}>
+            <MenuItem onClick={handleMiPerfil}>
               <AccountCircleIcon sx={{ mr: 2 }} />
               Mi Perfil
             </MenuItem>
-            <MenuItem onClick={handleClose}>
+            <MenuItem onClick={handleConfiguracion}>
               <SettingsIcon sx={{ mr: 2 }} />
               Configuración
             </MenuItem>
             <Divider />
-            <MenuItem onClick={handleClose}>
+            <MenuItem onClick={handleLogout}>
               <LogoutIcon sx={{ mr: 2 }} />
               Cerrar Sesión
             </MenuItem>

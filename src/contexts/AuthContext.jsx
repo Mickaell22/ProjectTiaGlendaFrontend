@@ -85,11 +85,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = (token, user = null) => {
+  const login = (token, user = null, fullLoginData = null) => {
     try {
       localStorage.setItem('jwt_token', token);
       if (user) {
         localStorage.setItem('user', JSON.stringify(user));
+        // También guardar datos completos de login para acceso desde otros componentes
+        localStorage.setItem('login_data', JSON.stringify({ user, token }));
+      }
+      
+      // Si se proporciona datos completos de login, guardarlos también
+      if (fullLoginData) {
+        localStorage.setItem('full_login_data', JSON.stringify(fullLoginData));
       }
       
       dispatch({
@@ -109,6 +116,8 @@ export const AuthProvider = ({ children }) => {
     try {
       localStorage.removeItem('jwt_token');
       localStorage.removeItem('user');
+      localStorage.removeItem('login_data');
+      localStorage.removeItem('full_login_data');
       
       dispatch({ type: 'LOGOUT' });
       

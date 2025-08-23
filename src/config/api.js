@@ -107,6 +107,15 @@ export const API_ENDPOINTS = {
     DISPONIBLES: '/api/centros-disponibles',
   },
 
+  // Fotos de Perfil
+  FOTOS_PERFIL: {
+    MI_FOTO: '/api/perfil/foto',
+    USUARIO_FOTO: (id) => `/api/usuarios/${id}/foto`,
+    ARCHIVO_FOTO: (rutaFoto) => `/api/fotos-perfil/archivo/${rutaFoto}`,
+    ESTADISTICAS: '/api/fotos-perfil/estadisticas',
+    FORMATOS: '/api/fotos-perfil/formatos',
+  },
+
   // Sistema
   SYSTEM: {
     TEST: '/api/test',

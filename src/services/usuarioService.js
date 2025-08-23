@@ -68,6 +68,10 @@ export class UsuarioService {
       errors.rol_id = 'Debe seleccionar un rol';
     }
 
+    if (!data.centro_id) {
+      errors.centro_id = 'Debe seleccionar un centro';
+    }
+
     return {
       isValid: Object.keys(errors).length === 0,
       errors
@@ -98,13 +102,19 @@ export class UsuarioService {
 
   // Formatear datos para el backend
   static formatForBackend(frontendData) {
-    return {
-      persona_id: parseInt(frontendData.persona_id),
+    const payload = {
+      id_persona: parseInt(frontendData.persona_id),
       usuario: frontendData.nombre_usuario?.trim().toLowerCase(),
       contrasenia: frontendData.contrasenia,
-      rol_id: parseInt(frontendData.rol_id),
+      id_rol: parseInt(frontendData.rol_id),
+      id_centro: parseInt(frontendData.centro_id),
       estado: frontendData.estado || 'activo'
     };
+    
+    // Photos are handled separately via dedicated endpoint
+    // Don't include foto_perfil in user creation/update payload
+    
+    return payload;
   }
 
   // Formatear datos de cambio de contraseña
