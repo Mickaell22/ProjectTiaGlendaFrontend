@@ -26,7 +26,8 @@ import {
   PersonAdd,
   Person,
   FamilyRestroom,
-  Phone
+  Phone,
+  Email
 } from '@mui/icons-material';
 
 const purpleOutlineSX = {
@@ -54,7 +55,8 @@ const TutorLista = ({
     (t.nombre_completo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (t.cedula || '').includes(searchTerm) ||
     (t.parentesco || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (t.telefono_emergencia || '').includes(searchTerm)
+    (t.telefono || '').includes(searchTerm) ||
+    (t.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -117,7 +119,7 @@ const TutorLista = ({
             size="small"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por nombre, cédula, parentesco o teléfono..."
+            placeholder="Buscar por nombre, cédula, correo, parentesco o teléfono..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -188,15 +190,21 @@ const TutorLista = ({
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((t) => (
                     <TableRow key={t.id}>
-                      {/* Tutor (avatar morado + solo nombre en negrita) */}
+                      {/* Tutor (avatar morado + nombre y correo) */}
                       <TableCell>
                         <Box display="flex" alignItems="center">
                           <Avatar sx={{ mr: 2, bgcolor: '#7e57c2' }}>
                             <Person />
                           </Avatar>
-                          <Typography variant="body2" fontWeight="bold">
-                            {t.nombre_completo}
-                          </Typography>
+                          <Box>
+                            <Typography variant="body2" fontWeight="bold">
+                              {t.nombre_completo}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" display="flex" alignItems="center">
+                              <Email sx={{ fontSize: 12, mr: 0.5 }} />
+                              {t.email || 'Sin correo'}
+                            </Typography>
+                          </Box>
                         </Box>
                       </TableCell>
 

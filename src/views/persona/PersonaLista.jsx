@@ -74,6 +74,7 @@ const PersonaLista = ({
   onNewPersona,
   loading = false
 }) => {
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
   const [page, setPage] = useState(0);

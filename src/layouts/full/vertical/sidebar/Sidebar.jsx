@@ -1,15 +1,17 @@
 // src/layouts/full/vertical/sidebar/Sidebar.jsx
-import { useMediaQuery, Box, Drawer, useTheme } from '@mui/material';
+import { useMediaQuery, Box, Drawer, useTheme, Typography } from '@mui/material';
 import SidebarItems from './SidebarItems';
 import { useSelector, useDispatch } from 'react-redux';
 import { toggleMobileSidebar } from 'src/store/customizer/CustomizerSlice';
 import Logo from '../../shared/logo/Logo';
+import { useAuth } from 'src/contexts/AuthContext';
 
 const Sidebar = () => {
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
   const customizer = useSelector((state) => state.customizer);
   const dispatch = useDispatch();
   const theme = useTheme();
+  const { user } = useAuth();
 
   const sidebarWidth = '270px';
 
@@ -56,6 +58,34 @@ const Sidebar = () => {
             </Box>
             
             {/* ------------------------------------------- */}
+            {/* User Info */}
+            {/* ------------------------------------------- */}
+            {user && (
+              <Box 
+                px={3} 
+                py={2}
+                sx={{
+                  textAlign: 'center',
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                }}
+              >
+                <Typography 
+                  variant="body2" 
+                  color="textPrimary"
+                  sx={{ fontWeight: 500, mb: 0.5 }}
+                >
+                  {user.nombre_completo || user.nombre}
+                </Typography>
+                <Typography 
+                  variant="caption" 
+                  color="textSecondary"
+                >
+                  {user.centro?.nombre || 'Centro Tía Glenda'}
+                </Typography>
+              </Box>
+            )}
+
+            {/* ------------------------------------------- */}
             {/* Sidebar Items */}
             {/* ------------------------------------------- */}
             <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
@@ -89,6 +119,34 @@ const Sidebar = () => {
       <Box px={3} py={3}>
         <Logo />
       </Box>
+      
+      {/* ------------------------------------------- */}
+      {/* User Info Mobile */}
+      {/* ------------------------------------------- */}
+      {user && (
+        <Box 
+          px={3} 
+          py={2}
+          sx={{
+            textAlign: 'center',
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <Typography 
+            variant="body2" 
+            color="textPrimary"
+            sx={{ fontWeight: 500, mb: 0.5 }}
+          >
+            {user.nombre_completo || user.nombre}
+          </Typography>
+          <Typography 
+            variant="caption" 
+            color="textSecondary"
+          >
+            {user.centro?.nombre || 'Centro Tía Glenda'}
+          </Typography>
+        </Box>
+      )}
       
       {/* ------------------------------------------- */}
       {/* Sidebar For Mobile */}

@@ -67,7 +67,7 @@ function resolveSelectedPerson(editingData, personasDisponibles) {
   const p = editingData.persona || editingData.person || null;
   if (p) {
     return {
-      id: p.id ?? editingData.persona_id ?? editingData.personaId ?? null,
+      id: p.id ?? editingData.id_persona ?? editingData.persona_id ?? editingData.personaId ?? null,
       nombre: p.nombre || '',
       apellido: p.apellido || '',
       nombre_completo: buildNombreCompleto(p),
@@ -78,7 +78,7 @@ function resolveSelectedPerson(editingData, personasDisponibles) {
   }
 
   // 2) Intentar encontrarla en la lista recibida por props
-  const pid = editingData.persona_id ?? editingData.personaId ?? null;
+  const pid = editingData.id_persona ?? editingData.persona_id ?? editingData.personaId ?? null;
   if (pid && Array.isArray(personasDisponibles) && personasDisponibles.length) {
     const fromList = personasDisponibles.find(x => x.id === pid);
     if (fromList) {
@@ -124,7 +124,7 @@ const TutorFormulario = ({
   loading = false
 }) => {
   const [formData, setFormData] = useState({
-    persona_id: '',
+    id_persona: '',
     parentesco: '',
     telefono_emergencia: '',
     direccion_trabajo: '',
@@ -144,12 +144,12 @@ const TutorFormulario = ({
     if (editingData) {
       // Precargar campos del formulario
       setFormData({
-        persona_id: editingData.persona_id || editingData.personaId || '',
+        id_persona: editingData.id_persona || editingData.persona_id || editingData.personaId || '',
         parentesco: editingData.parentesco || '',
-        telefono_emergencia: editingData.telefono_emergencia || '',
-        direccion_trabajo: editingData.direccion_trabajo || '',
-        empresa_trabajo: editingData.empresa_trabajo || '',
-        cargo_trabajo: editingData.cargo_trabajo || '',
+        telefono_emergencia: editingData.telefono_empresa || editingData.telefono_emergencia || '',
+        direccion_trabajo: editingData.direccion_empresa || editingData.direccion_trabajo || '',
+        empresa_trabajo: editingData.nombre_empresa || editingData.empresa_trabajo || '',
+        cargo_trabajo: editingData.ocupacion || editingData.cargo_trabajo || '',
         observaciones: editingData.observaciones || ''
       });
 
@@ -164,7 +164,7 @@ const TutorFormulario = ({
 
   const resetForm = () => {
     setFormData({
-      persona_id: '',
+      id_persona: '',
       parentesco: '',
       telefono_emergencia: '',
       direccion_trabajo: '',
@@ -185,15 +185,17 @@ const TutorFormulario = ({
   const validateForm = () => {
     // Formateo/validación del servicio
     const backendData = TutorService.formatForBackend
-      ? TutorService.formatForBackend(formData)
+      ? TutorService.formatForBackend(formData, selectedPerson)
       : { ...formData };
+    
     const validation = TutorService.validateTutorData
       ? TutorService.validateTutorData(backendData)
       : { isValid: true, errors: {} };
 
     // Reglas adicionales de UI
-    if (!formData.persona_id) {
-      validation.errors.persona_id = 'Debe seleccionar una persona';
+    const personaId = formData.id_persona || formData.persona_id;
+    if (!personaId || !selectedPerson) {
+      validation.errors.id_persona = 'Debe seleccionar una persona';
       validation.isValid = false;
     }
     if (!formData.parentesco) {
@@ -207,9 +209,9 @@ const TutorFormulario = ({
 
   const handlePersonaSelect = (persona) => {
     setSelectedPerson(persona);
-    setFormData(prev => ({ ...prev, persona_id: persona.id }));
-    if (errors.persona_id) {
-      setErrors(prev => ({ ...prev, persona_id: '' }));
+    setFormData(prev => ({ ...prev, id_persona: persona.id }));
+    if (errors.id_persona) {
+      setErrors(prev => ({ ...prev, id_persona: '' }));
     }
   };
 
@@ -219,8 +221,9 @@ const TutorFormulario = ({
 
     try {
       const backendData = TutorService.formatForBackend
-        ? TutorService.formatForBackend(formData)
+        ? TutorService.formatForBackend(formData, selectedPerson)
         : { ...formData };
+      
       await onSubmit(backendData, isEditing);
       resetForm();
     } catch (error) {
@@ -233,8 +236,8 @@ const TutorFormulario = ({
     selectedPerson?.nombre_completo ||
     buildNombreCompleto(selectedPerson || {});
 
-  const parentescos = TutorService.getParentescos
-    ? TutorService.getParentescos()
+  const parentescos = TutorService.getParentescosComunes
+    ? TutorService.getParentescosComunes()
     : [
         { value: 'padre', label: 'Padre' },
         { value: 'madre', label: 'Madre' },
@@ -280,9 +283,9 @@ const TutorFormulario = ({
               compact={true}
               maxHeight={420}
             />
-            {errors.persona_id && (
+            {errors.id_persona && (
               <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-                {errors.persona_id}
+                {errors.id_persona}
               </Typography>
             )}
           </CardContent>
@@ -315,7 +318,7 @@ const TutorFormulario = ({
                 color="inherit"
                 onClick={() => {
                   setSelectedPerson(null);
-                  setFormData(prev => ({ ...prev, persona_id: '' }));
+                  setFormData(prev => ({ ...prev, id_persona: '' }));
                 }}
               >
                 Cambiar Persona
@@ -391,8 +394,8 @@ const TutorFormulario = ({
                   value={fullName || ''}
                   placeholder="Seleccione una persona desde el buscador"
                   InputProps={{ readOnly: true }}
-                  error={!!errors.persona_id}
-                  helperText={errors.persona_id}
+                  error={!!errors.id_persona}
+                  helperText={errors.id_persona}
                   sx={neutralInputSX}
                 />
               </Box>
@@ -543,7 +546,7 @@ const TutorFormulario = ({
                 color="primary"
                 startIcon={isEditing ? <Edit /> : <PersonAdd />}
                 size="large"
-                disabled={loading || !formData.persona_id || !formData.parentesco}
+                disabled={loading || !formData.id_persona || !formData.parentesco}
               >
                 {isEditing ? 'Actualizar Tutor' : 'Crear Tutor'}
               </Button>

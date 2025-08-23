@@ -19,6 +19,8 @@
     "@reduxjs/toolkit": "^2.8.2",
     "axios": "^1.11.0",
     "formik": "^2.4.6",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "lodash": "^4.17.21",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

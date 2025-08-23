@@ -175,8 +175,8 @@ export class UsuarioService {
   }
 
   // Obtener información del rol con icono y color
-  static getRolInfo(rol) {
-    return RolService.getRolInfo(rol);
+  static getRolInfo(rolId, rolNombre = null) {
+    return RolService.getRolInfo(rolId, rolNombre);
   }
 
   // Obtener estado con color para UI
@@ -192,9 +192,9 @@ export class UsuarioService {
   }
 
   // Obtener color del rol para UI
-  static getRolColor(rolNombre) {
+  static getRolColor(rolId, rolNombre = null) {
     // Usar getRolInfo que ya tiene la lógica completa
-    const rolInfo = this.getRolInfo(rolNombre);
+    const rolInfo = this.getRolInfo(rolId, rolNombre);
     return rolInfo.color;
   }
 

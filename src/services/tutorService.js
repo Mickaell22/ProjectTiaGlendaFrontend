@@ -39,10 +39,14 @@ export class TutorService {
   static validateTutorData(data) {
     const errors = {};
 
-    if (!data.persona_id) {
-      errors.persona_id = 'Debe seleccionar una persona';
+    // Validar ID de persona (requerido)
+    if (!data.id_persona) {
+      errors.id_persona = 'Debe seleccionar una persona';
+    } else if (isNaN(parseInt(data.id_persona)) || parseInt(data.id_persona) <= 0) {
+      errors.id_persona = 'El ID de persona debe ser un número válido';
     }
 
+    // Validar parentesco (requerido)
     if (!data.parentesco?.trim()) {
       errors.parentesco = 'El parentesco es requerido';
     } else if (data.parentesco.trim().length < 2) {
@@ -50,16 +54,26 @@ export class TutorService {
     }
 
     // Validar teléfono de emergencia si se proporciona
-    if (data.telefono_emergencia && data.telefono_emergencia.trim()) {
+    if (data.telefono_empresa && data.telefono_empresa.trim()) {
       const telefonoRegex = /^[0-9+\-\s()]+$/;
-      if (!telefonoRegex.test(data.telefono_emergencia.trim())) {
-        errors.telefono_emergencia = 'El teléfono de emergencia no es válido';
+      if (!telefonoRegex.test(data.telefono_empresa.trim())) {
+        errors.telefono_empresa = 'El teléfono de emergencia no es válido';
       }
     }
 
     // Validar dirección de trabajo si se proporciona
-    if (data.direccion_trabajo && data.direccion_trabajo.trim().length > 500) {
-      errors.direccion_trabajo = 'La dirección de trabajo no puede superar los 500 caracteres';
+    if (data.direccion_empresa && data.direccion_empresa.trim().length > 500) {
+      errors.direccion_empresa = 'La dirección de trabajo no puede superar los 500 caracteres';
+    }
+
+    // Validar nombre de empresa si se proporciona
+    if (data.nombre_empresa && data.nombre_empresa.trim().length > 100) {
+      errors.nombre_empresa = 'El nombre de empresa no puede superar los 100 caracteres';
+    }
+
+    // Validar ocupación si se proporciona
+    if (data.ocupacion && data.ocupacion.trim().length > 100) {
+      errors.ocupacion = 'La ocupación no puede superar los 100 caracteres';
     }
 
     return {
@@ -69,15 +83,18 @@ export class TutorService {
   }
 
   // Formatear datos para el backend
-  static formatForBackend(frontendData) {
+  static formatForBackend(frontendData, selectedPerson = null) {
+    // El backend ahora espera solo id_persona y campos específicos del tutor
     return {
-      persona_id: parseInt(frontendData.persona_id),
+      // ID de la persona seleccionada (requerido)
+      id_persona: frontendData.id_persona || (selectedPerson ? selectedPerson.id : null),
+      
+      // Campos específicos del tutor
       parentesco: frontendData.parentesco?.trim(),
-      telefono_emergencia: frontendData.telefono_emergencia?.trim() || null,
-      direccion_trabajo: frontendData.direccion_trabajo?.trim() || null,
-      empresa_trabajo: frontendData.empresa_trabajo?.trim() || null,
-      cargo_trabajo: frontendData.cargo_trabajo?.trim() || null,
-      observaciones: frontendData.observaciones?.trim() || null,
+      ocupacion: frontendData.cargo_trabajo?.trim() || '',
+      direccion_empresa: frontendData.direccion_trabajo?.trim() || '',
+      telefono_empresa: frontendData.telefono_emergencia?.trim() || '',
+      nombre_empresa: frontendData.empresa_trabajo?.trim() || '',
       estado: frontendData.estado || 'activo'
     };
   }

@@ -172,6 +172,7 @@ const UsuarioLista = ({
             <TableRow>
               <TableCell>Usuario</TableCell>
               <TableCell>Rol</TableCell>
+              <TableCell>Centro</TableCell>
               <TableCell>Último Acceso</TableCell>
               <TableCell>Estado</TableCell>
               <TableCell>Acciones</TableCell>
@@ -184,7 +185,7 @@ const UsuarioLista = ({
                 const estadoInfo = UsuarioService.getEstadoInfo(item.estado);
                 const contactInfo = UsuarioService.getContactInfo(item);
                 const securityInfo = UsuarioService.getSecurityInfo(item);
-                const rolInfo = UsuarioService.getRolInfo(item.rol_nombre || item.rol);
+                const rolInfo = UsuarioService.getRolInfo(item.rol_id, item.rol_nombre || item.rol);
 
                 return (
                   <TableRow key={item.id}>
@@ -219,6 +220,13 @@ const UsuarioLista = ({
                           <Person />
                         }
                       />
+                    </TableCell>
+
+                    {/* Centro */}
+                    <TableCell>
+                      <Typography variant="body2" fontWeight="medium">
+                        {item.centro_nombre || 'Centro Tía Glenda'}
+                      </Typography>
                     </TableCell>
 
                     {/* Último Acceso */}
