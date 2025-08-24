@@ -10,7 +10,7 @@ import {
 import {
   ArrowBack, Person, Schedule, Group, Assignment, CalendarMonth,
   CheckCircle, Cancel, Edit, Add, Refresh, AccessTime,
-  EventAvailable, EventBusy, Psychology, Today
+  EventAvailable, EventBusy, Psychology, Today, Delete, PersonRemove
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -182,27 +182,131 @@ const SesionTerapeuticaDetalle = () => {
   };
 
   const handleAddPatient = async () => {
-    if (!newPatientId) return;
-    try {
-      await sesionTerapiaService.addPacienteToSesion(id, {
-        paciente_id: newPatientId,
-        fecha_incorporacion: new Date().toISOString().split('T')[0]
+    console.log('handleAddPatient (detail) called with:', {
+      newPatientId,
+      sessionId: id,
+      pacientesDisponibles: pacientesDisponibles.length
+    });
+    
+    // Validate required data
+    if (!newPatientId) {
+      setSnackbar({ 
+        open: true, 
+        message: 'Por favor seleccione un paciente', 
+        severity: 'warning' 
       });
-      setSnackbar({ open: true, message: 'Paciente agregado correctamente', severity: 'success' });
-      fetchSessionData();
+      return;
+    }
+    
+    if (!id) {
+      setSnackbar({ 
+        open: true, 
+        message: 'Error: ID de sesión no encontrado', 
+        severity: 'error' 
+      });
+      return;
+    }
+    
+    // Find selected patient info for logging
+    const selectedPatient = pacientesDisponibles.find(p => String(p.id) === String(newPatientId));
+    console.log('Selected patient in detail:', selectedPatient);
+    
+    try {
+      const patientData = {
+        paciente_id: parseInt(newPatientId),
+        fecha_incorporacion: new Date().toISOString().split('T')[0]
+      };
+      
+      console.log('Sending patient data in detail:', patientData);
+      
+      const response = await sesionTerapiaService.addPacienteToSesion(id, patientData);
+      
+      console.log('Add patient response in detail:', response);
+      
+      setSnackbar({ 
+        open: true, 
+        message: `Paciente ${selectedPatient?.nombre_completo || 'seleccionado'} agregado correctamente`, 
+        severity: 'success' 
+      });
+      
+      await fetchSessionData();
       setAddPatientDialog({ open: false });
       setNewPatientId('');
-    } catch (err) {
-      const errorMessage = sesionTerapiaService.handleError(err);
-      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      
+    } catch (error) {
+      console.error('Error adding patient in detail:', error);
+      console.error('Error response in detail:', error.response?.data);
+      console.error('Error status in detail:', error.response?.status);
+      
+      let errorMessage = 'Error al agregar paciente a la sesión';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status === 400) {
+        errorMessage = 'Datos inválidos. Verifique que el paciente no esté ya asignado a esta sesión.';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Sesión o paciente no encontrado.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Error del servidor. Por favor intente nuevamente.';
+      }
+      
+      setSnackbar({ 
+        open: true, 
+        message: errorMessage, 
+        severity: 'error' 
+      });
+    }
+  };
+
+  const handleRemovePatient = async (pacienteId, pacienteNombre) => {
+    if (window.confirm(`¿Está seguro de remover a ${pacienteNombre} de esta sesión terapéutica?`)) {
+      try {
+        await sesionTerapiaService.removePacienteFromSesion(id, pacienteId);
+        setSnackbar({ 
+          open: true, 
+          message: `${pacienteNombre} ha sido removido de la sesión`, 
+          severity: 'info' 
+        });
+        await fetchSessionData();
+      } catch (err) {
+        const errorMessage = sesionTerapiaService.handleError(err);
+        setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      }
     }
   };
 
   const fetchAvailablePatients = async () => {
     try {
+      console.log('Fetching available patients in session detail...');
       const response = await sesionTerapiaService.getPacientesDisponibles();
-      setPacientesDisponibles(response.data || []);
-    } catch {}
+      console.log('Available patients response in detail:', response);
+      
+      let pacientesData = [];
+      if (response?.data) {
+        pacientesData = Array.isArray(response.data) ? response.data : response.data.data || [];
+      } else if (Array.isArray(response)) {
+        pacientesData = response;
+      }
+      
+      console.log('Processed available patients in detail:', pacientesData);
+      setPacientesDisponibles(pacientesData);
+      
+      if (pacientesData.length === 0) {
+        setSnackbar({ 
+          open: true, 
+          message: 'No hay pacientes disponibles para agregar a esta sesión', 
+          severity: 'warning' 
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching available patients in detail:', error);
+      setSnackbar({ 
+        open: true, 
+        message: 'Error al cargar pacientes disponibles: ' + (error.message || 'Error desconocido'), 
+        severity: 'error' 
+      });
+      setPacientesDisponibles([]);
+    }
   };
 
   if (!sesion) {
@@ -499,24 +603,40 @@ const SesionTerapeuticaDetalle = () => {
 
           <CardContent sx={{ p: { xs: 2, md: 3 } }}>
             <List>
-              {pacientes.map((paciente) => (
-                <ListItem key={paciente.id || paciente.paciente_id} divider>
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: '#7e57c2' }}>
-                      <Person />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={paciente.paciente_nombre || paciente.nombre_completo}
-                    secondary={`Cédula: ${paciente.paciente_cedula || paciente.cedula} • Incorporado: ${formatDateLocal(paciente.fecha_incorporacion)}`}
-                  />
-                  <Chip
-                    label={paciente.estado}
-                    color={paciente.estado === 'activo' ? 'success' : 'default'}
-                    size="small"
-                  />
-                </ListItem>
-              ))}
+              {pacientes.map((paciente) => {
+                const pacienteId = paciente.id || paciente.paciente_id;
+                const pacienteNombre = paciente.paciente_nombre || paciente.nombre_completo;
+                
+                return (
+                  <ListItem key={pacienteId} divider>
+                    <ListItemAvatar>
+                      <Avatar sx={{ bgcolor: '#7e57c2' }}>
+                        <Person />
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={pacienteNombre}
+                      secondary={`Cédula: ${paciente.paciente_cedula || paciente.cedula} • Incorporado: ${formatDateLocal(paciente.fecha_incorporacion)}`}
+                    />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Chip
+                        label={paciente.estado}
+                        color={paciente.estado === 'activo' ? 'success' : 'default'}
+                        size="small"
+                      />
+                      <Tooltip title="Remover paciente de la sesión">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleRemovePatient(pacienteId, pacienteNombre)}
+                        >
+                          <PersonRemove fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </ListItem>
+                );
+              })}
             </List>
           </CardContent>
         </Card>

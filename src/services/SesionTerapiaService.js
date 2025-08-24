@@ -154,10 +154,14 @@ class SesionTerapiaService {
    */
   async addPacienteToSesion(sessionId, patientData) {
     try {
+      console.log('Adding patient to session:', { sessionId, patientData });
       const response = await this.api.post(`/api/sesiones-terapia/${sessionId}/pacientes`, patientData);
+      console.log('Patient added successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error(`Error adding patient to session ${sessionId}:`, error);
+      console.error('Error details:', error.response?.data);
+      console.error('Error status:', error.response?.status);
       throw error;
     }
   }
@@ -334,7 +338,8 @@ class SesionTerapiaService {
   async reprogramarSesion(cronogramaId, reprogramData) {
     try {
       console.log('Rescheduling session:', { cronogramaId, reprogramData });
-      const response = await this.api.put(`/api/cronograma-sesiones/${cronogramaId}/reprogramar`, reprogramData);
+      // Use the correct endpoint from Project B backend
+      const response = await this.api.put(`/api/sesiones-terapia/cronograma/${cronogramaId}/reprogramar`, reprogramData);
       console.log('Session rescheduled successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -351,12 +356,53 @@ class SesionTerapiaService {
   async cancelarSesion(cronogramaId, cancelData) {
     try {
       console.log('Canceling session:', { cronogramaId, cancelData });
-      const response = await this.api.put(`/api/cronograma-sesiones/${cronogramaId}/cancelar`, cancelData);
+      // Use the correct endpoint from Project B backend
+      const response = await this.api.put(`/api/sesiones-terapia/cronograma/${cronogramaId}/cancelar`, cancelData);
       console.log('Session canceled successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error(`Error canceling session ${cronogramaId}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Mark a cronograma session as completed
+   */
+  async marcarSesionRealizada(cronogramaId, observaciones = null) {
+    try {
+      console.log('Marking session as completed:', { cronogramaId, observaciones });
+      const response = await this.api.put(`/api/sesiones-terapia/cronograma/${cronogramaId}/realizar`, {
+        observaciones: observaciones
+      });
+      console.log('Session marked as completed successfully:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error marking session ${cronogramaId} as completed:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get full attendance control for a cronograma session
+   */
+  async getControlAsistencia(cronogramaId) {
+    try {
+      console.log('Getting attendance control for cronograma:', cronogramaId);
+      const response = await this.api.get(`/api/sesiones-terapia/cronograma/${cronogramaId}/control-asistencia`);
+      console.log('Attendance control received:', response.data);
+      return {
+        data: response.data?.data || response.data || [],
+        message: response.data?.message || 'Control de asistencia obtenido exitosamente',
+        status: response.data?.status || 'success'
+      };
+    } catch (error) {
+      console.error(`Error fetching attendance control for cronograma ${cronogramaId}:`, error);
+      return { 
+        data: [], 
+        message: 'No se pudo cargar el control de asistencia',
+        status: 'error'
+      };
     }
   }
 
@@ -423,6 +469,21 @@ class SesionTerapiaService {
         console.error('Alternative endpoint also failed:', altError);
         throw error; // Throw original error
       }
+    }
+  }
+
+  /**
+   * Remove patient from session
+   */
+  async removePacienteFromSesion(sessionId, patientId) {
+    try {
+      console.log('Removing patient from session:', { sessionId, patientId });
+      const response = await this.api.delete(`/api/sesiones-terapia/${sessionId}/pacientes/${patientId}`);
+      console.log('Patient removed successfully:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error removing patient ${patientId} from session ${sessionId}:`, error);
+      throw error;
     }
   }
 

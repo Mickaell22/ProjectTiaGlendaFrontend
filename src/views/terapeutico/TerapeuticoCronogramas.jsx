@@ -130,6 +130,27 @@ const TerapeuticoCronogramas = () => {
     setCancelDialog({ open: true, data: item });
   };
 
+  const handleMarcarRealizada = async (item) => {
+    const observaciones = window.prompt(
+      `¿Desea agregar observaciones para la sesión #${item.numero_sesion}?\n\n(Puede dejar en blanco si no hay observaciones)`
+    );
+    
+    if (observaciones !== null) { // null means user clicked Cancel
+      setLoading(true);
+      try {
+        await sesionTerapiaService.marcarSesionRealizada(item.id, observaciones || null);
+        setSnackbar({ open: true, message: 'Sesión marcada como realizada exitosamente', severity: 'success' });
+        if (selectedSesion) fetchCronograma(selectedSesion);
+      } catch (error) {
+        console.error('Error marking session as completed:', error);
+        const errorMessage = sesionTerapiaService.handleError(error);
+        setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const confirmarReprogramacion = async (reprogramData) => {
     try {
       setLoading(true);
@@ -170,6 +191,7 @@ const TerapeuticoCronogramas = () => {
     switch (estado) {
       case 'programada': return 'info';
       case 'realizada': return 'success';
+      case 'completada': return 'success';
       case 'cancelada': return 'error';
       case 'reprogramada': return 'warning';
       default: return 'default';
@@ -180,6 +202,7 @@ const TerapeuticoCronogramas = () => {
     switch (estado) {
       case 'programada': return <Schedule />;
       case 'realizada': return <CheckCircle />;
+      case 'completada': return <CheckCircle />;
       case 'cancelada': return <Cancel />;
       case 'reprogramada': return <AccessTime />;
       default: return <EventNote />;
@@ -431,6 +454,7 @@ const TerapeuticoCronogramas = () => {
                   <MenuItem value="">Todos los estados</MenuItem>
                   <MenuItem value="programada">Programada</MenuItem>
                   <MenuItem value="realizada">Realizada</MenuItem>
+                  <MenuItem value="completada">Completada</MenuItem>
                   <MenuItem value="cancelada">Cancelada</MenuItem>
                   <MenuItem value="reprogramada">Reprogramada</MenuItem>
                 </Select>
@@ -532,6 +556,16 @@ const TerapeuticoCronogramas = () => {
 
                                 {item.estado === 'programada' && (
                                   <>
+                                    <Tooltip title="Marcar como realizada">
+                                      <IconButton
+                                        color="success"
+                                        onClick={() => handleMarcarRealizada(item)}
+                                        size="small"
+                                      >
+                                        <CheckCircle fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+
                                     <Tooltip title="Reprogramar">
                                       <IconButton
                                         color="warning"
@@ -724,7 +758,24 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
       const fechaBase = data.fecha_programada?.split('T')[0] || '';
       setFechaOriginal(fechaBase);
       setNuevaFecha(fechaBase);
-      setNuevaHora(data.hora_programada || '');
+      
+      // Format the hour properly for time input (HH:MM format)
+      let horaFormateada = data.hora_programada || '';
+      if (horaFormateada && !horaFormateada.includes(':')) {
+        // If it's just a number like "14", convert to "14:00"
+        horaFormateada = horaFormateada.padStart(2, '0') + ':00';
+      } else if (horaFormateada && horaFormateada.length === 5) {
+        // If it's already in HH:MM format, keep it
+        horaFormateada = horaFormateada;
+      } else if (horaFormateada && horaFormateada.includes('T')) {
+        // If it's a datetime string, extract just the time part
+        const timePart = horaFormateada.split('T')[1];
+        if (timePart) {
+          horaFormateada = timePart.split(':').slice(0, 2).join(':');
+        }
+      }
+      
+      setNuevaHora(horaFormateada);
       setMotivo('Reprogramación de sesión terapéutica');
     }
   }, [data]);
@@ -742,13 +793,25 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
 
   const handleConfirm = () => {
     if (!nuevaFecha || !nuevaHora) return;
+    
+    // Ensure the hour is in correct format (HH:MM) without seconds
+    let horaFormateada = nuevaHora;
+    if (horaFormateada.includes(':')) {
+      const timeParts = horaFormateada.split(':');
+      horaFormateada = `${timeParts[0].padStart(2, '0')}:${timeParts[1].padStart(2, '0')}`;
+    } else {
+      horaFormateada = horaFormateada.padStart(2, '0') + ':00';
+    }
+    
     const motivoFinal = motivo && motivo.trim() ? motivo.trim() : 'Reprogramación de sesión terapéutica';
     const dataToSend = {
       nueva_fecha: nuevaFecha,
-      nueva_hora: nuevaHora,
+      nueva_hora: horaFormateada,
       motivo_reprogramacion: motivoFinal,
       motivo: motivoFinal
     };
+    
+    console.log('Datos de reprogramación a enviar:', dataToSend);
     onConfirm(dataToSend);
   };
 

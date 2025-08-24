@@ -5,7 +5,7 @@ import {
   Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
   Tooltip, Typography, Alert, Grid, Dialog, DialogTitle, DialogContent,
   DialogActions, Chip, Avatar, Button, InputAdornment, ToggleButtonGroup,
-  ToggleButton, Paper, Divider
+  ToggleButton, Paper, Divider, FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 import {
   Delete, Search, Visibility, Person,
@@ -32,6 +32,9 @@ const SesionesTerapeuticas = ({ onNavigateToCreate }) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
+  const [addPatientDialog, setAddPatientDialog] = useState({ open: false, sessionId: null });
+  const [pacientesDisponibles, setPacientesDisponibles] = useState([]);
+  const [newPatientId, setNewPatientId] = useState('');
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'schedule'
   const navigate = useNavigate();
@@ -85,6 +88,123 @@ const SesionesTerapeuticas = ({ onNavigateToCreate }) => {
     console.log('Opening session detail dialog:', item.id);
     // En lugar de navegar, abrir el modal de detalles
     setDetailDialog({ open: true, data: item });
+  };
+
+  const fetchAvailablePatients = async () => {
+    try {
+      console.log('Fetching available patients...');
+      const response = await sesionTerapiaService.getPacientesDisponibles();
+      console.log('Available patients response:', response);
+      
+      let pacientesData = [];
+      if (response?.data) {
+        pacientesData = Array.isArray(response.data) ? response.data : response.data.data || [];
+      } else if (Array.isArray(response)) {
+        pacientesData = response;
+      }
+      
+      console.log('Processed available patients:', pacientesData);
+      setPacientesDisponibles(pacientesData);
+      
+      if (pacientesData.length === 0) {
+        setSnackbar({ 
+          open: true, 
+          message: 'No hay pacientes disponibles para agregar', 
+          severity: 'warning' 
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching available patients:', error);
+      setSnackbar({ 
+        open: true, 
+        message: 'Error al cargar pacientes disponibles: ' + (error.message || 'Error desconocido'), 
+        severity: 'error' 
+      });
+      setPacientesDisponibles([]);
+    }
+  };
+
+  const handleOpenAddPatient = (sessionId) => {
+    fetchAvailablePatients();
+    setAddPatientDialog({ open: true, sessionId });
+  };
+
+  const handleAddPatient = async () => {
+    console.log('handleAddPatient called with:', {
+      newPatientId,
+      sessionId: addPatientDialog.sessionId,
+      pacientesDisponibles: pacientesDisponibles.length
+    });
+    
+    // Validate required data
+    if (!newPatientId) {
+      setSnackbar({ 
+        open: true, 
+        message: 'Por favor seleccione un paciente', 
+        severity: 'warning' 
+      });
+      return;
+    }
+    
+    if (!addPatientDialog.sessionId) {
+      setSnackbar({ 
+        open: true, 
+        message: 'Error: ID de sesión no encontrado', 
+        severity: 'error' 
+      });
+      return;
+    }
+    
+    // Find selected patient info for logging
+    const selectedPatient = pacientesDisponibles.find(p => String(p.id) === String(newPatientId));
+    console.log('Selected patient:', selectedPatient);
+    
+    try {
+      const patientData = {
+        paciente_id: parseInt(newPatientId),
+        fecha_incorporacion: new Date().toISOString().split('T')[0]
+      };
+      
+      console.log('Sending patient data:', patientData);
+      
+      const response = await sesionTerapiaService.addPacienteToSesion(addPatientDialog.sessionId, patientData);
+      
+      console.log('Add patient response:', response);
+      
+      setSnackbar({ 
+        open: true, 
+        message: `Paciente ${selectedPatient?.nombre_completo || 'seleccionado'} agregado correctamente a la sesión`, 
+        severity: 'success' 
+      });
+      
+      // Refresh data and close dialog
+      await fetchData();
+      setAddPatientDialog({ open: false, sessionId: null });
+      setNewPatientId('');
+      
+    } catch (error) {
+      console.error('Error adding patient to session:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      
+      let errorMessage = 'Error al agregar paciente a la sesión';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.status === 400) {
+        errorMessage = 'Datos inválidos. Verifique que el paciente no esté ya asignado a esta sesión.';
+      } else if (error.response?.status === 404) {
+        errorMessage = 'Sesión o paciente no encontrado.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Error del servidor. Por favor intente nuevamente.';
+      }
+      
+      setSnackbar({ 
+        open: true, 
+        message: errorMessage, 
+        severity: 'error' 
+      });
+    }
   };
 
   // Render seguro de pacientes: nombre único o lista
@@ -725,6 +845,19 @@ const SesionesTerapeuticas = ({ onNavigateToCreate }) => {
         <DialogActions>
           <Button 
             variant="outlined"
+            startIcon={<PersonAdd />}
+            onClick={() => {
+              if (detailDialog.data?.id) {
+                handleOpenAddPatient(detailDialog.data.id);
+              }
+            }}
+            disabled={!detailDialog.data?.id}
+            color="success"
+          >
+            Agregar Paciente
+          </Button>
+          <Button 
+            variant="outlined"
             onClick={() => {
               setDetailDialog({ open: false, data: null });
               navigate(`/dashboard/terapeutico/sesion/${detailDialog.data?.id}`);
@@ -735,6 +868,106 @@ const SesionesTerapeuticas = ({ onNavigateToCreate }) => {
           </Button>
           <Button onClick={() => setDetailDialog({ open: false, data: null })}>
             Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Patient Dialog */}
+      <Dialog
+        open={addPatientDialog.open}
+        onClose={() => {
+          setAddPatientDialog({ open: false, sessionId: null });
+          setNewPatientId('');
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <PersonAdd sx={{ mr: 2, color: 'primary.main' }} />
+            Agregar Paciente a la Sesión
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <FormControl fullWidth>
+              <InputLabel shrink>Seleccionar Paciente</InputLabel>
+              <Select
+                sx={{...purpleOutlineSX}}
+                value={newPatientId}
+                onChange={(e) => setNewPatientId(e.target.value)}
+                label="Seleccionar Paciente"
+                displayEmpty
+                renderValue={(val) => {
+                  if (!val) return 'Seleccione un paciente disponible';
+                  const paciente = pacientesDisponibles.find(p => String(p.id) === String(val));
+                  return paciente 
+                    ? `${paciente.nombre_completo || `${paciente.nombre} ${paciente.apellido}`} - ${paciente.cedula}`
+                    : 'Seleccione un paciente disponible';
+                }}
+              >
+                <MenuItem value="">Seleccione un paciente disponible</MenuItem>
+                {pacientesDisponibles.map((paciente) => (
+                  <MenuItem key={paciente.id} value={paciente.id}>
+                    <Box display="flex" alignItems="center" width="100%">
+                      <Avatar sx={{ mr: 2, bgcolor: '#7e57c2', width: 32, height: 32 }}>
+                        <Person fontSize="small" />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="body2" fontWeight="medium">
+                          {paciente.nombre_completo || `${paciente.nombre} ${paciente.apellido}`}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Cédula: {paciente.cedula}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            {pacientesDisponibles.length === 0 && (
+              <Alert severity="info" sx={{ mt: 2 }}>
+                No hay pacientes disponibles para agregar. Todos los pacientes activos ya pueden estar asignados a sesiones.
+                <br />
+                <small>Si este mensaje persiste, revise la consola del navegador (F12) para más detalles.</small>
+              </Alert>
+            )}
+            
+            {/* Debug info - remove in production */}
+            <Box sx={{ mt: 2, p: 1, backgroundColor: 'grey.100', fontSize: '0.75rem', borderRadius: 1 }}>
+              <Typography variant="caption" display="block">
+                <strong>Debug Info:</strong>
+              </Typography>
+              <Typography variant="caption" display="block">
+                Session ID: {addPatientDialog.sessionId || 'No ID'}
+              </Typography>
+              <Typography variant="caption" display="block">
+                Available Patients: {pacientesDisponibles.length}
+              </Typography>
+              <Typography variant="caption" display="block">
+                Selected Patient ID: {newPatientId || 'None'}
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => {
+              setAddPatientDialog({ open: false, sessionId: null });
+              setNewPatientId('');
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleAddPatient} 
+            variant="contained"
+            disabled={!newPatientId}
+            startIcon={<PersonAdd />}
+          >
+            Agregar Paciente
           </Button>
         </DialogActions>
       </Dialog>

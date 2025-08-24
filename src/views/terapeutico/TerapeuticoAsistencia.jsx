@@ -104,10 +104,50 @@ const TerapeuticoAsistencia = () => {
   const fetchAsistencias = async (cronogramaId) => {
     setLoading(true);
     try {
-      const response = await sesionTerapiaService.getAsistencia(cronogramaId);
-      const asistenciasData = response.data || response || [];
-      setAsistencias(Array.isArray(asistenciasData) ? asistenciasData : []);
+      console.log('Fetching asistencias for cronograma:', cronogramaId);
+      
+      // Try to get control de asistencia first (more complete data)
+      let response = null;
+      try {
+        response = await sesionTerapiaService.getControlAsistencia(cronogramaId);
+        console.log('Control asistencia response:', response);
+      } catch (controlError) {
+        console.warn('Control asistencia failed, trying regular asistencia:', controlError);
+        // Fallback to regular asistencia endpoint
+        response = await sesionTerapiaService.getAsistencia(cronogramaId);
+        console.log('Regular asistencia response:', response);
+      }
+      
+      // Extract data from response
+      let asistenciasData = [];
+      if (response?.data) {
+        asistenciasData = Array.isArray(response.data) ? response.data : [];
+      } else if (Array.isArray(response)) {
+        asistenciasData = response;
+      }
+      
+      console.log('Final asistencias data:', asistenciasData);
+      setAsistencias(asistenciasData);
+      
+      // If no asistencias found, create placeholders for all patients in the session
+      if (asistenciasData.length === 0 && pacientesSesion.length > 0) {
+        console.log('No asistencias found, creating placeholders for patients:', pacientesSesion);
+        const placeholderAsistencias = pacientesSesion.map(paciente => ({
+          cronograma_id: cronogramaId,
+          paciente_id: paciente.paciente_id || paciente.id,
+          paciente_nombre: paciente.paciente_nombre || paciente.nombre,
+          paciente_cedula: paciente.paciente_cedula || paciente.cedula,
+          asistio: null,
+          fecha_asistencia: null,
+          observaciones_asistencia: null,
+          notas_progreso: null,
+          es_placeholder: true
+        }));
+        setAsistencias(placeholderAsistencias);
+      }
+      
     } catch (err) {
+      console.error('Error fetching asistencias:', err);
       const errorMessage = sesionTerapiaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
       setAsistencias([]);
@@ -172,6 +212,20 @@ const TerapeuticoAsistencia = () => {
       const { paciente, cronograma_id } = asistenciaDialog.data;
       const pacienteId = paciente?.paciente_id || paciente?.id || asistenciaDialog.data.paciente_id;
 
+      console.log('Datos del diálogo de asistencia:', asistenciaDialog.data);
+      console.log('Paciente ID extraído:', pacienteId);
+      console.log('Cronograma ID:', cronograma_id);
+
+      if (!pacienteId) {
+        setSnackbar({ open: true, message: 'Error: No se pudo identificar el paciente', severity: 'error' });
+        return;
+      }
+
+      if (!cronograma_id) {
+        setSnackbar({ open: true, message: 'Error: No se pudo identificar la sesión del cronograma', severity: 'error' });
+        return;
+      }
+
       const asistenciaData = {
         asistio: formData.asistio,
         llegada_tardanza_minutos: parseInt(formData.llegada_tardanza_minutos) || 0,
@@ -180,6 +234,8 @@ const TerapeuticoAsistencia = () => {
         tareas_asignadas: formData.tareas_asignadas?.trim() || null,
         proximos_objetivos: formData.proximos_objetivos?.trim() || null
       };
+
+      console.log('Datos de asistencia a enviar:', asistenciaData);
 
       if (asistenciaDialog.isEdit) {
         await sesionTerapiaService.updateAsistencia(cronograma_id, pacienteId, asistenciaData);
@@ -193,6 +249,7 @@ const TerapeuticoAsistencia = () => {
       await fetchAsistencias(selectedCronograma);
       if (selectedSesion) await fetchCronogramas(selectedSesion);
     } catch (error) {
+      console.error('Error al guardar asistencia:', error);
       const errorMessage = sesionTerapiaService.handleError(error);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     }
