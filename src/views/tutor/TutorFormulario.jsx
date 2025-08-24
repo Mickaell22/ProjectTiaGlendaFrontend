@@ -157,7 +157,7 @@ const TutorFormulario = ({
     } else {
       resetForm();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [editingData, personasDisponibles]); // importante: incluir personasDisponibles
 
   const resetForm = () => {

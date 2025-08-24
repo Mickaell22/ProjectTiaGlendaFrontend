@@ -26,6 +26,11 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 
+// Servicios
+import ApiService, { extractData } from 'src/services/apiService.js';
+import FotoPerfilService from 'src/services/fotoPerfilService.js';
+import FotoPerfilConAutorizacion from 'src/components/shared/FotoPerfilConAutorizacion.jsx';
+
 const Header = () => {
   const customizer = useSelector((state) => state.customizer);
   const dispatch = useDispatch();
@@ -35,6 +40,7 @@ const Header = () => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const [userData, setUserData] = useState(null);
+  const [rutaFoto, setRutaFoto] = useState(null);
 
   const [horaActual, setHoraActual] = useState('');
 
@@ -50,30 +56,110 @@ const Header = () => {
     actualizarHora();
     const interval = setInterval(actualizarHora, 60000); // cada minuto
 
-    // Cargar datos del usuario
-    const loadUserData = () => {
+    // Cargar datos completos del usuario desde el backend
+    const loadUserData = async () => {
+      try {
+        console.log('🔍 Header: Cargando datos del usuario desde /api/me...');
+        // Primero intentar cargar desde el backend
+        const response = await ApiService.get('/api/me');
+        const backendUserData = extractData(response);
+        
+        console.log('📊 Header: Datos recibidos del backend:', backendUserData);
+        
+        if (backendUserData) {
+          const userData = {
+            id: backendUserData.id,
+            name: backendUserData.nombre_completo || backendUserData.nombre || 'Usuario',
+            rol: backendUserData.rol_nombre || backendUserData.rol || 'Usuario',
+            email: backendUserData.email || backendUserData.correo,
+            usuario: backendUserData.usuario,
+            ruta_foto: backendUserData.ruta_foto
+          };
+          
+          console.log('👤 Header: UserData procesado:', userData);
+          setUserData(userData);
+          
+          // Cargar foto de perfil si existe
+          if (backendUserData.ruta_foto) {
+            console.log('🖼️ Header: ruta_foto encontrada:', backendUserData.ruta_foto);
+            setRutaFoto(backendUserData.ruta_foto);
+          } else {
+            console.log('❌ Header: No hay ruta_foto en datos del backend, intentando servicio directo...');
+            // Intentar cargar desde el servicio de fotos
+            await loadFotoPerfil();
+          }
+        } else {
+          console.log('⚠️ Header: No hay datos del backend, usando fallback local');
+          // Fallback a datos locales si el backend no responde
+          await loadLocalUserData();
+        }
+      } catch (error) {
+        console.error('💥 Header: Error loading user data from backend:', error);
+        // Fallback a datos locales en caso de error
+        await loadLocalUserData();
+      }
+    };
+
+    // Cargar datos del localStorage como fallback
+    const loadLocalUserData = async () => {
       try {
         const userData = localStorage.getItem('user_data');
         if (userData) {
           const parsedData = JSON.parse(userData);
-          setUserData(parsedData);
+          setUserData({
+            id: parsedData.id,
+            name: parsedData.nombre_completo || parsedData.name || parsedData.nombre || 'Usuario',
+            rol: parsedData.rol_nombre || parsedData.rol || 'Usuario',
+            email: parsedData.email || parsedData.correo,
+            usuario: parsedData.usuario,
+            ruta_foto: parsedData.ruta_foto
+          });
+          
+          // Cargar foto de perfil
+          await loadFotoPerfil();
         } else {
-          // Fallback al JWT si no hay user_data
+          // Última opción: JWT token
           const token = localStorage.getItem('jwt_token');
           if (token && token.split('.').length === 3) {
             try {
               const payload = JSON.parse(atob(token.split('.')[1]));
               setUserData({
-                name: payload.name || payload.nombre || 'Usuario',
-                rol: payload.rol || 'Usuario'
+                name: payload.name || payload.nombre || payload.nombre_completo || 'Usuario',
+                rol: payload.rol || payload.rol_nombre || 'Usuario',
+                email: payload.email || payload.correo,
+                usuario: payload.usuario
               });
+              await loadFotoPerfil();
             } catch (jwtError) {
               console.error('Error parsing JWT:', jwtError);
             }
           }
         }
       } catch (error) {
-        console.error('Error loading user data:', error);
+        console.error('Error loading local user data:', error);
+      }
+    };
+
+    // Cargar foto de perfil desde el servicio
+    const loadFotoPerfil = async () => {
+      try {
+        console.log('📸 Header: Intentando cargar foto desde servicio directo...');
+        const result = await FotoPerfilService.obtenerMiFoto();
+        console.log('📸 Header: Resultado del servicio de fotos:', result);
+        
+        if (result.success && result.data?.ruta_foto) {
+          console.log('✅ Header: Foto encontrada en servicio:', result.data.ruta_foto);
+          setRutaFoto(result.data.ruta_foto);
+        } else if (result.success && result.data?.foto_perfil) {
+          console.log('✅ Header: Foto encontrada en servicio (foto_perfil):', result.data.foto_perfil);
+          setRutaFoto(result.data.foto_perfil);
+        } else {
+          console.log('❌ Header: No se encontró foto en el servicio directo');
+          setRutaFoto(null);
+        }
+      } catch (error) {
+        console.error('💥 Header: Error loading profile photo:', error);
+        setRutaFoto(null);
       }
     };
 
@@ -113,14 +199,16 @@ const Header = () => {
   // Obtener initials del usuario
   const getUserInitials = () => {
     if (userData?.name) {
-      const names = userData.name.split(' ');
+      const names = userData.name.split(' ').filter(n => n.length > 0);
       if (names.length >= 2) {
         return (names[0][0] + names[1][0]).toUpperCase();
+      } else if (names.length === 1) {
+        return names[0].substring(0, 2).toUpperCase();
       }
-      return names[0][0].toUpperCase();
     }
     return 'U';
   };
+
 
   const AppBarStyled = styled(AppBar)(({ theme }) => ({
     boxShadow: 'none',
@@ -225,16 +313,17 @@ const Header = () => {
                 }
               }}
             >
-              <Avatar
+              <FotoPerfilConAutorizacion
+                rutaFoto={rutaFoto}
+                nombreCompleto={userData?.name || 'Usuario'}
+                size={35}
+                showTooltip={false}
                 sx={{
-                  width: 35,
-                  height: 35,
-                  backgroundColor: 'primary.main',
-                  fontSize: '0.875rem'
+                  fontSize: '0.875rem',
+                  border: rutaFoto ? '2px solid' : 'none',
+                  borderColor: 'primary.main'
                 }}
-              >
-                {getUserInitials()}
-              </Avatar>
+              />
             </IconButton>
           </Stack>
 
@@ -249,7 +338,7 @@ const Header = () => {
                 overflow: 'visible',
                 filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
                 mt: 1.5,
-                minWidth: 200,
+                minWidth: 280,
                 '& .MuiAvatar-root': {
                   width: 32,
                   height: 32,
@@ -273,6 +362,36 @@ const Header = () => {
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
+            {/* Header del menú con info del usuario */}
+            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <FotoPerfilConAutorizacion
+                  rutaFoto={rutaFoto}
+                  nombreCompleto={userData?.name || 'Usuario'}
+                  size={48}
+                  showTooltip={false}
+                  sx={{
+                    border: rutaFoto ? '2px solid' : 'none',
+                    borderColor: 'primary.main',
+                    fontSize: '1.2rem'
+                  }}
+                />
+                <Stack>
+                  <Typography variant="subtitle1" fontWeight="bold" noWrap>
+                    {userData?.name || 'Usuario'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" noWrap>
+                    {userData?.rol || 'Usuario'}
+                  </Typography>
+                  {userData?.email && (
+                    <Typography variant="caption" color="text.secondary" noWrap>
+                      {userData.email}
+                    </Typography>
+                  )}
+                </Stack>
+              </Stack>
+            </Box>
+
             <MenuItem onClick={handleMiPerfil}>
               <AccountCircleIcon sx={{ mr: 2 }} />
               Mi Perfil

@@ -31,7 +31,8 @@ import {
   Visibility,
   Search,
   Person,
-  Phone
+  Phone,
+  Description
 } from '@mui/icons-material';
 
 // Servicios
@@ -51,6 +52,7 @@ const PersonalLista = ({
   onEdit,
   onDelete,
   onViewDetail,
+  onViewDocuments,
   onAddNew
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -250,6 +252,11 @@ const PersonalLista = ({
                         <Tooltip title="Ver detalles">
                           <IconButton color="info" size="small" onClick={() => onViewDetail(item)}>
                             <Visibility />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Documentos">
+                          <IconButton color="info" size="small" onClick={() => onViewDocuments(item)}>
+                            <Description />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="Editar">

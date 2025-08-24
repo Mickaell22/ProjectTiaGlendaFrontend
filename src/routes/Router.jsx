@@ -23,6 +23,7 @@ import TestAsistencias from 'src/views/terapeutico/TestAsistencias';
 import EndpointTester from 'src/views/terapeutico/EndpointTester';
 import SesionesPedagogicas from 'src/views/pedagogico/SesionesPedagogicas';
 import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
+import DocumentosPersonal from 'src/components/Personal/DocumentosPersonal';
 import ConfiguracionMain from 'src/views/configuracion/ConfiguracionMain';
 import MiPerfil from 'src/views/perfil/MiPerfil';
 
@@ -225,6 +226,7 @@ const Router = [
       { path: '/gestion/especialidad', element: <EspecialidadMain /> },
       { path: '/gestion/personal', element: <PersonalMain /> },
       { path: '/pacientes/:pacienteId/documentos', element: <DocumentosPaciente /> },
+      { path: '/personal/:personalId/documentos', element: <DocumentosPersonal /> },
 
 
 

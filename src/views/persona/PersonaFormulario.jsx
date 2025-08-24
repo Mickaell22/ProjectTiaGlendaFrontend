@@ -146,7 +146,7 @@ const PersonaFormulario = ({
     } else {
       resetForm();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [editingData]);
 
   const resetForm = () => {

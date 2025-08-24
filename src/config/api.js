@@ -45,6 +45,23 @@ export const API_ENDPOINTS = {
     BY_ID: (id) => `/api/personal/${id}`,
   },
 
+  // Documentos Personal
+  DOCUMENTOS_PERSONAL: {
+    BASE: '/api/documentos-personal',
+    BY_ID: (id) => `/api/documentos-personal/${id}`,
+    BY_PERSONAL: (personalId) => `/api/personal/${personalId}/documentos`,
+    UPLOAD: '/api/personal/{personal_id}/documentos',
+    DOWNLOAD: (id) => `/api/documentos-personal/${id}/descargar`,
+    BY_TYPE: (tipo) => `/api/documentos-personal/tipo/${tipo}`,
+    TIPOS: '/api/documentos-personal/tipos',
+    VENCIMIENTOS: '/api/documentos-personal/vencimientos',
+    PENDIENTES_VALIDACION: '/api/documentos-personal/pendientes-validacion',
+    ESTADISTICAS: '/api/documentos-personal/estadisticas',
+    BUSCAR: '/api/documentos-personal/buscar',
+    VALIDAR: (id) => `/api/documentos-personal/${id}/validar`,
+    POR_VENCER: '/api/documentos-personal/por-vencer',
+  },
+
   // Especialidades
   ESPECIALIDADES: {
     BASE: '/api/especialidades',

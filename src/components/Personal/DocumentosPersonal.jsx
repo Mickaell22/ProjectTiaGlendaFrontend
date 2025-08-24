@@ -40,15 +40,15 @@ import { formatDateLocal } from 'src/utils/dateUtils';
 import { API_CONFIG } from '../../config/api.js';
 import ApiService, { extractData } from '../../services/apiService.js';
 
-const DocumentosPaciente = () => {
+const DocumentosPersonal = () => {
   const navigate = useNavigate();
 
-  // Soporta rutas /pacientes/:id/documentos o /pacientes/:pacienteId/documentos
-  const { pacienteId: pacienteIdParam, id: idParam } = useParams();
-  const pacienteId = pacienteIdParam || idParam;
+  // Soporta rutas /personal/:id/documentos o /personal/:personalId/documentos
+  const { personalId: personalIdParam, id: idParam } = useParams();
+  const personalId = personalIdParam || idParam;
 
   // Estados principales
-  const [paciente, setPaciente] = useState(null);
+  const [personal, setPersonal] = useState(null);
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -67,41 +67,41 @@ const DocumentosPaciente = () => {
     fecha_vencimiento: ''
   });
 
-  // Removido: ahora ApiService maneja los headers automáticamente
-
   const tiposDocumento = [
     { value: 'general', label: '📄 General' },
-    { value: 'historia_clinica', label: '🏥 Historia Clínica' },
-    { value: 'examenes_medicos', label: '🔬 Exámenes Médicos' },
-    { value: 'consentimientos', label: '✍️ Consentimientos' },
-    { value: 'reportes_terapia', label: '📊 Reportes de Terapia' },
-    { value: 'evaluaciones', label: '📝 Evaluaciones' },
+    { value: 'cedula', label: '🆔 Cédula' },
+    { value: 'curriculum', label: '📄 Currículum' },
+    { value: 'titulo', label: '🎓 Título' },
+    { value: 'certificado', label: '🏆 Certificado' },
+    { value: 'contrato', label: '🤝 Contrato' },
+    { value: 'capacitacion', label: '📚 Capacitación' },
+    { value: 'evaluacion', label: '📊 Evaluación' },
     { value: 'otros', label: '📎 Otros' }
   ];
 
   useEffect(() => {
-    if (pacienteId) {
-      loadPaciente();
+    if (personalId) {
+      loadPersonal();
       loadDocumentos();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pacienteId]);
+  }, [personalId]);
 
-  const loadPaciente = async () => {
+  const loadPersonal = async () => {
     try {
-      const response = await ApiService.get(`/api/pacientes/${pacienteId}`);
+      const response = await ApiService.get(`/api/personal/${personalId}`);
       const data = extractData(response);
-      setPaciente(data);
+      setPersonal(data);
     } catch (error) {
-      console.error('Error al cargar paciente:', error);
-      setSnackbar({ open: true, message: 'Error al cargar datos del paciente', severity: 'error' });
+      console.error('Error al cargar personal:', error);
+      setSnackbar({ open: true, message: 'Error al cargar datos del personal', severity: 'error' });
     }
   };
 
   const loadDocumentos = async () => {
     try {
       setLoading(true);
-      const response = await ApiService.get(`/api/pacientes/${pacienteId}/documentos`);
+      const response = await ApiService.get(`/api/personal/${personalId}/documentos`);
       const data = extractData(response);
       setDocumentos(data || []);
     } catch (error) {
@@ -144,7 +144,7 @@ const DocumentosPaciente = () => {
       formData.append('es_confidencial', uploadData.es_confidencial);
       if (uploadData.fecha_vencimiento) formData.append('fecha_vencimiento', uploadData.fecha_vencimiento);
 
-      await ApiService.post(`/api/pacientes/${pacienteId}/documentos`, formData, {
+      await ApiService.post(`/api/personal/${personalId}/documentos`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
@@ -176,7 +176,7 @@ const DocumentosPaciente = () => {
   const handleDownload = async (documento) => {
     try {
       const response = await ApiService.get(
-        `/api/pacientes/${pacienteId}/documentos/${documento.id}`,
+        `/api/personal/${personalId}/documentos/${documento.id}`,
         { responseType: 'blob' }
       );
       const url = window.URL.createObjectURL(response.data);
@@ -199,7 +199,7 @@ const DocumentosPaciente = () => {
       return;
     }
     try {
-      await ApiService.delete(`/api/pacientes/${pacienteId}/documentos/${documento.id}`);
+      await ApiService.delete(`/api/personal/${personalId}/documentos/${documento.id}`);
       setSnackbar({ open: true, message: 'Documento eliminado exitosamente', severity: 'success' });
       await loadDocumentos();
     } catch (error) {
@@ -227,7 +227,7 @@ const DocumentosPaciente = () => {
         fecha_vencimiento: editingDocumento.fecha_vencimiento || null
       };
       await ApiService.put(
-        `/api/pacientes/${pacienteId}/documentos/${editingDocumento.id}`,
+        `/api/personal/${personalId}/documentos/${editingDocumento.id}`,
         updateData
       );
       setSnackbar({ open: true, message: 'Documento actualizado exitosamente', severity: 'success' });
@@ -302,10 +302,10 @@ const DocumentosPaciente = () => {
         >
           <Box>
             <Typography variant="h5" fontWeight="bold" color="black">
-              Documentos de {paciente?.nombre_completo || 'Paciente'}
+              Documentos de {personal?.nombre_completo || 'Personal'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Gestión de documentos PDF del paciente
+              Gestión de documentos PDF del personal
             </Typography>
           </Box>
 
@@ -337,7 +337,7 @@ const DocumentosPaciente = () => {
             </Tooltip>
             <Tooltip title="Volver">
               <IconButton
-                onClick={() => navigate('/gestion/paciente')}
+                onClick={() => navigate('/gestion/personal')}
                 color="inherit"
                 sx={{ border: '1px solid', borderColor: 'divider' }}
               >
@@ -393,7 +393,7 @@ const DocumentosPaciente = () => {
                 Sin documentos
               </Typography>
               <Typography variant="body2" color="text.secondary" mb={3}>
-                Este paciente no tiene documentos PDF cargados
+                Este personal no tiene documentos PDF cargados
               </Typography>
               <Button
                 variant="contained"
@@ -678,4 +678,4 @@ const DocumentosPaciente = () => {
   );
 };
 
-export default DocumentosPaciente;
+export default DocumentosPersonal;

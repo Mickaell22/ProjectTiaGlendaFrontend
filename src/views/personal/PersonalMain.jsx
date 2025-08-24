@@ -1,11 +1,12 @@
 // src/views/personal/PersonalMainComponent.jsx
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Container, Paper, Typography, Tabs, Tab
+  Box, Container, Paper, Typography, Tabs, Tab, Dialog, DialogTitle, DialogContent, IconButton
 } from '@mui/material';
 import {
-  SupervisorAccount, Add
+  SupervisorAccount, Add, Folder, Close as CloseIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 // Servicios y hooks
 import PersonalService from '../../services/personalService.js';
@@ -53,6 +54,8 @@ function a11yProps(index) {
 }
 
 const PersonalMainComponent = () => {
+  const navigate = useNavigate();
+
   // Estados principales
   const [personal, setPersonal] = useState([]);
   const [personasDisponibles, setPersonasDisponibles] = useState([]);
@@ -260,6 +263,10 @@ const PersonalMainComponent = () => {
     setActiveTab(0);
   };
 
+  const handleViewDocuments = (item) => {
+    navigate(`/personal/${item.id}/documentos`);
+  };
+
   // Configuración de tabs
   const tabs = [
     {
@@ -271,6 +278,7 @@ const PersonalMainComponent = () => {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onViewDetail={handleViewDetail}
+          onViewDocuments={handleViewDocuments}
           onAddNew={handleAddNew}
         />
       )
