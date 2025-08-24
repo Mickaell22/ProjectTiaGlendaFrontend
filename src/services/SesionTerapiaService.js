@@ -406,11 +406,23 @@ class SesionTerapiaService {
    */
   async getPacientesDisponibles() {
     try {
+      console.log('Fetching pacientes from /api/sesiones-terapia/pacientes-disponibles');
       const response = await this.api.get('/api/sesiones-terapia/pacientes-disponibles');
+      console.log('Pacientes response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching available patients:', error);
-      throw error;
+      console.error('Trying alternative endpoint /api/pacientes...');
+      
+      // Intentar endpoint alternativo
+      try {
+        const altResponse = await this.api.get('/api/pacientes');
+        console.log('Alternative pacientes response:', altResponse.data);
+        return altResponse.data;
+      } catch (altError) {
+        console.error('Alternative endpoint also failed:', altError);
+        throw error; // Throw original error
+      }
     }
   }
 
@@ -419,7 +431,10 @@ class SesionTerapiaService {
    */
   async getTerapeutasDisponibles() {
     try {
+      console.log('Fetching terapeutas from /api/sesiones-terapia/terapeutas-disponibles');
       const response = await this.api.get('/api/sesiones-terapia/terapeutas-disponibles');
+      console.log('Terapeutas response:', response.data);
+      
       return response.data;
     } catch (error) {
       console.error('Error fetching available therapists:', error);
@@ -434,10 +449,11 @@ class SesionTerapiaService {
    */
   async getEspecialidades() {
     try {
-      const response = await this.api.get('/api/especialidades');
+      // Get only therapeutic specialties for therapy session creation
+      const response = await this.api.get('/api/especialidades/area/Especialidad%20terapéutica');
       return response.data;
     } catch (error) {
-      console.error('Error fetching specialties:', error);
+      console.error('Error fetching therapeutic specialties:', error);
       throw error;
     }
   }

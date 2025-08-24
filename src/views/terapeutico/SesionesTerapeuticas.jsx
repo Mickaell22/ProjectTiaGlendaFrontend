@@ -1,14 +1,16 @@
 // src/views/terapeutico/SesionesTerapeuticas.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Fragment } from 'react';
 import {
   Box, Card, CardContent, Container, IconButton, Snackbar,
   Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
   Tooltip, Typography, Alert, Grid, Dialog, DialogTitle, DialogContent,
-  DialogActions, Chip, Avatar, Button, InputAdornment
+  DialogActions, Chip, Avatar, Button, InputAdornment, ToggleButtonGroup,
+  ToggleButton, Paper, Divider
 } from '@mui/material';
 import {
   Delete, Search, Visibility, Person,
-  Schedule, Group, PersonAdd
+  Schedule, Group, PersonAdd, ViewList, CalendarViewWeek,
+  AccessTime, Event
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -23,7 +25,7 @@ const purpleOutlineSX = {
   }
 };
 
-const SesionesTerapeuticas = () => {
+const SesionesTerapeuticas = ({ onNavigateToCreate }) => {
   const [sesiones, setSesiones] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
@@ -31,6 +33,7 @@ const SesionesTerapeuticas = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'schedule'
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -42,7 +45,19 @@ const SesionesTerapeuticas = () => {
     setLoading(true);
     try {
       const response = await sesionTerapiaService.getSesiones();
-      setSesiones(response.data || []);
+      let sesionesData = response.data || [];
+      
+      // Filtrar por rol: si es terapeuta, mostrar solo sus sesiones
+      if (user?.rol?.nombre === 'Terapeuta') {
+        const userId = user.id_personal || user.id;
+        sesionesData = sesionesData.filter(sesion => 
+          sesion.terapeuta_id === userId || 
+          sesion.id_terapeuta === userId
+        );
+      }
+      // Si es admin, mostrar todas (no se filtra)
+      
+      setSesiones(sesionesData);
     } catch (err) {
       console.error('Error fetching data:', err);
       const errorMessage = sesionTerapiaService.handleError(err);
@@ -67,7 +82,9 @@ const SesionesTerapeuticas = () => {
   };
 
   const handleViewDetail = (item) => {
-    navigate(`/terapeutico/sesion/${item.id}`);
+    console.log('Opening session detail dialog:', item.id);
+    // En lugar de navegar, abrir el modal de detalles
+    setDetailDialog({ open: true, data: item });
   };
 
   // Render seguro de pacientes: nombre único o lista
@@ -91,6 +108,7 @@ const SesionesTerapeuticas = () => {
     return extra > 0 ? `${first}, ${second} +${extra}` : `${first}, ${second}`;
   };
 
+
   const filteredSesiones = sesiones.filter(s => {
     const term = searchTerm.toLowerCase();
     const matchesSearch = (
@@ -101,6 +119,54 @@ const SesionesTerapeuticas = () => {
     );
     return matchesSearch;
   });
+
+  // Función para generar horarios de la semana (después de filteredSesiones)
+  const generateWeekSchedule = () => {
+    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const horas = Array.from({ length: 12 }, (_, i) => {
+      const hora = 7 + i; // De 7 AM a 6 PM
+      return `${hora.toString().padStart(2, '0')}:00`;
+    });
+    
+    const horario = {};
+    
+    filteredSesiones.forEach(sesion => {
+      if (!sesion.dias_semana || !sesion.hora_inicio) return;
+      
+      const diasSesion = Array.isArray(sesion.dias_semana) 
+        ? sesion.dias_semana 
+        : sesion.dias_semana.split(',').map(d => d.trim());
+      
+      const horaInicio = sesion.hora_inicio.substring(0, 5); // HH:MM
+      
+      diasSesion.forEach(dia => {
+        // Normalizar día: mapear nombres completos  
+        const diasMap = {
+          'lunes': 'Lunes',
+          'martes': 'Martes', 
+          'miercoles': 'Miércoles',
+          'miércoles': 'Miércoles',
+          'jueves': 'Jueves',
+          'viernes': 'Viernes',
+          'sabado': 'Sábado',
+          'sábado': 'Sábado',
+          'domingo': 'Domingo'
+        };
+        
+        const diaLowerCase = dia.toLowerCase().trim();
+        const diaNormalizado = diasMap[diaLowerCase] || dia.charAt(0).toUpperCase() + dia.slice(1).toLowerCase();
+        
+        if (!horario[diaNormalizado]) horario[diaNormalizado] = {};
+        if (!horario[diaNormalizado][horaInicio]) horario[diaNormalizado][horaInicio] = [];
+        
+        horario[diaNormalizado][horaInicio].push(sesion);
+      });
+    });
+    
+    return { dias, horas, horario };
+  };
+
+  const { dias, horas, horario } = generateWeekSchedule();
 
   return (
     <Container maxWidth="xl" sx={{ py: 0 }}>
@@ -178,22 +244,221 @@ const SesionesTerapeuticas = () => {
               }}
             />
 
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={(e, newMode) => newMode && setViewMode(newMode)}
+              size="small"
+              sx={{ mr: 2 }}
+            >
+              <ToggleButton value="list" aria-label="vista lista">
+                <ViewList />
+                <Typography variant="body2" sx={{ ml: 1, display: { xs: 'none', sm: 'block' } }}>
+                  Lista
+                </Typography>
+              </ToggleButton>
+              <ToggleButton value="schedule" aria-label="vista horario">
+                <CalendarViewWeek />
+                <Typography variant="body2" sx={{ ml: 1, display: { xs: 'none', sm: 'block' } }}>
+                  Horario
+                </Typography>
+              </ToggleButton>
+            </ToggleButtonGroup>
+            
             <Button
               variant="contained"
               startIcon={<PersonAdd />}
-              onClick={() => navigate('/terapeutico/crear-sesion')}
+              onClick={() => {
+                if (onNavigateToCreate) {
+                  onNavigateToCreate();
+                } else {
+                  navigate('/terapeutico/crear-sesion');
+                }
+              }}
               sx={{ height: 40, px: 2 }}
             >
               Nueva Sesión
             </Button>
           </Box>
 
-          {/* Tabla */}
+          {/* Contenido principal - Vista lista o horario */}
           {loading ? (
             <Box display="flex" justifyContent="center" p={4}>
               <Typography>Cargando sesiones...</Typography>
             </Box>
+          ) : viewMode === 'schedule' ? (
+            /* Vista de Horario */
+            <Box sx={{ width: '100%', overflowX: 'auto' }}>
+              <Paper variant="outlined" sx={{ borderRadius: 2 }}>
+                <Box sx={{ p: 2, bgcolor: 'grey.50', display: 'flex', alignItems: 'center' }}>
+                  <Event sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h6" color="primary">
+                    Vista de Horario Semanal
+                  </Typography>
+                  <Chip 
+                    label={`${filteredSesiones.length} sesiones`} 
+                    size="small" 
+                    sx={{ ml: 'auto' }}
+                  />
+                </Box>
+                <Divider />
+                
+                <Box sx={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: { 
+                    xs: `80px repeat(${Math.min(dias.length, 3)}, 1fr)`, 
+                    sm: `90px repeat(${Math.min(dias.length, 5)}, 1fr)`,
+                    md: `100px repeat(${dias.length}, 1fr)` 
+                  }, 
+                  gap: 1, 
+                  p: 2,
+                  overflowX: 'auto',
+                  minWidth: { xs: '600px', md: 'auto' }
+                }}>
+                  {/* Encabezado con días */}
+                  <Box /> {/* Espacio para la columna de horas */}
+                  {dias.map(dia => (
+                    <Box key={dia} sx={{ textAlign: 'center', p: 1, fontWeight: 'bold', color: 'primary.main' }}>
+                      {dia}
+                    </Box>
+                  ))}
+                  
+                  {/* Filas de horarios */}
+                  {horas.map(hora => (
+                    <Fragment key={hora}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', p: 1, fontWeight: 'medium', color: 'text.secondary' }}>
+                        <AccessTime sx={{ fontSize: 16, mr: 0.5 }} />
+                        {hora}
+                      </Box>
+                      {dias.map(dia => (
+                        <Box 
+                          key={`${dia}-${hora}`} 
+                          sx={{ 
+                            minHeight: 60, 
+                            p: 0.5, 
+                            border: '1px solid', 
+                            borderColor: 'divider',
+                            borderRadius: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 0.5
+                          }}
+                        >
+                          {horario[dia] && horario[dia][hora] && horario[dia][hora].map((sesion, index) => (
+                            <Paper 
+                              key={`${sesion.id}-${index}`}
+                              sx={{ 
+                                p: 1.5, 
+                                cursor: 'pointer',
+                                bgcolor: '#f8f9fa',
+                                border: '1px solid',
+                                borderColor: 'primary.main',
+                                color: 'text.primary',
+                                fontSize: '0.75rem',
+                                borderRadius: 1,
+                                '&:hover': {
+                                  bgcolor: 'primary.light',
+                                  borderColor: 'primary.dark',
+                                  transform: 'translateY(-2px)',
+                                  boxShadow: 2
+                                },
+                                transition: 'all 0.3s ease',
+                                position: 'relative'
+                              }}
+                              onClick={() => handleViewDetail(sesion)}
+                            >
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  fontWeight: 'bold', 
+                                  display: 'block',
+                                  color: 'text.primary',
+                                  mb: 0.5,
+                                  fontSize: '0.75rem'
+                                }}
+                              >
+                                {sesion.titulo}
+                              </Typography>
+                              
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  color: 'primary.main',
+                                  fontWeight: 'medium',
+                                  display: 'block',
+                                  mb: 0.3,
+                                  fontSize: '0.7rem'
+                                }}
+                              >
+                                {sesion.hora_inicio}
+                                {sesion.hora_fin && ` - ${sesion.hora_fin}`}
+                              </Typography>
+                              
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  color: 'text.secondary',
+                                  display: 'block',
+                                  mb: 0.3,
+                                  fontSize: '0.65rem'
+                                }}
+                              >
+                                {sesion.terapeuta_nombre}
+                              </Typography>
+                              
+                              <Typography 
+                                variant="caption" 
+                                sx={{ 
+                                  color: 'text.secondary',
+                                  display: 'block',
+                                  fontSize: '0.6rem'
+                                }}
+                              >
+                                {renderPacientes(sesion)}
+                              </Typography>
+
+                              {/* Botón de detalles pequeño */}
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: 4,
+                                  right: 4,
+                                  display: 'flex',
+                                  gap: 0.5
+                                }}
+                              >
+                                <Tooltip title="Ver detalles">
+                                  <IconButton
+                                    size="small"
+                                    sx={{ 
+                                      width: 18, 
+                                      height: 18,
+                                      bgcolor: 'primary.main',
+                                      color: 'white',
+                                      '&:hover': {
+                                        bgcolor: 'primary.dark'
+                                      }
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleViewDetail(sesion);
+                                    }}
+                                  >
+                                    <Visibility sx={{ fontSize: 10 }} />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            </Paper>
+                          ))}
+                        </Box>
+                      ))}
+                    </Fragment>
+                  ))}
+                </Box>
+              </Paper>
+            </Box>
           ) : (
+            /* Vista de Lista */
             <Box sx={{ width: '100%', overflowX: 'auto' }}>
               <Table>
                 <TableHead>
@@ -202,17 +467,16 @@ const SesionesTerapeuticas = () => {
                     <TableCell>Título</TableCell>
                     <TableCell>Terapeuta</TableCell>
                     <TableCell>Especialidad</TableCell>
-                    {/* Fechas: eliminado */}
+                    <TableCell>Horario</TableCell>
                     <TableCell>Días</TableCell>
                     <TableCell>Paciente(s)</TableCell>
-                    {/* Estado: eliminado */}
                     <TableCell>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {filteredSesiones.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                      <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                         <Box>
                           <Search sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
                           <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -227,7 +491,13 @@ const SesionesTerapeuticas = () => {
                             <Button
                               variant="contained"
                               startIcon={<PersonAdd />}
-                              onClick={() => navigate('/terapeutico/crear-sesion')}
+                              onClick={() => {
+                                if (onNavigateToCreate) {
+                                  onNavigateToCreate();
+                                } else {
+                                  navigate('/terapeutico/crear-sesion');
+                                }
+                              }}
                               sx={{ mt: 2 }}
                             >
                               Crear Primera Sesión
@@ -263,6 +533,19 @@ const SesionesTerapeuticas = () => {
                           {/* Especialidad (solo nombre) */}
                           <TableCell>
                             <Typography variant="body2">{item.especialidad_nombre}</Typography>
+                          </TableCell>
+
+                          {/* Horario */}
+                          <TableCell>
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'primary.main' }}>
+                                {item.hora_inicio || 'No definido'}
+                                {item.hora_fin && ` - ${item.hora_fin}`}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {item.duracion_minutos || 45} min
+                              </Typography>
+                            </Box>
                           </TableCell>
 
                           {/* Días */}
@@ -318,23 +601,25 @@ const SesionesTerapeuticas = () => {
             </Box>
           )}
 
-          {/* Paginación */}
-          <TablePagination
-            component="div"
-            count={filteredSesiones.length}
-            page={page}
-            onPageChange={(e, newPage) => setPage(newPage)}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(e) => {
-              setRowsPerPage(parseInt(e.target.value, 10));
-              setPage(0);
-            }}
-            rowsPerPageOptions={[5, 10, 25, 50]}
-            labelRowsPerPage="Filas por página:"
-            labelDisplayedRows={({ from, to, count }) =>
-              `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
-            }
-          />
+          {/* Paginación - solo mostrar en vista lista */}
+          {viewMode === 'list' && (
+            <TablePagination
+              component="div"
+              count={filteredSesiones.length}
+              page={page}
+              onPageChange={(e, newPage) => setPage(newPage)}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(e) => {
+                setRowsPerPage(parseInt(e.target.value, 10));
+                setPage(0);
+              }}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              labelRowsPerPage="Filas por página:"
+              labelDisplayedRows={({ from, to, count }) =>
+                `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+              }
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -389,10 +674,24 @@ const SesionesTerapeuticas = () => {
                   <strong>Días:</strong> {detailDialog.data.dias_semana?.join(', ')}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Hora:</strong> {detailDialog.data.hora_inicio}
+                  <strong>Horario:</strong> {detailDialog.data.hora_inicio}
+                  {detailDialog.data.hora_fin && ` - ${detailDialog.data.hora_fin}`}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Duración:</strong> {detailDialog.data.duracion_minutos} minutos
+                  <strong>Duración:</strong> {detailDialog.data.duracion_minutos || 45} minutos
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="primary">Pacientes Asignados</Typography>
+                <Typography variant="body2">
+                  <strong>Total Pacientes:</strong> {detailDialog.data.total_pacientes || detailDialog.data.estadisticas?.total_pacientes || 'No especificado'}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Pacientes:</strong> {renderPacientes(detailDialog.data)}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Tipo de Sesión:</strong> {detailDialog.data.tipo_sesion || 'Individual'}
                 </Typography>
               </Grid>
 
@@ -424,6 +723,16 @@ const SesionesTerapeuticas = () => {
           )}
         </DialogContent>
         <DialogActions>
+          <Button 
+            variant="outlined"
+            onClick={() => {
+              setDetailDialog({ open: false, data: null });
+              navigate(`/dashboard/terapeutico/sesion/${detailDialog.data?.id}`);
+            }}
+            disabled={!detailDialog.data?.id}
+          >
+            Ver Detalle Completo
+          </Button>
           <Button onClick={() => setDetailDialog({ open: false, data: null })}>
             Cerrar
           </Button>

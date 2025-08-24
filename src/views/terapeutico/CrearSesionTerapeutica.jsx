@@ -92,7 +92,7 @@ const CrearSesionTerapeutica = () => {
     numero_sesiones_contratadas: 1,
     costo_total: 0,
     meses_contrato: 1,
-    estado: 'activo',
+    estado: 'planificada',
     observaciones: '',
     paciente_id: ''
   });
@@ -119,20 +119,38 @@ const CrearSesionTerapeutica = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      console.log('Fetching data for form...');
+      
       const [pacientesRes, terapeutasRes, especialidadesRes] = await Promise.all([
         sesionTerapiaService.getPacientesDisponibles(),
         sesionTerapiaService.getTerapeutasDisponibles(),
         sesionTerapiaService.getEspecialidades()
       ]);
 
+      console.log('Raw responses:', { pacientesRes, terapeutasRes, especialidadesRes });
+
       const pacientes = pacientesRes?.data || pacientesRes || [];
       const terapeutas = terapeutasRes?.data || terapeutasRes || [];
       const especialidades = especialidadesRes?.data || especialidadesRes || [];
 
+      console.log('Processed data:', { 
+        pacientes: pacientes.length, 
+        terapeutas: terapeutas.length, 
+        especialidades: especialidades.length 
+      });
+      console.log('Terapeutas data:', terapeutas);
+
       setPacientesDisponibles(pacientes);
       setTerapeutasDisponibles(terapeutas);
       setEspecialidades(especialidades);
+      
+      setSnackbar({ 
+        open: true, 
+        message: `Datos cargados: ${pacientes.length} pacientes, ${terapeutas.length} terapeutas, ${especialidades.length} especialidades`, 
+        severity: 'info' 
+      });
     } catch (err) {
+      console.error('Error fetching form data:', err);
       const errorMessage = sesionTerapiaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
@@ -158,14 +176,32 @@ const CrearSesionTerapeutica = () => {
 
   const validateForm = () => {
     const newErrors = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Solo comparar fechas, no horas
 
     if (!formData.titulo?.trim()) newErrors.titulo = 'Título requerido';
     if (!formData.terapeuta_id) newErrors.terapeuta_id = 'Terapeuta requerido';
     if (!formData.especialidad_id) newErrors.especialidad_id = 'Especialidad requerida';
-    if (!formData.fecha_inicio) newErrors.fecha_inicio = 'Fecha de inicio requerida';
+    if (!formData.fecha_inicio) {
+      newErrors.fecha_inicio = 'Fecha de inicio requerida';
+    } else {
+      const fechaInicio = new Date(formData.fecha_inicio + 'T00:00:00');
+      if (fechaInicio < today) {
+        newErrors.fecha_inicio = 'La fecha de inicio no puede ser en el pasado';
+      }
+    }
     if (!formData.fecha_fin) newErrors.fecha_fin = 'Fecha de fin requerida';
     if (!formData.dias_semana.length) newErrors.dias_semana = 'Seleccione al menos un día';
-    if (!formData.hora_inicio) newErrors.hora_inicio = 'Hora de inicio requerida';
+    if (!formData.hora_inicio) {
+      newErrors.hora_inicio = 'Hora de inicio requerida';
+    } else {
+      // Validar horario laboral (7 AM - 5 PM)
+      const [hora, minuto] = formData.hora_inicio.split(':').map(Number);
+      const horaDecimal = hora + minuto / 60;
+      if (horaDecimal < 7 || horaDecimal > 17) {
+        newErrors.hora_inicio = 'La hora debe estar entre 7:00 AM y 5:00 PM';
+      }
+    }
     if (!formData.numero_sesiones_contratadas || formData.numero_sesiones_contratadas < 1) {
       newErrors.numero_sesiones_contratadas = 'Número de sesiones debe ser mayor a 0';
     }
@@ -174,8 +210,8 @@ const CrearSesionTerapeutica = () => {
     }
 
     if (formData.fecha_inicio && formData.fecha_fin) {
-      const fechaInicio = new Date(formData.fecha_inicio);
-      const fechaFin = new Date(formData.fecha_fin);
+      const fechaInicio = new Date(formData.fecha_inicio + 'T00:00:00');
+      const fechaFin = new Date(formData.fecha_fin + 'T00:00:00');
       if (fechaFin <= fechaInicio) {
         newErrors.fecha_fin = 'Fecha de fin debe ser posterior a fecha de inicio';
       }
@@ -211,11 +247,19 @@ const CrearSesionTerapeutica = () => {
         sessionData.paciente_id = parseInt(formData.paciente_id);
       }
 
-      await sesionTerapiaService.createSesion(sessionData);
+      console.log('Creating session with data:', sessionData);
+      const response = await sesionTerapiaService.createSesion(sessionData);
+      console.log('Session creation response:', response);
 
-      setSnackbar({ open: true, message: 'Sesión creada correctamente', severity: 'success' });
+      setSnackbar({ 
+        open: true, 
+        message: `Sesión "${sessionData.titulo}" creada correctamente`, 
+        severity: 'success' 
+      });
       resetForm();
     } catch (err) {
+      console.error('Error creating session:', err);
+      console.error('Error details:', err.response?.data);
       const errorMessage = sesionTerapiaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
@@ -236,7 +280,7 @@ const CrearSesionTerapeutica = () => {
       numero_sesiones_contratadas: 1,
       costo_total: 0,
       meses_contrato: 1,
-      estado: 'activo',
+      estado: 'planificada',
       observaciones: '',
       paciente_id: ''
     });
@@ -405,8 +449,13 @@ const CrearSesionTerapeutica = () => {
                     value={formData.fecha_inicio}
                     onChange={handleChange}
                     error={!!errors.fecha_inicio}
-                    helperText={errors.fecha_inicio}
+                    helperText={errors.fecha_inicio || 'No se permiten fechas pasadas'}
                     InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      inputProps: {
+                        min: new Date().toISOString().split('T')[0] // Fecha mínima: hoy
+                      }
+                    }}
                   />
                 </Grid>
 
@@ -425,17 +474,42 @@ const CrearSesionTerapeutica = () => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <TextField
-                    type="time"
-                    fullWidth
-                    label="Hora de Inicio"
-                    name="hora_inicio"
-                    value={formData.hora_inicio}
-                    onChange={handleChange}
-                    error={!!errors.hora_inicio}
-                    helperText={errors.hora_inicio}
-                    InputLabelProps={{ shrink: true }}
-                  />
+                  <FormControl fullWidth error={!!errors.hora_inicio}>
+                    <InputLabel shrink>Hora de Inicio</InputLabel>
+                    <Select
+                      sx={selectStableSX}
+                      name="hora_inicio"
+                      value={formData.hora_inicio}
+                      onChange={handleChange}
+                      MenuProps={menuProps}
+                      displayEmpty
+                    >
+                      <MenuItem value="">
+                        <em>Seleccionar horario</em>
+                      </MenuItem>
+                      {/* Horario laboral de 7 AM a 5 PM */}
+                      {Array.from({ length: 21 }, (_, i) => {
+                        const hour = Math.floor(7 + i / 2); // 7, 7, 8, 8, 9...
+                        const minute = (i % 2) * 30; // 0, 30, 0, 30...
+                        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                        const displayTime = `${hour}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
+                        const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                        const finalDisplay = `${displayHour}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
+                        
+                        // Solo mostrar hasta 5:00 PM
+                        if (hour > 17 || (hour === 17 && minute > 0)) return null;
+                        
+                        return (
+                          <MenuItem key={timeString} value={timeString}>
+                            {finalDisplay}
+                          </MenuItem>
+                        );
+                      }).filter(Boolean)}
+                    </Select>
+                    <FormHelperText>
+                      {errors.hora_inicio || 'Horario laboral: 7:00 AM - 5:00 PM'}
+                    </FormHelperText>
+                  </FormControl>
                 </Grid>
 
                 <Grid item xs={12}>

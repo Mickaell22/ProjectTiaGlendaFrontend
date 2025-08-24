@@ -48,14 +48,14 @@ const TerapeuticoMain = () => {
 
   const tabs = [
     {
+      label: 'Sesiones',
+      icon: <Psychology />,
+      component: <SesionesTerapeuticas onNavigateToCreate={() => setValue(1)} />
+    },
+    {
       label: 'Crear',
       icon: <Add />,
       component: <CrearSesionTerapeutica />
-    },
-    {
-      label: 'Sesiones',
-      icon: <Psychology />,
-      component: <SesionesTerapeuticas />
     },
     {
       label: 'Cronogramas',
