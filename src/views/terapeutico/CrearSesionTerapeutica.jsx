@@ -19,8 +19,8 @@ import {
   Alert
 } from '@mui/material';
 import { Add, Psychology } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from 'src/contexts/AuthContext';
+// import { useNavigate } from 'react-router-dom';
+// import { useAuth } from 'src/contexts/AuthContext';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 
 /* ---------- Estilos (como en UsuarioFormulario.jsx) ---------- */
@@ -99,8 +99,8 @@ const CrearSesionTerapeutica = () => {
   const [errors, setErrors] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  // const navigate = useNavigate();
+  // const { user } = useAuth();
 
   const diasSemana = [
     { value: 'lunes', label: 'Lunes' },
@@ -351,8 +351,8 @@ const CrearSesionTerapeutica = () => {
                       {!loading && terapeutasDisponibles.length === 0 ? (
                         <MenuItem disabled>No hay terapeutas disponibles</MenuItem>
                       ) : (
-                        terapeutasDisponibles.map((terapeuta) => (
-                          <MenuItem key={terapeuta.id} value={terapeuta.id}>
+                        terapeutasDisponibles.map((terapeuta, index) => (
+                          <MenuItem key={`terapeuta-${terapeuta.id || index}`} value={terapeuta.id}>
                             {`${terapeuta.nombre_completo || terapeuta.nombre || 'Sin nombre'} - ${terapeuta.titulo_profesional || terapeuta.especialidad_nombre || 'Especialista'}`}
                           </MenuItem>
                         ))
@@ -384,8 +384,8 @@ const CrearSesionTerapeutica = () => {
                       {!loading && especialidades.length === 0 ? (
                         <MenuItem disabled>No hay especialidades disponibles</MenuItem>
                       ) : (
-                        especialidades.map((especialidad) => (
-                          <MenuItem key={especialidad.id} value={especialidad.id}>
+                        especialidades.map((especialidad, index) => (
+                          <MenuItem key={`especialidad-${especialidad.id || index}`} value={especialidad.id}>
                             {`${especialidad.nombre || 'Sin nombre'} - ${especialidad.area || 'General'}`}
                           </MenuItem>
                         ))
@@ -419,8 +419,8 @@ const CrearSesionTerapeutica = () => {
                       {!loading && pacientesDisponibles.length === 0 ? (
                         <MenuItem disabled>No hay pacientes disponibles</MenuItem>
                       ) : (
-                        pacientesDisponibles.map((paciente) => (
-                          <MenuItem key={paciente.id} value={paciente.id}>
+                        pacientesDisponibles.map((paciente, index) => (
+                          <MenuItem key={`paciente-${paciente.id || index}`} value={paciente.id}>
                             {`${paciente.nombre_completo || paciente.nombre || 'Sin nombre'} - ${paciente.numero_historial || paciente.cedula || 'Sin ID'}`}
                           </MenuItem>
                         ))
@@ -492,7 +492,7 @@ const CrearSesionTerapeutica = () => {
                         const hour = Math.floor(7 + i / 2); // 7, 7, 8, 8, 9...
                         const minute = (i % 2) * 30; // 0, 30, 0, 30...
                         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-                        const displayTime = `${hour}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
+                        // const displayTime = `${hour}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
                         const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
                         const finalDisplay = `${displayHour}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
                         
@@ -500,7 +500,7 @@ const CrearSesionTerapeutica = () => {
                         if (hour > 17 || (hour === 17 && minute > 0)) return null;
                         
                         return (
-                          <MenuItem key={timeString} value={timeString}>
+                          <MenuItem key={`time-${i}-${timeString}`} value={timeString}>
                             {finalDisplay}
                           </MenuItem>
                         );
@@ -530,8 +530,8 @@ const CrearSesionTerapeutica = () => {
                       }
                       MenuProps={menuProps}
                     >
-                      {diasSemana.map((dia) => (
-                        <MenuItem key={dia.value} value={dia.value}>
+                      {diasSemana.map((dia, index) => (
+                        <MenuItem key={`dia-${dia.value || index}`} value={dia.value}>
                           {dia.label}
                         </MenuItem>
                       ))}

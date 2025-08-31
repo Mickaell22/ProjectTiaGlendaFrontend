@@ -4,7 +4,7 @@ import {
   Box, Container, Paper, Typography, Tabs, Tab
 } from '@mui/material';
 import { 
-  Psychology, CalendarMonth, Assignment, Today, BarChart, Add, BugReport
+  Psychology, CalendarMonth, Assignment, Today, BarChart, Add
 } from '@mui/icons-material';
 
 import CrearSesionTerapeutica from './CrearSesionTerapeutica';
@@ -13,8 +13,6 @@ import TerapeuticoCronogramas from './TerapeuticoCronogramas';
 import TerapeuticoAsistencia from './TerapeuticoAsistencia';
 import TerapeuticoHoy from './TerapeuticoHoy';
 import TerapeuticoEstadisticas from './TerapeuticoEstadisticas';
-import TestCronogramaAsistencias from './TestCronogramaAsistencias';
-import TestAgregarPacientes from './TestAgregarPacientes';
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -78,16 +76,6 @@ const TerapeuticoMain = () => {
       label: 'Estadísticas',
       icon: <BarChart />,
       component: <TerapeuticoEstadisticas />
-    },
-    {
-      label: 'Pruebas',
-      icon: <BugReport />,
-      component: <TestCronogramaAsistencias />
-    },
-    {
-      label: 'Debug Pacientes',
-      icon: <BugReport />,
-      component: <TestAgregarPacientes />
     }
   ];
 

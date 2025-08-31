@@ -18,9 +18,6 @@ import EspecialidadMain from 'src/views/especialidad/EspecialidadMain';
 import PersonalMain from 'src/views/personal/PersonalMain';
 import TerapeuticoMain from 'src/views/terapeutico/TerapeuticoMain';
 import SesionTerapeuticaDetalle from 'src/views/terapeutico/SesionTerapeuticaDetalle';
-import DebugSesiones from 'src/views/terapeutico/DebugSesiones';
-import TestAsistencias from 'src/views/terapeutico/TestAsistencias';
-import EndpointTester from 'src/views/terapeutico/EndpointTester';
 import SesionesPedagogicas from 'src/views/pedagogico/SesionesPedagogicas';
 import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
 import DocumentosPersonal from 'src/components/Personal/DocumentosPersonal';
@@ -34,6 +31,7 @@ import MiPerfil from 'src/views/perfil/MiPerfil';
 // Componente para páginas en desarrollo
 import ComingSoon from 'src/components/shared/ComingSoon';
 import ProtectedRoute from 'src/components/shared/ProtectedRoute';
+import { ROUTES } from '../config/routes';
 
 // Páginas específicas del área pedagógica
 
@@ -211,38 +209,35 @@ const Router = [
       </ProtectedRoute>
     ),
     children: [
-      { path: '/', element: <Navigate to="/dashboard" /> },
-      { path: '/dashboard', element: <Dashboard /> },
-      { path: '/mi-perfil', element: <MiPerfil /> },
+      { path: '/', element: <Navigate to={ROUTES.DASHBOARD} /> },
+      { path: ROUTES.DASHBOARD, element: <Dashboard /> },
+      { path: ROUTES.PROFILE, element: <MiPerfil /> },
       
       // Gestión de Personas
       { path: '/apps/contacts', element: <PacientesAlumnos /> },
       { path: '/apps/user-profile/followers', element: <PersonalLista /> },
       { path: '/apps/user-profile/friends', element: <PersonalEquipos /> },
-      { path: '/gestion/persona', element: <PersonaMain /> },
-      { path: '/gestion/paciente', element: <PacienteMain /> },
-      { path: '/gestion/tutor', element: <TutorMain /> },
-      { path: '/gestion/usuario', element: <UsuarioMain /> },
-      { path: '/gestion/especialidad', element: <EspecialidadMain /> },
-      { path: '/gestion/personal', element: <PersonalMain /> },
+      { path: ROUTES.GESTION.PERSONA, element: <PersonaMain /> },
+      { path: ROUTES.GESTION.PACIENTE, element: <PacienteMain /> },
+      { path: ROUTES.GESTION.TUTOR, element: <TutorMain /> },
+      { path: ROUTES.GESTION.USUARIO, element: <UsuarioMain /> },
+      { path: ROUTES.GESTION.ESPECIALIDAD, element: <EspecialidadMain /> },
+      { path: ROUTES.GESTION.PERSONAL, element: <PersonalMain /> },
       { path: '/pacientes/:pacienteId/documentos', element: <DocumentosPaciente /> },
       { path: '/personal/:personalId/documentos', element: <DocumentosPersonal /> },
 
 
 
       // Módulo Terapéutico
-      { path: '/terapeutico/*', element: <TerapeuticoMain /> },
+      { path: `${ROUTES.TERAPEUTICO.BASE}/*`, element: <TerapeuticoMain /> },
       { path: '/terapeutico/sesion/:id', element: <SesionTerapeuticaDetalle /> },
-      { path: '/debug/sesiones', element: <DebugSesiones /> },
-      { path: '/test/asistencias', element: <TestAsistencias /> },
-      { path: '/test/endpoints', element: <EndpointTester /> },
       
       // Módulo Pedagógico
-      { path: '/pedagogico/sesiones', element: <SesionesPedagogicas /> },
-      { path: '/pedagogico/cronogramas', element: <PedagogicoCronogramas /> },
-      { path: '/pedagogico/asistencia', element: <PedagogicoAsistencia /> },
-      { path: '/pedagogico/evaluaciones', element: <PedagogicoEvaluaciones /> },
-      { path: '/pedagogico/estadisticas', element: <PedagogicoEstadisticas /> },
+      { path: ROUTES.PEDAGOGICO.SESIONES, element: <SesionesPedagogicas /> },
+      { path: ROUTES.PEDAGOGICO.CRONOGRAMAS, element: <PedagogicoCronogramas /> },
+      { path: ROUTES.PEDAGOGICO.ASISTENCIA, element: <PedagogicoAsistencia /> },
+      { path: ROUTES.PEDAGOGICO.EVALUACIONES, element: <PedagogicoEvaluaciones /> },
+      { path: ROUTES.PEDAGOGICO.ESTADISTICAS, element: <PedagogicoEstadisticas /> },
       
       // Consultas especializadas
       { path: '/consultas/pacientes-disponibles', element: <ConsultasPacientesDisponibles /> },
@@ -276,10 +271,10 @@ const Router = [
     path: '/auth',
     element: <BlankLayout />,
     children: [
-      { path: '/auth/login', element: <Login /> },
-      { path: '/auth/register', element: <Register /> },
+      { path: ROUTES.AUTH.LOGIN, element: <Login /> },
+      { path: ROUTES.AUTH.REGISTER, element: <Register /> },
       { path: '/auth/404', element: () => <ComingSoon title="Error 404" description="Esta página no existe" module="Error" progress={100} /> },
-      { path: '*', element: <Navigate to="/auth/login" /> },
+      { path: '*', element: <Navigate to={ROUTES.AUTH.LOGIN} /> },
     ],
   },
 ];

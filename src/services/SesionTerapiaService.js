@@ -1,44 +1,8 @@
 // src/services/SesionTerapiaService.js
-import axios from 'axios';
-
-// Base URL for the API
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { ApiService } from './apiService';
+import { API_ENDPOINTS } from '../config/api';
 
 class SesionTerapiaService {
-  constructor() {
-    // Create axios instance with base configuration
-    this.api = axios.create({
-      baseURL: BASE_URL,
-      timeout: 10000,
-    });
-
-    // Add request interceptor to include auth headers
-    this.api.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('jwt_token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        config.headers['Content-Type'] = 'application/json';
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
-
-    // Add response interceptor for error handling
-    this.api.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          // Token expired or invalid
-          localStorage.removeItem('jwt_token');
-          window.location.href = '/auth/login';
-        }
-        return Promise.reject(error);
-      }
-    );
-  }
-
   // ==================== CRUD OPERATIONS ====================
   
   /**
@@ -46,10 +10,10 @@ class SesionTerapiaService {
    */
   async getSesiones() {
     try {
-      const response = await this.api.get('/api/sesiones-terapia');
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.BASE);
       return response.data;
     } catch (error) {
-      console.error('Error fetching sesiones:', error);
+      console.error('Error fetching therapy sessions:', error);
       throw error;
     }
   }
@@ -59,10 +23,10 @@ class SesionTerapiaService {
    */
   async getSesionById(id) {
     try {
-      const response = await this.api.get(`/api/sesiones-terapia/${id}`);
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.BY_ID(id));
       return response.data;
     } catch (error) {
-      console.error(`Error fetching sesion ${id}:`, error);
+      console.error(`Error fetching therapy session ${id}:`, error);
       throw error;
     }
   }
@@ -72,10 +36,10 @@ class SesionTerapiaService {
    */
   async createSesion(sessionData) {
     try {
-      const response = await this.api.post('/api/sesiones-terapia', sessionData);
+      const response = await ApiService.post(API_ENDPOINTS.SESIONES_TERAPIA.BASE, sessionData);
       return response.data;
     } catch (error) {
-      console.error('Error creating sesion:', error);
+      console.error('Error creating therapy session:', error);
       throw error;
     }
   }
@@ -85,23 +49,69 @@ class SesionTerapiaService {
    */
   async updateSesion(id, sessionData) {
     try {
-      const response = await this.api.put(`/api/sesiones-terapia/${id}`, sessionData);
+      const response = await ApiService.put(API_ENDPOINTS.SESIONES_TERAPIA.BY_ID(id), sessionData);
       return response.data;
     } catch (error) {
-      console.error(`Error updating sesion ${id}:`, error);
+      console.error(`Error updating therapy session ${id}:`, error);
       throw error;
     }
   }
 
   /**
-   * Delete therapy session (soft delete - change status to cancelled)
+   * Delete therapy session
    */
   async deleteSesion(id) {
     try {
-      const response = await this.api.delete(`/api/sesiones-terapia/${id}`);
+      const response = await ApiService.delete(API_ENDPOINTS.SESIONES_TERAPIA.BY_ID(id));
       return response.data;
     } catch (error) {
-      console.error(`Error deleting sesion ${id}:`, error);
+      console.error(`Error deleting therapy session ${id}:`, error);
+      throw error;
+    }
+  }
+
+  // ==================== SPECIALIZED OPERATIONS ====================
+
+  /**
+   * Get patients for a therapy session
+   */
+  async getPacientesSesion(sesionId) {
+    try {
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId));
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching patients for session ${sesionId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add patients to therapy session
+   */
+  async addPacientesToSesion(sesionId, pacientesIds) {
+    try {
+      const response = await ApiService.post(
+        API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId),
+        { pacientes_ids: pacientesIds }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error adding patients to session ${sesionId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Remove patient from therapy session
+   */
+  async removePacienteFromSesion(sesionId, pacienteId) {
+    try {
+      const response = await ApiService.delete(
+        `${API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId)}/${pacienteId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error removing patient ${pacienteId} from session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -109,72 +119,30 @@ class SesionTerapiaService {
   // ==================== CRONOGRAMA OPERATIONS ====================
 
   /**
-   * Get cronograma for a specific session
+   * Get schedule for a therapy session
    */
-  async getCronograma(sessionId) {
+  async getCronograma(sesionId) {
     try {
-      const response = await this.api.get(`/api/sesiones-terapia/${sessionId}/cronograma`);
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.CRONOGRAMA(sesionId));
       return response.data;
     } catch (error) {
-      console.error(`Error fetching cronograma for session ${sessionId}:`, error);
+      console.error(`Error fetching schedule for session ${sesionId}:`, error);
       throw error;
     }
   }
 
   /**
-   * Generate cronograma for a session
+   * Generate schedule for a therapy session
    */
-  async generarCronograma(sessionId) {
+  async generarCronograma(sesionId, configData) {
     try {
-      const response = await this.api.post(`/api/sesiones-terapia/${sessionId}/cronograma/generar`);
+      const response = await ApiService.post(
+        API_ENDPOINTS.SESIONES_TERAPIA.GENERAR_CRONOGRAMA(sesionId),
+        configData
+      );
       return response.data;
     } catch (error) {
-      console.error(`Error generating cronograma for session ${sessionId}:`, error);
-      throw error;
-    }
-  }
-
-  // ==================== PATIENT OPERATIONS ====================
-
-  /**
-   * Get patients assigned to a session
-   */
-  async getPacientesSesion(sessionId) {
-    try {
-      const response = await this.api.get(`/api/sesiones-terapia/${sessionId}/pacientes`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching patients for session ${sessionId}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Add patient to session
-   */
-  async addPacienteToSesion(sessionId, patientData) {
-    try {
-      console.log('Adding patient to session:', { sessionId, patientData });
-      const response = await this.api.post(`/api/sesiones-terapia/${sessionId}/pacientes`, patientData);
-      console.log('Patient added successfully:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error adding patient to session ${sessionId}:`, error);
-      console.error('Error details:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      throw error;
-    }
-  }
-
-  /**
-   * Remove patient from session
-   */
-  async removePacienteFromSesion(sessionId, patientId) {
-    try {
-      const response = await this.api.delete(`/api/sesiones-terapia/${sessionId}/pacientes/${patientId}`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error removing patient ${patientId} from session ${sessionId}:`, error);
+      console.error(`Error generating schedule for session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -182,251 +150,74 @@ class SesionTerapiaService {
   // ==================== ATTENDANCE OPERATIONS ====================
 
   /**
-   * Get attendance for a specific cronograma session
+   * Get attendance for a therapy session
    */
-  async getAsistencia(cronogramaId) {
+  async getAsistencias(sesionId) {
     try {
-      console.log('Getting asistencias for cronograma:', cronogramaId);
-      
-      // Use the actual backend endpoint that exists
-      const response = await this.api.get(`/api/sesiones-terapia/cronograma/${cronogramaId}/asistencia`);
-      console.log('Cronograma asistencias received:', response.data);
-      
-      // Ensure we always return data in the expected format
-      return {
-        data: response.data?.data || response.data || [],
-        message: response.data?.message || 'Asistencias obtenidas exitosamente',
-        status: response.data?.status || 'success'
-      };
-      
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.ASISTENCIAS(sesionId));
+      return response.data;
     } catch (error) {
-      console.error(`Error fetching attendance for cronograma ${cronogramaId}:`, error);
-      
-      // Try alternative endpoint format if main fails
-      try {
-        console.log('Trying alternative endpoint for cronograma:', cronogramaId);
-        const altResponse = await this.api.get(`/api/cronograma-sesiones/${cronogramaId}/asistencias`);
-        console.log('Alternative endpoint success:', altResponse.data);
-        return {
-          data: altResponse.data?.data || altResponse.data || [],
-          message: 'Asistencias obtenidas (endpoint alternativo)',
-          status: 'success'
-        };
-      } catch (altError) {
-        console.error('Alternative endpoint also failed:', altError);
-        return { 
-          data: [], 
-          message: 'No se pudieron cargar las asistencias',
-          status: 'error'
-        };
-      }
+      console.error(`Error fetching attendance for session ${sesionId}:`, error);
+      throw error;
     }
   }
 
   /**
-   * Register attendance for a patient in a specific session
+   * Register attendance for schedule and patient
    */
-  async registrarAsistencia(cronogramaId, patientId, attendanceData) {
-    console.log('Registering attendance:', { cronogramaId, patientId, attendanceData });
-    
-    // Use the actual backend endpoints that exist
-    const endpointsToTry = [
-      // Main endpoint from backend routes
-      {
-        url: `/api/sesiones-terapia/cronograma/${cronogramaId}/pacientes/${patientId}/asistencia`,
-        data: attendanceData
-      },
-      // Alternative endpoint format if the first fails
-      {
-        url: `/api/cronograma-sesiones/${cronogramaId}/asistencias/${patientId}`,
-        data: attendanceData
-      }
-    ];
-    
-    for (let i = 0; i < endpointsToTry.length; i++) {
-      const attempt = endpointsToTry[i];
-      try {
-        console.log(`Trying endpoint ${i + 1}:`, attempt.url, 'with data:', attempt.data);
-        const response = await this.api.post(attempt.url, attempt.data);
-        console.log('Attendance registration success:', response.data);
-        return response.data;
-      } catch (error) {
-        console.error(`Endpoint ${i + 1} failed (${attempt.url}):`, error.response?.status, error.response?.data?.message || error.message);
-        
-        // If this is the last attempt, throw the error
-        if (i === endpointsToTry.length - 1) {
-          throw error;
-        }
-      }
-    }
-  }
-
-  /**
-   * Update attendance for a patient in a specific session
-   */
-  async updateAsistencia(cronogramaId, patientId, attendanceData) {
+  async registrarAsistencia(cronogramaId, pacienteId, asistenciaData) {
     try {
-      // Use the actual PUT endpoint from backend routes
-      const response = await this.api.put(
-        `/api/sesiones-terapia/cronograma/${cronogramaId}/pacientes/${patientId}/asistencia`,
-        attendanceData
+      const response = await ApiService.post(
+        API_ENDPOINTS.SESIONES_TERAPIA.REGISTRAR_ASISTENCIA(cronogramaId, pacienteId),
+        asistenciaData
       );
-      console.log('Attendance update success:', response.data);
       return response.data;
     } catch (error) {
-      console.error(`Error updating attendance for patient ${patientId}:`, error);
+      console.error(`Error registering attendance for patient ${pacienteId} in schedule ${cronogramaId}:`, error);
       throw error;
     }
   }
 
   /**
-   * Get attendance for all sessions of a patient
+   * Get attendance for a specific schedule
    */
-  async getAsistenciaPaciente(patientId) {
+  async getAsistenciasCronograma(cronogramaId) {
     try {
-      const response = await this.api.get(`/api/sesiones-terapia/asistencias/paciente/${patientId}`);
+      const response = await ApiService.get(
+        API_ENDPOINTS.SESIONES_TERAPIA.ASISTENCIAS_CRONOGRAMA(cronogramaId)
+      );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching attendance for patient ${patientId}:`, error);
+      console.error(`Error fetching attendance for schedule ${cronogramaId}:`, error);
       throw error;
     }
   }
 
   /**
-   * Get all asistencias for a session
+   * Get attendance history for a patient
    */
-  async getAsistenciasSession(sessionId) {
+  async getAsistenciasPaciente(pacienteId) {
     try {
-      console.log('Getting asistencias for session:', sessionId);
-      const response = await this.api.get(`/api/sesiones-terapia/${sessionId}/asistencias`);
-      console.log('Session asistencias received:', response.data);
-      
-      // Ensure we always return data in the expected format
-      return {
-        data: response.data?.data || response.data || [],
-        message: response.data?.message || 'Asistencias de sesión obtenidas exitosamente',
-        status: response.data?.status || 'success'
-      };
-    } catch (error) {
-      console.error(`Error fetching asistencias for session ${sessionId}:`, error);
-      
-      // Return empty array instead of throwing to avoid breaking the UI
-      return { 
-        data: [], 
-        message: `No se pudieron cargar las asistencias de la sesión ${sessionId}`,
-        status: 'error'
-      };
-    }
-  }
-
-  /**
-   * Get attendance statistics for a session
-   */
-  async getEstadisticasAsistencia(sessionId) {
-    try {
-      const response = await this.api.get(`/api/sesiones-terapia/${sessionId}/estadisticas-asistencia`);
+      const response = await ApiService.get(
+        API_ENDPOINTS.SESIONES_TERAPIA.ASISTENCIAS_PACIENTE(pacienteId)
+      );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching attendance statistics for session ${sessionId}:`, error);
+      console.error(`Error fetching attendance for patient ${pacienteId}:`, error);
       throw error;
-    }
-  }
-
-  /**
-   * Reschedule a specific cronograma session
-   */
-  async reprogramarSesion(cronogramaId, reprogramData) {
-    try {
-      console.log('Rescheduling session:', { cronogramaId, reprogramData });
-      // Use the correct endpoint from Project B backend
-      const response = await this.api.put(`/api/sesiones-terapia/cronograma/${cronogramaId}/reprogramar`, reprogramData);
-      console.log('Session rescheduled successfully:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error rescheduling session ${cronogramaId}:`, error);
-      console.error('Error details:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      throw error;
-    }
-  }
-
-  /**
-   * Cancel a specific cronograma session
-   */
-  async cancelarSesion(cronogramaId, cancelData) {
-    try {
-      console.log('Canceling session:', { cronogramaId, cancelData });
-      // Use the correct endpoint from Project B backend
-      const response = await this.api.put(`/api/sesiones-terapia/cronograma/${cronogramaId}/cancelar`, cancelData);
-      console.log('Session canceled successfully:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error canceling session ${cronogramaId}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Mark a cronograma session as completed
-   */
-  async marcarSesionRealizada(cronogramaId, observaciones = null) {
-    try {
-      console.log('Marking session as completed:', { cronogramaId, observaciones });
-      const response = await this.api.put(`/api/sesiones-terapia/cronograma/${cronogramaId}/realizar`, {
-        observaciones: observaciones
-      });
-      console.log('Session marked as completed successfully:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error marking session ${cronogramaId} as completed:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get full attendance control for a cronograma session
-   */
-  async getControlAsistencia(cronogramaId) {
-    try {
-      console.log('Getting attendance control for cronograma:', cronogramaId);
-      const response = await this.api.get(`/api/sesiones-terapia/cronograma/${cronogramaId}/control-asistencia`);
-      console.log('Attendance control received:', response.data);
-      return {
-        data: response.data?.data || response.data || [],
-        message: response.data?.message || 'Control de asistencia obtenido exitosamente',
-        status: response.data?.status || 'success'
-      };
-    } catch (error) {
-      console.error(`Error fetching attendance control for cronograma ${cronogramaId}:`, error);
-      return { 
-        data: [], 
-        message: 'No se pudo cargar el control de asistencia',
-        status: 'error'
-      };
     }
   }
 
   // ==================== QUERY OPERATIONS ====================
 
   /**
-   * Get today's therapy sessions
-   */
-  async getSesionesHoy() {
-    try {
-      const response = await this.api.get('/api/sesiones-terapia/hoy');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching today sessions:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get sessions by therapist
+   * Get therapy sessions by therapist
    */
   async getSesionesByTerapeuta(terapeutaId) {
     try {
-      const response = await this.api.get(`/api/sesiones-terapia/terapeuta/${terapeutaId}`);
+      const response = await ApiService.get(
+        API_ENDPOINTS.SESIONES_TERAPIA.BY_TERAPEUTA(terapeutaId)
+      );
       return response.data;
     } catch (error) {
       console.error(`Error fetching sessions for therapist ${terapeutaId}:`, error);
@@ -435,67 +226,65 @@ class SesionTerapiaService {
   }
 
   /**
-   * Get therapy statistics
+   * Get today's therapy sessions
+   */
+  async getSesionesHoy() {
+    try {
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.HOY);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching today\'s therapy sessions:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get therapy sessions statistics
    */
   async getEstadisticas() {
     try {
-      const response = await this.api.get('/api/sesiones-terapia/estadisticas');
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.ESTADISTICAS);
       return response.data;
     } catch (error) {
-      console.error('Error fetching statistics:', error);
+      console.error('Error fetching therapy sessions statistics:', error);
       throw error;
     }
   }
 
   /**
-   * Get available patients
+   * Get attendance statistics for a session
+   */
+  async getEstadisticasAsistencia(sesionId) {
+    try {
+      const response = await ApiService.get(
+        API_ENDPOINTS.SESIONES_TERAPIA.ESTADISTICAS_ASISTENCIA(sesionId)
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching attendance statistics for session ${sesionId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get available patients for therapy sessions
    */
   async getPacientesDisponibles() {
     try {
-      console.log('Fetching pacientes from /api/sesiones-terapia/pacientes-disponibles');
-      const response = await this.api.get('/api/sesiones-terapia/pacientes-disponibles');
-      console.log('Pacientes response:', response.data);
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES_DISPONIBLES);
       return response.data;
     } catch (error) {
       console.error('Error fetching available patients:', error);
-      console.error('Trying alternative endpoint /api/pacientes...');
-      
-      // Intentar endpoint alternativo
-      try {
-        const altResponse = await this.api.get('/api/pacientes');
-        console.log('Alternative pacientes response:', altResponse.data);
-        return altResponse.data;
-      } catch (altError) {
-        console.error('Alternative endpoint also failed:', altError);
-        throw error; // Throw original error
-      }
-    }
-  }
-
-  /**
-   * Remove patient from session
-   */
-  async removePacienteFromSesion(sessionId, patientId) {
-    try {
-      console.log('Removing patient from session:', { sessionId, patientId });
-      const response = await this.api.delete(`/api/sesiones-terapia/${sessionId}/pacientes/${patientId}`);
-      console.log('Patient removed successfully:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error removing patient ${patientId} from session ${sessionId}:`, error);
       throw error;
     }
   }
 
   /**
-   * Get available therapists
+   * Get available therapists for therapy sessions
    */
   async getTerapeutasDisponibles() {
     try {
-      console.log('Fetching terapeutas from /api/sesiones-terapia/terapeutas-disponibles');
-      const response = await this.api.get('/api/sesiones-terapia/terapeutas-disponibles');
-      console.log('Terapeutas response:', response.data);
-      
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.TERAPEUTAS_DISPONIBLES);
       return response.data;
     } catch (error) {
       console.error('Error fetching available therapists:', error);
@@ -503,18 +292,51 @@ class SesionTerapiaService {
     }
   }
 
-  // ==================== UTILITY METHODS ====================
+  // ==================== AUXILIARY DATA ====================
 
   /**
-   * Get all specialties
+   * Get all therapeutic specialties
    */
   async getEspecialidades() {
     try {
-      // Get only therapeutic specialties for therapy session creation
-      const response = await this.api.get('/api/especialidades/area/Especialidad%20terapéutica');
-      return response.data;
+      // Try to get therapeutic specialties first
+      try {
+        const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.TERAPEUTICAS);
+        return response.data;
+      } catch (specificError) {
+        // If specific endpoint fails, try getting all specialties
+        console.warn('Therapeutic specialties endpoint not available, fetching all specialties');
+        const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.BASE);
+        return response.data;
+      }
     } catch (error) {
       console.error('Error fetching therapeutic specialties:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all patients
+   */
+  async getPacientes() {
+    try {
+      const response = await ApiService.get(API_ENDPOINTS.PACIENTES.BASE);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all personal (staff)
+   */
+  async getPersonal() {
+    try {
+      const response = await ApiService.get(API_ENDPOINTS.PERSONAL.BASE);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching staff:', error);
       throw error;
     }
   }
@@ -530,28 +352,30 @@ class SesionTerapiaService {
       
       switch (status) {
         case 400:
-          return 'Datos inválidos. Verifique la información ingresada.';
+          return `Datos inválidos: ${message}`;
         case 401:
-          return 'Sesión expirada. Por favor, inicie sesión nuevamente.';
+          return 'Sesión expirada. Por favor, inicia sesión nuevamente.';
         case 403:
-          return 'No tiene permisos para realizar esta acción.';
+          return 'No tienes permisos para realizar esta acción.';
         case 404:
           return 'El recurso solicitado no fue encontrado.';
+        case 409:
+          return `Conflicto: ${message}`;
         case 500:
-          return 'Error interno del servidor. Intente nuevamente más tarde.';
+          return 'Error interno del servidor. Intenta nuevamente.';
         default:
-          return message;
+          return `Error: ${message}`;
       }
     } else if (error.request) {
-      // Network error
-      return 'Error de conexión. Verifique su conexión a internet.';
+      // Request was made but no response received
+      return 'Error de conexión. Verifica tu conexión a internet.';
     } else {
-      // Other error
-      return error.message || 'Error inesperado. Intente nuevamente.';
+      // Something else happened
+      return `Error: ${error.message}`;
     }
   }
 }
 
-// Export singleton instance
+// Export a singleton instance
 const sesionTerapiaService = new SesionTerapiaService();
 export default sesionTerapiaService;

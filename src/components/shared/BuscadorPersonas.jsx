@@ -33,7 +33,8 @@ import {
   CheckCircle,
   Warning,
 } from '@mui/icons-material';
-import axios from 'axios';
+import { ApiService } from '../../services/apiService';
+import { API_ENDPOINTS } from '../../config/api';
 
 const BuscadorPersonas = ({ 
   onPersonaSelect, 
@@ -58,8 +59,6 @@ const BuscadorPersonas = ({
   const [expanded, setExpanded] = useState(true);
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(hideRegisteredPatients);
   
-  const token = localStorage.getItem('jwt_token');
-  const headers = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
     loadData();
@@ -74,18 +73,18 @@ const BuscadorPersonas = ({
       
       // Siempre cargar pacientes existentes para filtrar
       if (hideRegisteredPatients) {
-        promises.push(axios.get('http://localhost:5000/api/pacientes', { headers }));
+        promises.push(ApiService.get(API_ENDPOINTS.PACIENTES.BASE));
       }
       
       if (showPersonas) {
-        promises.push(axios.get('http://localhost:5000/api/personas', { headers }));
+        promises.push(ApiService.get(API_ENDPOINTS.PERSONAS.BASE));
       }
       
       if (showTutores) {
-        promises.push(axios.get('http://localhost:5000/api/tutores', { headers }));
+        promises.push(ApiService.get(API_ENDPOINTS.TUTORES.BASE));
         // También cargar personas para mapear los tutores
         if (!showPersonas) {
-          promises.push(axios.get('http://localhost:5000/api/personas', { headers }));
+          promises.push(ApiService.get(API_ENDPOINTS.PERSONAS.BASE));
         }
       }
 

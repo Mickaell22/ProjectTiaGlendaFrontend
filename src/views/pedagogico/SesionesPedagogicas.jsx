@@ -11,8 +11,9 @@ import {
   School, EventNote, MenuBook, CheckCircle, Schedule, Star,
   Assignment, Group, TrendingUp
 } from '@mui/icons-material';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { ApiService } from '../../services/apiService';
+import { API_ENDPOINTS } from '../../config/api';
 
 const SesionesPedagogicas = () => {
   const [sesiones, setSesiones] = useState([]);
@@ -49,13 +50,6 @@ const SesionesPedagogicas = () => {
   const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
   const navigate = useNavigate();
 
-  const getAuthHeaders = () => {
-    const token = localStorage.getItem('jwt_token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': token ? `Bearer ${token}` : '',
-    };
-  };
 
   useEffect(() => {
     fetchData();
@@ -64,9 +58,9 @@ const SesionesPedagogicas = () => {
   const fetchData = async () => {
     try {
       const [sesionesRes, alumnosRes, educadoresRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/sesiones-pedagogicas', { headers: getAuthHeaders() }),
-        axios.get('http://localhost:5000/api/alumnos', { headers: getAuthHeaders() }),
-        axios.get('http://localhost:5000/api/personal/pedagogicos', { headers: getAuthHeaders() })
+        ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE),
+        ApiService.get('/api/alumnos'),
+        ApiService.get('/api/personal/pedagogicos')
       ]);
       
       setSesiones(sesionesRes.data.data || []);
@@ -122,10 +116,10 @@ const SesionesPedagogicas = () => {
       };
 
       if (editingId) {
-        await axios.put(`http://localhost:5000/api/sesiones-pedagogicas/id/${editingId}`, sessionData, { headers: getAuthHeaders() });
+        await ApiService.put(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BY_ID(editingId), sessionData);
         setSnackbar({ open: true, message: 'Sesión actualizada correctamente', severity: 'success' });
       } else {
-        await axios.post('http://localhost:5000/api/sesiones-pedagogicas', sessionData, { headers: getAuthHeaders() });
+        await ApiService.post(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE, sessionData);
         setSnackbar({ open: true, message: 'Sesión programada correctamente', severity: 'success' });
       }
       
@@ -203,7 +197,7 @@ const SesionesPedagogicas = () => {
   const handleDelete = async (id) => {
     if (window.confirm('¿Está seguro de eliminar esta sesión pedagógica?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/sesiones-pedagogicas/id/${id}`, { headers: getAuthHeaders() });
+        await ApiService.delete(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BY_ID(id));
         setSnackbar({ open: true, message: 'Sesión eliminada correctamente', severity: 'info' });
         fetchData();
       } catch (error) {

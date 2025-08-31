@@ -66,6 +66,8 @@ export const API_ENDPOINTS = {
   ESPECIALIDADES: {
     BASE: '/api/especialidades',
     BY_ID: (id) => `/api/especialidades/id/${id}`,
+    BY_AREA: (area) => `/api/especialidades/area/${encodeURIComponent(area)}`,
+    TERAPEUTICAS: '/api/especialidades/area/Especialidad%20terapéutica',
   },
 
   // Pacientes
