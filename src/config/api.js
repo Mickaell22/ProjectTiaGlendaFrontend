@@ -68,6 +68,7 @@ export const API_ENDPOINTS = {
     BY_ID: (id) => `/api/especialidades/id/${id}`,
     BY_AREA: (area) => `/api/especialidades/area/${encodeURIComponent(area)}`,
     TERAPEUTICAS: '/api/especialidades/area/Especialidad%20terapéutica',
+    PEDAGOGICAS: '/api/especialidades/area/Especialidad%20pedagógica',
   },
 
   // Pacientes
@@ -110,7 +111,14 @@ export const API_ENDPOINTS = {
   SESIONES_PEDAGOGICAS: {
     BASE: '/api/sesiones-pedagogicas',
     BY_ID: (id) => `/api/sesiones-pedagogicas/${id}`,
-    // Se pueden agregar más endpoints cuando estén implementados
+    ESTUDIANTES: (id) => `/api/sesiones-pedagogicas/${id}/estudiantes`,
+    CRONOGRAMA: (id) => `/api/sesiones-pedagogicas/${id}/cronograma`,
+    CRONOGRAMA_GENERAL: '/api/sesiones-pedagogicas/cronograma',
+    BY_PEDAGOGO: (id) => `/api/sesiones-pedagogicas/pedagogo/${id}`,
+    HOY: '/api/sesiones-pedagogicas/hoy',
+    ESTADISTICAS: '/api/sesiones-pedagogicas/estadisticas',
+    ESTUDIANTES_DISPONIBLES: '/api/sesiones-pedagogicas/estudiantes-disponibles',
+    PEDAGOGOS_DISPONIBLES: '/api/sesiones-pedagogicas/pedagogos-disponibles',
   },
 
   // Roles
@@ -133,6 +141,18 @@ export const API_ENDPOINTS = {
     ARCHIVO_FOTO: (rutaFoto) => `/api/fotos-perfil/archivo/${rutaFoto}`,
     ESTADISTICAS: '/api/fotos-perfil/estadisticas',
     FORMATOS: '/api/fotos-perfil/formatos',
+  },
+
+  // Dashboard
+  DASHBOARD: {
+    ESTADISTICAS: '/api/dashboard/estadisticas',
+    USUARIOS_ACTIVOS: '/api/dashboard/usuarios-activos',
+    ACTIVIDAD_RECIENTE: '/api/dashboard/actividad-reciente',
+    ALERTAS: '/api/dashboard/alertas',
+    CONTADOR_PACIENTES: '/api/dashboard/contador-pacientes',
+    RESUMEN_PERSONAL: '/api/dashboard/resumen-personal',
+    RENDIMIENTO_SEMANAL: '/api/dashboard/rendimiento-semanal',
+    METRICAS_ASISTENCIA: '/api/dashboard/metricas-asistencia',
   },
 
   // Sistema

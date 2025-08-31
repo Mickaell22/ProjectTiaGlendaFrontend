@@ -18,7 +18,7 @@ import EspecialidadMain from 'src/views/especialidad/EspecialidadMain';
 import PersonalMain from 'src/views/personal/PersonalMain';
 import TerapeuticoMain from 'src/views/terapeutico/TerapeuticoMain';
 import SesionTerapeuticaDetalle from 'src/views/terapeutico/SesionTerapeuticaDetalle';
-import SesionesPedagogicas from 'src/views/pedagogico/SesionesPedagogicas';
+import PedagogicoMain from 'src/views/pedagogico/PedagogicoMain';
 import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
 import DocumentosPersonal from 'src/components/Personal/DocumentosPersonal';
 import ConfiguracionMain from 'src/views/configuracion/ConfiguracionMain';
@@ -233,11 +233,7 @@ const Router = [
       { path: '/terapeutico/sesion/:id', element: <SesionTerapeuticaDetalle /> },
       
       // Módulo Pedagógico
-      { path: ROUTES.PEDAGOGICO.SESIONES, element: <SesionesPedagogicas /> },
-      { path: ROUTES.PEDAGOGICO.CRONOGRAMAS, element: <PedagogicoCronogramas /> },
-      { path: ROUTES.PEDAGOGICO.ASISTENCIA, element: <PedagogicoAsistencia /> },
-      { path: ROUTES.PEDAGOGICO.EVALUACIONES, element: <PedagogicoEvaluaciones /> },
-      { path: ROUTES.PEDAGOGICO.ESTADISTICAS, element: <PedagogicoEstadisticas /> },
+      { path: `${ROUTES.PEDAGOGICO.BASE}/*`, element: <PedagogicoMain /> },
       
       // Consultas especializadas
       { path: '/consultas/pacientes-disponibles', element: <ConsultasPacientesDisponibles /> },

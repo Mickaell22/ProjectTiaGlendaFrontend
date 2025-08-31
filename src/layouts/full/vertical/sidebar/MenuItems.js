@@ -132,39 +132,7 @@ const Menuitems = [
     id: uniqueId(),
     title: 'Área Pedagógica',
     icon: School,
-    href: '/pedagogico',
-    children: [
-      {
-        id: uniqueId(),
-        title: 'Sesiones Pedagógicas',
-        icon: MenuBook,
-        href: ROUTES.PEDAGOGICO.SESIONES,
-      },
-      {
-        id: uniqueId(),
-        title: 'Cronograma de Clases',
-        icon: CalendarMonth,
-        href: ROUTES.PEDAGOGICO.CRONOGRAMAS,
-      },
-      {
-        id: uniqueId(),
-        title: 'Asistencia Estudiantil',
-        icon: CheckCircle,
-        href: ROUTES.PEDAGOGICO.ASISTENCIA,
-      },
-      {
-        id: uniqueId(),
-        title: 'Evaluaciones y Notas',
-        icon: Assessment,
-        href: ROUTES.PEDAGOGICO.EVALUACIONES,
-      },
-      {
-        id: uniqueId(),
-        title: 'Estadísticas Académicas',
-        icon: AutoGraph,
-        href: ROUTES.PEDAGOGICO.ESTADISTICAS,
-      },
-    ],
+    href: ROUTES.PEDAGOGICO.BASE,
   },
 
   {

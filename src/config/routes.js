@@ -40,11 +40,14 @@ export const ROUTES = {
 
   // Módulo pedagógico
   PEDAGOGICO: {
+    BASE: '/pedagogico',
     SESIONES: '/pedagogico/sesiones',
     CRONOGRAMAS: '/pedagogico/cronogramas',
     ASISTENCIA: '/pedagogico/asistencia',
     EVALUACIONES: '/pedagogico/evaluaciones',
     ESTADISTICAS: '/pedagogico/estadisticas',
+    SESION: (id) => `/pedagogico/sesion/${id}`,
+    CREAR_SESION: '/pedagogico/crear-sesion',
   },
 
   // Documentos
