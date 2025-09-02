@@ -61,7 +61,11 @@ apiClient.interceptors.response.use(
                    error.response.data?.message || 
                    ERROR_MESSAGES.SERVER_ERROR;
 
-    return Promise.reject(new Error(message));
+    // Preserve original error for debugging
+    const customError = new Error(message);
+    customError.response = error.response;
+    customError.originalError = error;
+    return Promise.reject(customError);
   }
 );
 

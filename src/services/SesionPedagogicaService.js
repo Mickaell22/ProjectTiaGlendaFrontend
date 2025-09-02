@@ -10,10 +10,26 @@ class SesionPedagogicaService {
    */
   async getSesiones() {
     try {
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE);
-      return response.data;
+      console.log('🔐 Making request to:', API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE);
+      console.log('🔑 JWT Token:', localStorage.getItem('jwt_token') ? 'Present' : 'Missing');
+      
+      // Try authenticated endpoint first
+      try {
+        const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE);
+        console.log('✅ Authenticated response:', response);
+        return response.data;
+      } catch (authError) {
+        console.log('⚠️ Auth failed, trying debug endpoint:', authError.response?.status);
+        // Fallback to debug endpoint
+        const debugResponse = await ApiService.get('/api/sesiones-pedagogicas-debug');
+        console.log('✅ Debug endpoint response:', debugResponse);
+        return debugResponse.data;
+      }
+      
     } catch (error) {
-      console.error('Error fetching pedagogical sessions:', error);
+      console.error('❌ Error fetching sessions:', error);
+      console.error('🔍 Error response:', error.response);
+      console.error('📊 Error status:', error.response?.status);
       throw error;
     }
   }
@@ -36,10 +52,15 @@ class SesionPedagogicaService {
    */
   async createSesion(sessionData) {
     try {
+      console.log('SesionPedagogicaService.createSesion - Data being sent:', sessionData);
       const response = await ApiService.post(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE, sessionData);
+      console.log('SesionPedagogicaService.createSesion - Success response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error creating pedagogical session:', error);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Full error object:', error.originalError || error);
       throw error;
     }
   }
@@ -241,10 +262,17 @@ class SesionPedagogicaService {
         const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.PEDAGOGICAS);
         return response.data;
       } catch (specificError) {
-        // If specific endpoint fails, try getting all specialties
+        // If specific endpoint fails, try getting all specialties and filter
         console.warn('Pedagogical specialties endpoint not available, fetching all specialties');
         const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.BASE);
-        return response.data;
+        // Filter only pedagogical specialties
+        const allData = response.data?.data || response.data || [];
+        const filteredData = allData.filter(esp => 
+          esp.area === 'Especialidad pedagógica' || 
+          esp.area === 'pedagogica' ||
+          esp.area?.toLowerCase().includes('pedagog')
+        );
+        return { data: filteredData };
       }
     } catch (error) {
       console.error('Error fetching pedagogical specialties:', error);

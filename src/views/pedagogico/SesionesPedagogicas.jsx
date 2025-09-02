@@ -47,8 +47,11 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      console.log('🎓 Fetching pedagogical sessions...');
       const response = await sesionPedagogicaService.getSesiones();
+      console.log('📋 Sessions response:', response);
       let sesionesData = response.data || [];
+      console.log('📚 Sessions data count:', sesionesData.length);
       
       // Filtrar por rol: si es pedagogo, mostrar solo sus sesiones
       if (user?.rol?.nombre === 'Pedagogo' || user?.rol?.nombre === 'Educador') {
@@ -57,11 +60,12 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
           sesion.pedagogo?.id === userId || 
           sesion.id_pedagogo === userId
         );
+        console.log('🎯 Filtered sessions for pedagogo:', sesionesData.length);
       }
       
       setSesiones(sesionesData);
     } catch (err) {
-      console.error('Error fetching data:', err);
+      console.error('❌ Error fetching pedagogical sessions:', err);
       const errorMessage = sesionPedagogicaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {

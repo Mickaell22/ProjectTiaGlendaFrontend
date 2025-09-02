@@ -91,7 +91,8 @@ const CrearSesionPedagogica = () => {
     costo_total: 0,
     costo_por_clase: 0,
     nivel_academico: '',
-    modalidad: 'presencial',
+    modalidad_delivery: 'presencial',
+    modalidad_formato: 'grupal',
     capacidad_maxima: 10,
     periodo_academico: '',
     estado: 'planificada',
@@ -118,13 +119,16 @@ const CrearSesionPedagogica = () => {
     { value: 'especial', label: 'Educación Especial' }
   ];
 
-  // Opciones para modalidades
-  const modalidades = [
-    { value: 'presencial', label: 'Presencial' },
-    { value: 'virtual', label: 'Virtual' },
-    { value: 'hibrida', label: 'Híbrida' },
-    { value: 'individual', label: 'Individual' },
-    { value: 'grupal', label: 'Grupal' }
+  // Opciones para modalidades (organizadas por tipo)
+  const modalidadesDelivery = [
+    { value: 'presencial', label: 'Presencial', icon: '🏫' },
+    { value: 'virtual', label: 'Virtual', icon: '💻' },
+    { value: 'hibrida', label: 'Híbrida', icon: '🔄' }
+  ];
+
+  const modalidadesFormato = [
+    { value: 'individual', label: 'Individual', icon: '👤' },
+    { value: 'grupal', label: 'Grupal', icon: '👥' }
   ];
 
   useEffect(() => {
@@ -167,6 +171,16 @@ const CrearSesionPedagogica = () => {
       setErrors(prev => ({
         ...prev,
         [name]: ''
+      }));
+    }
+
+    // Ajustar capacidad automáticamente cuando cambie el formato
+    if (name === 'modalidad_formato') {
+      const newCapacidad = value === 'individual' ? 1 : 10;
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        capacidad_maxima: newCapacidad
       }));
     }
 
@@ -241,6 +255,16 @@ const CrearSesionPedagogica = () => {
     if (!formData.hora_inicio) newErrors.hora_inicio = 'La hora de inicio es requerida';
     if (!formData.hora_fin) newErrors.hora_fin = 'La hora de fin es requerida';
     if (!formData.nivel_academico) newErrors.nivel_academico = 'El nivel académico es requerido';
+    if (!formData.modalidad_delivery) newErrors.modalidad_delivery = 'Debe seleccionar una modalidad de entrega';
+    if (!formData.modalidad_formato) newErrors.modalidad_formato = 'Debe seleccionar un formato de sesión';
+
+    // Validar capacidad según formato
+    if (formData.modalidad_formato === 'individual' && formData.capacidad_maxima > 1) {
+      newErrors.capacidad_maxima = 'Para sesiones individuales, la capacidad debe ser 1';
+    }
+    if (formData.modalidad_formato === 'grupal' && formData.capacidad_maxima < 2) {
+      newErrors.capacidad_maxima = 'Para sesiones grupales, la capacidad debe ser mayor a 1';
+    }
 
     // Validar fechas
     if (formData.fecha_inicio && formData.fecha_fin) {
@@ -274,13 +298,44 @@ const CrearSesionPedagogica = () => {
 
     setLoading(true);
     try {
-      await sesionPedagogicaService.createSesion(formData);
+      // Combinar modalidades para envío al backend y procesar datos
+      const dataToSubmit = {
+        ...formData,
+        modalidad: `${formData.modalidad_delivery}|${formData.modalidad_formato}`,
+        // Convert numeric fields to proper types
+        duracion_minutos: parseInt(formData.duracion_minutos) || 60,
+        numero_clases_programadas: parseInt(formData.numero_clases_programadas) || 8,
+        capacidad_maxima: parseInt(formData.capacidad_maxima) || 10,
+        costo_total: parseFloat(formData.costo_total) || 0,
+        costo_por_clase: parseFloat(formData.costo_por_clase) || 0,
+        // Ensure we have hora_fin calculated if it's empty
+        hora_fin: formData.hora_fin || (() => {
+          if (formData.hora_inicio && formData.duracion_minutos) {
+            const [hora, min] = formData.hora_inicio.split(':').map(Number);
+            const totalMinutos = hora * 60 + min + parseInt(formData.duracion_minutos);
+            const horaFin = Math.floor(totalMinutos / 60);
+            const minFin = totalMinutos % 60;
+            return `${horaFin.toString().padStart(2, '0')}:${minFin.toString().padStart(2, '0')}`;
+          }
+          return null;
+        })()
+      };
+      delete dataToSubmit.modalidad_delivery;
+      delete dataToSubmit.modalidad_formato;
+      
+      // Debug: Log data being submitted
+      console.log('Data to submit:', dataToSubmit);
+      
+      await sesionPedagogicaService.createSesion(dataToSubmit);
       
       setSnackbar({
         open: true,
         message: 'Sesión pedagógica creada exitosamente',
         severity: 'success'
       });
+      
+      // Refresh data after successful creation
+      fetchData();
       
       // Limpiar formulario
       setFormData({
@@ -297,7 +352,8 @@ const CrearSesionPedagogica = () => {
         costo_total: 0,
         costo_por_clase: 0,
         nivel_academico: '',
-        modalidad: 'presencial',
+        modalidad_delivery: 'presencial',
+        modalidad_formato: 'grupal',
         capacidad_maxima: 10,
         periodo_academico: '',
         estado: 'planificada',
@@ -306,9 +362,21 @@ const CrearSesionPedagogica = () => {
       
     } catch (error) {
       console.error('Error creating session:', error);
+      console.error('Error response:', error.response);
+      console.error('Error data:', error.response?.data);
+      
+      let errorMessage = sesionPedagogicaService.handleError(error);
+      
+      // Try to get more specific error message
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+      
       setSnackbar({
         open: true,
-        message: sesionPedagogicaService.handleError(error),
+        message: errorMessage,
         severity: 'error'
       });
     } finally {
@@ -544,35 +612,63 @@ const CrearSesionPedagogica = () => {
                   />
                 </Grid>
                 
-                <Grid item xs={12} md={4}>
-                  <FormControl fullWidth>
-                    <InputLabel>Modalidad</InputLabel>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth error={!!errors.modalidad_delivery}>
+                    <InputLabel>Modalidad de Entrega</InputLabel>
                     <Select
-                      name="modalidad"
-                      value={formData.modalidad}
+                      name="modalidad_delivery"
+                      value={formData.modalidad_delivery}
                       onChange={handleChange}
-                      label="Modalidad"
+                      label="Modalidad de Entrega"
                       sx={selectStableSX}
                     >
-                      {modalidades.map((modalidad) => (
+                      {modalidadesDelivery.map((modalidad) => (
                         <MenuItem key={modalidad.value} value={modalidad.value}>
-                          {modalidad.label}
+                          <Box display="flex" alignItems="center">
+                            <Typography sx={{ mr: 1 }}>{modalidad.icon}</Typography>
+                            {modalidad.label}
+                          </Box>
                         </MenuItem>
                       ))}
                     </Select>
+                    {errors.modalidad_delivery && <FormHelperText>{errors.modalidad_delivery}</FormHelperText>}
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth error={!!errors.modalidad_formato}>
+                    <InputLabel>Formato de Sesión</InputLabel>
+                    <Select
+                      name="modalidad_formato"
+                      value={formData.modalidad_formato}
+                      onChange={handleChange}
+                      label="Formato de Sesión"
+                      sx={selectStableSX}
+                    >
+                      {modalidadesFormato.map((modalidad) => (
+                        <MenuItem key={modalidad.value} value={modalidad.value}>
+                          <Box display="flex" alignItems="center">
+                            <Typography sx={{ mr: 1 }}>{modalidad.icon}</Typography>
+                            {modalidad.label}
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.modalidad_formato && <FormHelperText>{errors.modalidad_formato}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12} md={12}>
                   <TextField
                     fullWidth
                     type="number"
-                    label="Capacidad Máxima"
+                    label="Capacidad Máxima de Estudiantes"
                     name="capacidad_maxima"
                     value={formData.capacidad_maxima}
                     onChange={handleChange}
-                    inputProps={{ min: 1 }}
-                    helperText="Número máximo de estudiantes"
+                    error={!!errors.capacidad_maxima}
+                    inputProps={{ min: 1, max: 50 }}
+                    helperText={errors.capacidad_maxima || `Número máximo de estudiantes permitidos en la sesión (recomendado: ${formData.modalidad_formato === 'individual' ? '1' : '8-12'} estudiantes)`}
                   />
                 </Grid>
 
