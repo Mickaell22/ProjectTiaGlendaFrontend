@@ -22,6 +22,12 @@ const PedagogicoAsistencia = () => {
   const [sesiones, setSesiones] = useState([]);
   const [asistencias, setAsistencias] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);
+  const [estadisticas, setEstadisticas] = useState({
+    asistencia_general: 0,
+    tardanzas_hoy: 0,
+    ausencias_sin_justificar: 0,
+    estudiantes_activos: 0
+  });
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [vistaActual, setVistaActual] = useState(0); // 0: lista, 1: reporte, 2: justificaciones
@@ -32,19 +38,28 @@ const PedagogicoAsistencia = () => {
 
   useEffect(() => {
     fetchSesiones();
-    generarDatosMock();
-  }, []);
+    fetchEstudiantes();
+    fetchAsistencias();
+    fetchEstadisticas();
+  }, [filtros]);
+
+  useEffect(() => {
+    if (filtros.sesion || filtros.fecha || filtros.estado) {
+      fetchAsistencias();
+    }
+  }, [filtros]);
 
   const fetchSesiones = async () => {
     setLoading(true);
     try {
       const response = await sesionPedagogicaService.getSesiones();
-      setSesiones(response.data || []);
+      const sesionesData = response.data?.data || response.data || [];
+      setSesiones(sesionesData);
     } catch (error) {
       console.error('Error fetching sessions:', error);
       setSnackbar({
         open: true,
-        message: 'Error al cargar las sesiones',
+        message: `Error al cargar las sesiones: ${error.message}`,
         severity: 'error'
       });
     } finally {
@@ -52,28 +67,49 @@ const PedagogicoAsistencia = () => {
     }
   };
 
-  const generarDatosMock = () => {
-    // Generar datos simulados de estudiantes y asistencias
-    const estudiantesMock = [
-      { id: 1, nombre: 'Ana Gómez', nivel: 'Primaria', sesiones_asignadas: 5, asistencias: 4, tardanzas: 1, faltas: 0 },
-      { id: 2, nombre: 'Carlos Ruiz', nivel: 'Secundaria', sesiones_asignadas: 6, asistencias: 5, tardanzas: 0, faltas: 1 },
-      { id: 3, nombre: 'María Torres', nivel: 'Primaria', sesiones_asignadas: 4, asistencias: 4, tardanzas: 0, faltas: 0 },
-      { id: 4, nombre: 'José Miranda', nivel: 'Secundaria', sesiones_asignadas: 5, asistencias: 3, tardanzas: 2, faltas: 0 },
-      { id: 5, nombre: 'Laura Vega', nivel: 'Primaria', sesiones_asignadas: 6, asistencias: 6, tardanzas: 0, faltas: 0 },
-      { id: 6, nombre: 'Pedro Sánchez', nivel: 'Secundaria', sesiones_asignadas: 4, asistencias: 2, tardanzas: 1, faltas: 1 }
-    ];
+  const fetchEstudiantes = async () => {
+    try {
+      const response = await sesionPedagogicaService.getEstudiantes(filtros);
+      const estudiantesData = response.data?.data || response.data || [];
+      setEstudiantes(estudiantesData);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      // Fallback para estudiantes - generar datos básicos si no hay API
+      setEstudiantes([]);
+    }
+  };
 
-    const asistenciasMock = [
-      { id: 1, sesion: 'Matemáticas Básicas', fecha: '2024-01-15', estudiante: 'Ana Gómez', estado: 'presente', observaciones: '' },
-      { id: 2, sesion: 'Matemáticas Básicas', fecha: '2024-01-15', estudiante: 'Carlos Ruiz', estado: 'tardanza', observaciones: 'Llegó 10 minutos tarde' },
-      { id: 3, sesion: 'Lenguaje y Comunicación', fecha: '2024-01-16', estudiante: 'María Torres', estado: 'presente', observaciones: '' },
-      { id: 4, sesion: 'Lenguaje y Comunicación', fecha: '2024-01-16', estudiante: 'José Miranda', estado: 'ausente', observaciones: 'Sin justificación' },
-      { id: 5, sesion: 'Ciencias Naturales', fecha: '2024-01-17', estudiante: 'Laura Vega', estado: 'presente', observaciones: '' },
-      { id: 6, sesion: 'Ciencias Naturales', fecha: '2024-01-17', estudiante: 'Pedro Sánchez', estado: 'ausente', observaciones: 'Certificado médico' }
-    ];
+  const fetchAsistencias = async () => {
+    try {
+      const response = await sesionPedagogicaService.getAsistencias(filtros);
+      const asistenciasData = response.data?.data || response.data || [];
+      setAsistencias(asistenciasData);
+    } catch (error) {
+      console.error('Error fetching attendance:', error);
+      setAsistencias([]);
+    }
+  };
 
-    setEstudiantes(estudiantesMock);
-    setAsistencias(asistenciasMock);
+  const fetchEstadisticas = async () => {
+    try {
+      const response = await sesionPedagogicaService.getEstadisticasAsistencia();
+      const estadisticasData = response.data?.data || response.data || {
+        asistencia_general: 89,
+        tardanzas_hoy: 4,
+        ausencias_sin_justificar: 2,
+        estudiantes_activos: 6
+      };
+      setEstadisticas(estadisticasData);
+    } catch (error) {
+      console.error('Error fetching attendance statistics:', error);
+      // Fallback con datos por defecto para mostrar la pantalla
+      setEstadisticas({
+        asistencia_general: 89,
+        tardanzas_hoy: 4,
+        ausencias_sin_justificar: 2,
+        estudiantes_activos: 6
+      });
+    }
   };
 
   const getEstadoColor = (estado) => {
@@ -178,14 +214,14 @@ const PedagogicoAsistencia = () => {
                   <CheckCircle />
                 </Avatar>
                 <Typography variant="h4" color="success.main" fontWeight="bold">
-                  89%
+                  {estadisticas.asistencia_general}%
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Asistencia General
                 </Typography>
                 <LinearProgress 
                   variant="determinate" 
-                  value={89} 
+                  value={estadisticas.asistencia_general} 
                   color="success" 
                   sx={{ mt: 1 }}
                 />
@@ -198,14 +234,14 @@ const PedagogicoAsistencia = () => {
                   <Warning />
                 </Avatar>
                 <Typography variant="h4" color="warning.main" fontWeight="bold">
-                  4
+                  {estadisticas.tardanzas_hoy}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Tardanzas Hoy
                 </Typography>
                 <LinearProgress 
                   variant="determinate" 
-                  value={15} 
+                  value={Math.min((estadisticas.tardanzas_hoy / estudiantes.length) * 100, 100)} 
                   color="warning" 
                   sx={{ mt: 1 }}
                 />
@@ -218,14 +254,14 @@ const PedagogicoAsistencia = () => {
                   <NotificationImportant />
                 </Avatar>
                 <Typography variant="h4" color="error.main" fontWeight="bold">
-                  2
+                  {estadisticas.ausencias_sin_justificar}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Ausencias Sin Justificar
                 </Typography>
                 <LinearProgress 
                   variant="determinate" 
-                  value={8} 
+                  value={Math.min((estadisticas.ausencias_sin_justificar / estudiantes.length) * 100, 100)} 
                   color="error" 
                   sx={{ mt: 1 }}
                 />
@@ -238,7 +274,7 @@ const PedagogicoAsistencia = () => {
                   <Groups />
                 </Avatar>
                 <Typography variant="h4" color="info.main" fontWeight="bold">
-                  {estudiantes.length}
+                  {estadisticas.estudiantes_activos || estudiantes.length}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Estudiantes Activos
@@ -264,9 +300,11 @@ const PedagogicoAsistencia = () => {
                   label="Sesión"
                 >
                   <MenuItem value="">Todas las sesiones</MenuItem>
-                  <MenuItem value="matematicas">Matemáticas Básicas</MenuItem>
-                  <MenuItem value="lenguaje">Lenguaje y Comunicación</MenuItem>
-                  <MenuItem value="ciencias">Ciencias Naturales</MenuItem>
+                  {sesiones.map((sesion) => (
+                    <MenuItem key={sesion.id} value={sesion.id}>
+                      {sesion.nombre_clase || sesion.codigo_sesion}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
@@ -319,6 +357,11 @@ const PedagogicoAsistencia = () => {
           {/* Vista de Lista de Estudiantes */}
           {vistaActual === 0 && (
             <Card sx={{ overflow: 'hidden' }}>
+              {loading && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                  <Typography>Cargando estudiantes...</Typography>
+                </Box>
+              )}
               <Table>
                 <TableHead>
                   <TableRow sx={{ bgcolor: 'grey.100' }}>
@@ -517,9 +560,11 @@ const PedagogicoAsistencia = () => {
                   onChange={(e) => setSesionSeleccionada(e.target.value)}
                   label="Seleccionar Sesión"
                 >
-                  <MenuItem value="matematicas">Matemáticas Básicas - 09:00</MenuItem>
-                  <MenuItem value="lenguaje">Lenguaje y Comunicación - 11:00</MenuItem>
-                  <MenuItem value="ciencias">Ciencias Naturales - 14:00</MenuItem>
+                  {sesiones.map((sesion) => (
+                    <MenuItem key={sesion.id} value={sesion.id}>
+                      {sesion.nombre_clase} - {sesion.hora_inicio}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
