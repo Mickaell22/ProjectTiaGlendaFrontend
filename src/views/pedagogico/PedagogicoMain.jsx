@@ -4,7 +4,7 @@ import {
   Box, Container, Paper, Typography, Tabs, Tab
 } from '@mui/material';
 import { 
-  School, CalendarMonth, Assignment, Today, BarChart, Add
+  School, CalendarMonth, Assignment, Today, BarChart, Add, BugReport
 } from '@mui/icons-material';
 
 import SesionesPedagogicas from './SesionesPedagogicas';
@@ -13,6 +13,7 @@ import PedagogicoCronogramas from './PedagogicoCronogramas';
 import PedagogicoAsistencia from './PedagogicoAsistencia';
 import PedagogicoHoy from './PedagogicoHoy';
 import PedagogicoEstadisticas from './PedagogicoEstadisticas';
+import DebugPedagogico from './DebugPedagogico';
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -76,6 +77,11 @@ const PedagogicoMain = () => {
       label: 'Estadísticas',
       icon: <BarChart />,
       component: <PedagogicoEstadisticas />
+    },
+    {
+      label: 'Debug',
+      icon: <BugReport />,
+      component: <DebugPedagogico />
     }
   ];
 

@@ -1,225 +1,276 @@
 // src/views/pedagogico/PedagogicoCronogramas.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Box, Container, Paper, Typography, Card, CardContent,
-  Grid, Button, IconButton, Tooltip, Alert, Snackbar,
-  Table, TableBody, TableCell, TableHead, TableRow,
-  Chip, Avatar, Dialog, DialogTitle, DialogContent,
-  DialogActions, FormControl, InputLabel, Select,
-  MenuItem, TextField, Switch, FormControlLabel,
-  Tabs, Tab, Divider
+  Box, Button, Card, CardContent, Container, IconButton, Paper, Snackbar,
+  Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
+  Tooltip, Typography, Alert, Grid, MenuItem, Dialog, DialogTitle, DialogContent,
+  DialogActions, Chip, Avatar, FormControl, InputLabel, Select, InputAdornment
 } from '@mui/material';
 import {
-  CalendarMonth, Schedule, School, Add, Visibility,
-  Today, EventNote, AccessTime, FilterList,
-  Download, Refresh, Edit, Delete, Event
+  CalendarMonth, Edit, Search, Visibility, Refresh, CheckCircle, Cancel,
+  Schedule, AccessTime, Today, School, EventNote, EditCalendar
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
+import { formatDateLocal } from 'src/utils/dateUtils';
+
+/* ---------- Estilos compartidos tipo "listar" ---------- */
+const greenOutlineSX = {
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': { borderColor: '#4caf50' },
+    '&:hover fieldset': { borderColor: '#4caf50' },
+    '&.Mui-focused fieldset': { borderColor: '#4caf50', borderWidth: 2 }
+  }
+};
+
+// Evita "saltos" al seleccionar opciones y trunca texto largo
+const selectStableSX = {
+  width: '100%',
+  '& .MuiSelect-select': {
+    display: 'block',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    minHeight: '1.4375em',
+    lineHeight: '1.4375em'
+  }
+};
+
+const menuProps = { PaperProps: { sx: { maxHeight: 280 } } };
 
 const PedagogicoCronogramas = () => {
   const [sesiones, setSesiones] = useState([]);
   const [cronogramas, setCronogramas] = useState([]);
-  const [, setCronogramaSemanal] = useState([]);
-  const [especialidades, setEspecialidades] = useState([]);
-  const [pedagogos, setPedagogos] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [selectedSesion, setSelectedSesion] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterEstado, setFilterEstado] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [filtros, setFiltros] = useState({ especialidad: '', pedagogo: '', semana: 'actual' });
-  const [vistaActual, setVistaActual] = useState(0); // 0: semanal, 1: mensual
-  const [dialogAbierto, setDialogAbierto] = useState(false);
+  const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
+  const [reprogramDialog, setReprogramDialog] = useState({ open: false, data: null });
+  const [cancelDialog, setCancelDialog] = useState({ open: false, data: null });
+  const [realizadaDialog, setRealizadaDialog] = useState({ open: false, data: null });
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
     fetchSesiones();
-    fetchEspecialidades();
-    fetchPedagogos();
-  }, [filtros]);
-
-  useEffect(() => {
-    if (sesiones.length > 0) {
-      fetchCronogramaSemanal();
-    }
-  }, [sesiones, filtros.semana]);
+  }, []);
 
   const fetchSesiones = async () => {
+    try {
+      console.log('🎓 Fetching pedagogical sessions for cronograma...');
+      const response = await sesionPedagogicaService.getSesiones();
+      console.log('📋 Sessions response for cronograma:', response);
+      setSesiones(response.data?.data || response.data || []);
+    } catch (err) {
+      console.error('Error fetching sessions:', err);
+      const errorMessage = sesionPedagogicaService.handleError(err);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+    }
+  };
+
+  const fetchCronograma = async (sesionId) => {
     setLoading(true);
     try {
-      console.log('🔄 Fetching sesiones...');
-      const response = await sesionPedagogicaService.getSesiones(filtros);
-      const sesionesData = response.data?.data || response.data || [];
-      console.log('✅ Sesiones fetched:', sesionesData.length, 'sesiones');
-      setSesiones(sesionesData);
-    } catch (error) {
-      console.error('❌ Error fetching sessions:', error);
-      setSnackbar({
-        open: true,
-        message: `Error al cargar las sesiones: ${error.message}`,
-        severity: 'error'
-      });
+      console.log('🕒 Fetching cronograma for session:', sesionId);
+      const response = await sesionPedagogicaService.getCronograma(sesionId);
+      console.log('📅 Cronograma response:', response);
+      setCronogramas(response.data?.data || response.data || []);
+    } catch (err) {
+      console.error('Error fetching cronograma:', err);
+      const errorMessage = sesionPedagogicaService.handleError(err);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      setCronogramas([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchCronogramaSemanal = async () => {
-    try {
-      console.log('🔄 Fetching cronograma semanal...');
-      const response = await sesionPedagogicaService.getCronogramaSesiones(filtros);
-      const cronogramaData = response.data || [];
-      console.log('✅ Cronograma fetched:', cronogramaData.length, 'clases');
-      setCronogramaSemanal(cronogramaData);
-      generarCronogramas(cronogramaData);
-    } catch (error) {
-      console.error('❌ Error fetching weekly schedule:', error);
-      // Fallback: generar cronograma basado en sesiones
-      generarCronogramas(sesiones);
+  const handleSesionChange = (event) => {
+    const sesionId = event.target.value;
+    setSelectedSesion(sesionId);
+    if (sesionId) {
+      fetchCronograma(sesionId);
+    } else {
+      setCronogramas([]);
     }
   };
 
-  const fetchEspecialidades = async () => {
-    try {
-      const response = await sesionPedagogicaService.getEspecialidades();
-      const especialidadesData = response.data?.data || response.data || [];
-      setEspecialidades(especialidadesData);
-    } catch (error) {
-      console.error('Error fetching specialties:', error);
-      // No mostrar error para especialidades, usar array vacío como fallback
-    }
-  };
-
-  const fetchPedagogos = async () => {
-    try {
-      const response = await sesionPedagogicaService.getPedagogos();
-      const pedagogosData = response.data?.data || response.data || [];
-      setPedagogos(pedagogosData);
-    } catch (error) {
-      console.error('Error fetching teachers:', error);
-      // No mostrar error para pedagogos, usar array vacío como fallback
-    }
-  };
-
-  const generarCronogramas = (cronogramaData) => {
-    // Generar cronograma basado en los datos reales del cronograma semanal
-    const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-    const horasDelDia = Array.from({ length: 12 }, (_, i) => 7 + i); // 7:00 a 18:00
-    
-    const cronogramaProcesado = diasSemana.map(dia => {
-      const horariosDelDia = horasDelDia.map(hora => {
-        // Buscar clases que coincidan con este día y hora
-        const clasesEnHora = cronogramaData.filter(clase => {
-          if (!clase.fecha_programada || !clase.hora_inicio) return false;
-          
-          // Convertir fecha a día de la semana
-          const fechaClase = new Date(clase.fecha_programada);
-          const diasMap = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-          const diaClase = diasMap[fechaClase.getDay()];
-          
-          // Verificar si coincide el día
-          if (diaClase !== dia) return false;
-          
-          // Verificar si coincide la hora
-          const horaClase = parseInt(clase.hora_inicio.split(':')[0]);
-          return horaClase === hora;
-        });
-        
-        return {
-          hora,
-          clases: clasesEnHora
-        };
-      });
-      
-      return {
-        dia,
-        horarios: horariosDelDia
-      };
-    });
-
-    setCronogramas(cronogramaProcesado);
-  };
-
-  const handleFiltroChange = (campo, valor) => {
-    setFiltros(prev => ({ ...prev, [campo]: valor }));
-  };
-
-  const exportarCronograma = () => {
-    setSnackbar({
-      open: true,
-      message: 'Cronograma exportado exitosamente',
-      severity: 'success'
-    });
-  };
-
-  const getCurrentWeekDates = () => {
-    const today = new Date();
-    const currentDay = today.getDay();
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - currentDay + 1); // Lunes
-    
-    return Array.from({ length: 7 }, (_, i) => {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
-      return date;
-    });
-  };
-
-  const getHorarioColor = (especialidadNombre) => {
-    if (!especialidadNombre) return 'default';
-    
-    const colores = {
-      // Especialidades comunes
-      'Matemáticas': 'primary',
-      'Matematicas': 'primary',
-      'Lenguaje': 'success', 
-      'Comunicación': 'success',
-      'Ciencias': 'warning',
-      'Educación Física': 'error',
-      'Arte': 'info',
-      'Música': 'info',
-      'Lectoescritura': 'success',
-      'Cálculo': 'primary',
-      'Terapia de Lenguaje': 'secondary',
-      'Psicopedagogía': 'warning'
-    };
-    
-    // Buscar coincidencia exacta
-    if (colores[especialidadNombre]) {
-      return colores[especialidadNombre];
-    }
-    
-    // Buscar coincidencia parcial
-    const nombreLower = especialidadNombre.toLowerCase();
-    for (const [key, value] of Object.entries(colores)) {
-      if (nombreLower.includes(key.toLowerCase()) || key.toLowerCase().includes(nombreLower)) {
-        return value;
+  const regenerarCronograma = async (sesionId) => {
+    if (window.confirm('¿Está seguro de regenerar el cronograma? Esto eliminará el cronograma actual y creará uno nuevo.')) {
+      setLoading(true);
+      try {
+        await sesionPedagogicaService.generarCronograma(sesionId);
+        setSnackbar({ open: true, message: 'Cronograma regenerado exitosamente', severity: 'success' });
+        fetchCronograma(sesionId);
+      } catch (error) {
+        console.error('Error regenerating cronograma:', error);
+        const errorMessage = sesionPedagogicaService.handleError(error);
+        setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      } finally {
+        setLoading(false);
       }
     }
+  };
+
+  const refreshCronograma = () => {
+    if (selectedSesion) {
+      fetchCronograma(selectedSesion);
+    }
+  };
+
+  const handleViewDetail = (item) => {
+    setDetailDialog({ open: true, data: item });
+  };
+
+  const handleReprogramar = (item) => {
+    setReprogramDialog({ open: true, data: item });
+  };
+
+  const handleCancelar = (item) => {
+    setCancelDialog({ open: true, data: item });
+  };
+
+  const handleMarcarRealizada = (item) => {
+    setRealizadaDialog({ open: true, data: item });
+  };
+
+  const confirmMarcarRealizada = async () => {
+    setLoading(true);
+    try {
+      const { data: item } = realizadaDialog;
+      await sesionPedagogicaService.marcarClaseRealizada(item.id);
+      setSnackbar({ open: true, message: 'Clase marcada como realizada exitosamente', severity: 'success' });
+      if (selectedSesion) fetchCronograma(selectedSesion);
+      setRealizadaDialog({ open: false, data: null });
+    } catch (error) {
+      console.error('Error marking class as completed:', error);
+      const errorMessage = sesionPedagogicaService.handleError(error);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmarReprogramacion = async (reprogramData) => {
+    try {
+      setLoading(true);
+      await sesionPedagogicaService.reprogramarClase(reprogramDialog.data.id, reprogramData);
+      setSnackbar({ open: true, message: 'Clase reprogramada exitosamente', severity: 'success' });
+      setReprogramDialog({ open: false, data: null });
+      if (selectedSesion) fetchCronograma(selectedSesion);
+    } catch (error) {
+      console.error('Error reprogramming class:', error);
+      let errorMessage = 'Error al reprogramar la clase';
+      if (error.response?.data?.message) errorMessage = error.response.data.message;
+      else if (error.response?.status === 400) errorMessage = 'Datos de reprogramación inválidos. Verifique la fecha y hora.';
+      else if (error.response?.status === 404) errorMessage = 'Clase no encontrada';
+      else if (error.response?.status === 500) errorMessage = 'Error del servidor. Intente nuevamente.';
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmarCancelacion = async (cancelData) => {
+    try {
+      setLoading(true);
+      await sesionPedagogicaService.cancelarClase(cancelDialog.data.id, cancelData);
+      setSnackbar({ open: true, message: 'Clase cancelada exitosamente', severity: 'success' });
+      setCancelDialog({ open: false, data: null });
+      if (selectedSesion) fetchCronograma(selectedSesion);
+    } catch (error) {
+      console.error('Error canceling class:', error);
+      const errorMessage = sesionPedagogicaService.handleError(error);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getEstadoColor = (estado) => {
+    switch (estado) {
+      case 'programada': return 'info';
+      case 'realizada': return 'success';
+      case 'completada': return 'success';
+      case 'cancelada': return 'error';
+      case 'reprogramada': return 'warning';
+      default: return 'default';
+    }
+  };
+
+  const getEstadoIcon = (estado) => {
+    switch (estado) {
+      case 'programada': return <Schedule />;
+      case 'realizada': return <CheckCircle />;
+      case 'completada': return <CheckCircle />;
+      case 'cancelada': return <Cancel />;
+      case 'reprogramada': return <AccessTime />;
+      default: return <EventNote />;
+    }
+  };
+
+  const formatDate = (dateString) => formatDateLocal(dateString);
+
+  const formatTime = (timeString) => {
+    if (!timeString) return '--:--';
     
-    // Color basado en hash del nombre para consistencia
-    const hash = especialidadNombre.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
+    // Handle different time formats
+    if (timeString.includes('T') || timeString.includes(' ')) {
+      const date = new Date(timeString);
+      return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    }
     
-    const colors = ['primary', 'secondary', 'success', 'warning', 'info'];
-    return colors[Math.abs(hash) % colors.length];
+    // Handle time strings like "14:30:00" or "14:30"
+    if (timeString.includes(':')) {
+      const parts = timeString.split(':');
+      return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+    }
+    
+    return timeString;
+  };
+
+  const getSesionInfo = (sesionId) => sesiones.find(s => s.id === parseInt(sesionId));
+
+  const filteredCronogramas = cronogramas
+    .filter(c => {
+      const sesionInfo = getSesionInfo(selectedSesion);
+      const matchesSearch = (
+        sesionInfo?.titulo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        sesionInfo?.pedagogo_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.numero_clase?.toString().includes(searchTerm.toLowerCase()) ||
+        c.tema_clase?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      const matchesEstado = filterEstado === '' || c.estado === filterEstado;
+      return matchesSearch && matchesEstado;
+    })
+    .sort((a, b) => new Date(a.fecha_programada) - new Date(b.fecha_programada));
+
+  const truncateObservations = (text, maxLength = 40) => {
+    if (!text) return '-';
+    return text.length <= maxLength ? text : text.substring(0, maxLength) + '...';
   };
 
   return (
     <Container maxWidth="xl" sx={{ py: 0 }}>
+
+      {/* Card de selección de sesión con header degradado */}
       <Card
         elevation={8}
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          background: 'linear-gradient(145deg, #ffffff 0%, #f8fff8 100%)',
           overflow: 'hidden',
           width: '100%',
-          maxWidth: { xs: '100%', sm: 1000, md: 1200 },
+          maxWidth: { xs: '100%', sm: 1200 },
           mx: 'auto'
         }}
       >
-        {/* Header */}
         <Box
           sx={{
             background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
@@ -233,479 +284,720 @@ const PedagogicoCronogramas = () => {
           <Box>
             <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
               <CalendarMonth sx={{ mr: 1 }} />
-              Cronogramas Pedagógicos
+              Cronogramas de Sesiones Pedagógicas
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              Gestión de cronogramas y horarios de clases
+              Selecciona una sesión y gestiona su cronograma de clases
             </Typography>
           </Box>
 
-          <Box display="flex" gap={1}>
-            <Tooltip title="Exportar PDF">
-              <IconButton 
-                sx={{ color: 'white' }}
-                onClick={exportarCronograma}
-              >
-                <Download />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Actualizar">
-              <IconButton 
-                sx={{ color: 'white' }}
-                onClick={fetchSesiones}
-              >
-                <Refresh />
-              </IconButton>
-            </Tooltip>
-          </Box>
+          <Chip
+            label={`${sesiones.length} sesión${sesiones.length !== 1 ? 'es' : ''}`}
+            color="default"
+            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+            size="small"
+          />
         </Box>
 
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-          {/* Filtros y controles */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Especialidad</InputLabel>
+          <Grid container spacing={3} alignItems="center">
+            <Grid item xs={12} md={8}>
+              <FormControl fullWidth>
+                <InputLabel shrink>Sesión Pedagógica</InputLabel>
                 <Select
-                  value={filtros.especialidad}
-                  onChange={(e) => handleFiltroChange('especialidad', e.target.value)}
-                  label="Especialidad"
+                  sx={{ ...selectStableSX, ...greenOutlineSX }}
+                  value={selectedSesion}
+                  onChange={handleSesionChange}
+                  label="Sesión Pedagógica"
+                  displayEmpty
+                  MenuProps={menuProps}
+                  renderValue={(val) => {
+                    if (!val) return 'Seleccione una sesión pedagógica';
+                    const s = sesiones.find(x => String(x.id) === String(val));
+                    return s
+                      ? `${s.titulo || s.nombre_clase} — ${s.pedagogo?.nombre || s.pedagogo_nombre}`
+                      : 'Seleccione una sesión pedagógica';
+                  }}
                 >
-                  <MenuItem value="">Todas</MenuItem>
-                  {especialidades.map((especialidad) => (
-                    <MenuItem key={especialidad.id} value={especialidad.id}>
-                      {especialidad.nombre}
+                  <MenuItem value="">Seleccione una sesión pedagógica</MenuItem>
+                  {sesiones.map((sesion) => (
+                    <MenuItem key={sesion.id} value={sesion.id}>
+                      {`${sesion.titulo || sesion.nombre_clase} — ${sesion.pedagogo?.nombre || sesion.pedagogo_nombre}`}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Pedagogo</InputLabel>
-                <Select
-                  value={filtros.pedagogo}
-                  onChange={(e) => handleFiltroChange('pedagogo', e.target.value)}
-                  label="Pedagogo"
-                >
-                  <MenuItem value="">Todos</MenuItem>
-                  {pedagogos.map((pedagogo) => (
-                    <MenuItem key={pedagogo.id} value={pedagogo.id}>
-                      {pedagogo.nombre_completo || `${pedagogo.nombre} ${pedagogo.apellido}`}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Semana</InputLabel>
-                <Select
-                  value={filtros.semana}
-                  onChange={(e) => handleFiltroChange('semana', e.target.value)}
-                  label="Semana"
-                >
-                  <MenuItem value="anterior">Semana Anterior</MenuItem>
-                  <MenuItem value="actual">Semana Actual</MenuItem>
-                  <MenuItem value="siguiente">Semana Siguiente</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Button
-                variant="contained"
-                startIcon={<Add />}
-                fullWidth
-                onClick={() => setDialogAbierto(true)}
-                sx={{ height: '40px' }}
-              >
-                Nuevo Evento
-              </Button>
-            </Grid>
+
+            {selectedSesion && (
+              <Grid item xs={12} md={4}>
+                <Grid container spacing={1}>
+                  <Grid item xs={6}>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      startIcon={<Refresh />}
+                      onClick={refreshCronograma}
+                      disabled={loading}
+                      fullWidth
+                      size="small"
+                    >
+                      Actualizar
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Button
+                      variant="outlined"
+                      sx={{ borderColor: '#4caf50', color: '#4caf50', '&:hover': { borderColor: '#388e3c', bgcolor: '#e8f5e8' } }}
+                      startIcon={<Refresh />}
+                      onClick={() => regenerarCronograma(selectedSesion)}
+                      disabled={loading}
+                      fullWidth
+                      size="small"
+                    >
+                      Regenerar
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Grid>
+            )}
           </Grid>
 
-          {/* Pestañas de vista */}
-          <Tabs 
-            value={vistaActual} 
-            onChange={(e, newValue) => setVistaActual(newValue)}
-            sx={{ mb: 3 }}
-          >
-            <Tab 
-              label="Vista Semanal" 
-              icon={<CalendarMonth />} 
-              iconPosition="start"
-            />
-            <Tab 
-              label="Vista Mensual" 
-              icon={<Schedule />} 
-              iconPosition="start"
-            />
-          </Tabs>
-
-          {/* Vista Semanal */}
-          {vistaActual === 0 && (
-            <Card sx={{ overflow: 'hidden' }}>
-              {loading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                  <Typography>Cargando cronograma...</Typography>
-                </Box>
-              )}
-              <Table sx={{ minWidth: 800 }}>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: 'grey.100' }}>
-                    <TableCell sx={{ fontWeight: 'bold', minWidth: 100 }}>Hora</TableCell>
-                    {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((dia, index) => {
-                      const fecha = getCurrentWeekDates()[index];
-                      return (
-                        <TableCell key={dia} align="center" sx={{ fontWeight: 'bold', minWidth: 150 }}>
-                          <Box>
-                            <Typography variant="body2">{dia}</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {fecha.getDate()}/{fecha.getMonth() + 1}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {Array.from({ length: 12 }, (_, i) => {
-                    const hora = 7 + i;
-                    const horaStr = `${hora.toString().padStart(2, '0')}:00`;
-                    return (
-                      <TableRow key={hora} hover>
-                        <TableCell sx={{ fontWeight: 'medium', bgcolor: 'grey.50' }}>
-                          {horaStr} - {(hora + 1).toString().padStart(2, '0')}:00
-                        </TableCell>
-                        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(dia => {
-                          // Buscar el cronograma para este día
-                          const cronogramaDia = cronogramas.find(c => c.dia === dia);
-                          // Buscar el horario para esta hora específica
-                          const horarioHora = cronogramaDia?.horarios?.find(h => h.hora === hora);
-                          const clasesEnHora = horarioHora?.clases || [];
-                          
-                          return (
-                            <TableCell key={dia} sx={{ p: 1, height: 60 }}>
-                              {clasesEnHora.length > 0 ? (
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                  {clasesEnHora.slice(0, 2).map((clase, index) => (
-                                    <Chip
-                                      key={`${clase.id}-${index}`}
-                                      size="small"
-                                      label={clase.nombre_clase || clase.especialidad_nombre || 'Clase'}
-                                      color={getHorarioColor(clase.especialidad_nombre)}
-                                      sx={{
-                                        width: '100%',
-                                        height: clasesEnHora.length > 1 ? '20px' : '40px',
-                                        fontSize: '0.65rem',
-                                        '& .MuiChip-label': {
-                                          fontSize: '0.65rem',
-                                          whiteSpace: 'nowrap',
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis'
-                                        }
-                                      }}
-                                      onClick={() => {
-                                        setSnackbar({
-                                          open: true,
-                                          message: `${clase.nombre_clase || 'Clase'} - ${clase.educador_nombre || 'Educador'}`,
-                                          severity: 'info'
-                                        });
-                                      }}
-                                    />
-                                  ))}
-                                  {clasesEnHora.length > 2 && (
-                                    <Typography 
-                                      variant="caption" 
-                                      sx={{ fontSize: '0.6rem', textAlign: 'center', color: 'text.secondary' }}
-                                    >
-                                      +{clasesEnHora.length - 2} más
-                                    </Typography>
-                                  )}
-                                </Box>
-                              ) : null}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </Card>
+          {selectedSesion && getSesionInfo(selectedSesion) && (
+            <Paper sx={{ mt: 3, p: 2, backgroundColor: '#e8f5e8' }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle2">Título:</Typography>
+                  <Typography variant="body2">{getSesionInfo(selectedSesion).titulo || getSesionInfo(selectedSesion).nombre_clase}</Typography>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle2">Pedagogo:</Typography>
+                  <Typography variant="body2">{getSesionInfo(selectedSesion).pedagogo?.nombre || getSesionInfo(selectedSesion).pedagogo_nombre}</Typography>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle2">Especialidad:</Typography>
+                  <Typography variant="body2">{getSesionInfo(selectedSesion).especialidad?.nombre || getSesionInfo(selectedSesion).especialidad_nombre}</Typography>
+                </Grid>
+              </Grid>
+            </Paper>
           )}
-
-          {/* Vista Mensual */}
-          {vistaActual === 1 && (
-            <Card sx={{ overflow: 'hidden' }}>
-              {loading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                  <Typography>Cargando vista mensual...</Typography>
-                </Box>
-              )}
-              
-              {/* Header del mes */}
-              <Box sx={{ p: 2, bgcolor: 'grey.50', textAlign: 'center' }}>
-                <Typography variant="h6" fontWeight="bold">
-                  {new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
-                </Typography>
-              </Box>
-
-              {/* Calendario mensual */}
-              <Box sx={{ p: 2 }}>
-                <Grid container spacing={1}>
-                  {/* Días de la semana - Headers */}
-                  {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(dia => (
-                    <Grid item xs={12/7} key={dia}>
-                      <Box sx={{ 
-                        p: 1, 
-                        textAlign: 'center', 
-                        fontWeight: 'bold', 
-                        bgcolor: 'primary.main', 
-                        color: 'white',
-                        borderRadius: 1,
-                        mb: 1
-                      }}>
-                        <Typography variant="caption">{dia}</Typography>
-                      </Box>
-                    </Grid>
-                  ))}
-                  
-                  {/* Días del mes */}
-                  {Array.from({ length: 35 }, (_, i) => {
-                    const currentDate = new Date();
-                    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-                    const startDate = new Date(firstDay);
-                    startDate.setDate(startDate.getDate() - firstDay.getDay());
-                    
-                    const displayDate = new Date(startDate);
-                    displayDate.setDate(startDate.getDate() + i);
-                    
-                    const isCurrentMonth = displayDate.getMonth() === currentDate.getMonth();
-                    const isToday = displayDate.toDateString() === currentDate.toDateString();
-                    
-                    // Buscar clases para este día usando el cronograma semanal
-                    const clasesDelDia = [];
-                    
-                    // Si tenemos datos del cronograma semanal, usarlos
-                    if (cronogramas && cronogramas.length > 0) {
-                      cronogramas.forEach(cronogramaDia => {
-                        if (cronogramaDia.horarios) {
-                          cronogramaDia.horarios.forEach(horario => {
-                            if (horario.clases) {
-                              horario.clases.forEach(clase => {
-                                const fechaClase = new Date(clase.fecha_programada);
-                                if (fechaClase.toDateString() === displayDate.toDateString()) {
-                                  clasesDelDia.push(clase);
-                                }
-                              });
-                            }
-                          });
-                        }
-                      });
-                    }
-                    
-                    return (
-                      <Grid item xs={12/7} key={i}>
-                        <Box sx={{ 
-                          minHeight: 80,
-                          p: 1,
-                          border: 1,
-                          borderColor: isToday ? 'primary.main' : 'grey.200',
-                          borderRadius: 1,
-                          bgcolor: isCurrentMonth ? 'white' : 'grey.50',
-                          opacity: isCurrentMonth ? 1 : 0.6,
-                          position: 'relative'
-                        }}>
-                          <Typography 
-                            variant="caption" 
-                            sx={{ 
-                              fontWeight: isToday ? 'bold' : 'normal',
-                              color: isToday ? 'primary.main' : 'inherit'
-                            }}
-                          >
-                            {displayDate.getDate()}
-                          </Typography>
-                          
-                          {/* Mostrar clases del día */}
-                          {clasesDelDia.length > 0 && (
-                            <Box sx={{ mt: 0.5 }}>
-                              {clasesDelDia.slice(0, 2).map((clase, index) => (
-                                <Chip
-                                  key={`clase-${index}`}
-                                  size="small"
-                                  label={clase.nombre_clase || clase.tema_clase || 'Clase'}
-                                  color={getHorarioColor(clase.especialidad_nombre)}
-                                  sx={{
-                                    fontSize: '0.6rem',
-                                    height: '16px',
-                                    mb: 0.2,
-                                    width: '100%',
-                                    '& .MuiChip-label': {
-                                      fontSize: '0.6rem',
-                                      padding: '0 4px'
-                                    }
-                                  }}
-                                />
-                              ))}
-                              {clasesDelDia.length > 2 && (
-                                <Typography variant="caption" color="text.secondary">
-                                  +{clasesDelDia.length - 2} más
-                                </Typography>
-                              )}
-                            </Box>
-                          )}
-                        </Box>
-                      </Grid>
-                    );
-                  })}
-                </Grid>
-              </Box>
-
-              {/* Resumen del mes */}
-              <Box sx={{ p: 2, bgcolor: 'grey.50', mt: 2 }}>
-                <Typography variant="subtitle2" gutterBottom fontWeight="bold">
-                  Resumen del mes:
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={6} md={3}>
-                    <Typography variant="body2" color="text.secondary">
-                      Total clases: <strong>{cronogramas.reduce((total, dia) => 
-                        total + (dia.horarios?.reduce((sum, horario) => 
-                          sum + (horario.clases?.length || 0), 0) || 0), 0)}</strong>
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6} md={3}>
-                    <Typography variant="body2" color="text.secondary">
-                      Sesiones activas: <strong>{sesiones.length}</strong>
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6} md={3}>
-                    <Typography variant="body2" color="text.secondary">
-                      Especialidades: <strong>{especialidades.length}</strong>
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={6} md={3}>
-                    <Typography variant="body2" color="text.secondary">
-                      Pedagogos: <strong>{pedagogos.length}</strong>
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </Box>
-            </Card>
-          )}
-
-          {/* Leyenda */}
-          <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
-            <Typography variant="subtitle2" gutterBottom fontWeight="bold">
-              Leyenda de Especialidades:
-            </Typography>
-            <Grid container spacing={1}>
-              {[
-                { nombre: 'Matemáticas', color: 'primary' },
-                { nombre: 'Lenguaje', color: 'success' },
-                { nombre: 'Ciencias', color: 'warning' },
-                { nombre: 'Educación Física', color: 'error' },
-                { nombre: 'Arte', color: 'info' }
-              ].map(especialidad => (
-                <Grid item key={especialidad.nombre}>
-                  <Chip 
-                    size="small" 
-                    label={especialidad.nombre} 
-                    color={especialidad.color}
-                    variant="outlined"
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
         </CardContent>
       </Card>
 
-      {/* Dialog para nuevo evento */}
-      <Dialog open={dialogAbierto} onClose={() => setDialogAbierto(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Programar Nuevo Evento</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Título del Evento"
-                variant="outlined"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Tipo de Evento</InputLabel>
-                <Select label="Tipo de Evento">
-                  <MenuItem value="clase">Clase Regular</MenuItem>
-                  <MenuItem value="evaluacion">Evaluación</MenuItem>
-                  <MenuItem value="evento">Evento Especial</MenuItem>
-                  <MenuItem value="reunion">Reunión</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Fecha"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Hora de Inicio"
-                type="time"
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Descripción"
-                multiline
-                rows={3}
-              />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogAbierto(false)}>Cancelar</Button>
-          <Button 
-            variant="contained" 
-            onClick={() => {
-              setDialogAbierto(false);
-              setSnackbar({
-                open: true,
-                message: 'Evento programado exitosamente',
-                severity: 'success'
-              });
+      {/* Card de listado con toolbar tipo "listar" */}
+      {selectedSesion ? (
+        <Card
+          elevation={8}
+          sx={{
+            borderRadius: 4,
+            mb: 4,
+            background: 'linear-gradient(145deg, #ffffff 0%, #f8fff8 100%)',
+            overflow: 'hidden',
+            width: '100%',
+            maxWidth: { xs: '100%', sm: 1200 },
+            mx: 'auto'
+          }}
+        >
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
+              color: 'white',
+              p: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}
           >
-            Programar
+            <Box>
+              <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
+                <Schedule sx={{ mr: 1 }} />
+                Cronograma de Clases
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                {cronogramas.length} clase{cronogramas.length !== 1 ? 's' : ''} programada{cronogramas.length !== 1 ? 's' : ''}
+              </Typography>
+            </Box>
+
+            <Chip
+              label={`${cronogramas.length} ítem${cronogramas.length !== 1 ? 's' : ''}`}
+              color="default"
+              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+              size="small"
+            />
+          </Box>
+
+          <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+            {/* Toolbar (búsqueda + filtro) */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                mb: 3,
+                flexWrap: 'nowrap',
+                overflowX: 'auto',
+                pb: 1,
+                '& > *': { flex: '0 0 auto' }
+              }}
+            >
+              <TextField
+                size="small"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar por título/pedagogo, # clase o tema..."
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{ ...greenOutlineSX, minWidth: 260, flex: '1 1 380px' }}
+              />
+
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel shrink>Filtrar por estado</InputLabel>
+                <Select
+                  sx={{ ...selectStableSX, ...greenOutlineSX }}
+                  value={filterEstado}
+                  onChange={(e) => setFilterEstado(e.target.value)}
+                  label="Filtrar por estado"
+                  displayEmpty
+                  MenuProps={menuProps}
+                  renderValue={(val) => (val ? val : 'Todos los estados')}
+                >
+                  <MenuItem value="">Todos los estados</MenuItem>
+                  <MenuItem value="programada">Programada</MenuItem>
+                  <MenuItem value="realizada">Realizada</MenuItem>
+                  <MenuItem value="completada">Completada</MenuItem>
+                  <MenuItem value="cancelada">Cancelada</MenuItem>
+                  <MenuItem value="reprogramada">Reprogramada</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            {loading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <Typography>Cargando cronograma...</Typography>
+              </Box>
+            ) : (
+              <>
+                <Box sx={{ width: '100%', overflowX: 'auto' }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Clase</TableCell>
+                        <TableCell>Fecha Programada</TableCell>
+                        <TableCell>Hora</TableCell>
+                        <TableCell>Estado</TableCell>
+                        <TableCell>Tema de Clase</TableCell>
+                        <TableCell>Fecha Realización</TableCell>
+                        <TableCell>Objetivos</TableCell>
+                        <TableCell>Acciones</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredCronogramas
+                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                        .map((item) => (
+                          <TableRow key={item.id}>
+                            <TableCell>
+                              <Typography variant="body2" fontWeight="bold">
+                                {item.numero_clase || item.numero_clase_semanal}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Box display="flex" alignItems="center">
+                                <Today sx={{ mr: 1, fontSize: 16 }} />
+                                <Typography variant="body2">
+                                  {formatDate(item.fecha_programada)}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Box display="flex" alignItems="center">
+                                <AccessTime sx={{ mr: 1, fontSize: 16 }} />
+                                <Typography variant="body2">
+                                  {formatTime(item.hora_programada)} - {formatTime(item.hora_fin_estimada || item.hora_programada)}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={item.estado}
+                                color={getEstadoColor(item.estado)}
+                                size="small"
+                                icon={getEstadoIcon(item.estado)}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2">
+                                {item.tema_clase || 'Sin tema definido'}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              {item.fecha_realizacion ? (
+                                <Typography variant="body2" color="success.main">
+                                  {formatDate(item.fecha_realizacion)}
+                                </Typography>
+                              ) : (
+                                <Typography variant="body2" color="text.secondary">-</Typography>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Typography
+                                variant="body2"
+                                title={item.objetivos_clase || ''}
+                              >
+                                {truncateObservations(item.objetivos_clase)}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                <Tooltip title="Ver detalles">
+                                  <IconButton
+                                    color="info"
+                                    size="small"
+                                    onClick={() => handleViewDetail(item)}
+                                  >
+                                    <Visibility fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+
+                                {(item.estado === 'programada' || item.estado === 'reprogramada') && (
+                                  <>
+                                    <Tooltip title="Marcar como realizada">
+                                      <IconButton
+                                        color="success"
+                                        onClick={() => handleMarcarRealizada(item)}
+                                        size="small"
+                                      >
+                                        <CheckCircle fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+
+                                    <Tooltip title="Reprogramar">
+                                      <IconButton
+                                        color="warning"
+                                        onClick={() => handleReprogramar(item)}
+                                        size="small"
+                                      >
+                                        <EditCalendar fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+
+                                    <Tooltip title="Cancelar">
+                                      <IconButton
+                                        color="error"
+                                        onClick={() => handleCancelar(item)}
+                                        size="small"
+                                      >
+                                        <Cancel fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </>
+                                )}
+                                
+                                {item.estado === 'realizada' && (
+                                  <Tooltip title="Clase ya realizada">
+                                    <Chip 
+                                      label="Completada" 
+                                      color="success" 
+                                      size="small"
+                                      icon={<CheckCircle />}
+                                    />
+                                  </Tooltip>
+                                )}
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </Box>
+
+                <TablePagination
+                  component="div"
+                  count={filteredCronogramas.length}
+                  page={page}
+                  onPageChange={(e, newPage) => setPage(newPage)}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={(e) => {
+                    setRowsPerPage(parseInt(e.target.value, 10));
+                    setPage(0);
+                  }}
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  labelRowsPerPage="Filas por página:"
+                  labelDisplayedRows={({ from, to, count }) =>
+                    `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+                  }
+                />
+              </>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent>
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              py={8}
+            >
+              <CalendarMonth sx={{ fontSize: 80, color: 'grey.400', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" mb={1}>
+                Seleccione una Sesión Pedagógica
+              </Typography>
+              <Typography variant="body2" color="text.secondary" textAlign="center">
+                Para ver el cronograma de clases, seleccione una sesión pedagógica del menú desplegable
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Dialog de detalles */}
+      <Dialog
+        open={detailDialog.open}
+        onClose={() => setDetailDialog({ open: false, data: null })}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <EventNote sx={{ mr: 2 }} />
+            Detalles de la Clase del Cronograma
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {detailDialog.data && (
+            <Grid container spacing={3} sx={{ mt: 1 }}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="primary">Información de la Clase</Typography>
+                <Typography variant="body2"><strong>Número de Clase:</strong> {detailDialog.data.numero_clase || detailDialog.data.numero_clase_semanal}</Typography>
+                <Typography variant="body2"><strong>Fecha Programada:</strong> {formatDate(detailDialog.data.fecha_programada)}</Typography>
+                <Typography variant="body2"><strong>Hora:</strong> {formatTime(detailDialog.data.hora_programada)}</Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="primary">Estado y Realización</Typography>
+                <Typography variant="body2" display="flex" alignItems="center">
+                  <strong>Estado:</strong>
+                  <Chip
+                    label={detailDialog.data.estado}
+                    color={getEstadoColor(detailDialog.data.estado)}
+                    size="small"
+                    sx={{ ml: 1 }}
+                  />
+                </Typography>
+                {detailDialog.data.fecha_realizacion && (
+                  <Typography variant="body2"><strong>Fecha de Realización:</strong> {formatDate(detailDialog.data.fecha_realizacion)}</Typography>
+                )}
+              </Grid>
+
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" color="primary">Contenido de la Clase</Typography>
+                <Typography variant="body2"><strong>Tema:</strong> {detailDialog.data.tema_clase || 'Sin tema definido'}</Typography>
+              </Grid>
+
+              {(detailDialog.data.observaciones_cronograma || detailDialog.data.observaciones) && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Observaciones</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
+                    <Typography variant="body2">
+                      {detailDialog.data.observaciones_cronograma || detailDialog.data.observaciones}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {detailDialog.data.motivo_reprogramacion && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Motivo de Reprogramación</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
+                    <Typography variant="body2">{detailDialog.data.motivo_reprogramacion}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {selectedSesion && getSesionInfo(selectedSesion) && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Información de la Sesión Pedagógica</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: '#e8f5e8', border: '1px solid', borderColor: '#4caf50' }}>
+                    <Typography variant="body2"><strong>Título:</strong> {getSesionInfo(selectedSesion).titulo || getSesionInfo(selectedSesion).nombre_clase}</Typography>
+                    <Typography variant="body2"><strong>Pedagogo:</strong> {getSesionInfo(selectedSesion).pedagogo?.nombre || getSesionInfo(selectedSesion).pedagogo_nombre}</Typography>
+                    <Typography variant="body2"><strong>Especialidad:</strong> {getSesionInfo(selectedSesion).especialidad?.nombre || getSesionInfo(selectedSesion).especialidad_nombre}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetailDialog({ open: false, data: null })}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Marcar como realizada */}
+      <Dialog open={realizadaDialog.open} onClose={() => setRealizadaDialog({ open: false, data: null })} maxWidth="sm" fullWidth>
+        <DialogTitle>Marcar Clase como Realizada</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            ¿Está seguro de que desea marcar esta clase como realizada?
+          </Typography>
+          
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            <strong>Clase #{realizadaDialog.data?.numero_clase || realizadaDialog.data?.numero_clase_semanal}</strong>
+            {realizadaDialog.data?.fecha_programada && (
+              <><br />📅 {formatDate(realizadaDialog.data.fecha_programada)} a las {formatTime(realizadaDialog.data.hora_programada)}</>
+            )}
+          </Typography>
+          
+          <Typography variant="body2" color="warning.main" sx={{ mt: 2 }}>
+            ⚠️ Esta acción marcará la clase como completada y actualizará su estado en el sistema.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRealizadaDialog({ open: false, data: null })} disabled={loading}>
+            Cancelar
+          </Button>
+          <Button 
+            onClick={confirmMarcarRealizada} 
+            variant="contained" 
+            color="success"
+            disabled={loading}
+          >
+            Confirmar - Marcar como Realizada
           </Button>
         </DialogActions>
       </Dialog>
 
+      {/* Reprogramar */}
+      <ReprogramarDialog
+        open={reprogramDialog.open}
+        data={reprogramDialog.data}
+        onClose={() => setReprogramDialog({ open: false, data: null })}
+        onConfirm={confirmarReprogramacion}
+        loading={loading}
+      />
+
+      {/* Cancelar */}
+      <CancelarDialog
+        open={cancelDialog.open}
+        data={cancelDialog.data}
+        onClose={() => setCancelDialog({ open: false, data: null })}
+        onConfirm={confirmarCancelacion}
+        loading={loading}
+      />
+
       <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
+        <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>
     </Container>
+  );
+};
+
+// Reprogramar Dialog para clases pedagógicas
+const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
+  const [nuevaFecha, setNuevaFecha] = useState('');
+  const [nuevaHora, setNuevaHora] = useState('');
+  const [motivo, setMotivo] = useState('');
+  const [fechaOriginal, setFechaOriginal] = useState('');
+
+  useEffect(() => {
+    if (data) {
+      const fechaBase = data.fecha_programada?.split('T')[0] || '';
+      setFechaOriginal(fechaBase);
+      setNuevaFecha(fechaBase);
+      
+      // Format the hour properly for time input (HH:MM format)
+      let horaFormateada = data.hora_inicio || '';
+      if (horaFormateada && !horaFormateada.includes(':')) {
+        // If it's just a number like "14", convert to "14:00"
+        horaFormateada = horaFormateada.padStart(2, '0') + ':00';
+      } else if (horaFormateada && horaFormateada.length === 5) {
+        // If it's already in HH:MM format, keep it
+        horaFormateada = horaFormateada;
+      } else if (horaFormateada && horaFormateada.includes('T')) {
+        // If it's a datetime string, extract just the time part
+        const timePart = horaFormateada.split('T')[1];
+        if (timePart) {
+          horaFormateada = timePart.split(':').slice(0, 2).join(':');
+        }
+      }
+      
+      setNuevaHora(horaFormateada);
+      setMotivo('Reprogramación de clase pedagógica');
+    }
+  }, [data]);
+
+  const moverFecha = (dias) => {
+    if (!fechaOriginal) return;
+    const fecha = new Date(fechaOriginal);
+    fecha.setDate(fecha.getDate() + dias);
+    const nuevaFechaStr = fecha.toISOString().split('T')[0];
+    setNuevaFecha(nuevaFechaStr);
+    const diasTexto = dias > 0 ? `+${dias}` : dias.toString();
+    const motivoMovimiento = `Clase movida ${diasTexto} día${Math.abs(dias) !== 1 ? 's' : ''}`;
+    setMotivo(motivoMovimiento);
+  };
+
+  const handleConfirm = () => {
+    if (!nuevaFecha || !nuevaHora) return;
+    
+    // Ensure the hour is in correct format (HH:MM) without seconds
+    let horaFormateada = nuevaHora;
+    if (horaFormateada.includes(':')) {
+      const timeParts = horaFormateada.split(':');
+      horaFormateada = `${timeParts[0].padStart(2, '0')}:${timeParts[1].padStart(2, '0')}`;
+    } else {
+      horaFormateada = horaFormateada.padStart(2, '0') + ':00';
+    }
+    
+    const motivoFinal = motivo && motivo.trim() ? motivo.trim() : 'Reprogramación de clase pedagógica';
+    const dataToSend = {
+      nueva_fecha: nuevaFecha,
+      nueva_hora: horaFormateada,
+      motivo_reprogramacion: motivoFinal,
+      motivo: motivoFinal
+    };
+    
+    console.log('Datos de reprogramación de clase a enviar:', dataToSend);
+    onConfirm(dataToSend);
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Reprogramar Clase #{data?.numero_clase || data?.numero_clase_semanal}</DialogTitle>
+      <DialogContent>
+        <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid item xs={12}>
+            <Typography variant="body2" color="text.secondary" mb={2}>
+              Fecha y hora actual: {formatDateLocal(data?.fecha_programada)} a las {data?.hora_inicio}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>Mover fecha rápidamente:</Typography>
+            <Box display="flex" gap={1} flexWrap="wrap">
+              <Button size="small" variant="outlined" onClick={() => moverFecha(1)}>+1 día</Button>
+              <Button size="small" variant="outlined" onClick={() => moverFecha(2)}>+2 días</Button>
+              <Button size="small" variant="outlined" onClick={() => moverFecha(7)}>+1 semana</Button>
+              <Button size="small" variant="outlined" onClick={() => moverFecha(-1)}>-1 día</Button>
+              <Button size="small" variant="outlined" onClick={() => moverFecha(-2)}>-2 días</Button>
+            </Box>
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              type="date"
+              label="Nueva Fecha"
+              value={nuevaFecha}
+              onChange={(e) => setNuevaFecha(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              required
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6}>
+            <TextField
+              fullWidth
+              type="time"
+              label="Nueva Hora"
+              value={nuevaHora}
+              onChange={(e) => setNuevaHora(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              required
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label="Motivo de la reprogramación"
+              value={motivo}
+              onChange={(e) => setMotivo(e.target.value)}
+              placeholder="Explique el motivo de la reprogramación..."
+              required
+              error={!motivo || !motivo.trim()}
+              helperText={(!motivo || !motivo.trim()) ? 'El motivo es requerido' : ''}
+            />
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={loading}>Cancelar</Button>
+        <Button 
+          onClick={handleConfirm} 
+          variant="contained" 
+          disabled={loading || !nuevaFecha || !nuevaHora || !motivo || !motivo.trim()}
+          sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}
+        >
+          Reprogramar
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+// Cancelar Dialog para clases pedagógicas
+const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
+  const [motivo, setMotivo] = useState('');
+
+  useEffect(() => {
+    if (data) setMotivo('');
+  }, [data]);
+
+  const handleConfirm = () => {
+    onConfirm({ motivo_cancelacion: motivo || 'Cancelada por el usuario' });
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Cancelar Clase #{data?.numero_clase || data?.numero_clase_semanal}</DialogTitle>
+      <DialogContent>
+        <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid item xs={12}>
+            <Typography variant="body2" color="text.secondary" mb={2}>
+              Fecha programada: {formatDateLocal(data?.fecha_programada)} a las {data?.hora_inicio}
+            </Typography>
+            <Typography variant="body2" color="error" mb={2}>
+              ⚠️ Esta acción marcará la clase como cancelada y no se podrá deshacer.
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label="Motivo de la cancelación"
+              value={motivo}
+              onChange={(e) => setMotivo(e.target.value)}
+              placeholder="Explique el motivo de la cancelación..."
+            />
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={loading}>Cancelar</Button>
+        <Button onClick={handleConfirm} variant="contained" color="error" disabled={loading}>
+          Confirmar Cancelación
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 

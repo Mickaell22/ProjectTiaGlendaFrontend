@@ -34,24 +34,13 @@ import ProtectedRoute from 'src/components/shared/ProtectedRoute';
 import { ROUTES } from '../config/routes';
 
 // Páginas específicas del área pedagógica
+import PedagogicoCronogramasImpl from 'src/views/pedagogico/PedagogicoCronogramas';
+import PedagogicoAsistenciaImpl from 'src/views/pedagogico/PedagogicoAsistencia';
+import DebugPedagogico from 'src/views/pedagogico/DebugPedagogico';
 
-const PedagogicoCronogramas = () => (
-  <ComingSoon
-    title="Cronograma de Clases"
-    description="Programación y gestión de cronogramas de clases pedagógicas"
-    module="Pedagógico"
-    progress={35}
-  />
-);
+const PedagogicoCronogramas = PedagogicoCronogramasImpl;
 
-const PedagogicoAsistencia = () => (
-  <ComingSoon
-    title="Asistencia Estudiantil"
-    description="Control de asistencia y tardanzas de estudiantes"
-    module="Pedagógico"
-    progress={40}
-  />
-);
+const PedagogicoAsistencia = PedagogicoAsistenciaImpl;
 
 const PedagogicoEvaluaciones = () => (
   <ComingSoon

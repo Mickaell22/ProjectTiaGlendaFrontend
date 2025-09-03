@@ -119,6 +119,15 @@ export const API_ENDPOINTS = {
     ESTADISTICAS: '/api/sesiones-pedagogicas/estadisticas',
     ESTUDIANTES_DISPONIBLES: '/api/sesiones-pedagogicas/estudiantes-disponibles',
     PEDAGOGOS_DISPONIBLES: '/api/sesiones-pedagogicas/pedagogos-disponibles',
+    CLASES_HOY: '/api/sesiones-pedagogicas/clases-hoy',
+    // Endpoints for attendance (asistencia) - corrected to match backend
+    ASISTENCIAS_CLASE: (cronogramaId) => `/api/cronograma-clases/${cronogramaId}/asistencias`,
+    REGISTRAR_ASISTENCIA: (cronogramaId, pacienteId) => 
+      `/api/cronograma-clases/${cronogramaId}/asistencias/${pacienteId}`,
+    // Endpoints for cronograma management
+    MARCAR_REALIZADA: (claseId) => `/api/cronograma-clases/${claseId}/realizar`,
+    REPROGRAMAR_CLASE: (claseId) => `/api/cronograma-clases/${claseId}/reprogramar`,
+    CANCELAR_CLASE: (claseId) => `/api/cronograma-clases/${claseId}/cancelar`,
   },
 
   // Roles

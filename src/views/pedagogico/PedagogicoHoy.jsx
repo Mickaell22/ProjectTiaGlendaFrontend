@@ -25,8 +25,20 @@ const PedagogicoHoy = () => {
   const fetchSesionesHoy = async () => {
     setLoading(true);
     try {
-      const response = await sesionPedagogicaService.getSesionesHoy();
-      setSesionesHoy(response.data || []);
+      // Try to get today's classes from the specific endpoint
+      let response = null;
+      try {
+        response = await sesionPedagogicaService.getClasesHoy();
+        console.log('📅 Today\'s classes response:', response);
+      } catch (classError) {
+        console.warn('Classes today endpoint failed, trying general sessions:', classError);
+        // Fallback to general sessions endpoint
+        response = await sesionPedagogicaService.getSesionesHoy();
+      }
+      
+      const clasesData = response.data?.data || response.data || [];
+      setSesionesHoy(clasesData);
+      
     } catch (error) {
       console.error('Error fetching today sessions:', error);
       setSnackbar({

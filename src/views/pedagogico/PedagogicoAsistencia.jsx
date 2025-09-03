@@ -1,171 +1,311 @@
 // src/views/pedagogico/PedagogicoAsistencia.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Box, Container, Paper, Typography, Card, CardContent,
-  Grid, Button, IconButton, Tooltip, Alert, Snackbar,
-  Table, TableBody, TableCell, TableHead, TableRow,
-  Chip, Avatar, LinearProgress, Dialog, DialogTitle,
-  DialogContent, DialogActions, FormControl, InputLabel,
-  Select, MenuItem, TextField, Tabs, Tab, Divider,
-  Checkbox, FormControlLabel, Switch
+  Box, Button, Card, CardContent, Container, IconButton, Paper, Snackbar,
+  Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
+  Tooltip, Typography, Alert, Grid, MenuItem, Dialog, DialogTitle, DialogContent,
+  DialogActions, Chip, Avatar, FormControl, InputLabel, Select, Switch,
+  FormControlLabel, InputAdornment
 } from '@mui/material';
 import {
-  Assignment, CheckCircle, School, Today, Add,
-  PersonSearch, Groups, TrendingUp, Event, 
-  FilterList, Download, Refresh, Edit, QrCode,
-  NotificationImportant, Warning, Info
+  CheckCircle, Cancel, Search, Visibility, Add, Edit, AccessTime,
+  Person, Assignment, School
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
+import { formatDateLocal } from 'src/utils/dateUtils';
+
+/* ---------- Estilos tipo "listar" ---------- */
+const greenOutlineSX = {
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': { borderColor: '#4caf50' },
+    '&:hover fieldset': { borderColor: '#4caf50' },
+    '&.Mui-focused fieldset': { borderColor: '#4caf50', borderWidth: 2 }
+  }
+};
+
+// Evita "saltos" al seleccionar y trunca texto largo
+const selectStableSX = {
+  width: '100%',
+  '& .MuiSelect-select': {
+    display: 'block',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    minHeight: '1.4375em',
+    lineHeight: '1.4375em'
+  }
+};
+
+const menuProps = { PaperProps: { sx: { maxHeight: 280 } } };
 
 const PedagogicoAsistencia = () => {
   const [sesiones, setSesiones] = useState([]);
+  const [cronogramas, setCronogramas] = useState([]);
   const [asistencias, setAsistencias] = useState([]);
-  const [estudiantes, setEstudiantes] = useState([]);
-  const [estadisticas, setEstadisticas] = useState({
-    asistencia_general: 0,
-    tardanzas_hoy: 0,
-    ausencias_sin_justificar: 0,
-    estudiantes_activos: 0
-  });
-  const [loading, setLoading] = useState(false);
+  const [selectedSesion, setSelectedSesion] = useState('');
+  const [selectedCronograma, setSelectedCronograma] = useState('');
+  const [estudiantesSesion, setEstudiantesSesion] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterAsistio, setFilterAsistio] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [vistaActual, setVistaActual] = useState(0); // 0: lista, 1: reporte, 2: justificaciones
-  const [filtros, setFiltros] = useState({ sesion: '', fecha: '', estado: '' });
-  const [dialogAsistencia, setDialogAsistencia] = useState(false);
-  const [sesionSeleccionada, setSesionSeleccionada] = useState(null);
+  const [asistenciaDialog, setAsistenciaDialog] = useState({ open: false, data: null, isEdit: false });
+  const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    asistio: false,
+    llegada_tardanza_minutos: 0,
+    observaciones_asistencia: '',
+    participacion_clase: '',
+    tareas_entregadas: false,
+    notas_comportamiento: '',
+    calificacion_evaluacion: 5,
+    observaciones_evaluacion: ''
+  });
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
     fetchSesiones();
-    fetchEstudiantes();
-    fetchAsistencias();
-    fetchEstadisticas();
-  }, [filtros]);
-
-  useEffect(() => {
-    if (filtros.sesion || filtros.fecha || filtros.estado) {
-      fetchAsistencias();
-    }
-  }, [filtros]);
+  }, []);
 
   const fetchSesiones = async () => {
+    try {
+      console.log('🎓 Fetching pedagogical sessions for attendance...');
+      const response = await sesionPedagogicaService.getSesiones();
+      setSesiones(response.data?.data || response.data || []);
+    } catch (err) {
+      const errorMessage = sesionPedagogicaService.handleError(err);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+    }
+  };
+
+  const fetchCronogramas = async (sesionId) => {
+    try {
+      const [cronogramasRes, estudiantesRes] = await Promise.all([
+        sesionPedagogicaService.getCronograma(sesionId),
+        sesionPedagogicaService.getEstudiantesSesion(sesionId)
+      ]);
+
+      const allCronogramas = cronogramasRes.data?.data || cronogramasRes.data || [];
+      setCronogramas(allCronogramas);
+      setEstudiantesSesion(estudiantesRes.data?.data || estudiantesRes.data || []);
+
+      console.log('📅 Cronogramas fetched:', allCronogramas.length);
+      console.log('👥 Students fetched:', estudiantesRes.data?.data?.length || estudiantesRes.data?.length);
+    } catch (err) {
+      console.error('Error fetching cronogramas and students:', err);
+      const errorMessage = sesionPedagogicaService.handleError(err);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      setCronogramas([]);
+      setEstudiantesSesion([]);
+    }
+  };
+
+  const fetchAsistencias = async (cronogramaId) => {
     setLoading(true);
     try {
-      const response = await sesionPedagogicaService.getSesiones();
-      const sesionesData = response.data?.data || response.data || [];
-      setSesiones(sesionesData);
-    } catch (error) {
-      console.error('Error fetching sessions:', error);
-      setSnackbar({
-        open: true,
-        message: `Error al cargar las sesiones: ${error.message}`,
-        severity: 'error'
-      });
+      console.log('📋 Fetching asistencias for cronograma:', cronogramaId);
+      
+      // Try to get attendance data from the backend
+      let response = null;
+      try {
+        response = await sesionPedagogicaService.getAsistenciasClase(cronogramaId);
+        console.log('✅ Attendance response:', response);
+      } catch (attendanceError) {
+        console.warn('Attendance fetch failed:', attendanceError);
+        response = { data: [] };
+      }
+      
+      // Extract data from response
+      let asistenciasData = [];
+      if (response?.data) {
+        asistenciasData = Array.isArray(response.data) ? response.data : 
+                          response.data.data ? response.data.data : [];
+      }
+      
+      console.log('📊 Final attendance data:', asistenciasData);
+      setAsistencias(asistenciasData);
+      
+      // If no asistencias found, create placeholders for all students in the session
+      if (asistenciasData.length === 0 && estudiantesSesion.length > 0) {
+        console.log('Creating attendance placeholders for students:', estudiantesSesion);
+        const placeholderAsistencias = estudiantesSesion.map(estudiante => ({
+          cronograma_id: cronogramaId,
+          paciente_id: estudiante.paciente_id || estudiante.id,
+          estudiante_nombre: estudiante.estudiante?.nombre || estudiante.nombre_completo,
+          estudiante_cedula: estudiante.estudiante?.cedula || estudiante.cedula,
+          asistio: null,
+          fecha_asistencia: null,
+          observaciones_asistencia: null,
+          notas_progreso_academico: null,
+          es_placeholder: true
+        }));
+        setAsistencias(placeholderAsistencias);
+      }
+      
+    } catch (err) {
+      console.error('Error fetching asistencias:', err);
+      const errorMessage = sesionPedagogicaService.handleError(err);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      setAsistencias([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchEstudiantes = async () => {
-    try {
-      const response = await sesionPedagogicaService.getEstudiantes(filtros);
-      const estudiantesData = response.data?.data || response.data || [];
-      setEstudiantes(estudiantesData);
-    } catch (error) {
-      console.error('Error fetching students:', error);
-      // Fallback para estudiantes - generar datos básicos si no hay API
-      setEstudiantes([]);
+  const handleSesionChange = (event) => {
+    const sesionId = event.target.value;
+    setSelectedSesion(sesionId);
+    setSelectedCronograma('');
+    setAsistencias([]);
+    if (sesionId) fetchCronogramas(sesionId);
+    else {
+      setCronogramas([]);
+      setEstudiantesSesion([]);
     }
   };
 
-  const fetchAsistencias = async () => {
-    try {
-      const response = await sesionPedagogicaService.getAsistencias(filtros);
-      const asistenciasData = response.data?.data || response.data || [];
-      setAsistencias(asistenciasData);
-    } catch (error) {
-      console.error('Error fetching attendance:', error);
-      setAsistencias([]);
-    }
+  const handleCronogramaChange = (event) => {
+    const cronogramaId = event.target.value;
+    setSelectedCronograma(cronogramaId);
+    if (cronogramaId) fetchAsistencias(cronogramaId);
+    else setAsistencias([]);
   };
 
-  const fetchEstadisticas = async () => {
+  const handleRegistrarAsistencia = (estudiante) => {
+    setFormData({
+      asistio: false,
+      llegada_tardanza_minutos: 0,
+      observaciones_asistencia: '',
+      participacion_clase: '',
+      tareas_entregadas: false,
+      notas_comportamiento: '',
+      calificacion_evaluacion: 5,
+      observaciones_evaluacion: ''
+    });
+    setAsistenciaDialog({
+      open: true,
+      data: { estudiante, cronograma_id: selectedCronograma },
+      isEdit: false
+    });
+  };
+
+  const handleEditarAsistencia = (asistencia) => {
+    setFormData({
+      asistio: asistencia.asistio || false,
+      llegada_tardanza_minutos: asistencia.llegada_tardanza_minutos || 0,
+      observaciones_asistencia: asistencia.observaciones_asistencia || '',
+      participacion_clase: asistencia.participacion_clase || '',
+      tareas_entregadas: asistencia.tareas_entregadas || false,
+      notas_comportamiento: asistencia.notas_comportamiento || '',
+      calificacion_evaluacion: asistencia.calificacion_evaluacion || 5,
+      observaciones_evaluacion: asistencia.observaciones_evaluacion || ''
+    });
+    setAsistenciaDialog({
+      open: true,
+      data: asistencia,
+      isEdit: true
+    });
+  };
+
+  const handleSubmitAsistencia = async () => {
     try {
-      const response = await sesionPedagogicaService.getEstadisticasAsistencia();
-      const estadisticasData = response.data?.data || response.data || {
-        asistencia_general: 89,
-        tardanzas_hoy: 4,
-        ausencias_sin_justificar: 2,
-        estudiantes_activos: 6
+      const { estudiante, cronograma_id } = asistenciaDialog.data;
+      const estudianteId = estudiante?.paciente_id || estudiante?.id || asistenciaDialog.data.paciente_id;
+
+      console.log('🎓 Attendance dialog data:', asistenciaDialog.data);
+      console.log('👤 Student ID:', estudianteId);
+      console.log('📅 Cronograma ID:', cronograma_id);
+
+      if (!estudianteId) {
+        setSnackbar({ open: true, message: 'Error: No se pudo identificar el estudiante', severity: 'error' });
+        return;
+      }
+
+      if (!cronograma_id) {
+        setSnackbar({ open: true, message: 'Error: No se pudo identificar la clase del cronograma', severity: 'error' });
+        return;
+      }
+
+      const asistenciaData = {
+        // Campos que espera el backend
+        asistio: formData.asistio,
+        llegada_tardanza_minutos: parseInt(formData.llegada_tardanza_minutos) || 0,
+        observaciones_asistencia: formData.observaciones_asistencia?.trim() || null,
+        participacion_clase: formData.participacion_clase?.trim() || null,
+        tareas_entregadas: formData.tareas_entregadas || false,
+        notas_comportamiento: formData.notas_comportamiento?.trim() || null,
+        calificacion_evaluacion: parseInt(formData.calificacion_evaluacion) || 5,
+        observaciones_evaluacion: formData.observaciones_evaluacion?.trim() || null
       };
-      setEstadisticas(estadisticasData);
+
+      console.log('📝 Attendance data to send:', asistenciaData);
+
+      if (asistenciaDialog.isEdit) {
+        await sesionPedagogicaService.updateAsistenciaClase(cronograma_id, estudianteId, asistenciaData);
+        setSnackbar({ open: true, message: 'Asistencia actualizada correctamente', severity: 'success' });
+      } else {
+        await sesionPedagogicaService.registrarAsistenciaClase(cronograma_id, estudianteId, asistenciaData);
+        setSnackbar({ open: true, message: 'Asistencia registrada correctamente', severity: 'success' });
+      }
+
+      setAsistenciaDialog({ open: false, data: null, isEdit: false });
+      await fetchAsistencias(selectedCronograma);
+      if (selectedSesion) await fetchCronogramas(selectedSesion);
     } catch (error) {
-      console.error('Error fetching attendance statistics:', error);
-      // Fallback con datos por defecto para mostrar la pantalla
-      setEstadisticas({
-        asistencia_general: 89,
-        tardanzas_hoy: 4,
-        ausencias_sin_justificar: 2,
-        estudiantes_activos: 6
-      });
+      console.error('Error saving attendance:', error);
+      const errorMessage = sesionPedagogicaService.handleError(error);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     }
   };
 
-  const getEstadoColor = (estado) => {
-    switch (estado) {
-      case 'presente': return 'success';
-      case 'tardanza': return 'warning';
-      case 'ausente': return 'error';
-      default: return 'default';
+  const handleViewDetail = (item) => setDetailDialog({ open: true, data: item });
+
+  const formatDate = (dateString) => formatDateLocal(dateString);
+
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    if (timeString.includes('T') || timeString.includes(' ')) {
+      const date = new Date(timeString);
+      return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
     }
+    return timeString;
   };
 
-  const getEstadoTexto = (estado) => {
-    switch (estado) {
-      case 'presente': return 'Presente';
-      case 'tardanza': return 'Tardanza';
-      case 'ausente': return 'Ausente';
-      default: return 'No registrado';
-    }
-  };
+  const getSesionInfo = (sesionId) => sesiones.find(s => s.id === parseInt(sesionId));
+  const getCronogramaInfo = (cronogramaId) => cronogramas.find(c => c.id === parseInt(cronogramaId));
+  const getEstudianteAsistencia = (estudianteId) => asistencias.find(a => a.paciente_id === estudianteId);
 
-  const calcularPorcentajeAsistencia = (estudiante) => {
-    if (estudiante.sesiones_asignadas === 0) return 0;
-    return Math.round((estudiante.asistencias / estudiante.sesiones_asignadas) * 100);
-  };
-
-  const marcarAsistencia = (estudianteId, estado) => {
-    setSnackbar({
-      open: true,
-      message: `Asistencia registrada: ${getEstadoTexto(estado)}`,
-      severity: 'success'
-    });
-  };
-
-  const exportarReporte = () => {
-    setSnackbar({
-      open: true,
-      message: 'Reporte de asistencia exportado exitosamente',
-      severity: 'success'
-    });
-  };
+  const filteredAsistencias = asistencias.filter(a => {
+    const matchesSearch = (
+      a.estudiante_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      a.observaciones_asistencia?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    let matchesAsistio = true;
+    if (filterAsistio !== '') matchesAsistio = filterAsistio === 'true' ? a.asistio : !a.asistio;
+    return matchesSearch && matchesAsistio;
+  });
 
   return (
     <Container maxWidth="xl" sx={{ py: 0 }}>
+
+      {/* Card de selección (header degradado estilo listar) */}
       <Card
         elevation={8}
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          background: 'linear-gradient(145deg, #ffffff 0%, #f8fff8 100%)',
           overflow: 'hidden',
           width: '100%',
-          maxWidth: { xs: '100%', sm: 1000, md: 1200 },
+          maxWidth: { xs: '100%', sm: 1200 },
           mx: 'auto'
         }}
       >
-        {/* Header */}
         <Box
           sx={{
             background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
@@ -179,462 +319,598 @@ const PedagogicoAsistencia = () => {
           <Box>
             <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
               <Assignment sx={{ mr: 1 }} />
-              Control de Asistencia Estudiantil
+              Registro de Asistencias Pedagógicas
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.9 }}>
-              Seguimiento de asistencia y tardanzas de estudiantes
+              Selecciona una sesión y una fecha para gestionar asistencias de clases
             </Typography>
           </Box>
 
-          <Box display="flex" gap={1}>
-            <Tooltip title="Código QR">
-              <IconButton sx={{ color: 'white' }}>
-                <QrCode />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Exportar">
-              <IconButton sx={{ color: 'white' }} onClick={exportarReporte}>
-                <Download />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Actualizar">
-              <IconButton sx={{ color: 'white' }} onClick={fetchSesiones}>
-                <Refresh />
-              </IconButton>
-            </Tooltip>
-          </Box>
+          <Chip
+            label={`${sesiones.length} sesión${sesiones.length !== 1 ? 'es' : ''}`}
+            color="default"
+            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+            size="small"
+          />
         </Box>
 
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-          {/* Estadísticas principales */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} md={3}>
-              <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'success.50', height: '100%' }}>
-                <Avatar sx={{ mx: 'auto', mb: 1, bgcolor: 'success.main' }}>
-                  <CheckCircle />
-                </Avatar>
-                <Typography variant="h4" color="success.main" fontWeight="bold">
-                  {estadisticas.asistencia_general}%
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Asistencia General
-                </Typography>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={estadisticas.asistencia_general} 
-                  color="success" 
-                  sx={{ mt: 1 }}
-                />
-              </Card>
-            </Grid>
-            
-            <Grid item xs={12} md={3}>
-              <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'warning.50', height: '100%' }}>
-                <Avatar sx={{ mx: 'auto', mb: 1, bgcolor: 'warning.main' }}>
-                  <Warning />
-                </Avatar>
-                <Typography variant="h4" color="warning.main" fontWeight="bold">
-                  {estadisticas.tardanzas_hoy}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Tardanzas Hoy
-                </Typography>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={Math.min((estadisticas.tardanzas_hoy / estudiantes.length) * 100, 100)} 
-                  color="warning" 
-                  sx={{ mt: 1 }}
-                />
-              </Card>
-            </Grid>
-            
-            <Grid item xs={12} md={3}>
-              <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'error.50', height: '100%' }}>
-                <Avatar sx={{ mx: 'auto', mb: 1, bgcolor: 'error.main' }}>
-                  <NotificationImportant />
-                </Avatar>
-                <Typography variant="h4" color="error.main" fontWeight="bold">
-                  {estadisticas.ausencias_sin_justificar}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Ausencias Sin Justificar
-                </Typography>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={Math.min((estadisticas.ausencias_sin_justificar / estudiantes.length) * 100, 100)} 
-                  color="error" 
-                  sx={{ mt: 1 }}
-                />
-              </Card>
-            </Grid>
-            
-            <Grid item xs={12} md={3}>
-              <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'info.50', height: '100%' }}>
-                <Avatar sx={{ mx: 'auto', mb: 1, bgcolor: 'info.main' }}>
-                  <Groups />
-                </Avatar>
-                <Typography variant="h4" color="info.main" fontWeight="bold">
-                  {estadisticas.estudiantes_activos || estudiantes.length}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Estudiantes Activos
-                </Typography>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={100} 
-                  color="info" 
-                  sx={{ mt: 1 }}
-                />
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* Filtros */}
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Sesión</InputLabel>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel shrink>Sesión Pedagógica</InputLabel>
                 <Select
-                  value={filtros.sesion}
-                  onChange={(e) => setFiltros(prev => ({ ...prev, sesion: e.target.value }))}
-                  label="Sesión"
+                  sx={{ ...selectStableSX, ...greenOutlineSX }}
+                  value={selectedSesion}
+                  onChange={handleSesionChange}
+                  label="Sesión Pedagógica"
+                  displayEmpty
+                  MenuProps={menuProps}
+                  renderValue={(val) => {
+                    if (!val) return 'Seleccione una sesión pedagógica';
+                    const s = sesiones.find(x => String(x.id) === String(val));
+                    return s ? `${s.titulo || s.nombre_clase}` : 'Seleccione una sesión pedagógica';
+                  }}
                 >
-                  <MenuItem value="">Todas las sesiones</MenuItem>
+                  <MenuItem value="">Seleccione una sesión pedagógica</MenuItem>
                   {sesiones.map((sesion) => (
                     <MenuItem key={sesion.id} value={sesion.id}>
-                      {sesion.nombre_clase || sesion.codigo_sesion}
+                      {`${sesion.titulo || sesion.nombre_clase}`}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={3}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Fecha"
-                type="date"
-                value={filtros.fecha}
-                onChange={(e) => setFiltros(prev => ({ ...prev, fecha: e.target.value }))}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Estado</InputLabel>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth disabled={!selectedSesion}>
+                <InputLabel shrink>Fecha de Clase</InputLabel>
                 <Select
-                  value={filtros.estado}
-                  onChange={(e) => setFiltros(prev => ({ ...prev, estado: e.target.value }))}
-                  label="Estado"
+                  sx={{ ...selectStableSX, ...greenOutlineSX }}
+                  value={selectedCronograma}
+                  onChange={handleCronogramaChange}
+                  label="Fecha de Clase"
+                  displayEmpty
+                  MenuProps={menuProps}
+                  renderValue={(val) => {
+                    if (!val) return cronogramas.length === 0 ? 'No hay clases disponibles para registro' : 'Seleccione una fecha';
+                    const c = cronogramas.find(x => String(x.id) === String(val));
+                    return c ? `Clase ${c.numero_clase || c.numero_clase_semanal} - ${formatDate(c.fecha_programada)} ${formatTime(c.hora_inicio)}` : 'Seleccione una fecha';
+                  }}
                 >
-                  <MenuItem value="">Todos</MenuItem>
-                  <MenuItem value="presente">Presente</MenuItem>
-                  <MenuItem value="tardanza">Tardanza</MenuItem>
-                  <MenuItem value="ausente">Ausente</MenuItem>
+                  <MenuItem value="">
+                    {cronogramas.length === 0 ? 'No hay clases disponibles para registro' : 'Seleccione una fecha'}
+                  </MenuItem>
+                  {cronogramas.map((cronograma) => (
+                    <MenuItem key={cronograma.id} value={cronograma.id}>
+                      {`Clase ${cronograma.numero_clase || cronograma.numero_clase_semanal} - ${formatDate(cronograma.fecha_programada)} ${formatTime(cronograma.hora_inicio)}`}
+                    </MenuItem>
+                  ))}
+                  {cronogramas.length === 0 && selectedSesion && (
+                    <MenuItem disabled>Solo se puede registrar asistencia para fechas pasadas o de hoy</MenuItem>
+                  )}
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={3}>
-              <Button
-                variant="contained"
-                startIcon={<Add />}
-                fullWidth
-                onClick={() => setDialogAsistencia(true)}
-                sx={{ height: '40px' }}
-              >
-                Tomar Asistencia
-              </Button>
-            </Grid>
           </Grid>
 
-          {/* Pestañas */}
-          <Tabs value={vistaActual} onChange={(e, newValue) => setVistaActual(newValue)} sx={{ mb: 3 }}>
-            <Tab label="Lista de Estudiantes" icon={<Groups />} iconPosition="start" />
-            <Tab label="Registro Diario" icon={<Today />} iconPosition="start" />
-            <Tab label="Reportes" icon={<TrendingUp />} iconPosition="start" />
-          </Tabs>
-
-          {/* Vista de Lista de Estudiantes */}
-          {vistaActual === 0 && (
-            <Card sx={{ overflow: 'hidden' }}>
-              {loading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                  <Typography>Cargando estudiantes...</Typography>
-                </Box>
-              )}
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: 'grey.100' }}>
-                    <TableCell><strong>Estudiante</strong></TableCell>
-                    <TableCell align="center"><strong>Nivel</strong></TableCell>
-                    <TableCell align="center"><strong>Sesiones Asignadas</strong></TableCell>
-                    <TableCell align="center"><strong>Asistencias</strong></TableCell>
-                    <TableCell align="center"><strong>Tardanzas</strong></TableCell>
-                    <TableCell align="center"><strong>Faltas</strong></TableCell>
-                    <TableCell align="center"><strong>% Asistencia</strong></TableCell>
-                    <TableCell align="center"><strong>Estado</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {estudiantes.map((estudiante) => {
-                    const porcentaje = calcularPorcentajeAsistencia(estudiante);
-                    return (
-                      <TableRow key={estudiante.id} hover>
-                        <TableCell>
-                          <Box display="flex" alignItems="center">
-                            <Avatar sx={{ mr: 2, bgcolor: 'primary.main', width: 32, height: 32 }}>
-                              {estudiante.nombre.charAt(0)}
-                            </Avatar>
-                            <Typography variant="body2" fontWeight="medium">
-                              {estudiante.nombre}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell align="center">
-                          <Chip 
-                            size="small" 
-                            label={estudiante.nivel} 
-                            color={estudiante.nivel === 'Primaria' ? 'success' : 'warning'}
-                            variant="outlined"
-                          />
-                        </TableCell>
-                        <TableCell align="center">{estudiante.sesiones_asignadas}</TableCell>
-                        <TableCell align="center">
-                          <Typography color="success.main" fontWeight="bold">
-                            {estudiante.asistencias}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="center">
-                          <Typography color="warning.main" fontWeight="bold">
-                            {estudiante.tardanzas}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="center">
-                          <Typography color="error.main" fontWeight="bold">
-                            {estudiante.faltas}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="center">
-                          <Box display="flex" alignItems="center" justifyContent="center">
-                            <LinearProgress 
-                              variant="determinate" 
-                              value={porcentaje} 
-                              color={porcentaje >= 80 ? 'success' : porcentaje >= 60 ? 'warning' : 'error'}
-                              sx={{ width: 60, mr: 1 }}
-                            />
-                            <Typography variant="body2" fontWeight="bold">
-                              {porcentaje}%
-                            </Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell align="center">
-                          <Chip 
-                            size="small" 
-                            label={porcentaje >= 80 ? 'Excelente' : porcentaje >= 60 ? 'Bueno' : 'Riesgo'}
-                            color={porcentaje >= 80 ? 'success' : porcentaje >= 60 ? 'warning' : 'error'}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </Card>
-          )}
-
-          {/* Vista de Registro Diario */}
-          {vistaActual === 1 && (
-            <Card sx={{ overflow: 'hidden' }}>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ bgcolor: 'grey.100' }}>
-                    <TableCell><strong>Sesión</strong></TableCell>
-                    <TableCell><strong>Fecha</strong></TableCell>
-                    <TableCell><strong>Estudiante</strong></TableCell>
-                    <TableCell align="center"><strong>Estado</strong></TableCell>
-                    <TableCell><strong>Observaciones</strong></TableCell>
-                    <TableCell align="center"><strong>Acciones</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {asistencias.map((asistencia) => (
-                    <TableRow key={asistencia.id} hover>
-                      <TableCell fontWeight="medium">{asistencia.sesion}</TableCell>
-                      <TableCell>{new Date(asistencia.fecha).toLocaleDateString('es-ES')}</TableCell>
-                      <TableCell>
-                        <Box display="flex" alignItems="center">
-                          <Avatar sx={{ mr: 2, width: 24, height: 24, fontSize: '0.8rem' }}>
-                            {asistencia.estudiante.charAt(0)}
-                          </Avatar>
-                          {asistencia.estudiante}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip 
-                          size="small" 
-                          label={getEstadoTexto(asistencia.estado)} 
-                          color={getEstadoColor(asistencia.estado)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {asistencia.observaciones || 'Sin observaciones'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Tooltip title="Editar">
-                          <IconButton size="small">
-                            <Edit fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
-          )}
-
-          {/* Vista de Reportes */}
-          {vistaActual === 2 && (
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Card sx={{ p: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Resumen Semanal
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
-                  <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography variant="body2">Total Estudiantes:</Typography>
-                    <Typography variant="body2" fontWeight="bold">{estudiantes.length}</Typography>
-                  </Box>
-                  <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography variant="body2">Presentes:</Typography>
-                    <Typography variant="body2" fontWeight="bold" color="success.main">24</Typography>
-                  </Box>
-                  <Box display="flex" justifyContent="space-between" mb={1}>
-                    <Typography variant="body2">Tardanzas:</Typography>
-                    <Typography variant="body2" fontWeight="bold" color="warning.main">4</Typography>
-                  </Box>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body2">Ausencias:</Typography>
-                    <Typography variant="body2" fontWeight="bold" color="error.main">2</Typography>
-                  </Box>
-                </Card>
+          {selectedSesion && selectedCronograma && getSesionInfo(selectedSesion) && getCronogramaInfo(selectedCronograma) && (
+            <Paper sx={{ mt: 3, p: 2, backgroundColor: '#e8f5e8' }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={3}>
+                  <Typography variant="subtitle2">Sesión:</Typography>
+                  <Typography variant="body2">{getSesionInfo(selectedSesion).titulo || getSesionInfo(selectedSesion).nombre_clase}</Typography>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <Typography variant="subtitle2">Fecha:</Typography>
+                  <Typography variant="body2">{formatDate(getCronogramaInfo(selectedCronograma).fecha_programada)}</Typography>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <Typography variant="subtitle2">Hora:</Typography>
+                  <Typography variant="body2">{formatTime(getCronogramaInfo(selectedCronograma).hora_inicio)} - {formatTime(getCronogramaInfo(selectedCronograma).hora_fin)}</Typography>
+                </Grid>
+                <Grid item xs={12} md={3}>
+                  <Typography variant="subtitle2">Pedagogo:</Typography>
+                  <Typography variant="body2">{getSesionInfo(selectedSesion).pedagogo?.nombre || getSesionInfo(selectedSesion).pedagogo_nombre}</Typography>
+                </Grid>
               </Grid>
-              <Grid item xs={12} md={6}>
-                <Card sx={{ p: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Alertas de Riesgo
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
-                  {estudiantes
-                    .filter(e => calcularPorcentajeAsistencia(e) < 70)
-                    .map(estudiante => (
-                      <Alert key={estudiante.id} severity="warning" sx={{ mb: 1 }}>
-                        <strong>{estudiante.nombre}</strong> - Asistencia: {calcularPorcentajeAsistencia(estudiante)}%
-                      </Alert>
-                    ))}
-                  {estudiantes.filter(e => calcularPorcentajeAsistencia(e) < 70).length === 0 && (
-                    <Alert severity="success">
-                      No hay estudiantes en riesgo académico por asistencia
-                    </Alert>
-                  )}
-                </Card>
-              </Grid>
-            </Grid>
+            </Paper>
           )}
         </CardContent>
       </Card>
 
-      {/* Dialog para tomar asistencia */}
-      <Dialog open={dialogAsistencia} onClose={() => setDialogAsistencia(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Tomar Asistencia - Sesión del Día</DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Seleccionar Sesión</InputLabel>
-                <Select
-                  value={sesionSeleccionada}
-                  onChange={(e) => setSesionSeleccionada(e.target.value)}
-                  label="Seleccionar Sesión"
-                >
-                  {sesiones.map((sesion) => (
-                    <MenuItem key={sesion.id} value={sesion.id}>
-                      {sesion.nombre_clase} - {sesion.hora_inicio}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="body2" gutterBottom>
-                Marcar asistencia para los estudiantes:
-              </Typography>
-              {estudiantes.slice(0, 4).map(estudiante => (
-                <Box key={estudiante.id} display="flex" alignItems="center" justifyContent="space-between" p={1} mb={1} bgcolor="grey.50" borderRadius={1}>
-                  <Typography variant="body2">{estudiante.nombre}</Typography>
-                  <Box>
-                    <Button 
-                      size="small" 
-                      color="success" 
-                      onClick={() => marcarAsistencia(estudiante.id, 'presente')}
-                      sx={{ mr: 1 }}
-                    >
-                      Presente
-                    </Button>
-                    <Button 
-                      size="small" 
-                      color="warning" 
-                      onClick={() => marcarAsistencia(estudiante.id, 'tardanza')}
-                      sx={{ mr: 1 }}
-                    >
-                      Tardanza
-                    </Button>
-                    <Button 
-                      size="small" 
-                      color="error" 
-                      onClick={() => marcarAsistencia(estudiante.id, 'ausente')}
-                    >
-                      Ausente
-                    </Button>
-                  </Box>
-                </Box>
-              ))}
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogAsistencia(false)}>Cancelar</Button>
-          <Button 
-            variant="contained" 
-            onClick={() => {
-              setDialogAsistencia(false);
-              setSnackbar({
-                open: true,
-                message: 'Asistencia registrada exitosamente',
-                severity: 'success'
-              });
+      {/* Card de listado de asistencias (header degradado) */}
+      {selectedSesion && selectedCronograma ? (
+        <Card
+          elevation={8}
+          sx={{
+            borderRadius: 4,
+            mb: 4,
+            background: 'linear-gradient(145deg, #ffffff 0%, #f8fff8 100%)',
+            overflow: 'hidden',
+            width: '100%',
+            maxWidth: { xs: '100%', sm: 1200 },
+            mx: 'auto'
+          }}
+        >
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
+              color: 'white',
+              p: 3,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}
           >
-            Guardar Asistencia
+            <Box>
+              <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
+                <Assignment sx={{ mr: 1 }} />
+                Control de Asistencia de Clase
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                {estudiantesSesion.length} estudiante{estudiantesSesion.length !== 1 ? 's' : ''} en esta sesión
+              </Typography>
+            </Box>
+
+            <Chip
+              label={`${filteredAsistencias.length} registro${filteredAsistencias.length !== 1 ? 's' : ''}`}
+              color="default"
+              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+              size="small"
+            />
+          </Box>
+
+          <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+            {/* Toolbar (búsqueda + filtro) */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                mb: 3,
+                flexWrap: 'nowrap',
+                overflowX: 'auto',
+                pb: 1,
+                '& > *': { flex: '0 0 auto' }
+              }}
+            >
+              <TextField
+                size="small"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar por estudiante u observaciones…"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{ ...greenOutlineSX, minWidth: 260, flex: '1 1 380px' }}
+              />
+
+              <FormControl size="small" sx={{ minWidth: 200 }}>
+                <InputLabel shrink>Filtrar por asistencia</InputLabel>
+                <Select
+                  sx={{ ...selectStableSX, ...greenOutlineSX }}
+                  value={filterAsistio}
+                  onChange={(e) => setFilterAsistio(e.target.value)}
+                  label="Filtrar por asistencia"
+                  displayEmpty
+                  MenuProps={menuProps}
+                  renderValue={(val) => (val === '' ? 'Todos' : val === 'true' ? 'Asistió' : 'No Asistió')}
+                >
+                  <MenuItem value="">Todos</MenuItem>
+                  <MenuItem value="true">Asistió</MenuItem>
+                  <MenuItem value="false">No Asistió</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            {loading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <Typography>Cargando asistencias...</Typography>
+              </Box>
+            ) : (
+              <>
+                <Box sx={{ width: '100%', overflowX: 'auto' }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Estudiante</TableCell>
+                        <TableCell>Asistencia</TableCell>
+                        <TableCell>Tardanza</TableCell>
+                        <TableCell>Calificación</TableCell>
+                        <TableCell>Observaciones</TableCell>
+                        <TableCell>Fecha Registro</TableCell>
+                        <TableCell>Acciones</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {estudiantesSesion.map((estudiante) => {
+                        const estudianteId = estudiante.paciente_id || estudiante.id;
+                        const asistencia = getEstudianteAsistencia(estudianteId);
+                        return (
+                          <TableRow key={estudianteId}>
+                            <TableCell>
+                              <Box display="flex" alignItems="center">
+                                <Avatar sx={{ mr: 2, bgcolor: '#4caf50' }}>
+                                  <School />
+                                </Avatar>
+                                <Box>
+                                  <Typography variant="body2" fontWeight="bold">
+                                    {estudiante.estudiante?.nombre || estudiante.nombre_completo}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    {estudiante.estudiante?.cedula || estudiante.cedula}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              {asistencia ? (
+                                <Chip
+                                  label={asistencia.asistio ? 'Asistió' : 'No Asistió'}
+                                  color={asistencia.asistio ? 'success' : 'error'}
+                                  size="small"
+                                  icon={asistencia.asistio ? <CheckCircle /> : <Cancel />}
+                                />
+                              ) : (
+                                <Chip label="Sin Registro" color="default" size="small" />
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {asistencia?.llegada_tardanza_minutos ? (
+                                <Typography variant="body2" color="warning.main">
+                                  {asistencia.llegada_tardanza_minutos} min
+                                </Typography>
+                              ) : (
+                                <Typography variant="body2" color="text.secondary">-</Typography>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {asistencia?.calificacion_clase ? (
+                                <Chip
+                                  label={`${asistencia.calificacion_clase}/10`}
+                                  color={asistencia.calificacion_clase >= 7 ? 'success' : asistencia.calificacion_clase >= 5 ? 'warning' : 'error'}
+                                  size="small"
+                                />
+                              ) : (
+                                <Typography variant="body2" color="text.secondary">-</Typography>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" noWrap title={asistencia?.observaciones_asistencia || '-'}>
+                                {asistencia?.observaciones_asistencia || '-'}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              {asistencia?.fecha_creacion ? (
+                                <Typography variant="caption">
+                                  {formatDate(asistencia.fecha_creacion)}
+                                </Typography>
+                              ) : (
+                                <Typography variant="caption" color="text.secondary">-</Typography>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                {asistencia ? (
+                                  <>
+                                    <Tooltip title="Ver detalles">
+                                      <IconButton color="info" size="small" onClick={() => handleViewDetail(asistencia)}>
+                                        <Visibility fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Editar asistencia">
+                                      <IconButton 
+                                        size="small" 
+                                        onClick={() => handleEditarAsistencia(asistencia)}
+                                        sx={{ color: '#4caf50' }}
+                                      >
+                                        <Edit fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </>
+                                ) : (
+                                  <Tooltip title="Registrar asistencia">
+                                    <IconButton color="success" size="small" onClick={() => handleRegistrarAsistencia(estudiante)}>
+                                      <Add fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </Box>
+
+                <TablePagination
+                  component="div"
+                  count={filteredAsistencias.length || asistencias.length || estudiantesSesion.length}
+                  page={page}
+                  onPageChange={(e, newPage) => setPage(newPage)}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={(e) => {
+                    setRowsPerPage(parseInt(e.target.value, 10));
+                    setPage(0);
+                  }}
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  labelRowsPerPage="Filas por página:"
+                  labelDisplayedRows={({ from, to, count }) =>
+                    `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+                  }
+                />
+              </>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent>
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              py={8}
+            >
+              <Assignment sx={{ fontSize: 80, color: 'grey.400', mb: 2 }} />
+              <Typography variant="h6" color="text.secondary" mb={1}>
+                Seleccione una Sesión y Fecha
+              </Typography>
+              <Typography variant="body2" color="text.secondary" textAlign="center">
+                Para registrar asistencias, seleccione una sesión pedagógica y una fecha específica de clase
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Dialog Registrar/Editar asistencia */}
+      <Dialog
+        open={asistenciaDialog.open}
+        onClose={() => setAsistenciaDialog({ open: false, data: null, isEdit: false })}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          {asistenciaDialog.isEdit ? 'Editar Asistencia' : 'Registrar Asistencia'}
+        </DialogTitle>
+        <DialogContent>
+          {asistenciaDialog.data && (
+            <Grid container spacing={3} sx={{ mt: 1 }}>
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" color="primary" mb={2}>
+                  Estudiante: {asistenciaDialog.data.estudiante?.estudiante?.nombre || asistenciaDialog.data.estudiante_nombre}
+                </Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.asistio}
+                      onChange={(e) => setFormData(prev => ({ ...prev, asistio: e.target.checked }))}
+                      sx={{ 
+                        '& .MuiSwitch-switchBase.Mui-checked': { color: '#4caf50' },
+                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#4caf50' }
+                      }}
+                    />
+                  }
+                  label="Asistió a la clase"
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Minutos de tardanza"
+                  value={formData.llegada_tardanza_minutos}
+                  onChange={(e) => setFormData(prev => ({ ...prev, llegada_tardanza_minutos: e.target.value }))}
+                  inputProps={{ min: 0 }}
+                  disabled={!formData.asistio}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Calificación de evaluación (1-10)"
+                  value={formData.calificacion_evaluacion}
+                  onChange={(e) => setFormData(prev => ({ ...prev, calificacion_evaluacion: e.target.value }))}
+                  inputProps={{ min: 1, max: 10 }}
+                  disabled={!formData.asistio}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.tareas_entregadas}
+                      onChange={(e) => setFormData(prev => ({ ...prev, tareas_entregadas: e.target.checked }))}
+                      disabled={!formData.asistio}
+                      sx={{ 
+                        '& .MuiSwitch-switchBase.Mui-checked': { color: '#4caf50' },
+                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#4caf50' }
+                      }}
+                    />
+                  }
+                  label="Tareas entregadas"
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label="Observaciones de Asistencia"
+                  value={formData.observaciones_asistencia}
+                  onChange={(e) => setFormData(prev => ({ ...prev, observaciones_asistencia: e.target.value }))}
+                  placeholder="Observaciones sobre la asistencia..."
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label="Participación en clase"
+                  value={formData.participacion_clase}
+                  onChange={(e) => setFormData(prev => ({ ...prev, participacion_clase: e.target.value }))}
+                  placeholder="Descripción de la participación del estudiante en clase..."
+                  disabled={!formData.asistio}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  label="Notas de comportamiento"
+                  value={formData.notas_comportamiento}
+                  onChange={(e) => setFormData(prev => ({ ...prev, notas_comportamiento: e.target.value }))}
+                  placeholder="Observaciones sobre el comportamiento del estudiante..."
+                  disabled={!formData.asistio}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label="Observaciones de evaluación"
+                  value={formData.observaciones_evaluacion}
+                  onChange={(e) => setFormData(prev => ({ ...prev, observaciones_evaluacion: e.target.value }))}
+                  placeholder="Observaciones sobre la evaluación y desempeño académico..."
+                  disabled={!formData.asistio}
+                />
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAsistenciaDialog({ open: false, data: null, isEdit: false })}>
+            Cancelar
+          </Button>
+          <Button 
+            variant="contained" 
+            onClick={handleSubmitAsistencia}
+            sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}
+          >
+            {asistenciaDialog.isEdit ? 'Actualizar' : 'Registrar'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      {/* Dialog de detalles */}
+      <Dialog
+        open={detailDialog.open}
+        onClose={() => setDetailDialog({ open: false, data: null })}
+        maxWidth="md"
+        fullWidth
       >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <Assignment sx={{ mr: 2 }} />
+            Detalles de Asistencia de Clase
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {detailDialog.data && (
+            <Grid container spacing={3} sx={{ mt: 1 }}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="primary">Información del Estudiante</Typography>
+                <Typography variant="body2"><strong>Nombre:</strong> {detailDialog.data.estudiante_nombre}</Typography>
+                <Typography variant="body2"><strong>Cédula:</strong> {detailDialog.data.estudiante_cedula}</Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="primary">Información de Asistencia</Typography>
+                <Typography variant="body2" display="flex" alignItems="center">
+                  <strong>Estado:</strong>
+                  <Chip
+                    label={detailDialog.data.asistio ? 'Asistió' : 'No Asistió'}
+                    color={detailDialog.data.asistio ? 'success' : 'error'}
+                    size="small"
+                    sx={{ ml: 1 }}
+                  />
+                </Typography>
+                {detailDialog.data.llegada_tardanza_minutos > 0 && (
+                  <Typography variant="body2"><strong>Tardanza:</strong> {detailDialog.data.llegada_tardanza_minutos} minutos</Typography>
+                )}
+                <Typography variant="body2"><strong>Fecha de Registro:</strong> {formatDate(detailDialog.data.fecha_creacion)}</Typography>
+              </Grid>
+
+              {detailDialog.data.calificacion_clase && (
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" color="primary">Evaluación Académica</Typography>
+                  <Typography variant="body2"><strong>Calificación:</strong> {detailDialog.data.calificacion_clase}/10</Typography>
+                  <Typography variant="body2"><strong>Comportamiento:</strong> {detailDialog.data.evaluacion_comportamiento}</Typography>
+                </Grid>
+              )}
+
+              {detailDialog.data.observaciones_asistencia && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Observaciones de Asistencia</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
+                    <Typography variant="body2">{detailDialog.data.observaciones_asistencia}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {detailDialog.data.notas_progreso_academico && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Notas de Progreso Académico</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: '#e8f5e8', border: '1px solid', borderColor: '#4caf50' }}>
+                    <Typography variant="body2">{detailDialog.data.notas_progreso_academico}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {detailDialog.data.actividades_completadas && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Actividades Completadas</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: 'info.50', border: '1px solid', borderColor: 'info.200' }}>
+                    <Typography variant="body2">{detailDialog.data.actividades_completadas}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {detailDialog.data.tareas_asignadas && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Tareas Asignadas</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
+                    <Typography variant="body2">{detailDialog.data.tareas_asignadas}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetailDialog({ open: false, data: null })}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>
