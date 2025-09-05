@@ -58,10 +58,10 @@ const TerapeuticoAsistencia = () => {
   const [formData, setFormData] = useState({
     asistio: false,
     llegada_tardanza_minutos: 0,
-    observaciones_asistencia: '',
-    notas_progreso: '',
+    observaciones_terapeuta: '',
+    progreso_observado: '',
     tareas_asignadas: '',
-    proximos_objetivos: ''
+    objetivos_trabajados: ''
   });
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -102,54 +102,139 @@ const TerapeuticoAsistencia = () => {
   };
 
   const fetchAsistencias = async (cronogramaId) => {
+    if (!cronogramaId) {
+      console.warn('fetchAsistencias called without cronogramaId');
+      return;
+    }
+
     setLoading(true);
     try {
-      console.log('Fetching asistencias for cronograma:', cronogramaId);
+      console.log('🔄 Fetching asistencias for cronograma:', cronogramaId);
+      console.log('📝 Current pacientes in session:', pacientesSesion.length);
       
-      // Try to get control de asistencia first (more complete data)
-      let response = null;
+      // Get REAL asistencias (not cronograma data) for the session
+      console.log('🔄 Using sesion ID for asistencias:', selectedSesion);
+      const response = await sesionTerapiaService.getAsistencias(selectedSesion);
+      console.log('📥 Asistencias cronograma raw response:', response);
+      
+      // Extract data from response with more robust error handling
+      let allAsistenciasData = [];
       try {
-        response = await sesionTerapiaService.getControlAsistencia(cronogramaId);
-        console.log('Control asistencia response:', response);
-      } catch (controlError) {
-        console.warn('Control asistencia failed, trying regular asistencia:', controlError);
-        // Fallback to regular asistencia endpoint
-        response = await sesionTerapiaService.getAsistencia(cronogramaId);
-        console.log('Regular asistencia response:', response);
+        if (response?.data?.data) {
+          // Response wrapped in { data: { data: [...] } }
+          allAsistenciasData = Array.isArray(response.data.data) ? response.data.data : [];
+        } else if (response?.data) {
+          // Response wrapped in { data: [...] }
+          allAsistenciasData = Array.isArray(response.data) ? response.data : [];
+        } else if (Array.isArray(response)) {
+          // Direct array response
+          allAsistenciasData = response;
+        }
+      } catch (extractError) {
+        console.warn('Error extracting asistencias data:', extractError);
+        allAsistenciasData = [];
       }
       
-      // Extract data from response
-      let asistenciasData = [];
-      if (response?.data) {
-        asistenciasData = Array.isArray(response.data) ? response.data : [];
-      } else if (Array.isArray(response)) {
-        asistenciasData = response;
-      }
+      // Filter asistencias for the specific cronograma
+      console.log('🔍 Filtering asistencias for cronograma ID:', cronogramaId);
+      console.log('📊 Total asistencias from session:', allAsistenciasData.length);
       
-      console.log('Final asistencias data:', asistenciasData);
+      let asistenciasData = allAsistenciasData.filter(asistencia => {
+        const matchesCronograma = asistencia.cronograma_id == cronogramaId || 
+                                  asistencia.id_cronograma == cronogramaId;
+        console.log(`   Asistencia ${asistencia.id}: cronograma_id=${asistencia.cronograma_id}, id_cronograma=${asistencia.id_cronograma}, matches=${matchesCronograma}`);
+        return matchesCronograma;
+      });
+      
+      console.log('✅ Filtered asistencias for this cronograma:', asistenciasData.length);
+      
+      console.log('📊 Extracted asistencias data count:', asistenciasData.length);
+      
+      // Normalize data to ensure consistent field names
+      asistenciasData = asistenciasData.map(asistencia => {
+        const normalized = {
+          ...asistencia,
+          // Ensure both id_paciente and paciente_id exist for consistency
+          id_paciente: asistencia.id_paciente || asistencia.paciente_id,
+          paciente_id: asistencia.paciente_id || asistencia.id_paciente,
+          // Ensure proper boolean conversion for asistio field, preserving null/undefined
+          asistio: asistencia.asistio === null || asistencia.asistio === undefined 
+            ? asistencia.asistio 
+            : (asistencia.asistio === true || asistencia.asistio === 'true' || asistencia.asistio === 1 || asistencia.asistio === '1'),
+          es_placeholder: false
+        };
+        
+        console.log('✅ Normalized asistencia completa:', {
+          id: normalized.id,
+          paciente_id: normalized.paciente_id,
+          paciente_nombre: normalized.paciente_nombre,
+          asistio: normalized.asistio,
+          llegada_tardanza_minutos: normalized.llegada_tardanza_minutos,
+          observaciones_terapeuta: normalized.observaciones_terapeuta,
+          progreso_observado: normalized.progreso_observado,
+          tareas_asignadas: normalized.tareas_asignadas,
+          objetivos_trabajados: normalized.objetivos_trabajados,
+          es_placeholder: normalized.es_placeholder
+        });
+        
+        return normalized;
+      });
+      
+      console.log('📋 Final normalized asistencias:', asistenciasData.length);
+      
+      // Set the data immediately
       setAsistencias(asistenciasData);
       
-      // If no asistencias found, create placeholders for all patients in the session
+      // Create placeholders if needed
+      let placeholderAsistencias = [];
       if (asistenciasData.length === 0 && pacientesSesion.length > 0) {
-        console.log('No asistencias found, creating placeholders for patients:', pacientesSesion);
-        const placeholderAsistencias = pacientesSesion.map(paciente => ({
-          cronograma_id: cronogramaId,
-          paciente_id: paciente.paciente_id || paciente.id,
-          paciente_nombre: paciente.paciente_nombre || paciente.nombre,
-          paciente_cedula: paciente.paciente_cedula || paciente.cedula,
-          asistio: null,
-          fecha_asistencia: null,
-          observaciones_asistencia: null,
-          notas_progreso: null,
-          es_placeholder: true
-        }));
+        console.log('📝 No asistencias found, creating placeholders for', pacientesSesion.length, 'patients');
+        
+        placeholderAsistencias = pacientesSesion.map(paciente => {
+          const patientId = paciente.paciente_id || paciente.id;
+          const placeholder = {
+            cronograma_id: parseInt(cronogramaId),
+            paciente_id: patientId,
+            id_paciente: patientId,
+            paciente_nombre: paciente.paciente_nombre || paciente.nombre || paciente.nombre_completo,
+            paciente_cedula: paciente.paciente_cedula || paciente.cedula,
+            asistio: null,
+            fecha_asistencia: null,
+            observaciones_terapeuta: null,
+            progreso_observado: null,
+            es_placeholder: true
+          };
+          
+          console.log('📋 Created placeholder for:', placeholder.paciente_nombre, 'ID:', patientId);
+          return placeholder;
+        });
+        
         setAsistencias(placeholderAsistencias);
+        console.log('📋 Set', placeholderAsistencias.length, 'placeholder asistencias');
       }
       
+      // Log final state before and after setting
+      const finalData = asistenciasData.length > 0 ? asistenciasData : placeholderAsistencias;
+      console.log('✅ fetchAsistencias completed successfully');
+      console.log('📊 DATOS FINALES QUE SE ESTÁN ENVIANDO AL ESTADO:', finalData.map(a => ({
+        id: a.id,
+        paciente_id: a.paciente_id || a.id_paciente,
+        paciente_nombre: a.paciente_nombre,
+        asistio: a.asistio,
+        asistio_type: typeof a.asistio,
+        es_placeholder: a.es_placeholder
+      })));
+      
     } catch (err) {
-      console.error('Error fetching asistencias:', err);
+      console.error('❌ Error fetching asistencias:', err);
+      console.error('❌ Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
+      
       const errorMessage = sesionTerapiaService.handleError(err);
-      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      setSnackbar({ open: true, message: `Error al cargar asistencias: ${errorMessage}`, severity: 'error' });
       setAsistencias([]);
     } finally {
       setLoading(false);
@@ -179,10 +264,10 @@ const TerapeuticoAsistencia = () => {
     setFormData({
       asistio: false,
       llegada_tardanza_minutos: 0,
-      observaciones_asistencia: '',
-      notas_progreso: '',
+      observaciones_terapeuta: '',
+      progreso_observado: '',
       tareas_asignadas: '',
-      proximos_objetivos: ''
+      objetivos_trabajados: ''
     });
     setAsistenciaDialog({
       open: true,
@@ -192,66 +277,160 @@ const TerapeuticoAsistencia = () => {
   };
 
   const handleEditarAsistencia = (asistencia) => {
+    console.log('🔧 EDITANDO ASISTENCIA:', asistencia);
+    console.log('📋 Cronograma seleccionado actual:', selectedCronograma);
+    
     setFormData({
       asistio: asistencia.asistio || false,
       llegada_tardanza_minutos: asistencia.llegada_tardanza_minutos || 0,
-      observaciones_asistencia: asistencia.observaciones_asistencia || '',
-      notas_progreso: asistencia.notas_progreso || '',
+      observaciones_terapeuta: asistencia.observaciones_terapeuta || '',
+      progreso_observado: asistencia.progreso_observado || '',
       tareas_asignadas: asistencia.tareas_asignadas || '',
-      proximos_objetivos: asistencia.proximos_objetivos || ''
+      objetivos_trabajados: asistencia.objetivos_trabajados || ''
     });
+    
+    // CRITICAL FIX: Ensure cronograma_id is available for edit mode
+    const editData = {
+      ...asistencia,
+      // Add cronograma_id from the current selection if not present in asistencia
+      cronograma_id: asistencia.cronograma_id || selectedCronograma,
+      // Also ensure paciente data is structured consistently
+      paciente: {
+        paciente_id: asistencia.paciente_id || asistencia.id_paciente,
+        id: asistencia.paciente_id || asistencia.id_paciente,
+        paciente_nombre: asistencia.paciente_nombre,
+        paciente_cedula: asistencia.paciente_cedula
+      }
+    };
+    
+    console.log('📝 Datos preparados para edición:', editData);
+    
     setAsistenciaDialog({
       open: true,
-      data: asistencia,
+      data: editData,
       isEdit: true
     });
   };
 
   const handleSubmitAsistencia = async () => {
     try {
-      const { paciente, cronograma_id } = asistenciaDialog.data;
-      const pacienteId = paciente?.paciente_id || paciente?.id || asistenciaDialog.data.paciente_id;
+      console.log('=== INICIO PROCESO ASISTENCIA ===');
+      console.log('📋 Dialog data completo:', JSON.stringify(asistenciaDialog.data, null, 2));
+      console.log('🔄 Es edición:', asistenciaDialog.isEdit);
+      console.log('📍 Cronograma seleccionado:', selectedCronograma);
+      
+      // Extract data with robust fallbacks
+      const dialogData = asistenciaDialog.data;
+      const paciente = dialogData.paciente || dialogData;
+      
+      // Extract cronograma_id with multiple fallbacks
+      const cronograma_id = dialogData.cronograma_id || 
+                           dialogData.cronograma_clase_id || 
+                           selectedCronograma;
+                           
+      // Extract paciente_id with multiple fallbacks
+      const pacienteId = paciente?.paciente_id || 
+                        paciente?.id || 
+                        dialogData.paciente_id || 
+                        dialogData.id_paciente;
 
-      console.log('Datos del diálogo de asistencia:', asistenciaDialog.data);
-      console.log('Paciente ID extraído:', pacienteId);
-      console.log('Cronograma ID:', cronograma_id);
+      console.log('=== EXTRACCIÓN DE DATOS ===');
+      console.log('🆔 Paciente ID extraído:', pacienteId);
+      console.log('📅 Cronograma ID extraído:', cronograma_id);
+      console.log('🔑 Token JWT presente:', localStorage.getItem('jwt_token') ? '✅' : '❌');
+      console.log('👤 Datos del paciente:', paciente);
 
+      // Validation with detailed error messages
       if (!pacienteId) {
-        setSnackbar({ open: true, message: 'Error: No se pudo identificar el paciente', severity: 'error' });
+        console.error('❌ Error: No se pudo extraer paciente_id');
+        console.error('Datos disponibles:', { dialogData, paciente, selectedCronograma });
+        setSnackbar({ open: true, message: 'Error: No se pudo identificar el paciente. Revisa la consola para detalles.', severity: 'error' });
         return;
       }
 
       if (!cronograma_id) {
-        setSnackbar({ open: true, message: 'Error: No se pudo identificar la sesión del cronograma', severity: 'error' });
+        console.error('❌ Error: No se pudo extraer cronograma_id');
+        console.error('Datos disponibles:', { dialogData, selectedCronograma });
+        setSnackbar({ open: true, message: 'Error: No se pudo identificar la sesión del cronograma. Asegúrate de tener una fecha seleccionada.', severity: 'error' });
         return;
       }
 
       const asistenciaData = {
         asistio: formData.asistio,
         llegada_tardanza_minutos: parseInt(formData.llegada_tardanza_minutos) || 0,
-        observaciones_asistencia: formData.observaciones_asistencia?.trim() || null,
-        notas_progreso: formData.notas_progreso?.trim() || null,
+        observaciones_terapeuta: formData.observaciones_terapeuta?.trim() || null,
+        progreso_observado: formData.progreso_observado?.trim() || null,
         tareas_asignadas: formData.tareas_asignadas?.trim() || null,
-        proximos_objetivos: formData.proximos_objetivos?.trim() || null
+        objetivos_trabajados: formData.objetivos_trabajados?.trim() || null
       };
 
-      console.log('Datos de asistencia a enviar:', asistenciaData);
+      console.log('=== DATOS COMPLETOS A ENVIAR ===');
+      console.log('📋 Form Data Original:', JSON.stringify(formData, null, 2));
+      console.log('📦 Asistencia Data Procesado:', JSON.stringify(asistenciaData, null, 2));
+      console.log('🔍 Campos específicos:', {
+        observaciones_terapeuta: asistenciaData.observaciones_terapeuta,
+        progreso_observado: asistenciaData.progreso_observado,
+        tareas_asignadas: asistenciaData.tareas_asignadas,
+        objetivos_trabajados: asistenciaData.objetivos_trabajados,
+        llegada_tardanza_minutos: asistenciaData.llegada_tardanza_minutos
+      });
 
+      let response;
       if (asistenciaDialog.isEdit) {
-        await sesionTerapiaService.updateAsistencia(cronograma_id, pacienteId, asistenciaData);
+        console.log('📝 Ejecutando UPDATE asistencia...');
+        response = await sesionTerapiaService.updateAsistencia(cronograma_id, pacienteId, asistenciaData);
+        console.log('📥 Respuesta UPDATE completa:', JSON.stringify(response, null, 2));
         setSnackbar({ open: true, message: 'Asistencia actualizada correctamente', severity: 'success' });
       } else {
-        await sesionTerapiaService.registrarAsistencia(cronograma_id, pacienteId, asistenciaData);
+        console.log('➕ Ejecutando REGISTRAR asistencia...');
+        response = await sesionTerapiaService.registrarAsistencia(cronograma_id, pacienteId, asistenciaData);
+        console.log('📥 Respuesta REGISTRAR completa:', JSON.stringify(response, null, 2));
         setSnackbar({ open: true, message: 'Asistencia registrada correctamente', severity: 'success' });
       }
 
+      // Cerrar diálogo ANTES de refrescar datos
       setAsistenciaDialog({ open: false, data: null, isEdit: false });
-      await fetchAsistencias(selectedCronograma);
-      if (selectedSesion) await fetchCronogramas(selectedSesion);
+      
+      console.log('=== POST-SUBMIT REFRESH ===');
+      console.log('Cronograma seleccionado para refresh:', selectedCronograma);
+      console.log('Sesión seleccionada para refresh:', selectedSesion);
+      
+      // Forzar refresh completo de datos con pequeño delay para asegurar consistencia
+      console.log('🔄 Iniciando refresh de asistencias...');
+      setTimeout(async () => {
+        try {
+          // Limpiar estado actual primero
+          setLoading(true);
+          setAsistencias([]);
+          
+          // Refrescar asistencias
+          await fetchAsistencias(selectedCronograma);
+          
+          // Refrescar cronogramas si es necesario 
+          if (selectedSesion) {
+            console.log('🔄 Refrescando cronogramas también...');
+            await fetchCronogramas(selectedSesion);
+          }
+          
+          console.log('✅ Refresh completado exitosamente');
+        } catch (refreshError) {
+          console.error('❌ Error durante el refresh:', refreshError);
+        }
+      }, 500); // 500ms delay para asegurar que el backend procesó el cambio
+      
     } catch (error) {
-      console.error('Error al guardar asistencia:', error);
+      console.error('❌ ERROR AL GUARDAR ASISTENCIA:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url,
+        method: error.config?.method,
+        data: error.config?.data
+      });
+      
       const errorMessage = sesionTerapiaService.handleError(error);
-      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      setSnackbar({ open: true, message: `Error: ${errorMessage}`, severity: 'error' });
     }
   };
 
@@ -270,12 +449,12 @@ const TerapeuticoAsistencia = () => {
 
   const getSesionInfo = (sesionId) => sesiones.find(s => s.id === parseInt(sesionId));
   const getCronogramaInfo = (cronogramaId) => cronogramas.find(c => c.id === parseInt(cronogramaId));
-  const getPacienteAsistencia = (pacienteId) => asistencias.find(a => a.paciente_id === pacienteId);
+  const getPacienteAsistencia = (pacienteId) => asistencias.find(a => a.id_paciente === pacienteId || a.paciente_id === pacienteId);
 
   const filteredAsistencias = asistencias.filter(a => {
     const matchesSearch = (
       a.paciente_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.observaciones_asistencia?.toLowerCase().includes(searchTerm.toLowerCase())
+      a.observaciones_terapeuta?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     let matchesAsistio = true;
     if (filterAsistio !== '') matchesAsistio = filterAsistio === 'true' ? a.asistio : !a.asistio;
@@ -514,7 +693,6 @@ const TerapeuticoAsistencia = () => {
                         <TableCell>Asistencia</TableCell>
                         <TableCell>Tardanza</TableCell>
                         <TableCell>Observaciones</TableCell>
-                        <TableCell>Fecha Registro</TableCell>
                         <TableCell>Acciones</TableCell>
                       </TableRow>
                     </TableHead>
@@ -540,19 +718,37 @@ const TerapeuticoAsistencia = () => {
                               </Box>
                             </TableCell>
                             <TableCell>
-                              {asistencia ? (
-                                <Chip
-                                  label={asistencia.asistio ? 'Asistió' : 'No Asistió'}
-                                  color={asistencia.asistio ? 'success' : 'error'}
-                                  size="small"
-                                  icon={asistencia.asistio ? <CheckCircle /> : <Cancel />}
-                                />
-                              ) : (
-                                <Chip label="Sin Registro" color="default" size="small" />
-                              )}
+                              {(() => {
+                                // Debug básico para verificar funcionamiento
+                                if (!asistencia) {
+                                  console.log('❌ No asistencia found for patient:', pacienteId);
+                                }
+                                
+                                if (!asistencia || asistencia.es_placeholder) {
+                                  return <Chip label="Sin Registro" color="default" size="small" />;
+                                }
+                                
+                                // Verificación del valor de asistencia
+                                const asistioValue = asistencia.asistio;
+                                
+                                if (asistioValue === null || asistioValue === undefined) {
+                                  return <Chip label="Pendiente" color="warning" size="small" />;
+                                }
+                                
+                                const hasAsistido = asistioValue === true;
+                                
+                                return (
+                                  <Chip
+                                    label={hasAsistido ? 'Asistió' : 'No Asistió'}
+                                    color={hasAsistido ? 'success' : 'error'}
+                                    size="small"
+                                    icon={hasAsistido ? <CheckCircle /> : <Cancel />}
+                                  />
+                                );
+                              })()}
                             </TableCell>
                             <TableCell>
-                              {asistencia?.llegada_tardanza_minutos ? (
+                              {asistencia && !asistencia.es_placeholder && asistencia.llegada_tardanza_minutos ? (
                                 <Typography variant="body2" color="warning.main">
                                   {asistencia.llegada_tardanza_minutos} min
                                 </Typography>
@@ -561,22 +757,13 @@ const TerapeuticoAsistencia = () => {
                               )}
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2" noWrap title={asistencia?.observaciones_asistencia || '-'}>
-                                {asistencia?.observaciones_asistencia || '-'}
+                              <Typography variant="body2" noWrap title={(asistencia && !asistencia.es_placeholder) ? asistencia.observaciones_terapeuta || '-' : '-'}>
+                                {(asistencia && !asistencia.es_placeholder) ? asistencia.observaciones_terapeuta || '-' : '-'}
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              {asistencia?.fecha_creacion ? (
-                                <Typography variant="caption">
-                                  {formatDate(asistencia.fecha_creacion)}
-                                </Typography>
-                              ) : (
-                                <Typography variant="caption" color="text.secondary">-</Typography>
-                              )}
-                            </TableCell>
-                            <TableCell>
                               <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                {asistencia ? (
+                                {asistencia && !asistencia.es_placeholder ? (
                                   <>
                                     <Tooltip title="Ver detalles">
                                       <IconButton color="info" size="small" onClick={() => handleViewDetail(asistencia)}>
@@ -696,9 +883,9 @@ const TerapeuticoAsistencia = () => {
                   fullWidth
                   multiline
                   rows={2}
-                  label="Observaciones de Asistencia"
-                  value={formData.observaciones_asistencia}
-                  onChange={(e) => setFormData(prev => ({ ...prev, observaciones_asistencia: e.target.value }))}
+                  label="Observaciones del Terapeuta"
+                  value={formData.observaciones_terapeuta}
+                  onChange={(e) => setFormData(prev => ({ ...prev, observaciones_terapeuta: e.target.value }))}
                   placeholder="Observaciones sobre la asistencia..."
                 />
               </Grid>
@@ -708,9 +895,9 @@ const TerapeuticoAsistencia = () => {
                   fullWidth
                   multiline
                   rows={3}
-                  label="Notas de Progreso"
-                  value={formData.notas_progreso}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notas_progreso: e.target.value }))}
+                  label="Progreso Observado"
+                  value={formData.progreso_observado}
+                  onChange={(e) => setFormData(prev => ({ ...prev, progreso_observado: e.target.value }))}
                   placeholder="Notas sobre el progreso del paciente en esta sesión..."
                   disabled={!formData.asistio}
                 />
@@ -734,9 +921,9 @@ const TerapeuticoAsistencia = () => {
                   fullWidth
                   multiline
                   rows={2}
-                  label="Próximos Objetivos"
-                  value={formData.proximos_objetivos}
-                  onChange={(e) => setFormData(prev => ({ ...prev, proximos_objetivos: e.target.value }))}
+                  label="Objetivos Trabajados"
+                  value={formData.objetivos_trabajados}
+                  onChange={(e) => setFormData(prev => ({ ...prev, objetivos_trabajados: e.target.value }))}
                   placeholder="Objetivos para las próximas sesiones..."
                   disabled={!formData.asistio}
                 />
@@ -790,23 +977,22 @@ const TerapeuticoAsistencia = () => {
                 {detailDialog.data.llegada_tardanza_minutos > 0 && (
                   <Typography variant="body2"><strong>Tardanza:</strong> {detailDialog.data.llegada_tardanza_minutos} minutos</Typography>
                 )}
-                <Typography variant="body2"><strong>Fecha de Registro:</strong> {formatDate(detailDialog.data.fecha_creacion)}</Typography>
               </Grid>
 
-              {detailDialog.data.observaciones_asistencia && (
+              {detailDialog.data.observaciones_terapeuta && (
                 <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="primary">Observaciones de Asistencia</Typography>
+                  <Typography variant="subtitle2" color="primary">Observaciones del Terapeuta</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
-                    <Typography variant="body2">{detailDialog.data.observaciones_asistencia}</Typography>
+                    <Typography variant="body2">{detailDialog.data.observaciones_terapeuta}</Typography>
                   </Paper>
                 </Grid>
               )}
 
-              {detailDialog.data.notas_progreso && (
+              {detailDialog.data.progreso_observado && (
                 <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="primary">Notas de Progreso</Typography>
+                  <Typography variant="subtitle2" color="primary">Progreso Observado</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'success.50', border: '1px solid', borderColor: 'success.200' }}>
-                    <Typography variant="body2">{detailDialog.data.notas_progreso}</Typography>
+                    <Typography variant="body2">{detailDialog.data.progreso_observado}</Typography>
                   </Paper>
                 </Grid>
               )}
@@ -820,11 +1006,11 @@ const TerapeuticoAsistencia = () => {
                 </Grid>
               )}
 
-              {detailDialog.data.proximos_objetivos && (
+              {detailDialog.data.objetivos_trabajados && (
                 <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="primary">Próximos Objetivos</Typography>
+                  <Typography variant="subtitle2" color="primary">Objetivos Trabajados</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
-                    <Typography variant="body2">{detailDialog.data.proximos_objetivos}</Typography>
+                    <Typography variant="body2">{detailDialog.data.objetivos_trabajados}</Typography>
                   </Paper>
                 </Grid>
               )}

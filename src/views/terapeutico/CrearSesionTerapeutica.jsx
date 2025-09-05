@@ -229,6 +229,7 @@ const CrearSesionTerapeutica = () => {
     try {
       const sessionData = {
         titulo: formData.titulo.trim(),
+        objetivo_general: formData.objetivo_general?.trim() || 'Objetivo general de la sesión terapéutica',
         terapeuta_id: parseInt(formData.terapeuta_id),
         especialidad_id: parseInt(formData.especialidad_id),
         fecha_inicio: formData.fecha_inicio,
@@ -238,9 +239,11 @@ const CrearSesionTerapeutica = () => {
         duracion_minutos: parseInt(formData.duracion_minutos),
         numero_sesiones_contratadas: parseInt(formData.numero_sesiones_contratadas),
         costo_total: parseFloat(formData.costo_total),
+        costo_sesion: parseFloat(formData.costo_total) / parseInt(formData.numero_sesiones_contratadas),
         meses_contrato: formData.meses_contrato ? parseInt(formData.meses_contrato) : null,
         estado: formData.estado,
-        observaciones: formData.observaciones?.trim() || null
+        observaciones: formData.observaciones?.trim() || null,
+        tipo_sesion: formData.tipo_sesion || 'individual'
       };
 
       if (formData.paciente_id) {

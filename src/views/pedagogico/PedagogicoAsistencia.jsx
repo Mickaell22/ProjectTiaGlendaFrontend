@@ -58,7 +58,7 @@ const PedagogicoAsistencia = () => {
   const [formData, setFormData] = useState({
     asistio: false,
     llegada_tardanza_minutos: 0,
-    observaciones_asistencia: '',
+    observaciones_educador: '',
     participacion_clase: '',
     tareas_entregadas: false,
     notas_comportamiento: '',
@@ -140,7 +140,7 @@ const PedagogicoAsistencia = () => {
           estudiante_cedula: estudiante.estudiante?.cedula || estudiante.cedula,
           asistio: null,
           fecha_asistencia: null,
-          observaciones_asistencia: null,
+          observaciones_educador: null,
           notas_progreso_academico: null,
           es_placeholder: true
         }));
@@ -180,7 +180,7 @@ const PedagogicoAsistencia = () => {
     setFormData({
       asistio: false,
       llegada_tardanza_minutos: 0,
-      observaciones_asistencia: '',
+      observaciones_educador: '',
       participacion_clase: '',
       tareas_entregadas: false,
       notas_comportamiento: '',
@@ -198,7 +198,7 @@ const PedagogicoAsistencia = () => {
     setFormData({
       asistio: asistencia.asistio || false,
       llegada_tardanza_minutos: asistencia.llegada_tardanza_minutos || 0,
-      observaciones_asistencia: asistencia.observaciones_asistencia || '',
+      observaciones_educador: asistencia.observaciones_educador || '',
       participacion_clase: asistencia.participacion_clase || '',
       tareas_entregadas: asistencia.tareas_entregadas || false,
       notas_comportamiento: asistencia.notas_comportamiento || '',
@@ -235,7 +235,7 @@ const PedagogicoAsistencia = () => {
         // Campos que espera el backend
         asistio: formData.asistio,
         llegada_tardanza_minutos: parseInt(formData.llegada_tardanza_minutos) || 0,
-        observaciones_asistencia: formData.observaciones_asistencia?.trim() || null,
+        observaciones_educador: formData.observaciones_educador?.trim() || null,
         participacion_clase: formData.participacion_clase?.trim() || null,
         tareas_entregadas: formData.tareas_entregadas || false,
         notas_comportamiento: formData.notas_comportamiento?.trim() || null,
@@ -283,7 +283,7 @@ const PedagogicoAsistencia = () => {
   const filteredAsistencias = asistencias.filter(a => {
     const matchesSearch = (
       a.estudiante_nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.observaciones_asistencia?.toLowerCase().includes(searchTerm.toLowerCase())
+      a.observaciones_educador?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     let matchesAsistio = true;
     if (filterAsistio !== '') matchesAsistio = filterAsistio === 'true' ? a.asistio : !a.asistio;
@@ -581,8 +581,8 @@ const PedagogicoAsistencia = () => {
                               )}
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2" noWrap title={asistencia?.observaciones_asistencia || '-'}>
-                                {asistencia?.observaciones_asistencia || '-'}
+                              <Typography variant="body2" noWrap title={asistencia?.observaciones_educador || '-'}>
+                                {asistencia?.observaciones_educador || '-'}
                               </Typography>
                             </TableCell>
                             <TableCell>
@@ -752,9 +752,9 @@ const PedagogicoAsistencia = () => {
                   fullWidth
                   multiline
                   rows={2}
-                  label="Observaciones de Asistencia"
-                  value={formData.observaciones_asistencia}
-                  onChange={(e) => setFormData(prev => ({ ...prev, observaciones_asistencia: e.target.value }))}
+                  label="Observaciones del Educador"
+                  value={formData.observaciones_educador}
+                  onChange={(e) => setFormData(prev => ({ ...prev, observaciones_educador: e.target.value }))}
                   placeholder="Observaciones sobre la asistencia..."
                 />
               </Grid>
@@ -861,11 +861,11 @@ const PedagogicoAsistencia = () => {
                 </Grid>
               )}
 
-              {detailDialog.data.observaciones_asistencia && (
+              {detailDialog.data.observaciones_educador && (
                 <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="primary">Observaciones de Asistencia</Typography>
+                  <Typography variant="subtitle2" color="primary">Observaciones del Educador</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
-                    <Typography variant="body2">{detailDialog.data.observaciones_asistencia}</Typography>
+                    <Typography variant="body2">{detailDialog.data.observaciones_educador}</Typography>
                   </Paper>
                 </Grid>
               )}

@@ -475,7 +475,6 @@ const TerapeuticoCronogramas = () => {
                         <TableCell>Fecha Programada</TableCell>
                         <TableCell>Hora</TableCell>
                         <TableCell>Estado</TableCell>
-                        <TableCell>Fecha Realización</TableCell>
                         <TableCell>Observaciones</TableCell>
                         <TableCell>Acciones</TableCell>
                       </TableRow>
@@ -513,15 +512,6 @@ const TerapeuticoCronogramas = () => {
                                 size="small"
                                 icon={getEstadoIcon(item.estado)}
                               />
-                            </TableCell>
-                            <TableCell>
-                              {item.fecha_realizacion ? (
-                                <Typography variant="body2" color="success.main">
-                                  {formatDate(item.fecha_realizacion)}
-                                </Typography>
-                              ) : (
-                                <Typography variant="body2" color="text.secondary">-</Typography>
-                              )}
                             </TableCell>
                             <TableCell>
                               <Typography
@@ -671,9 +661,6 @@ const TerapeuticoCronogramas = () => {
                     sx={{ ml: 1 }}
                   />
                 </Typography>
-                {detailDialog.data.fecha_realizacion && (
-                  <Typography variant="body2"><strong>Fecha de Realización:</strong> {formatDate(detailDialog.data.fecha_realizacion)}</Typography>
-                )}
               </Grid>
 
               {(detailDialog.data.observaciones_cronograma || detailDialog.data.observaciones) && (

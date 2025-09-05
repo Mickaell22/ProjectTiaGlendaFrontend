@@ -86,7 +86,7 @@ class SesionTerapiaService {
   }
 
   /**
-   * Add patients to therapy session
+   * Add patients to therapy session (plural - for multiple patients)
    */
   async addPacientesToSesion(sesionId, pacientesIds) {
     try {
@@ -97,6 +97,22 @@ class SesionTerapiaService {
       return response.data;
     } catch (error) {
       console.error(`Error adding patients to session ${sesionId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add single patient to therapy session (singular - for single patient)
+   */
+  async addPacienteToSesion(sesionId, patientData) {
+    try {
+      const response = await ApiService.post(
+        API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId),
+        patientData
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error adding patient to session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -147,6 +163,54 @@ class SesionTerapiaService {
     }
   }
 
+  /**
+   * Mark a cronograma session as completed
+   */
+  async marcarSesionRealizada(cronogramaId, observaciones) {
+    try {
+      const response = await ApiService.put(
+        `/api/sesiones-terapia/cronograma/${cronogramaId}/realizar`,
+        { observaciones }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error marking session ${cronogramaId} as completed:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reschedule a cronograma session
+   */
+  async reprogramarSesion(cronogramaId, reprogramData) {
+    try {
+      const response = await ApiService.put(
+        `/api/sesiones-terapia/cronograma/${cronogramaId}/reprogramar`,
+        reprogramData
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error rescheduling session ${cronogramaId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cancel a cronograma session
+   */
+  async cancelarSesionCronograma(cronogramaId, motivoCancelacion) {
+    try {
+      const response = await ApiService.put(
+        `/api/sesiones-terapia/cronograma/${cronogramaId}/cancelar`,
+        { motivo_cancelacion: motivoCancelacion }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error canceling session ${cronogramaId}:`, error);
+      throw error;
+    }
+  }
+
   // ==================== ATTENDANCE OPERATIONS ====================
 
   /**
@@ -163,6 +227,13 @@ class SesionTerapiaService {
   }
 
   /**
+   * Alias for getAsistencias (for backward compatibility)
+   */
+  async getAsistenciasSession(sesionId) {
+    return this.getAsistencias(sesionId);
+  }
+
+  /**
    * Register attendance for schedule and patient
    */
   async registrarAsistencia(cronogramaId, pacienteId, asistenciaData) {
@@ -174,6 +245,22 @@ class SesionTerapiaService {
       return response.data;
     } catch (error) {
       console.error(`Error registering attendance for patient ${pacienteId} in schedule ${cronogramaId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update existing attendance for schedule and patient
+   */
+  async updateAsistencia(cronogramaId, pacienteId, asistenciaData) {
+    try {
+      const response = await ApiService.put(
+        API_ENDPOINTS.SESIONES_TERAPIA.REGISTRAR_ASISTENCIA(cronogramaId, pacienteId),
+        asistenciaData
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating attendance for patient ${pacienteId} in schedule ${cronogramaId}:`, error);
       throw error;
     }
   }
@@ -204,6 +291,21 @@ class SesionTerapiaService {
       return response.data;
     } catch (error) {
       console.error(`Error fetching attendance for patient ${pacienteId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get attendance control for a specific cronograma
+   */
+  async getAsistencia(cronogramaId) {
+    try {
+      const response = await ApiService.get(
+        `/api/sesiones-terapia/cronograma/${cronogramaId}/control-asistencia`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching attendance control for cronograma ${cronogramaId}:`, error);
       throw error;
     }
   }

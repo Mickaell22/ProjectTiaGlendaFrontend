@@ -144,9 +144,18 @@ const PedagogicoCronogramas = () => {
     try {
       const { data: item } = realizadaDialog;
       await sesionPedagogicaService.marcarClaseRealizada(item.id);
-      setSnackbar({ open: true, message: 'Clase marcada como realizada exitosamente', severity: 'success' });
-      if (selectedSesion) fetchCronograma(selectedSesion);
+      
+      // Close dialog first
       setRealizadaDialog({ open: false, data: null });
+      
+      // Show success message
+      setSnackbar({ open: true, message: 'Clase marcada como realizada exitosamente', severity: 'success' });
+      
+      // Force refresh cronograma data
+      if (selectedSesion) {
+        console.log('🔄 Refreshing cronograma after marking class as completed...');
+        await fetchCronograma(selectedSesion);
+      }
     } catch (error) {
       console.error('Error marking class as completed:', error);
       const errorMessage = sesionPedagogicaService.handleError(error);
@@ -160,9 +169,18 @@ const PedagogicoCronogramas = () => {
     try {
       setLoading(true);
       await sesionPedagogicaService.reprogramarClase(reprogramDialog.data.id, reprogramData);
-      setSnackbar({ open: true, message: 'Clase reprogramada exitosamente', severity: 'success' });
+      
+      // Close dialog first
       setReprogramDialog({ open: false, data: null });
-      if (selectedSesion) fetchCronograma(selectedSesion);
+      
+      // Show success message
+      setSnackbar({ open: true, message: 'Clase reprogramada exitosamente', severity: 'success' });
+      
+      // Force refresh cronograma data
+      if (selectedSesion) {
+        console.log('🔄 Refreshing cronograma after rescheduling class...');
+        await fetchCronograma(selectedSesion);
+      }
     } catch (error) {
       console.error('Error reprogramming class:', error);
       let errorMessage = 'Error al reprogramar la clase';
@@ -180,9 +198,18 @@ const PedagogicoCronogramas = () => {
     try {
       setLoading(true);
       await sesionPedagogicaService.cancelarClase(cancelDialog.data.id, cancelData);
-      setSnackbar({ open: true, message: 'Clase cancelada exitosamente', severity: 'success' });
+      
+      // Close dialog first
       setCancelDialog({ open: false, data: null });
-      if (selectedSesion) fetchCronograma(selectedSesion);
+      
+      // Show success message
+      setSnackbar({ open: true, message: 'Clase cancelada exitosamente', severity: 'success' });
+      
+      // Force refresh cronograma data
+      if (selectedSesion) {
+        console.log('🔄 Refreshing cronograma after canceling class...');
+        await fetchCronograma(selectedSesion);
+      }
     } catch (error) {
       console.error('Error canceling class:', error);
       const errorMessage = sesionPedagogicaService.handleError(error);
@@ -491,7 +518,6 @@ const PedagogicoCronogramas = () => {
                         <TableCell>Hora</TableCell>
                         <TableCell>Estado</TableCell>
                         <TableCell>Tema de Clase</TableCell>
-                        <TableCell>Fecha Realización</TableCell>
                         <TableCell>Objetivos</TableCell>
                         <TableCell>Acciones</TableCell>
                       </TableRow>
@@ -500,7 +526,34 @@ const PedagogicoCronogramas = () => {
                       {filteredCronogramas
                         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                         .map((item) => (
-                          <TableRow key={item.id}>
+                          <TableRow 
+                            key={item.id}
+                            sx={{
+                              ...(item.estado === 'realizada' || item.estado === 'completada' ? {
+                                backgroundColor: 'success.50',
+                                '& .MuiTableCell-root': {
+                                  color: 'success.800',
+                                  borderBottomColor: 'success.100'
+                                }
+                              } : {}),
+                              ...(item.estado === 'cancelada' ? {
+                                backgroundColor: 'error.50',
+                                '& .MuiTableCell-root': {
+                                  color: 'error.700',
+                                  borderBottomColor: 'error.100',
+                                  textDecoration: 'line-through',
+                                  opacity: 0.7
+                                }
+                              } : {}),
+                              '&:hover': {
+                                backgroundColor: item.estado === 'realizada' || item.estado === 'completada' 
+                                  ? 'success.100' 
+                                  : item.estado === 'cancelada' 
+                                  ? 'error.100' 
+                                  : 'grey.50'
+                              }
+                            }}
+                          >
                             <TableCell>
                               <Typography variant="body2" fontWeight="bold">
                                 {item.numero_clase || item.numero_clase_semanal}
@@ -534,15 +587,6 @@ const PedagogicoCronogramas = () => {
                               <Typography variant="body2">
                                 {item.tema_clase || 'Sin tema definido'}
                               </Typography>
-                            </TableCell>
-                            <TableCell>
-                              {item.fecha_realizacion ? (
-                                <Typography variant="body2" color="success.main">
-                                  {formatDate(item.fecha_realizacion)}
-                                </Typography>
-                              ) : (
-                                <Typography variant="body2" color="text.secondary">-</Typography>
-                              )}
                             </TableCell>
                             <TableCell>
                               <Typography
@@ -598,13 +642,31 @@ const PedagogicoCronogramas = () => {
                                   </>
                                 )}
                                 
-                                {item.estado === 'realizada' && (
-                                  <Tooltip title="Clase ya realizada">
+                                {(item.estado === 'realizada' || item.estado === 'completada') && (
+                                  <Tooltip title={`Clase completada${item.fecha_realizacion ? ` el ${formatDate(item.fecha_realizacion)}` : ''}`}>
                                     <Chip 
                                       label="Completada" 
                                       color="success" 
                                       size="small"
                                       icon={<CheckCircle />}
+                                      sx={{ 
+                                        fontWeight: 'bold',
+                                        '& .MuiChip-icon': {
+                                          color: 'success.main'
+                                        }
+                                      }}
+                                    />
+                                  </Tooltip>
+                                )}
+
+                                {item.estado === 'cancelada' && (
+                                  <Tooltip title="Clase cancelada">
+                                    <Chip 
+                                      label="Cancelada" 
+                                      color="error" 
+                                      size="small"
+                                      icon={<Cancel />}
+                                      variant="outlined"
                                     />
                                   </Tooltip>
                                 )}
@@ -692,9 +754,6 @@ const PedagogicoCronogramas = () => {
                     sx={{ ml: 1 }}
                   />
                 </Typography>
-                {detailDialog.data.fecha_realizacion && (
-                  <Typography variant="body2"><strong>Fecha de Realización:</strong> {formatDate(detailDialog.data.fecha_realizacion)}</Typography>
-                )}
               </Grid>
 
               <Grid item xs={12}>
