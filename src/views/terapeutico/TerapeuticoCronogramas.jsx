@@ -51,6 +51,7 @@ const TerapeuticoCronogramas = () => {
   const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
   const [reprogramDialog, setReprogramDialog] = useState({ open: false, data: null });
   const [cancelDialog, setCancelDialog] = useState({ open: false, data: null });
+  const [realizadaDialog, setRealizadaDialog] = useState({ open: false, data: null });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -130,16 +131,23 @@ const TerapeuticoCronogramas = () => {
     setCancelDialog({ open: true, data: item });
   };
 
-  const handleMarcarRealizada = async (item) => {
-    const observaciones = window.prompt(
-      `¿Desea agregar observaciones para la sesión #${item.numero_sesion}?\n\n(Puede dejar en blanco si no hay observaciones)`
-    );
-    
-    if (observaciones !== null) { // null means user clicked Cancel
+  const handleMarcarRealizada = (item) => {
+    setRealizadaDialog({ open: true, data: item });
+  };
+
+  const confirmarMarcarRealizada = async (observaciones) => {
+    if (realizadaDialog.data) {
       setLoading(true);
       try {
-        await sesionTerapiaService.marcarSesionRealizada(item.id, observaciones || null);
+        await sesionTerapiaService.marcarSesionRealizada(realizadaDialog.data.id, observaciones || null);
+        
+        // Close dialog first
+        setRealizadaDialog({ open: false, data: null });
+        
+        // Show success message
         setSnackbar({ open: true, message: 'Sesión marcada como realizada exitosamente', severity: 'success' });
+        
+        // Refresh cronograma
         if (selectedSesion) fetchCronograma(selectedSesion);
       } catch (error) {
         console.error('Error marking session as completed:', error);
@@ -719,6 +727,15 @@ const TerapeuticoCronogramas = () => {
         loading={loading}
       />
 
+      {/* Marcar como Realizada */}
+      <RealizadaDialog
+        open={realizadaDialog.open}
+        data={realizadaDialog.data}
+        onClose={() => setRealizadaDialog({ open: false, data: null })}
+        onConfirm={confirmarMarcarRealizada}
+        loading={loading}
+      />
+
       <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         open={snackbar.open}
@@ -917,6 +934,80 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
         <Button onClick={onClose} disabled={loading}>Cancelar</Button>
         <Button onClick={handleConfirm} variant="contained" color="error" disabled={loading}>
           Confirmar Cancelación
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+// Marcar como Realizada Dialog
+const RealizadaDialog = ({ open, data, onClose, onConfirm, loading }) => {
+  const [observaciones, setObservaciones] = useState('');
+
+  useEffect(() => {
+    if (data) setObservaciones('');
+  }, [data]);
+
+  const handleConfirm = () => {
+    onConfirm(observaciones);
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Marcar Sesión como Realizada</DialogTitle>
+      <DialogContent>
+        <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid item xs={12}>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              <strong>Sesión #{data?.numero_sesion}</strong>
+              {data?.fecha_programada && (
+                <><br />📅 {formatDateLocal(data.fecha_programada)} a las {data.hora_programada}</>
+              )}
+            </Typography>
+            
+            <Typography variant="body2" color="text.secondary" mb={2}>
+              ¿Desea agregar observaciones sobre esta sesión terapéutica?
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              label="Observaciones de la sesión"
+              value={observaciones}
+              onChange={(e) => setObservaciones(e.target.value)}
+              placeholder="Escriba aquí cualquier observación sobre el desarrollo de la sesión, progreso del paciente, actividades realizadas, etc. (Opcional)"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': { borderColor: 'success.main' },
+                  '&:hover fieldset': { borderColor: 'success.main' },
+                  '&.Mui-focused fieldset': { borderColor: 'success.main', borderWidth: 2 }
+                }
+              }}
+            />
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Typography variant="body2" color="success.main" sx={{ mt: 1 }}>
+              ✅ Esta acción marcará la sesión como completada exitosamente.
+            </Typography>
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={loading}>
+          Cancelar
+        </Button>
+        <Button 
+          onClick={handleConfirm} 
+          variant="contained" 
+          color="success"
+          disabled={loading}
+          startIcon={<CheckCircle />}
+        >
+          Marcar como Realizada
         </Button>
       </DialogActions>
     </Dialog>

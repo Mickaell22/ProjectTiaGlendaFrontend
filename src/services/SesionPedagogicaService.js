@@ -158,19 +158,13 @@ class SesionPedagogicaService {
    */
   async getCronograma(sesionId) {
     try {
-      console.log('🔐 Getting cronograma for session:', sesionId);
-      console.log('🔑 JWT Token:', localStorage.getItem('jwt_token') ? 'Present' : 'Missing');
-      
       // Try authenticated endpoint first
       try {
         const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.CRONOGRAMA(sesionId));
-        console.log('✅ Authenticated cronograma response:', response.data);
         return response.data;
       } catch (authError) {
-        console.log('⚠️ Auth failed for cronograma, trying debug endpoint:', authError.response?.status);
-        // Fallback to debug endpoint
+        // Fallback to debug endpoint if authentication fails
         const debugResponse = await ApiService.get(`/api/sesiones-pedagogicas/${sesionId}/cronograma-debug`);
-        console.log('✅ Debug cronograma response:', debugResponse.data);
         return debugResponse.data;
       }
       
@@ -331,10 +325,24 @@ class SesionPedagogicaService {
    */
   async getPedagogosDisponibles() {
     try {
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.PEDAGOGOS_DISPONIBLES);
-      return response.data;
+      console.log('🔐 Getting available pedagogues...');
+      console.log('🔑 JWT Token:', localStorage.getItem('jwt_token') ? 'Present' : 'Missing');
+      
+      // Try authenticated endpoint first
+      try {
+        const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.PEDAGOGOS_DISPONIBLES);
+        console.log('✅ Authenticated pedagogues response:', response.data);
+        return response.data;
+      } catch (authError) {
+        console.log('⚠️ Auth failed for pedagogues, trying personal endpoint:', authError.response?.status);
+        // Fallback to personal endpoint (all staff)
+        const debugResponse = await ApiService.get('/api/personal');
+        console.log('✅ Personal endpoint response:', debugResponse.data);
+        return debugResponse.data;
+      }
+      
     } catch (error) {
-      console.error('Error fetching available teachers:', error);
+      console.error('❌ Error fetching available pedagogues:', error);
       throw error;
     }
   }
@@ -519,12 +527,15 @@ class SesionPedagogicaService {
   /**
    * Generate cronograma for a pedagogical session
    */
-  async generarCronograma(sesionId) {
+  async generarCronograma(sesionId, configData) {
     try {
-      const response = await ApiService.post(`${API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE}/${sesionId}/generar-cronograma`);
+      const response = await ApiService.post(
+        API_ENDPOINTS.SESIONES_PEDAGOGICAS.GENERAR_CRONOGRAMA(sesionId),
+        configData
+      );
       return response.data;
     } catch (error) {
-      console.error('Error generating cronograma:', error);
+      console.error(`Error generating cronograma for session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -685,24 +696,98 @@ class SesionPedagogicaService {
     }
   }
 
+  // ==================== NEW ATTENDANCE SYSTEM METHODS ====================
+
   /**
-   * Handle errors consistently
+   * Get attendance for a pedagogical session
    */
-  handleError(error) {
-    if (error.response?.data?.message) {
-      return error.response.data.message;
-    } else if (error.response?.status === 401) {
-      return 'No autorizado. Por favor, inicie sesión nuevamente.';
-    } else if (error.response?.status === 403) {
-      return 'No tiene permisos para realizar esta acción.';
-    } else if (error.response?.status === 404) {
-      return 'Recurso no encontrado.';
-    } else if (error.response?.status >= 500) {
-      return 'Error del servidor. Por favor, intente más tarde.';
-    } else if (error.message) {
-      return error.message;
-    } else {
-      return 'Ha ocurrido un error inesperado.';
+  async getAsistenciasSesion(sesionId) {
+    try {
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.ASISTENCIAS(sesionId));
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching attendance for session ${sesionId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get attendance control for a specific class cronograma
+   */
+  async getControlAsistencia(cronogramaId) {
+    try {
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.CONTROL_ASISTENCIA(cronogramaId));
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching attendance control for cronograma ${cronogramaId}:`, error);
+      throw error;
+    }
+  }
+
+  // ==================== ENHANCED CRONOGRAMA MANAGEMENT ====================
+
+  /**
+   * Mark a cronograma session as completed
+   */
+  async marcarSesionRealizada(cronogramaId, observaciones) {
+    try {
+      const response = await ApiService.put(
+        API_ENDPOINTS.SESIONES_PEDAGOGICAS.MARCAR_REALIZADA(cronogramaId),
+        { observaciones }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error marking session ${cronogramaId} as completed:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reschedule a cronograma session
+   */
+  async reprogramarSesion(cronogramaId, reprogramData) {
+    try {
+      const response = await ApiService.put(
+        API_ENDPOINTS.SESIONES_PEDAGOGICAS.REPROGRAMAR_CLASE(cronogramaId),
+        reprogramData
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error rescheduling session ${cronogramaId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cancel a cronograma session
+   */
+  async cancelarSesionCronograma(cronogramaId, motivoCancelacion) {
+    try {
+      const response = await ApiService.put(
+        API_ENDPOINTS.SESIONES_PEDAGOGICAS.CANCELAR_CLASE(cronogramaId),
+        { motivo_cancelacion: motivoCancelacion }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error canceling session ${cronogramaId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update class information (topic, objectives, etc.)
+   */
+  async updateClaseInfo(cronogramaId, updateData) {
+    try {
+      console.log('📝 Updating class info:', cronogramaId, updateData);
+      const response = await ApiService.put(`/api/cronograma-clases/${cronogramaId}`, updateData);
+      console.log('✅ Class info updated successfully:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`❌ Error updating class info for cronograma ${cronogramaId}:`, error);
+      console.error('🔍 Error status:', error.response?.status);
+      console.error('📝 Error data:', error.response?.data);
+      throw error;
     }
   }
 

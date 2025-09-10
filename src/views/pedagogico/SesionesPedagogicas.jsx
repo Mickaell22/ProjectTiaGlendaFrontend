@@ -198,7 +198,11 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
       (item.estudiante_nombre ? [item.estudiante_nombre] : []);
 
     if (!nombres.length) {
-      const count = item.total_estudiantes || item.estudiantes_count || (item.estudiantes && item.estudiantes.length) || 0;
+      // Acceder a total_estudiantes desde estadisticas o directamente
+      const count = item.estadisticas?.total_estudiantes || 
+                   item.total_estudiantes || 
+                   item.estudiantes_count || 
+                   (item.estudiantes && item.estudiantes.length) || 0;
       if (count > 1) return `Grupo (${count})`;
       return count === 1 ? '1 estudiante' : '—';
     }

@@ -46,6 +46,7 @@ const PedagogicoAsistencia = () => {
   const [asistencias, setAsistencias] = useState([]);
   const [selectedSesion, setSelectedSesion] = useState('');
   const [selectedCronograma, setSelectedCronograma] = useState('');
+  const [currentCronogramaId, setCurrentCronogramaId] = useState('');
   const [estudiantesSesion, setEstudiantesSesion] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAsistio, setFilterAsistio] = useState('');
@@ -60,6 +61,7 @@ const PedagogicoAsistencia = () => {
     llegada_tardanza_minutos: 0,
     observaciones_educador: '',
     participacion_clase: '',
+    objetivos_trabajados: '',
     tareas_entregadas: false,
     notas_comportamiento: '',
     calificacion_evaluacion: 5,
@@ -110,21 +112,24 @@ const PedagogicoAsistencia = () => {
     try {
       console.log('📋 Fetching asistencias for cronograma:', cronogramaId);
       
-      // Try to get attendance data from the backend
+      // Try to get attendance data from the backend using the correct method
       let response = null;
       try {
-        response = await sesionPedagogicaService.getAsistenciasClase(cronogramaId);
+        response = await sesionPedagogicaService.getControlAsistencia(cronogramaId);
         console.log('✅ Attendance response:', response);
       } catch (attendanceError) {
         console.warn('Attendance fetch failed:', attendanceError);
         response = { data: [] };
       }
       
-      // Extract data from response
+      // Extract data from response - fix for correct backend response structure
       let asistenciasData = [];
-      if (response?.data) {
-        asistenciasData = Array.isArray(response.data) ? response.data : 
-                          response.data.data ? response.data.data : [];
+      if (response?.data?.estudiantes) {
+        // Backend returns: { data: { estudiantes: [...] } }
+        asistenciasData = response.data.estudiantes;
+      } else if (response?.data && Array.isArray(response.data)) {
+        // Fallback for array response
+        asistenciasData = response.data;
       }
       
       console.log('📊 Final attendance data:', asistenciasData);
@@ -172,24 +177,48 @@ const PedagogicoAsistencia = () => {
   const handleCronogramaChange = (event) => {
     const cronogramaId = event.target.value;
     setSelectedCronograma(cronogramaId);
+    setCurrentCronogramaId(cronogramaId);
     if (cronogramaId) fetchAsistencias(cronogramaId);
     else setAsistencias([]);
   };
 
-  const handleRegistrarAsistencia = (estudiante) => {
+  const handleRegistrarAsistencia = (estudianteData) => {
+    console.log('📝 Register attendance called with:', estudianteData);
+    console.log('🗓️ Selected cronograma:', selectedCronograma);
+    console.log('🆔 Current cronograma ID:', currentCronogramaId);
+    
+    // Get the cronograma ID - prioritize selectedCronograma since it's the main state
+    const cronogramaId = selectedCronograma || currentCronogramaId;
+    console.log('🎯 Final cronograma ID to use:', cronogramaId);
+    
+    if (!cronogramaId) {
+      console.error('❌ No cronograma ID available!');
+      setSnackbar({ 
+        open: true, 
+        message: 'Error: No se ha seleccionado una fecha de clase. Seleccione una fecha antes de registrar asistencias.', 
+        severity: 'error' 
+      });
+      return;
+    }
+    
     setFormData({
       asistio: false,
       llegada_tardanza_minutos: 0,
       observaciones_educador: '',
       participacion_clase: '',
+      objetivos_trabajados: '',
       tareas_entregadas: false,
       notas_comportamiento: '',
       calificacion_evaluacion: 5,
       observaciones_evaluacion: ''
     });
+    
+    // Handle both old estudiante structure and new asistencia structure
+    const estudiante = estudianteData.estudiante_id ? estudianteData : { estudiante_id: estudianteData.id || estudianteData.paciente_id };
+    
     setAsistenciaDialog({
       open: true,
-      data: { estudiante, cronograma_id: selectedCronograma },
+      data: { estudiante, cronograma_id: cronogramaId },
       isEdit: false
     });
   };
@@ -200,9 +229,10 @@ const PedagogicoAsistencia = () => {
       llegada_tardanza_minutos: asistencia.llegada_tardanza_minutos || 0,
       observaciones_educador: asistencia.observaciones_educador || '',
       participacion_clase: asistencia.participacion_clase || '',
+      objetivos_trabajados: asistencia.objetivos_trabajados || '',
       tareas_entregadas: asistencia.tareas_entregadas || false,
       notas_comportamiento: asistencia.notas_comportamiento || '',
-      calificacion_evaluacion: asistencia.calificacion_evaluacion || 5,
+      calificacion_evaluacion: asistencia.calificacion_evaluacion || asistencia.calificacion_clase || 5,
       observaciones_evaluacion: asistencia.observaciones_evaluacion || ''
     });
     setAsistenciaDialog({
@@ -215,19 +245,25 @@ const PedagogicoAsistencia = () => {
   const handleSubmitAsistencia = async () => {
     try {
       const { estudiante, cronograma_id } = asistenciaDialog.data;
-      const estudianteId = estudiante?.paciente_id || estudiante?.id || asistenciaDialog.data.paciente_id;
+      const estudianteId = estudiante?.estudiante_id || estudiante?.paciente_id || estudiante?.id || asistenciaDialog.data.estudiante_id || asistenciaDialog.data.paciente_id;
+
+      // Extra fallback for cronograma_id
+      const finalCronogramaId = cronograma_id || selectedCronograma || currentCronogramaId;
 
       console.log('🎓 Attendance dialog data:', asistenciaDialog.data);
       console.log('👤 Student ID:', estudianteId);
-      console.log('📅 Cronograma ID:', cronograma_id);
+      console.log('📅 Cronograma ID from dialog:', cronograma_id);
+      console.log('🎯 Final cronograma ID:', finalCronogramaId);
+      console.log('🗓️ Selected cronograma state:', selectedCronograma);
+      console.log('🆔 Current cronograma state:', currentCronogramaId);
 
       if (!estudianteId) {
         setSnackbar({ open: true, message: 'Error: No se pudo identificar el estudiante', severity: 'error' });
         return;
       }
 
-      if (!cronograma_id) {
-        setSnackbar({ open: true, message: 'Error: No se pudo identificar la clase del cronograma', severity: 'error' });
+      if (!finalCronogramaId) {
+        setSnackbar({ open: true, message: 'Error: No se pudo identificar la clase del cronograma. Asegúrese de haber seleccionado una fecha de clase.', severity: 'error' });
         return;
       }
 
@@ -237,6 +273,7 @@ const PedagogicoAsistencia = () => {
         llegada_tardanza_minutos: parseInt(formData.llegada_tardanza_minutos) || 0,
         observaciones_educador: formData.observaciones_educador?.trim() || null,
         participacion_clase: formData.participacion_clase?.trim() || null,
+        objetivos_trabajados: formData.objetivos_trabajados?.trim() || null,
         tareas_entregadas: formData.tareas_entregadas || false,
         notas_comportamiento: formData.notas_comportamiento?.trim() || null,
         calificacion_evaluacion: parseInt(formData.calificacion_evaluacion) || 5,
@@ -245,11 +282,12 @@ const PedagogicoAsistencia = () => {
 
       console.log('📝 Attendance data to send:', asistenciaData);
 
+      // Usar siempre updateAsistenciaClase porque usa UPSERT (maneja tanto INSERT como UPDATE)
+      await sesionPedagogicaService.updateAsistenciaClase(finalCronogramaId, estudianteId, asistenciaData);
+      
       if (asistenciaDialog.isEdit) {
-        await sesionPedagogicaService.updateAsistenciaClase(cronograma_id, estudianteId, asistenciaData);
         setSnackbar({ open: true, message: 'Asistencia actualizada correctamente', severity: 'success' });
       } else {
-        await sesionPedagogicaService.registrarAsistenciaClase(cronograma_id, estudianteId, asistenciaData);
         setSnackbar({ open: true, message: 'Asistencia registrada correctamente', severity: 'success' });
       }
 
@@ -278,7 +316,9 @@ const PedagogicoAsistencia = () => {
 
   const getSesionInfo = (sesionId) => sesiones.find(s => s.id === parseInt(sesionId));
   const getCronogramaInfo = (cronogramaId) => cronogramas.find(c => c.id === parseInt(cronogramaId));
-  const getEstudianteAsistencia = (estudianteId) => asistencias.find(a => a.paciente_id === estudianteId);
+  const getEstudianteAsistencia = (estudianteId) => asistencias.find(a => 
+    a.estudiante_id === estudianteId || a.paciente_id === estudianteId
+  );
 
   const filteredAsistencias = asistencias.filter(a => {
     const matchesSearch = (
@@ -528,9 +568,8 @@ const PedagogicoAsistencia = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {estudiantesSesion.map((estudiante) => {
-                        const estudianteId = estudiante.paciente_id || estudiante.id;
-                        const asistencia = getEstudianteAsistencia(estudianteId);
+                      {asistencias.map((asistencia) => {
+                        const estudianteId = asistencia.estudiante_id || asistencia.paciente_id;
                         return (
                           <TableRow key={estudianteId}>
                             <TableCell>
@@ -540,16 +579,16 @@ const PedagogicoAsistencia = () => {
                                 </Avatar>
                                 <Box>
                                   <Typography variant="body2" fontWeight="bold">
-                                    {estudiante.estudiante?.nombre || estudiante.nombre_completo}
+                                    {asistencia.nombre || asistencia.estudiante_nombre}
                                   </Typography>
                                   <Typography variant="caption" color="text.secondary">
-                                    {estudiante.estudiante?.cedula || estudiante.cedula}
+                                    {asistencia.cedula || asistencia.estudiante_cedula}
                                   </Typography>
                                 </Box>
                               </Box>
                             </TableCell>
                             <TableCell>
-                              {asistencia ? (
+                              {asistencia.asistio !== null && asistencia.asistio !== undefined ? (
                                 <Chip
                                   label={asistencia.asistio ? 'Asistió' : 'No Asistió'}
                                   color={asistencia.asistio ? 'success' : 'error'}
@@ -586,9 +625,9 @@ const PedagogicoAsistencia = () => {
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              {asistencia?.fecha_creacion ? (
+                              {asistencia?.fecha_registro ? (
                                 <Typography variant="caption">
-                                  {formatDate(asistencia.fecha_creacion)}
+                                  {formatDate(asistencia.fecha_registro)}
                                 </Typography>
                               ) : (
                                 <Typography variant="caption" color="text.secondary">-</Typography>
@@ -596,7 +635,7 @@ const PedagogicoAsistencia = () => {
                             </TableCell>
                             <TableCell>
                               <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                {asistencia ? (
+                                {asistencia.asistio !== null && asistencia.asistio !== undefined ? (
                                   <>
                                     <Tooltip title="Ver detalles">
                                       <IconButton color="info" size="small" onClick={() => handleViewDetail(asistencia)}>
@@ -615,7 +654,7 @@ const PedagogicoAsistencia = () => {
                                   </>
                                 ) : (
                                   <Tooltip title="Registrar asistencia">
-                                    <IconButton color="success" size="small" onClick={() => handleRegistrarAsistencia(estudiante)}>
+                                    <IconButton color="success" size="small" onClick={() => handleRegistrarAsistencia(asistencia)}>
                                       <Add fontSize="small" />
                                     </IconButton>
                                   </Tooltip>
@@ -777,6 +816,19 @@ const PedagogicoAsistencia = () => {
                   fullWidth
                   multiline
                   rows={2}
+                  label="Objetivos trabajados en clase"
+                  value={formData.objetivos_trabajados}
+                  onChange={(e) => setFormData(prev => ({ ...prev, objetivos_trabajados: e.target.value }))}
+                  placeholder="Descripción de los objetivos específicos trabajados durante la clase..."
+                  disabled={!formData.asistio}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
                   label="Notas de comportamiento"
                   value={formData.notas_comportamiento}
                   onChange={(e) => setFormData(prev => ({ ...prev, notas_comportamiento: e.target.value }))}
@@ -850,7 +902,7 @@ const PedagogicoAsistencia = () => {
                 {detailDialog.data.llegada_tardanza_minutos > 0 && (
                   <Typography variant="body2"><strong>Tardanza:</strong> {detailDialog.data.llegada_tardanza_minutos} minutos</Typography>
                 )}
-                <Typography variant="body2"><strong>Fecha de Registro:</strong> {formatDate(detailDialog.data.fecha_creacion)}</Typography>
+                <Typography variant="body2"><strong>Fecha de Registro:</strong> {formatDate(detailDialog.data.fecha_registro)}</Typography>
               </Grid>
 
               {detailDialog.data.calificacion_clase && (

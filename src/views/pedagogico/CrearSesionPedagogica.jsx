@@ -16,15 +16,12 @@ import {
   InputLabel,
   FormHelperText,
   Snackbar,
-  Alert,
-  Chip,
-  FormControlLabel,
-  Checkbox
+  Alert
 } from '@mui/material';
 import { Add, School } from '@mui/icons-material';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 
-/* ---------- Estilos ---------- */
+/* ---------- Estilos (como en UsuarioFormulario.jsx) ---------- */
 const cardShellSX = {
   borderRadius: 4,
   mb: 3,
@@ -53,6 +50,10 @@ const sectionBoxSX = {
   bgcolor: '#fff'
 };
 
+/** Mantiene altura/ancho constantes de los Select
+ *  - Evita que "salten" al elegir valor
+ *  - Trunca valores largos con '...'
+ */
 const selectStableSX = {
   width: '100%',
   '& .MuiSelect-select': {
@@ -60,7 +61,7 @@ const selectStableSX = {
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    minHeight: '1.4375em',
+    minHeight: '1.4375em', // altura estable
     lineHeight: '1.4375em'
   }
 };
@@ -85,14 +86,12 @@ const CrearSesionPedagogica = () => {
     fecha_fin: '',
     dias_semana: [],
     hora_inicio: '',
-    hora_fin: '',
     duracion_minutos: 60,
     numero_clases_programadas: 8,
     costo_total: 0,
     costo_por_clase: 0,
     nivel_academico: '',
-    modalidad_delivery: 'presencial',
-    modalidad_formato: 'grupal',
+    modalidad: 'presencial',
     capacidad_maxima: 10,
     periodo_academico: '',
     estado: 'planificada',
@@ -102,33 +101,27 @@ const CrearSesionPedagogica = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [loading, setLoading] = useState(false);
 
-  // Opciones para días de la semana
   const diasSemana = [
-    'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
+    { value: 'lunes', label: 'Lunes' },
+    { value: 'martes', label: 'Martes' },
+    { value: 'miercoles', label: 'Miércoles' },
+    { value: 'jueves', label: 'Jueves' },
+    { value: 'viernes', label: 'Viernes' },
+    { value: 'sabado', label: 'Sábado' },
+    { value: 'domingo', label: 'Domingo' }
   ];
 
-  // Opciones para niveles académicos
   const nivelesAcademicos = [
-    { value: 'inicial', label: 'Educación Inicial' },
     { value: 'preescolar', label: 'Preescolar' },
-    { value: 'primaria_basica', label: 'Primaria Básica' },
-    { value: 'primaria_avanzada', label: 'Primaria Avanzada' },
+    { value: 'primaria', label: 'Primaria' },
     { value: 'secundaria', label: 'Secundaria' },
-    { value: 'bachillerato', label: 'Bachillerato' },
-    { value: 'adultos', label: 'Educación de Adultos' },
-    { value: 'especial', label: 'Educación Especial' }
+    { value: 'bachillerato', label: 'Bachillerato' }
   ];
 
-  // Opciones para modalidades (organizadas por tipo)
-  const modalidadesDelivery = [
-    { value: 'presencial', label: 'Presencial', icon: '🏫' },
-    { value: 'virtual', label: 'Virtual', icon: '💻' },
-    { value: 'hibrida', label: 'Híbrida', icon: '🔄' }
-  ];
-
-  const modalidadesFormato = [
-    { value: 'individual', label: 'Individual', icon: '👤' },
-    { value: 'grupal', label: 'Grupal', icon: '👥' }
+  const modalidades = [
+    { value: 'presencial', label: 'Presencial' },
+    { value: 'virtual', label: 'Virtual' },
+    { value: 'hibrida', label: 'Híbrida' }
   ];
 
   useEffect(() => {
@@ -138,22 +131,39 @@ const CrearSesionPedagogica = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      console.log('Fetching data for pedagogical form...');
+      
       const [estudiantesRes, pedagogosRes, especialidadesRes] = await Promise.all([
         sesionPedagogicaService.getEstudiantesDisponibles(),
         sesionPedagogicaService.getPedagogosDisponibles(),
         sesionPedagogicaService.getEspecialidades()
       ]);
 
-      setEstudiantesDisponibles(estudiantesRes.data || []);
-      setPedagogosDisponibles(pedagogosRes.data || []);
-      setEspecialidades(especialidadesRes.data || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setSnackbar({
-        open: true,
-        message: 'Error al cargar los datos necesarios',
-        severity: 'error'
+      console.log('Raw responses:', { estudiantesRes, pedagogosRes, especialidadesRes });
+
+      const estudiantes = estudiantesRes?.data || estudiantesRes || [];
+      const pedagogos = pedagogosRes?.data || pedagogosRes || [];
+      const especialidades = especialidadesRes?.data || especialidadesRes || [];
+
+      console.log('Processed data:', { 
+        estudiantes: estudiantes.length, 
+        pedagogos: pedagogos.length, 
+        especialidades: especialidades.length 
       });
+
+      setEstudiantesDisponibles(estudiantes);
+      setPedagogosDisponibles(pedagogos);
+      setEspecialidades(especialidades);
+      
+      setSnackbar({ 
+        open: true, 
+        message: `Datos cargados: ${estudiantes.length} estudiantes, ${pedagogos.length} pedagogos, ${especialidades.length} especialidades`, 
+        severity: 'info' 
+      });
+    } catch (err) {
+      console.error('Error fetching form data:', err);
+      const errorMessage = sesionPedagogicaService.handleError(err);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -161,122 +171,64 @@ const CrearSesionPedagogica = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    // Limpiar errores del campo
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-
-    // Ajustar capacidad automáticamente cuando cambie el formato
-    if (name === 'modalidad_formato') {
-      const newCapacidad = value === 'individual' ? 1 : 10;
-      setFormData(prev => ({
-        ...prev,
-        [name]: value,
-        capacidad_maxima: newCapacidad
-      }));
-    }
-
-    // Calcular costo por clase automáticamente
-    if (name === 'costo_total' || name === 'numero_clases_programadas') {
-      const total = name === 'costo_total' ? parseFloat(value) || 0 : formData.costo_total;
-      const clases = name === 'numero_clases_programadas' ? parseInt(value) || 1 : formData.numero_clases_programadas;
-      const costoPorClase = clases > 0 ? (total / clases).toFixed(2) : 0;
-      
-      setFormData(prev => ({
-        ...prev,
-        [name]: value,
-        costo_por_clase: parseFloat(costoPorClase)
-      }));
-    }
-
-    // Calcular duración automáticamente si se cambian las horas
-    if (name === 'hora_inicio' || name === 'hora_fin') {
-      if (formData.hora_inicio && formData.hora_fin) {
-        const inicio = name === 'hora_inicio' ? value : formData.hora_inicio;
-        const fin = name === 'hora_fin' ? value : formData.hora_fin;
-        
-        if (inicio && fin) {
-          const duracion = calcularDuracion(inicio, fin);
-          setFormData(prev => ({
-            ...prev,
-            [name]: value,
-            duracion_minutos: duracion
-          }));
-        }
-      }
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  const handleDiaSemanaChange = (dia) => {
-    const diasActuales = [...formData.dias_semana];
-    const index = diasActuales.indexOf(dia);
-    
-    if (index > -1) {
-      diasActuales.splice(index, 1);
-    } else {
-      diasActuales.push(dia);
+  const handleDiasChange = (event) => {
+    const value = event.target.value;
+    setFormData(prev => ({ ...prev, dias_semana: typeof value === 'string' ? value.split(',') : value }));
+    if (errors.dias_semana) {
+      setErrors(prev => ({ ...prev, dias_semana: '' }));
     }
-    
-    setFormData(prev => ({
-      ...prev,
-      dias_semana: diasActuales
-    }));
-  };
-
-  const calcularDuracion = (horaInicio, horaFin) => {
-    if (!horaInicio || !horaFin) return 60;
-    
-    const [horaIni, minIni] = horaInicio.split(':').map(Number);
-    const [horaEnd, minEnd] = horaFin.split(':').map(Number);
-    
-    const minutosInicio = horaIni * 60 + minIni;
-    const minutosFin = horaEnd * 60 + minEnd;
-    
-    return minutosFin - minutosInicio;
   };
 
   const validateForm = () => {
     const newErrors = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Solo comparar fechas, no horas
 
-    if (!formData.titulo.trim()) newErrors.titulo = 'El título es requerido';
-    if (!formData.pedagogo_id) newErrors.pedagogo_id = 'Debe seleccionar un pedagogo';
-    if (!formData.especialidad_id) newErrors.especialidad_id = 'Debe seleccionar una especialidad';
-    if (!formData.fecha_inicio) newErrors.fecha_inicio = 'La fecha de inicio es requerida';
-    if (!formData.fecha_fin) newErrors.fecha_fin = 'La fecha de fin es requerida';
-    if (formData.dias_semana.length === 0) newErrors.dias_semana = 'Debe seleccionar al menos un día';
-    if (!formData.hora_inicio) newErrors.hora_inicio = 'La hora de inicio es requerida';
-    if (!formData.hora_fin) newErrors.hora_fin = 'La hora de fin es requerida';
-    if (!formData.nivel_academico) newErrors.nivel_academico = 'El nivel académico es requerido';
-    if (!formData.modalidad_delivery) newErrors.modalidad_delivery = 'Debe seleccionar una modalidad de entrega';
-    if (!formData.modalidad_formato) newErrors.modalidad_formato = 'Debe seleccionar un formato de sesión';
-
-    // Validar capacidad según formato
-    if (formData.modalidad_formato === 'individual' && formData.capacidad_maxima > 1) {
-      newErrors.capacidad_maxima = 'Para sesiones individuales, la capacidad debe ser 1';
-    }
-    if (formData.modalidad_formato === 'grupal' && formData.capacidad_maxima < 2) {
-      newErrors.capacidad_maxima = 'Para sesiones grupales, la capacidad debe ser mayor a 1';
-    }
-
-    // Validar fechas
-    if (formData.fecha_inicio && formData.fecha_fin) {
-      if (new Date(formData.fecha_inicio) >= new Date(formData.fecha_fin)) {
-        newErrors.fecha_fin = 'La fecha de fin debe ser posterior a la fecha de inicio';
+    if (!formData.titulo?.trim()) newErrors.titulo = 'Título requerido';
+    if (!formData.pedagogo_id) newErrors.pedagogo_id = 'Pedagogo requerido';
+    if (!formData.especialidad_id) newErrors.especialidad_id = 'Especialidad requerida';
+    if (!formData.nivel_academico) newErrors.nivel_academico = 'Nivel académico requerido';
+    if (!formData.fecha_inicio) {
+      newErrors.fecha_inicio = 'Fecha de inicio requerida';
+    } else {
+      const fechaInicio = new Date(formData.fecha_inicio + 'T00:00:00');
+      if (fechaInicio < today) {
+        newErrors.fecha_inicio = 'La fecha de inicio no puede ser en el pasado';
       }
     }
+    if (!formData.fecha_fin) newErrors.fecha_fin = 'Fecha de fin requerida';
+    if (!formData.dias_semana.length) newErrors.dias_semana = 'Seleccione al menos un día';
+    if (!formData.hora_inicio) {
+      newErrors.hora_inicio = 'Hora de inicio requerida';
+    } else {
+      // Validar horario laboral (7 AM - 5 PM)
+      const [hora, minuto] = formData.hora_inicio.split(':').map(Number);
+      const horaDecimal = hora + minuto / 60;
+      if (horaDecimal < 7 || horaDecimal > 17) {
+        newErrors.hora_inicio = 'La hora debe estar entre 7:00 AM y 5:00 PM';
+      }
+    }
+    if (!formData.numero_clases_programadas || formData.numero_clases_programadas < 1) {
+      newErrors.numero_clases_programadas = 'Número de clases debe ser mayor a 0';
+    }
+    if (formData.costo_total < 0) {
+      newErrors.costo_total = 'Costo total debe ser mayor o igual a 0';
+    }
+    if (!formData.capacidad_maxima || formData.capacidad_maxima < 1) {
+      newErrors.capacidad_maxima = 'Capacidad máxima debe ser mayor a 0';
+    }
 
-    // Validar horas
-    if (formData.hora_inicio && formData.hora_fin) {
-      if (formData.hora_inicio >= formData.hora_fin) {
-        newErrors.hora_fin = 'La hora de fin debe ser posterior a la hora de inicio';
+    if (formData.fecha_inicio && formData.fecha_fin) {
+      const fechaInicio = new Date(formData.fecha_inicio + 'T00:00:00');
+      const fechaFin = new Date(formData.fecha_fin + 'T00:00:00');
+      if (fechaFin <= fechaInicio) {
+        newErrors.fecha_fin = 'Fecha de fin debe ser posterior a fecha de inicio';
       }
     }
 
@@ -286,131 +238,100 @@ const CrearSesionPedagogica = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      setSnackbar({
-        open: true,
-        message: 'Por favor corrija los errores en el formulario',
-        severity: 'error'
-      });
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
     try {
-      // Combinar modalidades para envío al backend y procesar datos
-      const dataToSubmit = {
-        ...formData,
-        modalidad: `${formData.modalidad_delivery}|${formData.modalidad_formato}`,
-        // Convert numeric fields to proper types
-        duracion_minutos: parseInt(formData.duracion_minutos) || 60,
-        numero_clases_programadas: parseInt(formData.numero_clases_programadas) || 8,
-        capacidad_maxima: parseInt(formData.capacidad_maxima) || 10,
-        costo_total: parseFloat(formData.costo_total) || 0,
-        costo_por_clase: parseFloat(formData.costo_por_clase) || 0,
-        // Ensure we have hora_fin calculated if it's empty
-        hora_fin: formData.hora_fin || (() => {
-          if (formData.hora_inicio && formData.duracion_minutos) {
-            const [hora, min] = formData.hora_inicio.split(':').map(Number);
-            const totalMinutos = hora * 60 + min + parseInt(formData.duracion_minutos);
-            const horaFin = Math.floor(totalMinutos / 60);
-            const minFin = totalMinutos % 60;
-            return `${horaFin.toString().padStart(2, '0')}:${minFin.toString().padStart(2, '0')}`;
-          }
-          return null;
-        })()
+      const sessionData = {
+        titulo: formData.titulo.trim(),
+        pedagogo_id: parseInt(formData.pedagogo_id),
+        especialidad_id: parseInt(formData.especialidad_id),
+        fecha_inicio: formData.fecha_inicio,
+        fecha_fin: formData.fecha_fin,
+        dias_semana: formData.dias_semana,
+        hora_inicio: formData.hora_inicio,
+        duracion_minutos: parseInt(formData.duracion_minutos),
+        numero_clases_programadas: parseInt(formData.numero_clases_programadas),
+        costo_total: parseFloat(formData.costo_total),
+        costo_por_clase: parseFloat(formData.costo_total) / parseInt(formData.numero_clases_programadas),
+        nivel_academico: formData.nivel_academico,
+        modalidad: formData.modalidad,
+        capacidad_maxima: parseInt(formData.capacidad_maxima),
+        periodo_academico: formData.periodo_academico?.trim() || null,
+        estado: formData.estado,
+        observaciones: formData.observaciones?.trim() || null
       };
-      delete dataToSubmit.modalidad_delivery;
-      delete dataToSubmit.modalidad_formato;
-      
-      // Debug: Log data being submitted
-      console.log('Data to submit:', dataToSubmit);
-      
-      await sesionPedagogicaService.createSesion(dataToSubmit);
-      
-      setSnackbar({
-        open: true,
-        message: 'Sesión pedagógica creada exitosamente',
-        severity: 'success'
+
+      console.log('Creating pedagogical session with data:', sessionData);
+      const response = await sesionPedagogicaService.createSesion(sessionData);
+      console.log('Session creation response:', response);
+
+      setSnackbar({ 
+        open: true, 
+        message: `Sesión "${sessionData.titulo}" creada correctamente`, 
+        severity: 'success' 
       });
-      
-      // Refresh data after successful creation
-      fetchData();
-      
-      // Limpiar formulario
-      setFormData({
-        titulo: '',
-        pedagogo_id: '',
-        especialidad_id: '',
-        fecha_inicio: '',
-        fecha_fin: '',
-        dias_semana: [],
-        hora_inicio: '',
-        hora_fin: '',
-        duracion_minutos: 60,
-        numero_clases_programadas: 8,
-        costo_total: 0,
-        costo_por_clase: 0,
-        nivel_academico: '',
-        modalidad_delivery: 'presencial',
-        modalidad_formato: 'grupal',
-        capacidad_maxima: 10,
-        periodo_academico: '',
-        estado: 'planificada',
-        observaciones: ''
-      });
-      
-    } catch (error) {
-      console.error('Error creating session:', error);
-      console.error('Error response:', error.response);
-      console.error('Error data:', error.response?.data);
-      
-      let errorMessage = sesionPedagogicaService.handleError(error);
-      
-      // Try to get more specific error message
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      }
-      
-      setSnackbar({
-        open: true,
-        message: errorMessage,
-        severity: 'error'
-      });
+      resetForm();
+    } catch (err) {
+      console.error('Error creating session:', err);
+      console.error('Error details:', err.response?.data);
+      const errorMessage = sesionPedagogicaService.handleError(err);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      titulo: '',
+      pedagogo_id: '',
+      especialidad_id: '',
+      fecha_inicio: '',
+      fecha_fin: '',
+      dias_semana: [],
+      hora_inicio: '',
+      duracion_minutos: 60,
+      numero_clases_programadas: 8,
+      costo_total: 0,
+      costo_por_clase: 0,
+      nivel_academico: '',
+      modalidad: 'presencial',
+      capacidad_maxima: 10,
+      periodo_academico: '',
+      estado: 'planificada',
+      observaciones: ''
+    });
+    setErrors({});
+  };
+
   return (
-    <Box sx={{ py: 2 }}>
+    <Box sx={{ px: { xs: 1, md: 2 }, py: 0 }}>
+      {/* ===== Card principal con header estilo UsuarioFormulario ===== */}
       <Card elevation={8} sx={cardShellSX}>
-        {/* Header */}
         <Box sx={mainHeaderSX}>
           <Box>
-            <Typography variant="h5" fontWeight="bold" display="flex" alignItems="center">
-              <School sx={{ mr: 2 }} />
+            <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
+              <School sx={{ mr: 1 }} />
               Crear Nueva Sesión Pedagógica
             </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9, mt: 1 }}>
-              Complete la información para programar una nueva sesión educativa
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              Define la programación, costos y capacidad para una sesión educativa grupal.
             </Typography>
           </Box>
         </Box>
 
-        <CardContent sx={{ p: 4 }}>
-          <form onSubmit={handleSubmit}>
-            {/* Información Básica */}
+        <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+          <Box component="form" onSubmit={handleSubmit}>
+            {/* ===== Información General (vertical) ===== */}
             <Box sx={sectionBoxSX}>
-              <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">
-                Información Básica
+              <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                Información General
               </Typography>
-              <Divider sx={{ mb: 3 }} />
-              
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+              <Divider sx={{ mb: 2 }} />
+
+              <Grid container spacing={2} direction="column">
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     label="Título de la Sesión"
@@ -419,65 +340,99 @@ const CrearSesionPedagogica = () => {
                     onChange={handleChange}
                     error={!!errors.titulo}
                     helperText={errors.titulo}
-                    placeholder="Ej: Matemáticas Básicas - Grupo A"
+                    placeholder="Ej: Lectoescritura Inicial 2025"
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
-                
-                <Grid item xs={12} md={6}>
+
+                <Grid item xs={12}>
                   <FormControl fullWidth error={!!errors.pedagogo_id}>
-                    <InputLabel>Pedagogo/Educador</InputLabel>
+                    <InputLabel shrink>Pedagogo/Educador</InputLabel>
                     <Select
+                      sx={selectStableSX}
                       name="pedagogo_id"
                       value={formData.pedagogo_id}
                       onChange={handleChange}
                       label="Pedagogo/Educador"
+                      disabled={loading}
+                      displayEmpty
+                      renderValue={(selected) => {
+                        if (!selected) return 'Seleccione un pedagogo';
+                        const p = pedagogosDisponibles.find(x => x.id === selected || String(x.id) === String(selected));
+                        return p
+                          ? `${p.nombre_completo || p.nombre || 'Sin nombre'} - ${p.titulo_profesional || p.especialidad_nombre || 'Educador'}`
+                          : 'Seleccione un pedagogo';
+                      }}
                       MenuProps={menuProps}
-                      sx={selectStableSX}
                     >
-                      {pedagogosDisponibles.map((pedagogo) => (
-                        <MenuItem key={pedagogo.id} value={pedagogo.id}>
-                          {pedagogo.nombre_completo || `${pedagogo.nombres} ${pedagogo.apellidos}`}
-                        </MenuItem>
-                      ))}
+                      <MenuItem value="">{loading ? 'Cargando pedagogos...' : 'Seleccione un pedagogo'}</MenuItem>
+                      {!loading && pedagogosDisponibles.length === 0 ? (
+                        <MenuItem disabled>No hay pedagogos disponibles</MenuItem>
+                      ) : (
+                        pedagogosDisponibles.map((pedagogo, index) => (
+                          <MenuItem key={`pedagogo-${pedagogo.id || index}`} value={pedagogo.id}>
+                            {`${pedagogo.nombre_completo || pedagogo.nombre || 'Sin nombre'} - ${pedagogo.titulo_profesional || pedagogo.especialidad_nombre || 'Educador'}`}
+                          </MenuItem>
+                        ))
+                      )}
                     </Select>
                     {errors.pedagogo_id && <FormHelperText>{errors.pedagogo_id}</FormHelperText>}
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12}>
                   <FormControl fullWidth error={!!errors.especialidad_id}>
-                    <InputLabel>Especialidad Pedagógica</InputLabel>
+                    <InputLabel shrink>Especialidad</InputLabel>
                     <Select
+                      sx={selectStableSX}
                       name="especialidad_id"
                       value={formData.especialidad_id}
                       onChange={handleChange}
-                      label="Especialidad Pedagógica"
+                      label="Especialidad"
+                      disabled={loading}
+                      displayEmpty
+                      renderValue={(selected) => {
+                        if (!selected) return 'Seleccione una especialidad';
+                        const e = especialidades.find(x => x.id === selected || String(x.id) === String(selected));
+                        return e ? `${e.nombre || 'Sin nombre'} - ${e.area || 'General'}` : 'Seleccione una especialidad';
+                      }}
                       MenuProps={menuProps}
-                      sx={selectStableSX}
                     >
-                      {especialidades.map((especialidad) => (
-                        <MenuItem key={especialidad.id} value={especialidad.id}>
-                          {especialidad.nombre}
-                        </MenuItem>
-                      ))}
+                      <MenuItem value="">{loading ? 'Cargando especialidades...' : 'Seleccione una especialidad'}</MenuItem>
+                      {!loading && especialidades.length === 0 ? (
+                        <MenuItem disabled>No hay especialidades disponibles</MenuItem>
+                      ) : (
+                        especialidades.map((especialidad, index) => (
+                          <MenuItem key={`especialidad-${especialidad.id || index}`} value={especialidad.id}>
+                            {`${especialidad.nombre || 'Sin nombre'} - ${especialidad.area || 'General'}`}
+                          </MenuItem>
+                        ))
+                      )}
                     </Select>
                     {errors.especialidad_id && <FormHelperText>{errors.especialidad_id}</FormHelperText>}
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12}>
                   <FormControl fullWidth error={!!errors.nivel_academico}>
-                    <InputLabel>Nivel Académico</InputLabel>
+                    <InputLabel shrink>Nivel Académico</InputLabel>
                     <Select
+                      sx={selectStableSX}
                       name="nivel_academico"
                       value={formData.nivel_academico}
                       onChange={handleChange}
                       label="Nivel Académico"
+                      displayEmpty
+                      renderValue={(selected) => {
+                        if (!selected) return 'Seleccione un nivel académico';
+                        const nivel = nivelesAcademicos.find(n => n.value === selected);
+                        return nivel ? nivel.label : 'Seleccione un nivel académico';
+                      }}
                       MenuProps={menuProps}
-                      sx={selectStableSX}
                     >
-                      {nivelesAcademicos.map((nivel) => (
-                        <MenuItem key={nivel.value} value={nivel.value}>
+                      <MenuItem value="">Seleccione un nivel académico</MenuItem>
+                      {nivelesAcademicos.map((nivel, index) => (
+                        <MenuItem key={`nivel-${nivel.value || index}`} value={nivel.value}>
                           {nivel.label}
                         </MenuItem>
                       ))}
@@ -485,36 +440,65 @@ const CrearSesionPedagogica = () => {
                     {errors.nivel_academico && <FormHelperText>{errors.nivel_academico}</FormHelperText>}
                   </FormControl>
                 </Grid>
+
+                <Grid item xs={12}>
+                  <FormControl fullWidth>
+                    <InputLabel shrink>Modalidad</InputLabel>
+                    <Select
+                      sx={selectStableSX}
+                      name="modalidad"
+                      value={formData.modalidad}
+                      onChange={handleChange}
+                      label="Modalidad"
+                      renderValue={(selected) => {
+                        const modalidad = modalidades.find(m => m.value === selected);
+                        return modalidad ? modalidad.label : 'Presencial';
+                      }}
+                      MenuProps={menuProps}
+                    >
+                      {modalidades.map((modalidad, index) => (
+                        <MenuItem key={`modalidad-${modalidad.value || index}`} value={modalidad.value}>
+                          {modalidad.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
               </Grid>
             </Box>
 
-            {/* Programación */}
+            {/* ===== Programación (vertical) ===== */}
             <Box sx={sectionBoxSX}>
-              <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">
-                Programación de Clases
+              <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+                Programación
               </Typography>
-              <Divider sx={{ mb: 3 }} />
-              
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+              <Divider sx={{ mb: 2 }} />
+
+              <Grid container spacing={2} direction="column">
+                <Grid item xs={12}>
                   <TextField
-                    fullWidth
                     type="date"
+                    fullWidth
                     label="Fecha de Inicio"
                     name="fecha_inicio"
                     value={formData.fecha_inicio}
                     onChange={handleChange}
                     error={!!errors.fecha_inicio}
-                    helperText={errors.fecha_inicio}
+                    helperText={errors.fecha_inicio || 'No se permiten fechas pasadas'}
                     InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      inputProps: {
+                        min: new Date().toISOString().split('T')[0] // Fecha mínima: hoy
+                      }
+                    }}
                   />
                 </Grid>
-                
-                <Grid item xs={12} md={6}>
+
+                <Grid item xs={12}>
                   <TextField
-                    fullWidth
                     type="date"
-                    label="Fecha de Finalización"
+                    fullWidth
+                    label="Fecha de Fin"
                     name="fecha_fin"
                     value={formData.fecha_fin}
                     onChange={handleChange}
@@ -525,59 +509,72 @@ const CrearSesionPedagogica = () => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Días de la Semana {errors.dias_semana && <span style={{color: 'red'}}>*</span>}
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {diasSemana.map((dia) => (
-                      <FormControlLabel
-                        key={dia}
-                        control={
-                          <Checkbox
-                            checked={formData.dias_semana.includes(dia)}
-                            onChange={() => handleDiaSemanaChange(dia)}
-                          />
-                        }
-                        label={dia}
-                      />
-                    ))}
-                  </Box>
-                  {errors.dias_semana && (
-                    <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-                      {errors.dias_semana}
-                    </Typography>
-                  )}
+                  <FormControl fullWidth error={!!errors.hora_inicio}>
+                    <InputLabel shrink>Hora de Inicio</InputLabel>
+                    <Select
+                      sx={selectStableSX}
+                      name="hora_inicio"
+                      value={formData.hora_inicio}
+                      onChange={handleChange}
+                      MenuProps={menuProps}
+                      displayEmpty
+                    >
+                      <MenuItem value="">
+                        <em>Seleccionar horario</em>
+                      </MenuItem>
+                      {/* Horario laboral de 7 AM a 5 PM */}
+                      {Array.from({ length: 21 }, (_, i) => {
+                        const hour = Math.floor(7 + i / 2); // 7, 7, 8, 8, 9...
+                        const minute = (i % 2) * 30; // 0, 30, 0, 30...
+                        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                        const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                        const finalDisplay = `${displayHour}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
+                        
+                        // Solo mostrar hasta 5:00 PM
+                        if (hour > 17 || (hour === 17 && minute > 0)) return null;
+                        
+                        return (
+                          <MenuItem key={`time-${i}-${timeString}`} value={timeString}>
+                            {finalDisplay}
+                          </MenuItem>
+                        );
+                      }).filter(Boolean)}
+                    </Select>
+                    <FormHelperText>
+                      {errors.hora_inicio || 'Horario laboral: 7:00 AM - 5:00 PM'}
+                    </FormHelperText>
+                  </FormControl>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    type="time"
-                    label="Hora de Inicio"
-                    name="hora_inicio"
-                    value={formData.hora_inicio}
-                    onChange={handleChange}
-                    error={!!errors.hora_inicio}
-                    helperText={errors.hora_inicio}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
-                
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    type="time"
-                    label="Hora de Finalización"
-                    name="hora_fin"
-                    value={formData.hora_fin}
-                    onChange={handleChange}
-                    error={!!errors.hora_fin}
-                    helperText={errors.hora_fin}
-                    InputLabelProps={{ shrink: true }}
-                  />
+                <Grid item xs={12}>
+                  <FormControl fullWidth error={!!errors.dias_semana}>
+                    <InputLabel shrink>Días de la Semana</InputLabel>
+                    <Select
+                      sx={selectStableSX}
+                      multiple
+                      name="dias_semana"
+                      value={formData.dias_semana}
+                      onChange={handleDiasChange}
+                      label="Días de la Semana"
+                      renderValue={(selected) =>
+                        (selected || [])
+                          .map(dia => diasSemana.find(d => d.value === dia)?.label)
+                          .filter(Boolean)
+                          .join(', ')
+                      }
+                      MenuProps={menuProps}
+                    >
+                      {diasSemana.map((dia, index) => (
+                        <MenuItem key={`dia-${dia.value || index}`} value={dia.value}>
+                          {dia.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.dias_semana && <FormHelperText>{errors.dias_semana}</FormHelperText>}
+                  </FormControl>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     type="number"
@@ -585,133 +582,64 @@ const CrearSesionPedagogica = () => {
                     name="duracion_minutos"
                     value={formData.duracion_minutos}
                     onChange={handleChange}
-                    disabled
-                    helperText="Se calcula automáticamente"
+                    inputProps={{ min: 30, max: 180 }}
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
               </Grid>
             </Box>
 
-            {/* Configuración Académica */}
+            {/* ===== Configuración Académica (vertical) ===== */}
             <Box sx={sectionBoxSX}>
-              <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">
+              <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
                 Configuración Académica
               </Typography>
-              <Divider sx={{ mb: 3 }} />
-              
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
+              <Divider sx={{ mb: 2 }} />
+
+              <Grid container spacing={2} direction="column">
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     type="number"
-                    label="Número de Clases Programadas"
+                    label="Número de Clases"
                     name="numero_clases_programadas"
                     value={formData.numero_clases_programadas}
                     onChange={handleChange}
+                    error={!!errors.numero_clases_programadas}
+                    helperText={errors.numero_clases_programadas}
                     inputProps={{ min: 1 }}
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth error={!!errors.modalidad_delivery}>
-                    <InputLabel>Modalidad de Entrega</InputLabel>
-                    <Select
-                      name="modalidad_delivery"
-                      value={formData.modalidad_delivery}
-                      onChange={handleChange}
-                      label="Modalidad de Entrega"
-                      sx={selectStableSX}
-                    >
-                      {modalidadesDelivery.map((modalidad) => (
-                        <MenuItem key={modalidad.value} value={modalidad.value}>
-                          <Box display="flex" alignItems="center">
-                            <Typography sx={{ mr: 1 }}>{modalidad.icon}</Typography>
-                            {modalidad.label}
-                          </Box>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {errors.modalidad_delivery && <FormHelperText>{errors.modalidad_delivery}</FormHelperText>}
-                  </FormControl>
-                </Grid>
 
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth error={!!errors.modalidad_formato}>
-                    <InputLabel>Formato de Sesión</InputLabel>
-                    <Select
-                      name="modalidad_formato"
-                      value={formData.modalidad_formato}
-                      onChange={handleChange}
-                      label="Formato de Sesión"
-                      sx={selectStableSX}
-                    >
-                      {modalidadesFormato.map((modalidad) => (
-                        <MenuItem key={modalidad.value} value={modalidad.value}>
-                          <Box display="flex" alignItems="center">
-                            <Typography sx={{ mr: 1 }}>{modalidad.icon}</Typography>
-                            {modalidad.label}
-                          </Box>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {errors.modalidad_formato && <FormHelperText>{errors.modalidad_formato}</FormHelperText>}
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12} md={12}>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     type="number"
-                    label="Capacidad Máxima de Estudiantes"
+                    label="Capacidad Máxima"
                     name="capacidad_maxima"
                     value={formData.capacidad_maxima}
                     onChange={handleChange}
                     error={!!errors.capacidad_maxima}
+                    helperText={errors.capacidad_maxima}
                     inputProps={{ min: 1, max: 50 }}
-                    helperText={errors.capacidad_maxima || `Número máximo de estudiantes permitidos en la sesión (recomendado: ${formData.modalidad_formato === 'individual' ? '1' : '8-12'} estudiantes)`}
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     label="Período Académico"
                     name="periodo_academico"
                     value={formData.periodo_academico}
                     onChange={handleChange}
-                    placeholder="Ej: 2024-I, Trimestre 1, etc."
+                    placeholder="Ej: 2025-A, Trimestre I, etc."
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Estado</InputLabel>
-                    <Select
-                      name="estado"
-                      value={formData.estado}
-                      onChange={handleChange}
-                      label="Estado"
-                      sx={selectStableSX}
-                    >
-                      <MenuItem value="planificada">Planificada</MenuItem>
-                      <MenuItem value="activa">Activa</MenuItem>
-                      <MenuItem value="pausada">Pausada</MenuItem>
-                      <MenuItem value="completada">Completada</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </Grid>
-            </Box>
-
-            {/* Información Financiera */}
-            <Box sx={sectionBoxSX}>
-              <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">
-                Información Financiera
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-              
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     type="number"
@@ -719,76 +647,64 @@ const CrearSesionPedagogica = () => {
                     name="costo_total"
                     value={formData.costo_total}
                     onChange={handleChange}
+                    error={!!errors.costo_total}
+                    helperText={errors.costo_total}
                     inputProps={{ min: 0, step: 0.01 }}
-                    helperText="Costo total del programa completo"
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
-                
-                <Grid item xs={12} md={6}>
+
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    type="number"
-                    label="Costo por Clase"
-                    name="costo_por_clase"
-                    value={formData.costo_por_clase}
-                    disabled
-                    helperText="Se calcula automáticamente"
+                    multiline
+                    rows={3}
+                    label="Observaciones"
+                    name="observaciones"
+                    value={formData.observaciones}
+                    onChange={handleChange}
+                    placeholder="Observaciones adicionales sobre la sesión pedagógica..."
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
               </Grid>
             </Box>
 
-            {/* Observaciones */}
-            <Box sx={sectionBoxSX}>
-              <Typography variant="h6" gutterBottom color="primary" fontWeight="bold">
-                Observaciones Adicionales
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-              
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Observaciones"
-                name="observaciones"
-                value={formData.observaciones}
-                onChange={handleChange}
-                placeholder="Información adicional sobre la sesión pedagógica..."
-              />
-            </Box>
-
-            {/* Botones de acción */}
-            <Stack direction="row" spacing={2} justifyContent="flex-end">
+            {/* ===== Acciones ===== */}
+            <Divider sx={{ my: 3 }} />
+            <Stack direction="row" spacing={2} justifyContent="center">
               <Button
-                type="submit"
                 variant="contained"
+                type="submit"
+                color="primary"
                 startIcon={<Add />}
                 disabled={loading}
-                sx={{ 
-                  bgcolor: '#4CAF50', 
-                  '&:hover': { bgcolor: '#388E3C' },
-                  minWidth: 140
-                }}
+                size="large"
               >
-                {loading ? 'Creando...' : 'Crear Sesión'}
+                Crear Sesión
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={resetForm}
+                color="secondary"
+                disabled={loading}
+                size="large"
+              >
+                Limpiar Formulario
               </Button>
             </Stack>
-          </form>
+          </Box>
         </CardContent>
       </Card>
 
+      {/* Snackbar (sin cambios de lógica) */}
       <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
+        <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

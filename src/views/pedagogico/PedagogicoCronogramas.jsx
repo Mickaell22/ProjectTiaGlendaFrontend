@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import {
   CalendarMonth, Edit, Search, Visibility, Refresh, CheckCircle, Cancel,
-  Schedule, AccessTime, Today, School, EventNote, EditCalendar
+  Schedule, AccessTime, Today, School, EventNote, EditCalendar, Save, Close
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -52,6 +52,7 @@ const PedagogicoCronogramas = () => {
   const [reprogramDialog, setReprogramDialog] = useState({ open: false, data: null });
   const [cancelDialog, setCancelDialog] = useState({ open: false, data: null });
   const [realizadaDialog, setRealizadaDialog] = useState({ open: false, data: null });
+  const [editingTopic, setEditingTopic] = useState({ id: null, value: '' });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -76,10 +77,9 @@ const PedagogicoCronogramas = () => {
   const fetchCronograma = async (sesionId) => {
     setLoading(true);
     try {
-      console.log('🕒 Fetching cronograma for session:', sesionId);
       const response = await sesionPedagogicaService.getCronograma(sesionId);
-      console.log('📅 Cronograma response:', response);
-      setCronogramas(response.data?.data || response.data || []);
+      const cronogramaData = response.data?.data || response.data || [];
+      setCronogramas(cronogramaData);
     } catch (err) {
       console.error('Error fetching cronograma:', err);
       const errorMessage = sesionPedagogicaService.handleError(err);
@@ -139,11 +139,56 @@ const PedagogicoCronogramas = () => {
     setRealizadaDialog({ open: true, data: item });
   };
 
-  const confirmMarcarRealizada = async () => {
+  const handleEditTopic = (item) => {
+    setEditingTopic({ id: item.id, value: item.tema_clase || '' });
+  };
+
+  const handleCancelEditTopic = () => {
+    setEditingTopic({ id: null, value: '' });
+  };
+
+  const handleSaveTopicEdit = async () => {
+    if (!editingTopic.id || editingTopic.value.trim() === '') return;
+
+    setLoading(true);
+    try {
+      await sesionPedagogicaService.updateClaseInfo(editingTopic.id, {
+        tema_clase: editingTopic.value.trim()
+      });
+      
+      setEditingTopic({ id: null, value: '' });
+      setSnackbar({ open: true, message: 'Tema de clase actualizado exitosamente', severity: 'success' });
+      
+      if (selectedSesion) {
+        await fetchCronograma(selectedSesion);
+      }
+    } catch (error) {
+      console.error('Error updating topic:', error);
+      const errorMessage = sesionPedagogicaService.handleError(error);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmMarcarRealizada = async (observaciones) => {
     setLoading(true);
     try {
       const { data: item } = realizadaDialog;
-      await sesionPedagogicaService.marcarClaseRealizada(item.id);
+      
+      // Safety check - ensure item exists and has an id
+      if (!item || !item.id) {
+        console.error('Error: No se pudo obtener los datos de la clase para marcar como realizada');
+        setSnackbar({ 
+          open: true, 
+          message: 'Error: No se pudo obtener los datos de la clase', 
+          severity: 'error' 
+        });
+        setLoading(false);
+        return;
+      }
+      
+      await sesionPedagogicaService.marcarSesionRealizada(item.id, observaciones || 'Clase completada desde cronograma');
       
       // Close dialog first
       setRealizadaDialog({ open: false, data: null });
@@ -168,7 +213,7 @@ const PedagogicoCronogramas = () => {
   const confirmarReprogramacion = async (reprogramData) => {
     try {
       setLoading(true);
-      await sesionPedagogicaService.reprogramarClase(reprogramDialog.data.id, reprogramData);
+      await sesionPedagogicaService.reprogramarSesion(reprogramDialog.data.id, reprogramData);
       
       // Close dialog first
       setReprogramDialog({ open: false, data: null });
@@ -197,7 +242,7 @@ const PedagogicoCronogramas = () => {
   const confirmarCancelacion = async (cancelData) => {
     try {
       setLoading(true);
-      await sesionPedagogicaService.cancelarClase(cancelDialog.data.id, cancelData);
+      await sesionPedagogicaService.cancelarSesionCronograma(cancelDialog.data.id, cancelData.motivo_cancelacion);
       
       // Close dialog first
       setCancelDialog({ open: false, data: null });
@@ -278,7 +323,10 @@ const PedagogicoCronogramas = () => {
     .sort((a, b) => new Date(a.fecha_programada) - new Date(b.fecha_programada));
 
   const truncateObservations = (text, maxLength = 40) => {
-    if (!text) return '-';
+    // Handle all problematic values including "undefined" strings
+    if (!text || text.trim() === '' || text === 'undefined' || text === 'null') {
+      return '-';
+    }
     return text.length <= maxLength ? text : text.substring(0, maxLength) + '...';
   };
 
@@ -518,7 +566,7 @@ const PedagogicoCronogramas = () => {
                         <TableCell>Hora</TableCell>
                         <TableCell>Estado</TableCell>
                         <TableCell>Tema de Clase</TableCell>
-                        <TableCell>Objetivos</TableCell>
+                        <TableCell>Observaciones</TableCell>
                         <TableCell>Acciones</TableCell>
                       </TableRow>
                     </TableHead>
@@ -571,7 +619,7 @@ const PedagogicoCronogramas = () => {
                               <Box display="flex" alignItems="center">
                                 <AccessTime sx={{ mr: 1, fontSize: 16 }} />
                                 <Typography variant="body2">
-                                  {formatTime(item.hora_programada)} - {formatTime(item.hora_fin_estimada || item.hora_programada)}
+                                  {formatTime(item.hora_programada)} - {formatTime(item.hora_fin || item.hora_programada)}
                                 </Typography>
                               </Box>
                             </TableCell>
@@ -584,16 +632,77 @@ const PedagogicoCronogramas = () => {
                               />
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2">
-                                {item.tema_clase || 'Sin tema definido'}
-                              </Typography>
+                              {editingTopic.id === item.id ? (
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <TextField
+                                    size="small"
+                                    value={editingTopic.value}
+                                    onChange={(e) => setEditingTopic({ ...editingTopic, value: e.target.value })}
+                                    placeholder="Ingrese el tema de la clase"
+                                    autoFocus
+                                    fullWidth
+                                    sx={{ ...greenOutlineSX }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleSaveTopicEdit();
+                                      if (e.key === 'Escape') handleCancelEditTopic();
+                                    }}
+                                  />
+                                  <Tooltip title="Guardar">
+                                    <IconButton 
+                                      size="small" 
+                                      color="success" 
+                                      onClick={handleSaveTopicEdit}
+                                      disabled={loading || !editingTopic.value.trim()}
+                                    >
+                                      <Save fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                  <Tooltip title="Cancelar">
+                                    <IconButton 
+                                      size="small" 
+                                      color="default" 
+                                      onClick={handleCancelEditTopic}
+                                      disabled={loading}
+                                    >
+                                      <Close fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                </Box>
+                              ) : (
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <Typography variant="body2" sx={{ flex: 1 }}>
+                                    {item.tema_clase || 'Sin tema definido'}
+                                  </Typography>
+                                  {(item.estado === 'programada' || item.estado === 'reprogramada') && (
+                                    <Tooltip title="Editar tema">
+                                      <IconButton
+                                        size="small"
+                                        color="info"
+                                        onClick={() => handleEditTopic(item)}
+                                        disabled={loading}
+                                      >
+                                        <Edit fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  )}
+                                </Box>
+                              )}
                             </TableCell>
                             <TableCell>
                               <Typography
                                 variant="body2"
-                                title={item.objetivos_clase || ''}
+                                title={
+                                  item.observaciones ||
+                                  item.observaciones_cronograma ||
+                                  item.motivo_reprogramacion ||
+                                  ''
+                                }
                               >
-                                {truncateObservations(item.objetivos_clase)}
+                                {truncateObservations(
+                                  item.observaciones ||
+                                  item.observaciones_cronograma ||
+                                  (item.motivo_reprogramacion ? `Reprogramada: ${item.motivo_reprogramacion}` : '')
+                                )}
                               </Typography>
                             </TableCell>
                             <TableCell>
@@ -800,38 +909,13 @@ const PedagogicoCronogramas = () => {
       </Dialog>
 
       {/* Marcar como realizada */}
-      <Dialog open={realizadaDialog.open} onClose={() => setRealizadaDialog({ open: false, data: null })} maxWidth="sm" fullWidth>
-        <DialogTitle>Marcar Clase como Realizada</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            ¿Está seguro de que desea marcar esta clase como realizada?
-          </Typography>
-          
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            <strong>Clase #{realizadaDialog.data?.numero_clase || realizadaDialog.data?.numero_clase_semanal}</strong>
-            {realizadaDialog.data?.fecha_programada && (
-              <><br />📅 {formatDate(realizadaDialog.data.fecha_programada)} a las {formatTime(realizadaDialog.data.hora_programada)}</>
-            )}
-          </Typography>
-          
-          <Typography variant="body2" color="warning.main" sx={{ mt: 2 }}>
-            ⚠️ Esta acción marcará la clase como completada y actualizará su estado en el sistema.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRealizadaDialog({ open: false, data: null })} disabled={loading}>
-            Cancelar
-          </Button>
-          <Button 
-            onClick={confirmMarcarRealizada} 
-            variant="contained" 
-            color="success"
-            disabled={loading}
-          >
-            Confirmar - Marcar como Realizada
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <RealizadaDialogPedagogico
+        open={realizadaDialog.open}
+        data={realizadaDialog.data}
+        onClose={() => setRealizadaDialog({ open: false, data: null })}
+        onConfirm={confirmMarcarRealizada}
+        loading={loading}
+      />
 
       {/* Reprogramar */}
       <ReprogramarDialog
@@ -878,23 +962,10 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
       setFechaOriginal(fechaBase);
       setNuevaFecha(fechaBase);
       
-      // Format the hour properly for time input (HH:MM format)
-      let horaFormateada = data.hora_inicio || '';
-      if (horaFormateada && !horaFormateada.includes(':')) {
-        // If it's just a number like "14", convert to "14:00"
-        horaFormateada = horaFormateada.padStart(2, '0') + ':00';
-      } else if (horaFormateada && horaFormateada.length === 5) {
-        // If it's already in HH:MM format, keep it
-        horaFormateada = horaFormateada;
-      } else if (horaFormateada && horaFormateada.includes('T')) {
-        // If it's a datetime string, extract just the time part
-        const timePart = horaFormateada.split('T')[1];
-        if (timePart) {
-          horaFormateada = timePart.split(':').slice(0, 2).join(':');
-        }
-      }
-      
-      setNuevaHora(horaFormateada);
+      // Set current time as default instead of original class time
+      const now = new Date();
+      const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      setNuevaHora(currentTime);
       setMotivo('Reprogramación de clase pedagógica');
     }
   }, [data]);
@@ -1054,6 +1125,98 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
         <Button onClick={onClose} disabled={loading}>Cancelar</Button>
         <Button onClick={handleConfirm} variant="contained" color="error" disabled={loading}>
           Confirmar Cancelación
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
+// Marcar como Realizada Dialog para Pedagogico
+const RealizadaDialogPedagogico = ({ open, data, onClose, onConfirm, loading }) => {
+  const [observaciones, setObservaciones] = useState('');
+
+  useEffect(() => {
+    if (data) setObservaciones('');
+  }, [data]);
+
+  const handleConfirm = () => {
+    if (!data) return; // Safety check
+    onConfirm(observaciones);
+  };
+
+  const formatDate = (dateString) => formatDateLocal(dateString);
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    if (typeof timeString === 'string' && timeString.includes(':')) {
+      return timeString.substring(0, 5); // Formato HH:MM
+    }
+    return timeString;
+  };
+
+  // Don't render if no data to prevent null errors
+  if (!open || !data) {
+    return null;
+  }
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Marcar Clase como Realizada</DialogTitle>
+      <DialogContent>
+        <Grid container spacing={2} sx={{ mt: 1 }}>
+          <Grid item xs={12}>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              <strong>Clase #{data.numero_clase || data.numero_clase_semanal || 'N/A'}</strong>
+              {data.fecha_programada && (
+                <><br />📅 {formatDate(data.fecha_programada)} a las {formatTime(data.hora_programada)}</>
+              )}
+              {data.tema_clase && (
+                <><br />📚 <strong>Tema:</strong> {data.tema_clase}</>
+              )}
+            </Typography>
+            
+            <Typography variant="body2" color="text.secondary" mb={2}>
+              ¿Desea agregar observaciones sobre esta clase pedagógica?
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              label="Observaciones de la clase"
+              value={observaciones}
+              onChange={(e) => setObservaciones(e.target.value)}
+              placeholder="Escriba aquí cualquier observación sobre el desarrollo de la clase, participación de los estudiantes, objetivos alcanzados, actividades realizadas, etc. (Opcional)"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': { borderColor: 'success.main' },
+                  '&:hover fieldset': { borderColor: 'success.main' },
+                  '&.Mui-focused fieldset': { borderColor: 'success.main', borderWidth: 2 }
+                }
+              }}
+            />
+          </Grid>
+          
+          <Grid item xs={12}>
+            <Typography variant="body2" color="success.main" sx={{ mt: 1 }}>
+              ✅ Esta acción marcará la clase como completada exitosamente.
+            </Typography>
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} disabled={loading}>
+          Cancelar
+        </Button>
+        <Button 
+          onClick={handleConfirm} 
+          variant="contained" 
+          color="success"
+          disabled={loading}
+          startIcon={<CheckCircle />}
+        >
+          Marcar como Realizada
         </Button>
       </DialogActions>
     </Dialog>

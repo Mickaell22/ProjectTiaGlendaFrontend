@@ -114,20 +114,32 @@ export const API_ENDPOINTS = {
     ESTUDIANTES: (id) => `/api/sesiones-pedagogicas/${id}/estudiantes`,
     CRONOGRAMA: (id) => `/api/sesiones-pedagogicas/${id}/cronograma`,
     CRONOGRAMA_GENERAL: '/api/sesiones-pedagogicas/cronograma',
+    GENERAR_CRONOGRAMA: (id) => `/api/sesiones-pedagogicas/${id}/cronograma/generar`,
     BY_PEDAGOGO: (id) => `/api/sesiones-pedagogicas/pedagogo/${id}`,
     HOY: '/api/sesiones-pedagogicas/hoy',
     ESTADISTICAS: '/api/sesiones-pedagogicas/estadisticas',
     ESTUDIANTES_DISPONIBLES: '/api/sesiones-pedagogicas/estudiantes-disponibles',
     PEDAGOGOS_DISPONIBLES: '/api/sesiones-pedagogicas/pedagogos-disponibles',
     CLASES_HOY: '/api/sesiones-pedagogicas/clases-hoy',
-    // Endpoints for attendance (asistencia) - corrected to match backend
-    ASISTENCIAS_CLASE: (cronogramaId) => `/api/cronograma-clases/${cronogramaId}/asistencias`,
-    REGISTRAR_ASISTENCIA: (cronogramaId, pacienteId) => 
-      `/api/cronograma-clases/${cronogramaId}/asistencias/${pacienteId}`,
-    // Endpoints for cronograma management
-    MARCAR_REALIZADA: (claseId) => `/api/cronograma-clases/${claseId}/realizar`,
-    REPROGRAMAR_CLASE: (claseId) => `/api/cronograma-clases/${claseId}/reprogramar`,
-    CANCELAR_CLASE: (claseId) => `/api/cronograma-clases/${claseId}/cancelar`,
+    // ==================== ATTENDANCE SYSTEM ====================
+    // Get all attendance for a session
+    ASISTENCIAS: (sesionId) => `/api/sesiones-pedagogicas/${sesionId}/asistencias`,
+    // Register/Update attendance for specific cronograma and student
+    REGISTRAR_ASISTENCIA: (cronogramaId, estudianteId) => 
+      `/api/sesiones-pedagogicas/cronograma/${cronogramaId}/estudiantes/${estudianteId}/asistencia`,
+    // Get attendance control for a specific class
+    CONTROL_ASISTENCIA: (cronogramaId) => 
+      `/api/sesiones-pedagogicas/cronograma/${cronogramaId}/control-asistencia`,
+    // ==================== CRONOGRAMA MANAGEMENT ====================
+    // Mark class as completed
+    MARCAR_REALIZADA: (cronogramaId) => 
+      `/api/sesiones-pedagogicas/cronograma/${cronogramaId}/realizar`,
+    // Reschedule a class
+    REPROGRAMAR_CLASE: (cronogramaId) => 
+      `/api/sesiones-pedagogicas/cronograma/${cronogramaId}/reprogramar`,
+    // Cancel a class
+    CANCELAR_CLASE: (cronogramaId) => 
+      `/api/sesiones-pedagogicas/cronograma/${cronogramaId}/cancelar`,
   },
 
   // Roles
