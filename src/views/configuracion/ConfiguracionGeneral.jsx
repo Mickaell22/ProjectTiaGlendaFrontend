@@ -10,8 +10,6 @@ import {
   Stack,
   Divider,
   Box,
-  Switch,
-  FormControlLabel,
   Avatar,
   IconButton
 } from '@mui/material';
@@ -19,7 +17,6 @@ import {
   Save,
   Business,
   Language,
-  Palette,
   Schedule,
   PhotoCamera
 } from '@mui/icons-material';
@@ -30,15 +27,15 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
     direccion: '',
     telefono: '',
     email: '',
-    sitioWeb: '',
-    formatoFecha: 'DD/MM/YYYY',
-    idioma: 'es',
-    zonaHoraria: 'America/Lima',
-    moneda: 'PEN',
     logoUrl: '',
-    colorPrimario: '#1976d2',
-    colorSecundario: '#dc004e',
-    mostrarLogo: true,
+    horarioInicio: '08:00',
+    horarioFin: '17:00',
+    zonaHoraria: 'America/Guayaquil',
+    formatoFecha: 'DD/MM/YYYY',
+    formatoHora: '24h',
+    moneda: 'USD',
+    idioma: 'es',
+    descripcion: '',
     ...configuracion
   });
 
@@ -59,6 +56,7 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
   ];
 
   const zonasHorarias = [
+    { value: 'America/Guayaquil', label: 'Ecuador (UTC-5)' },
     { value: 'America/Lima', label: 'Perú (UTC-5)' },
     { value: 'America/Mexico_City', label: 'México (UTC-6)' },
     { value: 'America/Bogota', label: 'Colombia (UTC-5)' },
@@ -66,10 +64,15 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
     { value: 'America/Santiago', label: 'Chile (UTC-3)' }
   ];
 
+  const formatosHora = [
+    { value: '24h', label: '24 horas (14:30)' },
+    { value: '12h', label: '12 horas (2:30 PM)' }
+  ];
+
   const monedas = [
-    { value: 'PEN', label: 'Soles Peruanos (S/)' },
     { value: 'USD', label: 'Dólares (USD)' },
     { value: 'EUR', label: 'Euros (€)' },
+    { value: 'PEN', label: 'Soles Peruanos (S/)' },
     { value: 'MXN', label: 'Pesos Mexicanos ($)' },
     { value: 'COP', label: 'Pesos Colombianos ($)' }
   ];
@@ -161,11 +164,28 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Sitio Web"
-                name="sitioWeb"
-                value={formData.sitioWeb}
+                label="Horario de Inicio"
+                name="horarioInicio"
+                type="time"
+                value={formData.horarioInicio}
                 onChange={handleChange}
-                placeholder="https://www.centro.com"
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Horario de Fin"
+                name="horarioFin"
+                type="time"
+                value={formData.horarioFin}
+                onChange={handleChange}
+                InputLabelProps={{
+                  shrink: true,
+                }}
               />
             </Grid>
 
@@ -179,6 +199,19 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                 value={formData.direccion}
                 onChange={handleChange}
                 placeholder="Dirección completa del centro"
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Descripción"
+                name="descripcion"
+                multiline
+                rows={3}
+                value={formData.descripcion}
+                onChange={handleChange}
+                placeholder="Descripción del centro de rehabilitación"
               />
             </Grid>
 
@@ -220,18 +253,6 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
               </Box>
             </Grid>
 
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.mostrarLogo}
-                    onChange={handleChange}
-                    name="mostrarLogo"
-                  />
-                }
-                label="Mostrar logo en el sistema"
-              />
-            </Grid>
 
             {/* Configuraciones Regionales */}
             <Grid item xs={12}>
@@ -297,6 +318,23 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
               <TextField
                 select
                 fullWidth
+                label="Formato de Hora"
+                name="formatoHora"
+                value={formData.formatoHora}
+                onChange={handleChange}
+              >
+                {formatosHora.map((formato) => (
+                  <MenuItem key={formato.value} value={formato.value}>
+                    {formato.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                select
+                fullWidth
                 label="Moneda"
                 name="moneda"
                 value={formData.moneda}
@@ -308,43 +346,6 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                   </MenuItem>
                 ))}
               </TextField>
-            </Grid>
-
-            {/* Personalización Visual */}
-            <Grid item xs={12}>
-              <Typography variant="h6" color="primary" gutterBottom>
-                <Palette sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Personalización Visual
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Color Primario"
-                name="colorPrimario"
-                type="color"
-                value={formData.colorPrimario}
-                onChange={handleChange}
-                InputProps={{
-                  sx: { height: 56 }
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Color Secundario"
-                name="colorSecundario"
-                type="color"
-                value={formData.colorSecundario}
-                onChange={handleChange}
-                InputProps={{
-                  sx: { height: 56 }
-                }}
-              />
             </Grid>
 
             <Grid item xs={12}>

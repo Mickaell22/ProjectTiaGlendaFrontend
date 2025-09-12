@@ -10,6 +10,14 @@ export const useSnackbar = () => {
     severity: 'success' // success, error, warning, info
   });
 
+  const mostrarMensaje = (message, severity = 'info') => {
+    setSnackbar({
+      open: true,
+      message,
+      severity
+    });
+  };
+
   const showSuccess = (message) => {
     setSnackbar({
       open: true,
@@ -51,6 +59,7 @@ export const useSnackbar = () => {
 
   return {
     snackbar,
+    mostrarMensaje,
     showSuccess,
     showError,
     showWarning,

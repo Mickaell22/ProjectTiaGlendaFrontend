@@ -125,6 +125,75 @@ class DashboardService {
       throw error;
     }
   }
+
+  // ==================== PHASE E1 - ROLE-BASED DASHBOARD ====================
+  
+  // Obtener sesiones del día actual del terapeuta autenticado
+  async getMisSesionesHoy() {
+    try {
+      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.MIS_SESIONES_HOY);
+      return response;
+    } catch (error) {
+      console.error('Error fetching my today sessions:', error);
+      throw error;
+    }
+  }
+
+  // Obtener clases del día actual del pedagogo autenticado
+  async getMisClasesHoy() {
+    try {
+      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.MIS_CLASES_HOY);
+      return response;
+    } catch (error) {
+      console.error('Error fetching my today classes:', error);
+      throw error;
+    }
+  }
+
+  // Obtener pacientes asignados al terapeuta autenticado
+  async getMisPacientes() {
+    try {
+      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.MIS_PACIENTES);
+      return response;
+    } catch (error) {
+      console.error('Error fetching my patients:', error);
+      throw error;
+    }
+  }
+
+  // Obtener estudiantes asignados al pedagogo autenticado
+  async getMisEstudiantes() {
+    try {
+      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.MIS_ESTUDIANTES);
+      return response;
+    } catch (error) {
+      console.error('Error fetching my students:', error);
+      throw error;
+    }
+  }
+
+  // Obtener datos personalizados por rol del usuario autenticado
+  async getDatosPersonalizadosPorRol() {
+    try {
+      // Esta función combina las llamadas según el rol del usuario
+      const [misSesiones, misClases, misPacientes, misEstudiantes] = await Promise.allSettled([
+        this.getMisSesionesHoy(),
+        this.getMisClasesHoy(), 
+        this.getMisPacientes(),
+        this.getMisEstudiantes()
+      ]);
+
+      return {
+        sesiones: misSesiones.status === 'fulfilled' ? misSesiones.value : { data: [] },
+        clases: misClases.status === 'fulfilled' ? misClases.value : { data: [] },
+        pacientes: misPacientes.status === 'fulfilled' ? misPacientes.value : { data: [] },
+        estudiantes: misEstudiantes.status === 'fulfilled' ? misEstudiantes.value : { data: [] }
+      };
+    } catch (error) {
+      console.error('Error fetching role-based dashboard data:', error);
+      throw error;
+    }
+  }
 }
 
 export default new DashboardService();

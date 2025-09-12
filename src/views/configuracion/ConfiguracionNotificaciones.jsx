@@ -13,76 +13,37 @@ import {
   Switch,
   FormControlLabel,
   Alert,
-  Chip,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction
+  InputAdornment
 } from '@mui/material';
 import {
   Save,
   Notifications,
-  Email,
   VolumeUp,
   Schedule,
   NotificationsActive,
-  Phone,
-  Sms
+  DoNotDisturb
 } from '@mui/icons-material';
 
 const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
   const [formData, setFormData] = useState({
-    notificacionesSistema: true,
-    alertasCitas: true,
-    recordatoriosCitas: true,
-    notificacionesEmail: true,
-    notificacionesSMS: false,
-    sonidosAlerta: true,
-    notificacionesPush: true,
-    frecuenciaRecordatorios: 60, // minutos
-    horaInicioNotificaciones: '08:00',
-    horaFinNotificaciones: '18:00',
-    notificarFinSemanaMañana: false,
-    notificarFestivos: false,
-    tipoSonido: 'suave',
-    volumenSonido: 50,
-    // Configuraciones específicas por tipo
-    configuraciones: {
-      citasProximas: { activo: true, anticipacion: 24 }, // horas
-      citasCanceladas: { activo: true, anticipacion: 2 },
-      sesionesCompletadas: { activo: true, anticipacion: 0 },
-      documentosPendientes: { activo: true, anticipacion: 48 },
-      pagosVencidos: { activo: true, anticipacion: 24 },
-      cumpleanos: { activo: true, anticipacion: 24 },
-      reportesSemanales: { activo: false, dia: 'lunes' }
-    },
+    notificaciones_habilitadas: true,
+    notificaciones_sesion_terapia: true,
+    notificaciones_clase_pedagogica: true,
+    notificaciones_cancelaciones: true,
+    notificaciones_reprogramaciones: true,
+    tiempo_anticipacion_minutos: 15,
+    sonido_habilitado: true,
+    modo_silencioso_inicio: '',
+    modo_silencioso_fin: '',
     ...configuracion
   });
 
-  const tiposSonido = [
-    { value: 'suave', label: 'Suave' },
-    { value: 'moderado', label: 'Moderado' },
-    { value: 'fuerte', label: 'Fuerte' },
-    { value: 'personalizado', label: 'Personalizado' }
-  ];
-
-  const frecuenciasRecordatorio = [
-    { value: 15, label: 'Cada 15 minutos' },
-    { value: 30, label: 'Cada 30 minutos' },
-    { value: 60, label: 'Cada hora' },
-    { value: 120, label: 'Cada 2 horas' },
-    { value: 240, label: 'Cada 4 horas' },
-    { value: 1440, label: 'Una vez al día' }
-  ];
-
-  const diasSemana = [
-    { value: 'lunes', label: 'Lunes' },
-    { value: 'martes', label: 'Martes' },
-    { value: 'miercoles', label: 'Miércoles' },
-    { value: 'jueves', label: 'Jueves' },
-    { value: 'viernes', label: 'Viernes' },
-    { value: 'sabado', label: 'Sábado' },
-    { value: 'domingo', label: 'Domingo' }
+  const tiemposAnticipacion = [
+    { value: 5, label: '5 minutos antes' },
+    { value: 10, label: '10 minutos antes' },
+    { value: 15, label: '15 minutos antes' },
+    { value: 30, label: '30 minutos antes' },
+    { value: 60, label: '60 minutos antes' }
   ];
 
   useEffect(() => {
@@ -97,26 +58,22 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
     }));
   };
 
-  const handleConfiguracionChange = (tipo, campo, valor) => {
-    setFormData(prev => ({
-      ...prev,
-      configuraciones: {
-        ...prev.configuraciones,
-        [tipo]: {
-          ...prev.configuraciones[tipo],
-          [campo]: valor
-        }
-      }
-    }));
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validación del modo silencioso
+    if (formData.modo_silencioso_inicio && formData.modo_silencioso_fin) {
+      if (formData.modo_silencioso_inicio >= formData.modo_silencioso_fin) {
+        alert('La hora de inicio del modo silencioso debe ser anterior a la hora de fin');
+        return;
+      }
+    }
+    
     onSave(formData);
   };
 
   const testNotificacion = () => {
-    if (formData.notificacionesPush && 'Notification' in window) {
+    if ('Notification' in window) {
       Notification.requestPermission().then(permission => {
         if (permission === 'granted') {
           new Notification('¡Configuración de Prueba!', {
@@ -128,62 +85,25 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
     }
   };
 
-  const configuracionesNotificacion = [
-    {
-      key: 'citasProximas',
-      titulo: 'Citas Próximas',
-      descripcion: 'Recordatorio antes de las citas programadas',
-      icon: <Schedule />
-    },
-    {
-      key: 'citasCanceladas',
-      titulo: 'Citas Canceladas',
-      descripcion: 'Notificación cuando se cancela una cita',
-      icon: <NotificationsActive />
-    },
-    {
-      key: 'sesionesCompletadas',
-      titulo: 'Sesiones Completadas',
-      descripcion: 'Confirmación al completar sesiones',
-      icon: <Notifications />
-    },
-    {
-      key: 'documentosPendientes',
-      titulo: 'Documentos Pendientes',
-      descripcion: 'Recordatorio de documentos por completar',
-      icon: <Email />
-    },
-    {
-      key: 'pagosVencidos',
-      titulo: 'Pagos Vencidos',
-      descripcion: 'Alerta de pagos pendientes o vencidos',
-      icon: <Phone />
-    },
-    {
-      key: 'cumpleanos',
-      titulo: 'Cumpleaños',
-      descripcion: 'Recordatorio de cumpleaños de pacientes',
-      icon: <NotificationsActive />
-    }
-  ];
-
   return (
     <Card>
       <CardContent>
         <Typography variant="h6" mb={3} display="flex" alignItems="center">
           <Notifications sx={{ mr: 1 }} />
-          Configuraciones de Notificaciones
+          Configuración de Notificaciones
           <Button 
             size="small" 
+            variant="outlined"
             onClick={testNotificacion}
             sx={{ ml: 2 }}
           >
-            Probar
+            Probar Notificación
           </Button>
         </Typography>
         
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container spacing={3}>
+            
             {/* Configuración General */}
             <Grid item xs={12}>
               <Typography variant="h6" color="primary" gutterBottom>
@@ -197,9 +117,9 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={formData.notificacionesSistema}
+                    checked={formData.notificaciones_habilitadas}
                     onChange={handleChange}
-                    name="notificacionesSistema"
+                    name="notificaciones_habilitadas"
                   />
                 }
                 label="Habilitar notificaciones del sistema"
@@ -207,110 +127,92 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.notificacionesPush}
-                    onChange={handleChange}
-                    name="notificacionesPush"
-                  />
-                }
-                label="Notificaciones push del navegador"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.notificacionesEmail}
-                    onChange={handleChange}
-                    name="notificacionesEmail"
-                  />
-                }
-                label="Notificaciones por email"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.notificacionesSMS}
-                    onChange={handleChange}
-                    name="notificacionesSMS"
-                  />
-                }
-                label="Notificaciones por SMS"
-              />
-            </Grid>
-
-            {/* Horarios de Notificación */}
-            <Grid item xs={12}>
-              <Typography variant="h6" color="primary" gutterBottom>
-                <Schedule sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Horarios de Notificación
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                type="time"
-                label="Hora de Inicio"
-                name="horaInicioNotificaciones"
-                value={formData.horaInicioNotificaciones}
-                onChange={handleChange}
-                helperText="Hora desde la cual enviar notificaciones"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                type="time"
-                label="Hora de Fin"
-                name="horaFinNotificaciones"
-                value={formData.horaFinNotificaciones}
-                onChange={handleChange}
-                helperText="Hora hasta la cual enviar notificaciones"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={4}>
               <TextField
                 select
                 fullWidth
-                label="Frecuencia de Recordatorios"
-                name="frecuenciaRecordatorios"
-                value={formData.frecuenciaRecordatorios}
+                label="Tiempo de Anticipación"
+                name="tiempo_anticipacion_minutos"
+                value={formData.tiempo_anticipacion_minutos}
                 onChange={handleChange}
+                helperText="Con qué anticipación recibir las notificaciones"
+                disabled={!formData.notificaciones_habilitadas}
               >
-                {frecuenciasRecordatorio.map((freq) => (
-                  <MenuItem key={freq.value} value={freq.value}>
-                    {freq.label}
+                {tiemposAnticipacion.map((tiempo) => (
+                  <MenuItem key={tiempo.value} value={tiempo.value}>
+                    {tiempo.label}
                   </MenuItem>
                 ))}
               </TextField>
             </Grid>
 
+            {/* Tipos de Notificaciones */}
+            <Grid item xs={12}>
+              <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 2 }}>
+                <NotificationsActive sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Tipos de Notificaciones
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+            </Grid>
+
             <Grid item xs={12} md={6}>
               <FormControlLabel
                 control={
                   <Switch
-                    checked={formData.notificarFinSemanaMañana}
+                    checked={formData.notificaciones_sesion_terapia}
                     onChange={handleChange}
-                    name="notificarFinSemanaMañana"
+                    name="notificaciones_sesion_terapia"
+                    disabled={!formData.notificaciones_habilitadas}
                   />
                 }
-                label="Notificar en fines de semana y feriados"
+                label="Notificaciones de sesiones terapéuticas"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.notificaciones_clase_pedagogica}
+                    onChange={handleChange}
+                    name="notificaciones_clase_pedagogica"
+                    disabled={!formData.notificaciones_habilitadas}
+                  />
+                }
+                label="Notificaciones de clases pedagógicas"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.notificaciones_cancelaciones}
+                    onChange={handleChange}
+                    name="notificaciones_cancelaciones"
+                    disabled={!formData.notificaciones_habilitadas}
+                  />
+                }
+                label="Notificaciones de cancelaciones"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.notificaciones_reprogramaciones}
+                    onChange={handleChange}
+                    name="notificaciones_reprogramaciones"
+                    disabled={!formData.notificaciones_habilitadas}
+                  />
+                }
+                label="Notificaciones de reprogramaciones"
               />
             </Grid>
 
             {/* Configuración de Audio */}
             <Grid item xs={12}>
-              <Typography variant="h6" color="primary" gutterBottom>
+              <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 2 }}>
                 <VolumeUp sx={{ mr: 1, verticalAlign: 'middle' }} />
                 Configuración de Audio
               </Typography>
@@ -321,104 +223,87 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={formData.sonidosAlerta}
+                    checked={formData.sonido_habilitado}
                     onChange={handleChange}
-                    name="sonidosAlerta"
+                    name="sonido_habilitado"
+                    disabled={!formData.notificaciones_habilitadas}
                   />
                 }
-                label="Habilitar sonidos de alerta"
+                label="Habilitar sonidos de notificación"
+              />
+            </Grid>
+
+            {/* Modo Silencioso */}
+            <Grid item xs={12}>
+              <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 2 }}>
+                <DoNotDisturb sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Modo Silencioso
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                type="time"
+                label="Inicio del Modo Silencioso"
+                name="modo_silencioso_inicio"
+                value={formData.modo_silencioso_inicio}
+                onChange={handleChange}
+                helperText="Hora de inicio para no recibir notificaciones"
+                disabled={!formData.notificaciones_habilitadas}
+                InputLabelProps={{
+                  shrink: true,
+                }}
               />
             </Grid>
 
             <Grid item xs={12} md={6}>
               <TextField
-                select
                 fullWidth
-                label="Tipo de Sonido"
-                name="tipoSonido"
-                value={formData.tipoSonido}
+                type="time"
+                label="Fin del Modo Silencioso"
+                name="modo_silencioso_fin"
+                value={formData.modo_silencioso_fin}
                 onChange={handleChange}
-                disabled={!formData.sonidosAlerta}
-              >
-                {tiposSonido.map((tipo) => (
-                  <MenuItem key={tipo.value} value={tipo.value}>
-                    {tipo.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Typography gutterBottom>Volumen: {formData.volumenSonido}%</Typography>
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={formData.volumenSonido}
-                onChange={(e) => setFormData(prev => ({ ...prev, volumenSonido: parseInt(e.target.value) }))}
-                disabled={!formData.sonidosAlerta}
-                style={{ width: '100%' }}
+                helperText="Hora de fin del modo silencioso"
+                disabled={!formData.notificaciones_habilitadas}
+                InputLabelProps={{
+                  shrink: true,
+                }}
               />
-            </Grid>
-
-            {/* Configuraciones Específicas */}
-            <Grid item xs={12}>
-              <Typography variant="h6" color="primary" gutterBottom>
-                <NotificationsActive sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Configuraciones Específicas
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-            </Grid>
-
-            <Grid item xs={12}>
-              <List>
-                {configuracionesNotificacion.map((config) => (
-                  <ListItem key={config.key} divider>
-                    <Box sx={{ mr: 2 }}>
-                      {config.icon}
-                    </Box>
-                    <ListItemText
-                      primary={config.titulo}
-                      secondary={config.descripcion}
-                    />
-                    <ListItemSecondaryAction>
-                      <Stack direction="row" spacing={2} alignItems="center">
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              checked={formData.configuraciones[config.key]?.activo || false}
-                              onChange={(e) => handleConfiguracionChange(config.key, 'activo', e.target.checked)}
-                              size="small"
-                            />
-                          }
-                          label=""
-                        />
-                        {formData.configuraciones[config.key]?.activo && (
-                          <TextField
-                            size="small"
-                            type="number"
-                            label="Horas antes"
-                            value={formData.configuraciones[config.key]?.anticipacion || 0}
-                            onChange={(e) => handleConfiguracionChange(config.key, 'anticipacion', parseInt(e.target.value))}
-                            inputProps={{ min: 0, max: 168 }}
-                            sx={{ width: 120 }}
-                          />
-                        )}
-                      </Stack>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
-              </List>
             </Grid>
 
             {/* Información adicional */}
             <Grid item xs={12}>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                Las notificaciones push requieren permiso del navegador. 
-                Las notificaciones por email y SMS requieren configuración adicional del servidor.
+              <Box 
+                sx={{ 
+                  p: 2, 
+                  backgroundColor: 'info.light', 
+                  borderRadius: 1, 
+                  mt: 2 
+                }}
+              >
+                <Typography variant="body2" color="info.contrastText" gutterBottom>
+                  <strong>ℹ️ Información importante:</strong>
+                </Typography>
+                <Typography variant="body2" color="info.contrastText" component="ul" sx={{ mt: 1, pl: 2 }}>
+                  <li>Las notificaciones push requieren permiso del navegador</li>
+                  <li>El modo silencioso aplica solo a notificaciones de sonido</li>
+                  <li>Los recordatorios se enviarán con la anticipación configurada</li>
+                  <li>Los cambios se aplicarán inmediatamente</li>
+                </Typography>
+              </Box>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                <strong>Nota:</strong> Para recibir notificaciones push del navegador, 
+                debe permitir las notificaciones cuando el navegador se lo solicite.
               </Alert>
             </Grid>
 
+            {/* Botones de acción */}
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }} />
               <Stack direction="row" spacing={2} justifyContent="center">
@@ -429,7 +314,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                   startIcon={<Save />}
                   size="large"
                 >
-                  Guardar Configuraciones de Notificaciones
+                  Guardar Configuración de Notificaciones
                 </Button>
               </Stack>
             </Grid>

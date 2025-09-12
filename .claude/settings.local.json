@@ -41,7 +41,8 @@
       "Read(C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B/**)",
       "Read(C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B/**)",
       "Read(C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B/**)",
-      "Read(C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\src\\api\\routes/**)"
+      "Read(C:\\Users\\ASUS\\Desktop\\Proyecto\\Project B\\src\\api\\routes/**)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

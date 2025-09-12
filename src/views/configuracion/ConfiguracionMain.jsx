@@ -3,23 +3,24 @@ import {
   Box, Container, Paper, Typography, Tabs, Tab
 } from '@mui/material';
 import { 
-  Settings, Security, Notifications, Business, DataUsage
+  Settings, Security, Notifications, Business, Schedule
 } from '@mui/icons-material';
 
 // Servicios y hooks
 import useSnackbar from '../../hooks/useSnackbar.js';
 import useAuth from '../../hooks/useAuth.js';
+import ConfiguracionService from '../../services/configuracionService.js';
 
 // Componentes compartidos
 import CustomSnackbar from '../../components/shared/CustomSnackbar.jsx';
 import LoadingSpinner from '../../components/shared/LoadingSpinner.jsx';
 import ErrorBoundary from '../../components/shared/ErrorBoundary.jsx';
 
-// Componentes modulares (los crearemos)
+// Componentes modulares
 import ConfiguracionGeneral from './ConfiguracionGeneral.jsx';
-import ConfiguracionSeguridad from './ConfiguracionSeguridad.jsx';
+import ConfiguracionSesiones from './ConfiguracionSesiones.jsx';
 import ConfiguracionNotificaciones from './ConfiguracionNotificaciones.jsx';
-import ConfiguracionDatos from './ConfiguracionDatos.jsx';
+import ConfiguracionSeguridad from './ConfiguracionSeguridad.jsx';
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -44,9 +45,9 @@ const ConfiguracionMain = () => {
   const [loading, setLoading] = useState(true);
   const [configuraciones, setConfiguraciones] = useState({
     general: {},
-    seguridad: {},
+    sesiones: {},
     notificaciones: {},
-    datos: {}
+    seguridad: {}
   });
 
   // Hooks personalizados
@@ -62,12 +63,22 @@ const ConfiguracionMain = () => {
   const fetchConfiguraciones = async () => {
     try {
       setLoading(true);
-      // Aquí cargarías las configuraciones desde localStorage o API
-      const savedConfig = localStorage.getItem('sistema_configuraciones');
-      if (savedConfig) {
-        setConfiguraciones(JSON.parse(savedConfig));
+      // Obtener resumen de todas las configuraciones desde la API
+      const result = await ConfiguracionService.getResumenConfiguracion();
+      
+      if (result.success) {
+        const apiData = result.data;
+        setConfiguraciones({
+          general: ConfiguracionService.mapGeneralConfigToFrontend(apiData.general || {}),
+          sesiones: ConfiguracionService.mapSesionesConfigToFrontend(apiData.sesiones || {}),
+          notificaciones: apiData.notificaciones_usuario || {},
+          seguridad: apiData.seguridad || {}
+        });
+      } else {
+        showError(result.message || 'Error al cargar configuraciones');
       }
     } catch (error) {
+      console.error('Error al obtener configuraciones:', error);
       showError('Error al cargar configuraciones');
     } finally {
       setLoading(false);
@@ -76,15 +87,44 @@ const ConfiguracionMain = () => {
 
   const saveConfiguracion = async (categoria, nuevaConfig) => {
     try {
-      const configActualizada = {
-        ...configuraciones,
-        [categoria]: { ...configuraciones[categoria], ...nuevaConfig }
-      };
+      let result;
       
-      setConfiguraciones(configActualizada);
-      localStorage.setItem('sistema_configuraciones', JSON.stringify(configActualizada));
-      showSuccess('Configuración guardada correctamente');
+      switch (categoria) {
+        case 'general':
+          const backendGeneralData = ConfiguracionService.mapGeneralConfigToBackend(nuevaConfig);
+          result = await ConfiguracionService.updateConfiguracionGeneral(backendGeneralData);
+          break;
+          
+        case 'sesiones':
+          const backendSesionesData = ConfiguracionService.mapSesionesConfigToBackend(nuevaConfig);
+          result = await ConfiguracionService.updateConfiguracionSesiones(backendSesionesData);
+          break;
+          
+        case 'notificaciones':
+          result = await ConfiguracionService.updateConfiguracionNotificacionesUsuario(nuevaConfig);
+          break;
+          
+        case 'seguridad':
+          result = await ConfiguracionService.updateConfiguracionSeguridad(nuevaConfig);
+          break;
+          
+        default:
+          throw new Error(`Categoría de configuración no reconocida: ${categoria}`);
+      }
+      
+      if (result.success) {
+        // Actualizar estado local después de guardar exitosamente
+        const configActualizada = {
+          ...configuraciones,
+          [categoria]: { ...configuraciones[categoria], ...nuevaConfig }
+        };
+        setConfiguraciones(configActualizada);
+        showSuccess(result.message || 'Configuración guardada correctamente');
+      } else {
+        showError(result.message || 'Error al guardar configuración');
+      }
     } catch (error) {
+      console.error('Error al guardar configuración:', error);
       showError('Error al guardar configuración');
     }
   };
@@ -102,12 +142,12 @@ const ConfiguracionMain = () => {
       )
     },
     {
-      label: 'Seguridad',
-      icon: <Security />,
+      label: 'Sesiones',
+      icon: <Schedule />,
       component: (
-        <ConfiguracionSeguridad
-          configuracion={configuraciones.seguridad}
-          onSave={(config) => saveConfiguracion('seguridad', config)}
+        <ConfiguracionSesiones
+          configuracion={configuraciones.sesiones}
+          onSave={(config) => saveConfiguracion('sesiones', config)}
         />
       )
     },
@@ -122,12 +162,12 @@ const ConfiguracionMain = () => {
       )
     },
     {
-      label: 'Datos',
-      icon: <DataUsage />,
+      label: 'Seguridad',
+      icon: <Security />,
       component: (
-        <ConfiguracionDatos
-          configuracion={configuraciones.datos}
-          onSave={(config) => saveConfiguracion('datos', config)}
+        <ConfiguracionSeguridad
+          configuracion={configuraciones.seguridad}
+          onSave={(config) => saveConfiguracion('seguridad', config)}
         />
       )
     }

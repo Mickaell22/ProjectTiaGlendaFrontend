@@ -8,7 +8,7 @@ import BlankLayout from 'src/layouts/blank/BlankLayout';
 // Páginas principales
 import Login from 'src/views/authentication/auth1/Login';
 import Register from 'src/views/authentication/auth1/Register';
-import Dashboard from 'src/views/dashboard/Dashboard';
+import DashboardSimple from 'src/views/dashboard/DashboardSimple';
 import PersonaMain from 'src/views/persona/PersonaMain';
 import PacienteMain from 'src/views/paciente/PacienteMain';
  
@@ -23,6 +23,7 @@ import DocumentosPaciente from 'src/components/Pacientes/DocumentosPaciente';
 import DocumentosPersonal from 'src/components/Personal/DocumentosPersonal';
 import ConfiguracionMain from 'src/views/configuracion/ConfiguracionMain';
 import MiPerfil from 'src/views/perfil/MiPerfil';
+import { ReportesPage } from 'src/views/reportes';
 
 
 
@@ -60,70 +61,7 @@ const PedagogicoEstadisticas = () => (
   />
 );
 
-// Consultas especializadas
-const ConsultasPacientesDisponibles = () => (
-  <ComingSoon
-    title="Pacientes Disponibles"
-    description="Lista de pacientes disponibles para asignar a sesiones"
-    module="Consultas"
-    progress={50}
-  />
-);
-
-const ConsultasTerapeutasDisponibles = () => (
-  <ComingSoon
-    title="Terapeutas Disponibles"
-    description="Personal terapéutico disponible para asignación"
-    module="Consultas"
-    progress={45}
-  />
-);
-
-const ConsultasSesionesTerapeuta = () => (
-  <ComingSoon
-    title="Sesiones por Terapeuta"
-    description="Vista de sesiones agrupadas por terapeuta"
-    module="Consultas"
-    progress={40}
-  />
-);
-
-const ConsultasHistorialAsistencia = () => (
-  <ComingSoon
-    title="Historial de Asistencia"
-    description="Consulta histórica de asistencia de pacientes"
-    module="Consultas"
-    progress={35}
-  />
-);
-
-// Reportes y estadísticas
-const ReportesDashboard = () => (
-  <ComingSoon
-    title="Dashboard Ejecutivo"
-    description="Panel principal con métricas clave del centro"
-    module="Reportes"
-    progress={60}
-  />
-);
-
-const ReportesEstadisticas = () => (
-  <ComingSoon
-    title="Estadísticas Generales"
-    description="Dashboard con métricas y análisis del centro"
-    module="Reportes"
-    progress={55}
-  />
-);
-
-const ReportesPDF = () => (
-  <ComingSoon
-    title="Informes PDF"
-    description="Generación de informes en formato PDF"
-    module="Reportes"
-    progress={45}
-  />
-);
+// Los demás componentes de reportes serán implementados en futuras fases
 
 // Configuraciones del sistema
 const GestionRoles = () => (
@@ -199,7 +137,7 @@ const Router = [
     ),
     children: [
       { path: '/', element: <Navigate to={ROUTES.DASHBOARD} /> },
-      { path: ROUTES.DASHBOARD, element: <Dashboard /> },
+      { path: ROUTES.DASHBOARD, element: <DashboardSimple /> },
       { path: ROUTES.PROFILE, element: <MiPerfil /> },
       
       // Gestión de Personas
@@ -224,18 +162,11 @@ const Router = [
       // Módulo Pedagógico
       { path: `${ROUTES.PEDAGOGICO.BASE}/*`, element: <PedagogicoMain /> },
       
-      // Consultas especializadas
-      { path: '/consultas/pacientes-disponibles', element: <ConsultasPacientesDisponibles /> },
-      { path: '/consultas/terapeutas-disponibles', element: <ConsultasTerapeutasDisponibles /> },
-      { path: '/consultas/sesiones-terapeuta', element: <ConsultasSesionesTerapeuta /> },
-      { path: '/consultas/historial-asistencia', element: <ConsultasHistorialAsistencia /> },
-      
       // Reportes
-      { path: '/reportes/dashboard', element: <ReportesDashboard /> },
-      { path: '/reportes/estadisticas', element: <ReportesEstadisticas /> },
-      { path: '/reportes/pdf', element: <ReportesPDF /> },
+      { path: ROUTES.REPORTES.SISTEMA, element: <ReportesPage /> },
       
       // Configuración del sistema
+      { path: '/configuracion', element: <ConfiguracionMain /> },
       { path: '/gestion/roles', element: <GestionRoles /> },
       { path: '/configuracion/general', element: <ConfiguracionGeneral /> },
       { path: '/configuracion/sistema', element: <ConfiguracionMain /> },

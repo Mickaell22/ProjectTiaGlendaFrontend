@@ -13,7 +13,8 @@ import {
   Switch,
   FormControlLabel,
   Alert,
-  Chip
+  Chip,
+  InputAdornment
 } from '@mui/material';
 import {
   Save,
@@ -22,37 +23,34 @@ import {
   Timer,
   Visibility,
   History,
-  Warning
+  Warning,
+  Block
 } from '@mui/icons-material';
 
 const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
   const [formData, setFormData] = useState({
-    tiempoInactividad: 30, // minutos
-    complejidadPassword: {
-      minimoCaracteres: 8,
-      requiereMinusculas: true,
-      requiereMayusculas: true,
-      requiereNumeros: true,
-      requiereSimbolos: false
-    },
-    intentosMaximos: 5,
-    tiempoBloqueo: 15, // minutos
-    sesionesMultiples: false,
-    recordarSesion: 7, // días
-    logsAuditoria: true,
-    cerrarSesionInactiva: true,
-    verificacionDosPasos: false,
+    longitud_minima_password: 8,
+    requerir_mayusculas: true,
+    requerir_minusculas: true,
+    requerir_numeros: true,
+    requerir_simbolos: false,
+    tiempo_sesion_minutos: 480,
+    intentos_login_maximo: 5,
+    tiempo_bloqueo_minutos: 15,
+    habilitar_logs_auditoria: true,
+    tiempo_retencion_logs_dias: 30,
+    forzar_cambio_password_dias: 90,
     ...configuracion
   });
 
-  const tiemposInactividad = [
-    { value: 5, label: '5 minutos' },
-    { value: 15, label: '15 minutos' },
-    { value: 30, label: '30 minutos' },
+  const tiemposSesion = [
     { value: 60, label: '1 hora' },
     { value: 120, label: '2 horas' },
     { value: 240, label: '4 horas' },
-    { value: 0, label: 'Nunca cerrar automáticamente' }
+    { value: 480, label: '8 horas' },
+    { value: 720, label: '12 horas' },
+    { value: 1440, label: '24 horas' },
+    { value: 0, label: 'Sin límite' }
   ];
 
   const tiemposBloqueo = [
@@ -60,15 +58,27 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
     { value: 15, label: '15 minutos' },
     { value: 30, label: '30 minutos' },
     { value: 60, label: '1 hora' },
+    { value: 120, label: '2 horas' },
     { value: 1440, label: '24 horas' }
   ];
 
-  const tiemposRecordar = [
-    { value: 1, label: '1 día' },
+  const tiemposRetencion = [
     { value: 7, label: '7 días' },
     { value: 15, label: '15 días' },
     { value: 30, label: '30 días' },
-    { value: 90, label: '90 días' }
+    { value: 60, label: '60 días' },
+    { value: 90, label: '90 días' },
+    { value: 180, label: '180 días' },
+    { value: 365, label: '1 año' }
+  ];
+
+  const tiemposCambioPassword = [
+    { value: 30, label: '30 días' },
+    { value: 60, label: '60 días' },
+    { value: 90, label: '90 días' },
+    { value: 180, label: '180 días' },
+    { value: 365, label: '1 año' },
+    { value: 0, label: 'Nunca forzar' }
   ];
 
   useEffect(() => {
@@ -77,155 +87,92 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    const processedValue = type === 'number' ? parseInt(value, 10) || 0 : value;
+    
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
-
-  const handlePasswordComplexityChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      complejidadPassword: {
-        ...prev.complejidadPassword,
-        [field]: value
-      }
+      [name]: type === 'checkbox' ? checked : processedValue
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
     
-    // Aplicar inmediatamente el cierre automático por inactividad
-    if (formData.cerrarSesionInactiva && formData.tiempoInactividad > 0) {
-      aplicarCierreAutomatico(formData.tiempoInactividad);
+    // Validaciones
+    if (formData.longitud_minima_password < 6 || formData.longitud_minima_password > 50) {
+      alert('La longitud mínima de contraseña debe estar entre 6 y 50 caracteres');
+      return;
     }
-  };
-
-  const aplicarCierreAutomatico = (minutos) => {
-    // Guardar configuración para el hook de inactividad
-    localStorage.setItem('inactivity_timeout', minutos.toString());
     
-    // Disparar evento personalizado para que el AuthContext se entere
-    window.dispatchEvent(new CustomEvent('inactivity-config-changed', {
-      detail: { timeout: minutos }
-    }));
-  };
-
-  const getNivelSeguridad = () => {
-    let puntos = 0;
-    const { complejidadPassword } = formData;
+    if (formData.intentos_login_maximo < 1 || formData.intentos_login_maximo > 20) {
+      alert('Los intentos máximos de login deben estar entre 1 y 20');
+      return;
+    }
     
-    if (complejidadPassword.minimoCaracteres >= 8) puntos += 1;
-    if (complejidadPassword.requiereMayusculas) puntos += 1;
-    if (complejidadPassword.requiereNumeros) puntos += 1;
-    if (complejidadPassword.requiereSimbolos) puntos += 1;
-    if (formData.tiempoInactividad > 0 && formData.tiempoInactividad <= 60) puntos += 1;
-    if (formData.intentosMaximos <= 5) puntos += 1;
-    if (formData.logsAuditoria) puntos += 1;
-    if (formData.verificacionDosPasos) puntos += 2;
-
-    if (puntos <= 3) return { nivel: 'Bajo', color: 'error' };
-    if (puntos <= 6) return { nivel: 'Medio', color: 'warning' };
-    return { nivel: 'Alto', color: 'success' };
+    if (formData.tiempo_sesion_minutos > 0 && formData.tiempo_sesion_minutos < 30) {
+      alert('El tiempo de sesión debe ser de al menos 30 minutos o 0 para sin límite');
+      return;
+    }
+    
+    onSave(formData);
   };
 
-  const nivelSeguridad = getNivelSeguridad();
+  const getPasswordStrength = () => {
+    let strength = 0;
+    let requirements = [];
+    
+    if (formData.longitud_minima_password >= 8) {
+      strength += 20;
+      requirements.push('8+ caracteres');
+    }
+    
+    if (formData.requerir_minusculas) {
+      strength += 15;
+      requirements.push('minúsculas');
+    }
+    
+    if (formData.requerir_mayusculas) {
+      strength += 15;
+      requirements.push('mayúsculas');
+    }
+    
+    if (formData.requerir_numeros) {
+      strength += 25;
+      requirements.push('números');
+    }
+    
+    if (formData.requerir_simbolos) {
+      strength += 25;
+      requirements.push('símbolos');
+    }
+    
+    return { strength, requirements };
+  };
+
+  const passwordStrength = getPasswordStrength();
 
   return (
     <Card>
       <CardContent>
         <Typography variant="h6" mb={3} display="flex" alignItems="center">
           <Security sx={{ mr: 1 }} />
-          Configuraciones de Seguridad
+          Configuración de Seguridad
           <Chip 
-            label={`Nivel: ${nivelSeguridad.nivel}`}
-            color={nivelSeguridad.color}
-            size="small"
-            sx={{ ml: 2 }}
+            label="Solo Administradores" 
+            color="warning" 
+            size="small" 
+            sx={{ ml: 2 }} 
           />
         </Typography>
         
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            {/* Configuración de Sesión */}
-            <Grid item xs={12}>
-              <Typography variant="h6" color="primary" gutterBottom>
-                <Timer sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Configuración de Sesión
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.cerrarSesionInactiva}
-                    onChange={handleChange}
-                    name="cerrarSesionInactiva"
-                  />
-                }
-                label="Cerrar sesión automáticamente por inactividad"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                select
-                fullWidth
-                label="Tiempo de Inactividad"
-                name="tiempoInactividad"
-                value={formData.tiempoInactividad}
-                onChange={handleChange}
-                disabled={!formData.cerrarSesionInactiva}
-                helperText="Tiempo sin actividad antes de cerrar sesión automáticamente"
-              >
-                {tiemposInactividad.map((tiempo) => (
-                  <MenuItem key={tiempo.value} value={tiempo.value}>
-                    {tiempo.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <TextField
-                select
-                fullWidth
-                label="Recordar Sesión"
-                name="recordarSesion"
-                value={formData.recordarSesion}
-                onChange={handleChange}
-                helperText="Duración de 'Recordarme' al iniciar sesión"
-              >
-                {tiemposRecordar.map((tiempo) => (
-                  <MenuItem key={tiempo.value} value={tiempo.value}>
-                    {tiempo.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.sesionesMultiples}
-                    onChange={handleChange}
-                    name="sesionesMultiples"
-                  />
-                }
-                label="Permitir múltiples sesiones por usuario"
-              />
-            </Grid>
-
-            {/* Configuración de Contraseñas */}
+            
+            {/* Políticas de Contraseñas */}
             <Grid item xs={12}>
               <Typography variant="h6" color="primary" gutterBottom>
                 <Lock sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Política de Contraseñas
+                Políticas de Contraseñas
               </Typography>
               <Divider sx={{ mb: 3 }} />
             </Grid>
@@ -234,10 +181,89 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
               <TextField
                 fullWidth
                 type="number"
-                label="Mínimo de Caracteres"
-                value={formData.complejidadPassword.minimoCaracteres}
-                onChange={(e) => handlePasswordComplexityChange('minimoCaracteres', parseInt(e.target.value))}
-                inputProps={{ min: 4, max: 20 }}
+                label="Longitud Mínima"
+                name="longitud_minima_password"
+                value={formData.longitud_minima_password}
+                onChange={handleChange}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">caracteres</InputAdornment>,
+                }}
+                helperText="Número mínimo de caracteres para contraseñas"
+                inputProps={{ min: 6, max: 50 }}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Box 
+                sx={{ 
+                  p: 2, 
+                  border: 1, 
+                  borderColor: 'divider', 
+                  borderRadius: 1,
+                  backgroundColor: passwordStrength.strength >= 80 ? 'success.light' : 
+                                   passwordStrength.strength >= 60 ? 'warning.light' : 'error.light'
+                }}
+              >
+                <Typography variant="body2" gutterBottom>
+                  Fortaleza: {passwordStrength.strength}% 
+                  {passwordStrength.strength >= 80 ? ' (Fuerte)' : 
+                   passwordStrength.strength >= 60 ? ' (Media)' : ' (Débil)'}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Requiere: {passwordStrength.requirements.join(', ')}
+                </Typography>
+              </Box>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.requerir_minusculas}
+                    onChange={handleChange}
+                    name="requerir_minusculas"
+                  />
+                }
+                label="Requerir letras minúsculas (a-z)"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.requerir_mayusculas}
+                    onChange={handleChange}
+                    name="requerir_mayusculas"
+                  />
+                }
+                label="Requerir letras mayúsculas (A-Z)"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.requerir_numeros}
+                    onChange={handleChange}
+                    name="requerir_numeros"
+                  />
+                }
+                label="Requerir números (0-9)"
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.requerir_simbolos}
+                    onChange={handleChange}
+                    name="requerir_simbolos"
+                  />
+                }
+                label="Requerir símbolos (!@#$%^&*)"
               />
             </Grid>
 
@@ -245,65 +271,66 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
               <TextField
                 select
                 fullWidth
-                label="Intentos Máximos de Login"
-                name="intentosMaximos"
-                value={formData.intentosMaximos}
+                label="Forzar Cambio de Contraseña"
+                name="forzar_cambio_password_dias"
+                value={formData.forzar_cambio_password_dias}
                 onChange={handleChange}
-                helperText="Intentos antes de bloquear la cuenta"
+                helperText="Cada cuánto tiempo forzar cambio de contraseña"
               >
-                {[3, 5, 7, 10].map((num) => (
-                  <MenuItem key={num} value={num}>
-                    {num} intentos
+                {tiemposCambioPassword.map((tiempo) => (
+                  <MenuItem key={tiempo.value} value={tiempo.value}>
+                    {tiempo.label}
                   </MenuItem>
                 ))}
               </TextField>
             </Grid>
 
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.complejidadPassword.requiereMayusculas}
-                    onChange={(e) => handlePasswordComplexityChange('requiereMayusculas', e.target.checked)}
-                  />
-                }
-                label="Requiere letras mayúsculas (A-Z)"
-              />
+            {/* Control de Sesiones */}
+            <Grid item xs={12}>
+              <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 3 }}>
+                <Timer sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Control de Sesiones
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.complejidadPassword.requiereMinusculas}
-                    onChange={(e) => handlePasswordComplexityChange('requiereMinusculas', e.target.checked)}
-                  />
-                }
-                label="Requiere letras minúsculas (a-z)"
-              />
+              <TextField
+                select
+                fullWidth
+                label="Tiempo de Sesión"
+                name="tiempo_sesion_minutos"
+                value={formData.tiempo_sesion_minutos}
+                onChange={handleChange}
+                helperText="Tiempo máximo de inactividad antes de cerrar sesión"
+              >
+                {tiemposSesion.map((tiempo) => (
+                  <MenuItem key={tiempo.value} value={tiempo.value}>
+                    {tiempo.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {/* Protección de Acceso */}
+            <Grid item xs={12}>
+              <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 3 }}>
+                <Block sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Protección de Acceso
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.complejidadPassword.requiereNumeros}
-                    onChange={(e) => handlePasswordComplexityChange('requiereNumeros', e.target.checked)}
-                  />
-                }
-                label="Requiere números (0-9)"
-              />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.complejidadPassword.requiereSimbolos}
-                    onChange={(e) => handlePasswordComplexityChange('requiereSimbolos', e.target.checked)}
-                  />
-                }
-                label="Requiere símbolos (!@#$%)"
+              <TextField
+                fullWidth
+                type="number"
+                label="Intentos Máximos de Login"
+                name="intentos_login_maximo"
+                value={formData.intentos_login_maximo}
+                onChange={handleChange}
+                helperText="Intentos fallidos antes de bloquear la cuenta"
+                inputProps={{ min: 1, max: 20 }}
               />
             </Grid>
 
@@ -312,10 +339,10 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
                 select
                 fullWidth
                 label="Tiempo de Bloqueo"
-                name="tiempoBloqueo"
-                value={formData.tiempoBloqueo}
+                name="tiempo_bloqueo_minutos"
+                value={formData.tiempo_bloqueo_minutos}
                 onChange={handleChange}
-                helperText="Duración del bloqueo por intentos fallidos"
+                helperText="Duración del bloqueo tras superar intentos máximos"
               >
                 {tiemposBloqueo.map((tiempo) => (
                   <MenuItem key={tiempo.value} value={tiempo.value}>
@@ -325,11 +352,11 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
               </TextField>
             </Grid>
 
-            {/* Configuración de Auditoría */}
+            {/* Auditoría y Logs */}
             <Grid item xs={12}>
-              <Typography variant="h6" color="primary" gutterBottom>
+              <Typography variant="h6" color="primary" gutterBottom sx={{ mt: 3 }}>
                 <History sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Auditoría y Monitoreo
+                Auditoría y Logs
               </Typography>
               <Divider sx={{ mb: 3 }} />
             </Grid>
@@ -338,9 +365,9 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={formData.logsAuditoria}
+                    checked={formData.habilitar_logs_auditoria}
                     onChange={handleChange}
-                    name="logsAuditoria"
+                    name="habilitar_logs_auditoria"
                   />
                 }
                 label="Habilitar logs de auditoría"
@@ -348,35 +375,56 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.verificacionDosPasos}
-                    onChange={handleChange}
-                    name="verificacionDosPasos"
-                  />
-                }
-                label="Verificación en dos pasos (2FA)"
-              />
+              <TextField
+                select
+                fullWidth
+                label="Tiempo de Retención de Logs"
+                name="tiempo_retencion_logs_dias"
+                value={formData.tiempo_retencion_logs_dias}
+                onChange={handleChange}
+                helperText="Cuánto tiempo mantener los logs de auditoría"
+                disabled={!formData.habilitar_logs_auditoria}
+              >
+                {tiemposRetencion.map((tiempo) => (
+                  <MenuItem key={tiempo.value} value={tiempo.value}>
+                    {tiempo.label}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
 
-            {/* Alerta de Seguridad */}
+            {/* Información de Seguridad */}
             <Grid item xs={12}>
-              <Alert 
-                severity={nivelSeguridad.color} 
-                icon={<Security />}
-                sx={{ mb: 2 }}
-              >
-                <Typography variant="body2">
-                  <strong>Nivel de Seguridad: {nivelSeguridad.nivel}</strong>
-                  <br />
-                  {nivelSeguridad.nivel === 'Bajo' && 'Se recomienda aumentar los requisitos de seguridad.'}
-                  {nivelSeguridad.nivel === 'Medio' && 'Configuración de seguridad aceptable.'}
-                  {nivelSeguridad.nivel === 'Alto' && '¡Excelente configuración de seguridad!'}
-                </Typography>
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                <strong>⚠️ Advertencia:</strong> Los cambios en la configuración de seguridad 
+                afectan inmediatamente a todos los usuarios del sistema. Las sesiones activas 
+                podrían cerrarse automáticamente según la nueva configuración.
               </Alert>
             </Grid>
 
+            <Grid item xs={12}>
+              <Box 
+                sx={{ 
+                  p: 2, 
+                  backgroundColor: 'info.light', 
+                  borderRadius: 1, 
+                  mt: 2 
+                }}
+              >
+                <Typography variant="body2" color="info.contrastText" gutterBottom>
+                  <strong>🔒 Recomendaciones de Seguridad:</strong>
+                </Typography>
+                <Typography variant="body2" color="info.contrastText" component="ul" sx={{ mt: 1, pl: 2 }}>
+                  <li>Use al menos 8 caracteres con mayúsculas, minúsculas y números</li>
+                  <li>Limite los intentos de login a 5 o menos</li>
+                  <li>Configure sesiones de máximo 8 horas para mayor seguridad</li>
+                  <li>Mantenga habilitados los logs de auditoría</li>
+                  <li>Revise regularmente los logs de acceso</li>
+                </Typography>
+              </Box>
+            </Grid>
+
+            {/* Botones de acción */}
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }} />
               <Stack direction="row" spacing={2} justifyContent="center">
@@ -387,7 +435,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
                   startIcon={<Save />}
                   size="large"
                 >
-                  Guardar Configuraciones de Seguridad
+                  Guardar Configuración de Seguridad
                 </Button>
               </Stack>
             </Grid>

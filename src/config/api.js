@@ -174,6 +174,11 @@ export const API_ENDPOINTS = {
     RESUMEN_PERSONAL: '/api/dashboard/resumen-personal',
     RENDIMIENTO_SEMANAL: '/api/dashboard/rendimiento-semanal',
     METRICAS_ASISTENCIA: '/api/dashboard/metricas-asistencia',
+    // Role-based dashboard endpoints - Phase E1
+    MIS_SESIONES_HOY: '/api/dashboard/mis-sesiones-hoy',
+    MIS_CLASES_HOY: '/api/dashboard/mis-clases-hoy',
+    MIS_PACIENTES: '/api/dashboard/mis-pacientes',
+    MIS_ESTUDIANTES: '/api/dashboard/mis-estudiantes',
   },
 
   // Sistema

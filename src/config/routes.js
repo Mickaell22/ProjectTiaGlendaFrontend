@@ -66,9 +66,11 @@ export const ROUTES = {
 
   // Reportes y estadísticas
   REPORTES: {
+    BASE: '/reportes',
     DASHBOARD: '/reportes/dashboard',
     ESTADISTICAS: '/reportes/estadisticas',
     PDF: '/reportes/pdf',
+    SISTEMA: '/reportes/sistema',
   },
 
   // Configuración del sistema

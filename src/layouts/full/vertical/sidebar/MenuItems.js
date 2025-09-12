@@ -137,65 +137,13 @@ const Menuitems = [
 
   {
     navlabel: true,
-    subheader: 'Consultas y Reportes',
+    subheader: 'Reportes',
   },
   {
     id: uniqueId(),
-    title: 'Consultas Especializadas',
-    icon: PersonSearch,
-    href: '/consultas',
-    children: [
-      {
-        id: uniqueId(),
-        title: 'Pacientes Disponibles',
-        icon: Groups,
-        href: ROUTES.CONSULTAS.PACIENTES_DISPONIBLES,
-      },
-      {
-        id: uniqueId(),
-        title: 'Terapeutas Disponibles',
-        icon: Work,
-        href: ROUTES.CONSULTAS.TERAPEUTAS_DISPONIBLES,
-      },
-      {
-        id: uniqueId(),
-        title: 'Sesiones por Terapeuta',
-        icon: Person,
-        href: ROUTES.CONSULTAS.SESIONES_TERAPEUTA,
-      },
-      {
-        id: uniqueId(),
-        title: 'Historial de Asistencia',
-        icon: DateRange,
-        href: ROUTES.CONSULTAS.HISTORIAL_ASISTENCIA,
-      },
-    ],
-  },
-  {
-    id: uniqueId(),
-    title: 'Reportes y Estadísticas',
-    icon: BarChart,
-    href: '/reportes',
-    children: [
-      {
-        id: uniqueId(),
-        title: 'Dashboard Ejecutivo',
-        icon: Dashboard,
-        href: ROUTES.REPORTES.DASHBOARD,
-      },
-      {
-        id: uniqueId(),
-        title: 'Estadísticas Generales',
-        icon: TrendingUp,
-        href: ROUTES.REPORTES.ESTADISTICAS,
-      },
-      {
-        id: uniqueId(),
-        title: 'Informes PDF',
-        icon: PictureAsPdf,
-        href: ROUTES.REPORTES.PDF,
-      },
-    ],
+    title: 'Sistema de Reportes',
+    icon: Assessment,
+    href: ROUTES.REPORTES.SISTEMA,
   },
 
   {
@@ -204,29 +152,9 @@ const Menuitems = [
   },
   {
     id: uniqueId(),
-    title: 'Configuraciones',
+    title: 'Configuraciones del Sistema',
     icon: AdminPanelSettings,
     href: '/configuracion',
-    children: [
-      {
-        id: uniqueId(),
-        title: 'Gestión de Roles',
-        icon: Security,
-        href: ROUTES.GESTION.ROLES,
-      },
-      {
-        id: uniqueId(),
-        title: 'Configuración General',
-        icon: Business,
-        href: ROUTES.CONFIGURACION.GENERAL,
-      },
-      {
-        id: uniqueId(),
-        title: 'Configuraciones del Sistema',
-        icon: AdminPanelSettings,
-        href: ROUTES.CONFIGURACION.SISTEMA,
-      },
-    ],
   },
 
   {
