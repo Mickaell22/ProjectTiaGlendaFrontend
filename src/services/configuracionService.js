@@ -45,7 +45,13 @@ class ConfiguracionService {
    */
   static async updateConfiguracionGeneral(configuracion) {
     try {
-      const response = await ApiService.put(ENDPOINTS.GENERAL, configuracion);
+      console.log('DEBUG - Datos del frontend antes del mapeo:', configuracion);
+      
+      // Mapear datos del frontend al formato del backend
+      const backendData = ConfiguracionService.mapGeneralConfigToBackend(configuracion);
+      console.log('DEBUG - Datos enviados al backend:', backendData);
+      
+      const response = await ApiService.put(ENDPOINTS.GENERAL, backendData);
       return {
         success: true,
         message: response.data.message
@@ -90,7 +96,11 @@ class ConfiguracionService {
    */
   static async updateConfiguracionSesiones(configuracion) {
     try {
-      const response = await ApiService.put(ENDPOINTS.SESIONES, configuracion);
+      // Mapear datos del frontend al formato del backend
+      const backendData = ConfiguracionService.mapSesionesConfigToBackend(configuracion);
+      console.log('DEBUG - Datos de sesiones enviados al backend:', backendData);
+      
+      const response = await ApiService.put(ENDPOINTS.SESIONES, backendData);
       return {
         success: true,
         message: response.data.message
@@ -337,7 +347,6 @@ class ConfiguracionService {
       direccion: backendData.direccion || '',
       telefono: backendData.telefono || '',
       email: backendData.email || '',
-      logoUrl: backendData.logo_url || '',
       horarioInicio: backendData.horario_inicio || '',
       horarioFin: backendData.horario_fin || '',
       zonaHoraria: backendData.zona_horaria || 'America/Guayaquil',
@@ -358,7 +367,7 @@ class ConfiguracionService {
       direccion: frontendData.direccion,
       telefono: frontendData.telefono,
       email: frontendData.email,
-      logo_url: frontendData.logoUrl,
+      logo_url: null, // Simplificado - sin logo por ahora
       horario_inicio: frontendData.horarioInicio,
       horario_fin: frontendData.horarioFin,
       zona_horaria: frontendData.zonaHoraria,

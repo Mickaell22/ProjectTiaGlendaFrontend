@@ -91,13 +91,13 @@ const ConfiguracionMain = () => {
       
       switch (categoria) {
         case 'general':
-          const backendGeneralData = ConfiguracionService.mapGeneralConfigToBackend(nuevaConfig);
-          result = await ConfiguracionService.updateConfiguracionGeneral(backendGeneralData);
+          // El servicio ya hace el mapeo internamente
+          result = await ConfiguracionService.updateConfiguracionGeneral(nuevaConfig);
           break;
           
         case 'sesiones':
-          const backendSesionesData = ConfiguracionService.mapSesionesConfigToBackend(nuevaConfig);
-          result = await ConfiguracionService.updateConfiguracionSesiones(backendSesionesData);
+          // El servicio ya hace el mapeo internamente
+          result = await ConfiguracionService.updateConfiguracionSesiones(nuevaConfig);
           break;
           
         case 'notificaciones':

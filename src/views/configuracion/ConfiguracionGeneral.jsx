@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   Card,
   CardContent,
@@ -11,7 +12,8 @@ import {
   Divider,
   Box,
   Avatar,
-  IconButton
+  IconButton,
+  Chip
 } from '@mui/material';
 import {
   Save,
@@ -22,12 +24,12 @@ import {
 } from '@mui/icons-material';
 
 const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     nombreCentro: '',
     direccion: '',
     telefono: '',
     email: '',
-    logoUrl: '',
     horarioInicio: '08:00',
     horarioFin: '17:00',
     zonaHoraria: 'America/Guayaquil',
@@ -39,8 +41,6 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
     ...configuracion
   });
 
-  const [logoFile, setLogoFile] = useState(null);
-  const [logoPreview, setLogoPreview] = useState(formData.logoUrl);
 
   const formatosFecha = [
     { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY (31/12/2024)' },
@@ -79,7 +79,6 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
 
   useEffect(() => {
     setFormData(prev => ({ ...prev, ...configuracion }));
-    setLogoPreview(configuracion.logoUrl || '');
   }, [configuracion]);
 
   const handleChange = (e) => {
@@ -90,18 +89,6 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
     }));
   };
 
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setLogoFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result);
-        setFormData(prev => ({ ...prev, logoUrl: reader.result }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -111,10 +98,20 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6" mb={3} display="flex" alignItems="center">
-          <Business sx={{ mr: 1 }} />
-          Configuraciones Generales
-        </Typography>
+        <Box mb={3}>
+          <Typography variant="h6" display="flex" alignItems="center" gutterBottom>
+            <Business sx={{ mr: 1 }} />
+            Configuración del Centro
+          </Typography>
+          {user?.centro && (
+            <Chip 
+              label={`${user.centro.nombre} (${user.centro.codigo})`}
+              color="primary"
+              variant="outlined"
+              size="small"
+            />
+          )}
+        </Box>
         
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container spacing={3}>
@@ -215,43 +212,6 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
               />
             </Grid>
 
-            {/* Logo */}
-            <Grid item xs={12}>
-              <Typography variant="h6" color="primary" gutterBottom>
-                <PhotoCamera sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Logo del Centro
-              </Typography>
-              <Divider sx={{ mb: 3 }} />
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <Box display="flex" alignItems="center" gap={2}>
-                <Avatar
-                  src={logoPreview}
-                  sx={{ width: 80, height: 80 }}
-                  variant="rounded"
-                >
-                  <Business />
-                </Avatar>
-                <Box>
-                  <input
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    id="logo-upload"
-                    type="file"
-                    onChange={handleLogoChange}
-                  />
-                  <label htmlFor="logo-upload">
-                    <IconButton color="primary" aria-label="upload picture" component="span">
-                      <PhotoCamera />
-                    </IconButton>
-                  </label>
-                  <Typography variant="body2" color="text.secondary">
-                    Subir logo (recomendado: 200x200px)
-                  </Typography>
-                </Box>
-              </Box>
-            </Grid>
 
 
             {/* Configuraciones Regionales */}
