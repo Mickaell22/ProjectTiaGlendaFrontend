@@ -29,9 +29,7 @@ const PedagogicoHoy = () => {
       let response = null;
       try {
         response = await sesionPedagogicaService.getClasesHoy();
-        console.log('📅 Today\'s classes response:', response);
       } catch (classError) {
-        console.warn('Classes today endpoint failed, trying general sessions:', classError);
         // Fallback to general sessions endpoint
         response = await sesionPedagogicaService.getSesionesHoy();
       }

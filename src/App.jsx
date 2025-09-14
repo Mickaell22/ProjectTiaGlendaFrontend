@@ -5,7 +5,6 @@ import { useRoutes } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Router from './routes/Router';
 import { ThemeSettings } from './theme';
-import RTL from './layouts/full/shared/customizer/RTL';
 import { AuthProvider } from './contexts/AuthContext';
 import InactivityWrapper from './components/InactivityWrapper';
 
@@ -15,14 +14,12 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <RTL direction={theme.direction}>
-        <CssBaseline />
-        <AuthProvider>
-          <InactivityWrapper>
-            {routing}
-          </InactivityWrapper>
-        </AuthProvider>
-      </RTL>
+      <CssBaseline />
+      <AuthProvider>
+        <InactivityWrapper>
+          {routing}
+        </InactivityWrapper>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

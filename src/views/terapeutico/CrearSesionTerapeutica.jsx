@@ -76,7 +76,7 @@ const menuProps = {
   }
 };
 
-const CrearSesionTerapeutica = () => {
+const CrearSesionTerapeutica = ({ onSessionCreated }) => {
   const [pacientesDisponibles, setPacientesDisponibles] = useState([]);
   const [terapeutasDisponibles, setTerapeutasDisponibles] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
@@ -119,7 +119,6 @@ const CrearSesionTerapeutica = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      console.log('Fetching data for form...');
       
       const [pacientesRes, terapeutasRes, especialidadesRes] = await Promise.all([
         sesionTerapiaService.getPacientesDisponibles(),
@@ -127,18 +126,11 @@ const CrearSesionTerapeutica = () => {
         sesionTerapiaService.getEspecialidades()
       ]);
 
-      console.log('Raw responses:', { pacientesRes, terapeutasRes, especialidadesRes });
 
       const pacientes = pacientesRes?.data || pacientesRes || [];
       const terapeutas = terapeutasRes?.data || terapeutasRes || [];
       const especialidades = especialidadesRes?.data || especialidadesRes || [];
 
-      console.log('Processed data:', { 
-        pacientes: pacientes.length, 
-        terapeutas: terapeutas.length, 
-        especialidades: especialidades.length 
-      });
-      console.log('Terapeutas data:', terapeutas);
 
       setPacientesDisponibles(pacientes);
       setTerapeutasDisponibles(terapeutas);
@@ -250,16 +242,21 @@ const CrearSesionTerapeutica = () => {
         sessionData.paciente_id = parseInt(formData.paciente_id);
       }
 
-      console.log('Creating session with data:', sessionData);
       const response = await sesionTerapiaService.createSesion(sessionData);
-      console.log('Session creation response:', response);
 
-      setSnackbar({ 
-        open: true, 
-        message: `Sesión "${sessionData.titulo}" creada correctamente`, 
-        severity: 'success' 
+      setSnackbar({
+        open: true,
+        message: `Sesión "${sessionData.titulo}" creada correctamente`,
+        severity: 'success'
       });
       resetForm();
+
+      // Notificar al componente padre que se creó una sesión (con delay para mostrar Snackbar)
+      if (onSessionCreated) {
+        setTimeout(() => {
+          onSessionCreated();
+        }, 1500); // Delay de 1.5 segundos para que se vea el Snackbar
+      }
     } catch (err) {
       console.error('Error creating session:', err);
       console.error('Error details:', err.response?.data);

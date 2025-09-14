@@ -164,23 +164,18 @@ export class PersonaService {
 
   // Formatear fecha para input de tipo date (evita problemas de zona horaria)
   static formatDateForInput(dateString) {
-    console.log('formatDateForInput input:', dateString);
-    
     if (!dateString) {
-      console.log('formatDateForInput: dateString is empty');
       return '';
     }
     
     // Si ya está en formato YYYY-MM-DD, devolverla tal cual
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-      console.log('formatDateForInput: already in YYYY-MM-DD format');
       return dateString;
     }
     
     // Si viene del backend como timestamp (formato GMT), usar split('T')[0]
     if (dateString.includes('T')) {
       const result = dateString.split('T')[0];
-      console.log('formatDateForInput: extracted from ISO format:', result);
       return result;
     }
     
@@ -193,10 +188,8 @@ export class PersonaService {
         const month = String(date.getUTCMonth() + 1).padStart(2, '0');
         const day = String(date.getUTCDate()).padStart(2, '0');
         const result = `${year}-${month}-${day}`;
-        console.log('formatDateForInput: converted from GMT format:', result);
         return result;
       } catch (error) {
-        console.log('formatDateForInput: error converting GMT format:', error);
         return '';
       }
     }
@@ -208,10 +201,8 @@ export class PersonaService {
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
       const result = `${year}-${month}-${day}`;
-      console.log('formatDateForInput: converted from generic date:', result);
       return result;
     } catch (error) {
-      console.log('formatDateForInput: error converting date:', error);
       return '';
     }
   }

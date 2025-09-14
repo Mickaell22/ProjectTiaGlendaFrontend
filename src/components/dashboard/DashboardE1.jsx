@@ -39,12 +39,9 @@ const DashboardE1 = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('[DashboardE1] Loading data for role:', role);
-      
+
       const data = await dashboardE1Service.getRoleBasedDashboardData(role);
       setDashboardData(data);
-      
-      console.log('[DashboardE1] Data loaded successfully');
     } catch (err) {
       console.error('[DashboardE1] Error loading data:', err);
       setError(err.message || 'Error al cargar datos');

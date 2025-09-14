@@ -103,19 +103,13 @@ const TerapeuticoAsistencia = () => {
 
   const fetchAsistencias = async (cronogramaId) => {
     if (!cronogramaId) {
-      console.warn('fetchAsistencias called without cronogramaId');
       return;
     }
 
     setLoading(true);
     try {
-      console.log('🔄 Fetching asistencias for cronograma:', cronogramaId);
-      console.log('📝 Current pacientes in session:', pacientesSesion.length);
-      
       // Get REAL asistencias (not cronograma data) for the session
-      console.log('🔄 Using sesion ID for asistencias:', selectedSesion);
       const response = await sesionTerapiaService.getAsistencias(selectedSesion);
-      console.log('📥 Asistencias cronograma raw response:', response);
       
       // Extract data from response with more robust error handling
       let allAsistenciasData = [];
@@ -131,24 +125,15 @@ const TerapeuticoAsistencia = () => {
           allAsistenciasData = response;
         }
       } catch (extractError) {
-        console.warn('Error extracting asistencias data:', extractError);
         allAsistenciasData = [];
       }
-      
+
       // Filter asistencias for the specific cronograma
-      console.log('🔍 Filtering asistencias for cronograma ID:', cronogramaId);
-      console.log('📊 Total asistencias from session:', allAsistenciasData.length);
-      
       let asistenciasData = allAsistenciasData.filter(asistencia => {
-        const matchesCronograma = asistencia.cronograma_id == cronogramaId || 
+        const matchesCronograma = asistencia.cronograma_id == cronogramaId ||
                                   asistencia.id_cronograma == cronogramaId;
-        console.log(`   Asistencia ${asistencia.id}: cronograma_id=${asistencia.cronograma_id}, id_cronograma=${asistencia.id_cronograma}, matches=${matchesCronograma}`);
         return matchesCronograma;
       });
-      
-      console.log('✅ Filtered asistencias for this cronograma:', asistenciasData.length);
-      
-      console.log('📊 Extracted asistencias data count:', asistenciasData.length);
       
       // Normalize data to ensure consistent field names
       asistenciasData = asistenciasData.map(asistencia => {
@@ -163,33 +148,16 @@ const TerapeuticoAsistencia = () => {
             : (asistencia.asistio === true || asistencia.asistio === 'true' || asistencia.asistio === 1 || asistencia.asistio === '1'),
           es_placeholder: false
         };
-        
-        console.log('✅ Normalized asistencia completa:', {
-          id: normalized.id,
-          paciente_id: normalized.paciente_id,
-          paciente_nombre: normalized.paciente_nombre,
-          asistio: normalized.asistio,
-          llegada_tardanza_minutos: normalized.llegada_tardanza_minutos,
-          observaciones_terapeuta: normalized.observaciones_terapeuta,
-          progreso_observado: normalized.progreso_observado,
-          tareas_asignadas: normalized.tareas_asignadas,
-          objetivos_trabajados: normalized.objetivos_trabajados,
-          es_placeholder: normalized.es_placeholder
-        });
-        
+
         return normalized;
       });
-      
-      console.log('📋 Final normalized asistencias:', asistenciasData.length);
-      
+
       // Set the data immediately
       setAsistencias(asistenciasData);
       
       // Create placeholders if needed
       let placeholderAsistencias = [];
       if (asistenciasData.length === 0 && pacientesSesion.length > 0) {
-        console.log('📝 No asistencias found, creating placeholders for', pacientesSesion.length, 'patients');
-        
         placeholderAsistencias = pacientesSesion.map(paciente => {
           const patientId = paciente.paciente_id || paciente.id;
           const placeholder = {
@@ -204,34 +172,15 @@ const TerapeuticoAsistencia = () => {
             progreso_observado: null,
             es_placeholder: true
           };
-          
-          console.log('📋 Created placeholder for:', placeholder.paciente_nombre, 'ID:', patientId);
+
           return placeholder;
         });
-        
+
         setAsistencias(placeholderAsistencias);
-        console.log('📋 Set', placeholderAsistencias.length, 'placeholder asistencias');
       }
       
-      // Log final state before and after setting
-      const finalData = asistenciasData.length > 0 ? asistenciasData : placeholderAsistencias;
-      console.log('✅ fetchAsistencias completed successfully');
-      console.log('📊 DATOS FINALES QUE SE ESTÁN ENVIANDO AL ESTADO:', finalData.map(a => ({
-        id: a.id,
-        paciente_id: a.paciente_id || a.id_paciente,
-        paciente_nombre: a.paciente_nombre,
-        asistio: a.asistio,
-        asistio_type: typeof a.asistio,
-        es_placeholder: a.es_placeholder
-      })));
-      
     } catch (err) {
-      console.error('❌ Error fetching asistencias:', err);
-      console.error('❌ Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status
-      });
+      console.error('Error fetching asistencias:', err);
       
       const errorMessage = sesionTerapiaService.handleError(err);
       setSnackbar({ open: true, message: `Error al cargar asistencias: ${errorMessage}`, severity: 'error' });
@@ -277,9 +226,6 @@ const TerapeuticoAsistencia = () => {
   };
 
   const handleEditarAsistencia = (asistencia) => {
-    console.log('🔧 EDITANDO ASISTENCIA:', asistencia);
-    console.log('📋 Cronograma seleccionado actual:', selectedCronograma);
-    
     setFormData({
       asistio: asistencia.asistio || false,
       llegada_tardanza_minutos: asistencia.llegada_tardanza_minutos || 0,
@@ -302,9 +248,7 @@ const TerapeuticoAsistencia = () => {
         paciente_cedula: asistencia.paciente_cedula
       }
     };
-    
-    console.log('📝 Datos preparados para edición:', editData);
-    
+
     setAsistenciaDialog({
       open: true,
       data: editData,
@@ -314,11 +258,6 @@ const TerapeuticoAsistencia = () => {
 
   const handleSubmitAsistencia = async () => {
     try {
-      console.log('=== INICIO PROCESO ASISTENCIA ===');
-      console.log('📋 Dialog data completo:', JSON.stringify(asistenciaDialog.data, null, 2));
-      console.log('🔄 Es edición:', asistenciaDialog.isEdit);
-      console.log('📍 Cronograma seleccionado:', selectedCronograma);
-      
       // Extract data with robust fallbacks
       const dialogData = asistenciaDialog.data;
       const paciente = dialogData.paciente || dialogData;
@@ -334,23 +273,14 @@ const TerapeuticoAsistencia = () => {
                         dialogData.paciente_id || 
                         dialogData.id_paciente;
 
-      console.log('=== EXTRACCIÓN DE DATOS ===');
-      console.log('🆔 Paciente ID extraído:', pacienteId);
-      console.log('📅 Cronograma ID extraído:', cronograma_id);
-      console.log('🔑 Token JWT presente:', localStorage.getItem('jwt_token') ? '✅' : '❌');
-      console.log('👤 Datos del paciente:', paciente);
 
       // Validation with detailed error messages
       if (!pacienteId) {
-        console.error('❌ Error: No se pudo extraer paciente_id');
-        console.error('Datos disponibles:', { dialogData, paciente, selectedCronograma });
-        setSnackbar({ open: true, message: 'Error: No se pudo identificar el paciente. Revisa la consola para detalles.', severity: 'error' });
+        setSnackbar({ open: true, message: 'Error: No se pudo identificar el paciente.', severity: 'error' });
         return;
       }
 
       if (!cronograma_id) {
-        console.error('❌ Error: No se pudo extraer cronograma_id');
-        console.error('Datos disponibles:', { dialogData, selectedCronograma });
         setSnackbar({ open: true, message: 'Error: No se pudo identificar la sesión del cronograma. Asegúrate de tener una fecha seleccionada.', severity: 'error' });
         return;
       }
@@ -364,71 +294,40 @@ const TerapeuticoAsistencia = () => {
         objetivos_trabajados: formData.objetivos_trabajados?.trim() || null
       };
 
-      console.log('=== DATOS COMPLETOS A ENVIAR ===');
-      console.log('📋 Form Data Original:', JSON.stringify(formData, null, 2));
-      console.log('📦 Asistencia Data Procesado:', JSON.stringify(asistenciaData, null, 2));
-      console.log('🔍 Campos específicos:', {
-        observaciones_terapeuta: asistenciaData.observaciones_terapeuta,
-        progreso_observado: asistenciaData.progreso_observado,
-        tareas_asignadas: asistenciaData.tareas_asignadas,
-        objetivos_trabajados: asistenciaData.objetivos_trabajados,
-        llegada_tardanza_minutos: asistenciaData.llegada_tardanza_minutos
-      });
-
       let response;
       if (asistenciaDialog.isEdit) {
-        console.log('📝 Ejecutando UPDATE asistencia...');
         response = await sesionTerapiaService.updateAsistencia(cronograma_id, pacienteId, asistenciaData);
-        console.log('📥 Respuesta UPDATE completa:', JSON.stringify(response, null, 2));
         setSnackbar({ open: true, message: 'Asistencia actualizada correctamente', severity: 'success' });
       } else {
-        console.log('➕ Ejecutando REGISTRAR asistencia...');
         response = await sesionTerapiaService.registrarAsistencia(cronograma_id, pacienteId, asistenciaData);
-        console.log('📥 Respuesta REGISTRAR completa:', JSON.stringify(response, null, 2));
         setSnackbar({ open: true, message: 'Asistencia registrada correctamente', severity: 'success' });
       }
 
       // Cerrar diálogo ANTES de refrescar datos
       setAsistenciaDialog({ open: false, data: null, isEdit: false });
-      
-      console.log('=== POST-SUBMIT REFRESH ===');
-      console.log('Cronograma seleccionado para refresh:', selectedCronograma);
-      console.log('Sesión seleccionada para refresh:', selectedSesion);
-      
+
       // Forzar refresh completo de datos con pequeño delay para asegurar consistencia
-      console.log('🔄 Iniciando refresh de asistencias...');
       setTimeout(async () => {
         try {
           // Limpiar estado actual primero
           setLoading(true);
           setAsistencias([]);
-          
+
           // Refrescar asistencias
           await fetchAsistencias(selectedCronograma);
-          
-          // Refrescar cronogramas si es necesario 
+
+          // Refrescar cronogramas si es necesario
           if (selectedSesion) {
-            console.log('🔄 Refrescando cronogramas también...');
             await fetchCronogramas(selectedSesion);
           }
-          
-          console.log('✅ Refresh completado exitosamente');
         } catch (refreshError) {
-          console.error('❌ Error durante el refresh:', refreshError);
+          console.error('Error durante el refresh:', refreshError);
         }
       }, 500); // 500ms delay para asegurar que el backend procesó el cambio
-      
+
     } catch (error) {
-      console.error('❌ ERROR AL GUARDAR ASISTENCIA:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        url: error.config?.url,
-        method: error.config?.method,
-        data: error.config?.data
-      });
-      
+      console.error('Error al guardar asistencia:', error);
+
       const errorMessage = sesionTerapiaService.handleError(error);
       setSnackbar({ open: true, message: `Error: ${errorMessage}`, severity: 'error' });
     }
@@ -719,11 +618,6 @@ const TerapeuticoAsistencia = () => {
                             </TableCell>
                             <TableCell>
                               {(() => {
-                                // Debug básico para verificar funcionamiento
-                                if (!asistencia) {
-                                  console.log('❌ No asistencia found for patient:', pacienteId);
-                                }
-                                
                                 if (!asistencia || asistencia.es_placeholder) {
                                   return <Chip label="Sin Registro" color="default" size="small" />;
                                 }

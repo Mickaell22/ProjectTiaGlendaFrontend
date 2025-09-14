@@ -67,13 +67,10 @@ const Header = ({ onChatToggle = () => {} }) => {
 
     // Cargar datos completos del usuario desde el backend
     const loadUserData = async () => {
-      try {
-        console.log('🔍 Header: Cargando datos del usuario desde /api/me...');
-        // Primero intentar cargar desde el backend
+      try {        // Primero intentar cargar desde el backend
         const response = await ApiService.get('/api/me');
         const backendUserData = extractData(response);
         
-        console.log('📊 Header: Datos recibidos del backend:', backendUserData);
         
         if (backendUserData) {
           const userData = {
@@ -85,21 +82,15 @@ const Header = ({ onChatToggle = () => {} }) => {
             ruta_foto: backendUserData.ruta_foto
           };
           
-          console.log('👤 Header: UserData procesado:', userData);
           setUserData(userData);
           
           // Cargar foto de perfil si existe
           if (backendUserData.ruta_foto) {
-            console.log('🖼️ Header: ruta_foto encontrada:', backendUserData.ruta_foto);
             setRutaFoto(backendUserData.ruta_foto);
-          } else {
-            console.log('❌ Header: No hay ruta_foto en datos del backend, intentando servicio directo...');
-            // Intentar cargar desde el servicio de fotos
+          } else {            // Intentar cargar desde el servicio de fotos
             await loadFotoPerfil();
           }
-        } else {
-          console.log('⚠️ Header: No hay datos del backend, usando fallback local');
-          // Fallback a datos locales si el backend no responde
+        } else {          // Fallback a datos locales si el backend no responde
           await loadLocalUserData();
         }
       } catch (error) {
@@ -151,20 +142,13 @@ const Header = ({ onChatToggle = () => {} }) => {
 
     // Cargar foto de perfil desde el servicio
     const loadFotoPerfil = async () => {
-      try {
-        console.log('📸 Header: Intentando cargar foto desde servicio directo...');
-        const result = await FotoPerfilService.obtenerMiFoto();
-        console.log('📸 Header: Resultado del servicio de fotos:', result);
+      try {        const result = await FotoPerfilService.obtenerMiFoto();
         
         if (result.success && result.data?.ruta_foto) {
-          console.log('✅ Header: Foto encontrada en servicio:', result.data.ruta_foto);
           setRutaFoto(result.data.ruta_foto);
         } else if (result.success && result.data?.foto_perfil) {
-          console.log('✅ Header: Foto encontrada en servicio (foto_perfil):', result.data.foto_perfil);
           setRutaFoto(result.data.foto_perfil);
-        } else {
-          console.log('❌ Header: No se encontró foto en el servicio directo');
-          setRutaFoto(null);
+        } else {          setRutaFoto(null);
         }
       } catch (error) {
         console.error('💥 Header: Error loading profile photo:', error);
@@ -232,7 +216,6 @@ const Header = ({ onChatToggle = () => {} }) => {
     return 'U';
   };
 
-
   const AppBarStyled = styled(AppBar)(({ theme }) => ({
     boxShadow: 'none',
     background: theme.palette.background.paper,
@@ -289,7 +272,6 @@ const Header = ({ onChatToggle = () => {} }) => {
   </Box>
 </Box>
 
-
         <Box flexGrow={1} />
 
         <Stack spacing={2} direction="row" alignItems="center">
@@ -300,7 +282,6 @@ const Header = ({ onChatToggle = () => {} }) => {
   </Typography>
   <Typography variant="body1">{horaActual}</Typography>
 </Stack>
-
 
           {/* Notificaciones */}
           <IconButton

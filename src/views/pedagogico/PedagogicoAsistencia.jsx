@@ -76,7 +76,6 @@ const PedagogicoAsistencia = () => {
 
   const fetchSesiones = async () => {
     try {
-      console.log('🎓 Fetching pedagogical sessions for attendance...');
       const response = await sesionPedagogicaService.getSesiones();
       setSesiones(response.data?.data || response.data || []);
     } catch (err) {
@@ -96,10 +95,7 @@ const PedagogicoAsistencia = () => {
       setCronogramas(allCronogramas);
       setEstudiantesSesion(estudiantesRes.data?.data || estudiantesRes.data || []);
 
-      console.log('📅 Cronogramas fetched:', allCronogramas.length);
-      console.log('👥 Students fetched:', estudiantesRes.data?.data?.length || estudiantesRes.data?.length);
     } catch (err) {
-      console.error('Error fetching cronogramas and students:', err);
       const errorMessage = sesionPedagogicaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
       setCronogramas([]);
@@ -110,15 +106,12 @@ const PedagogicoAsistencia = () => {
   const fetchAsistencias = async (cronogramaId) => {
     setLoading(true);
     try {
-      console.log('📋 Fetching asistencias for cronograma:', cronogramaId);
       
       // Try to get attendance data from the backend using the correct method
       let response = null;
       try {
         response = await sesionPedagogicaService.getControlAsistencia(cronogramaId);
-        console.log('✅ Attendance response:', response);
       } catch (attendanceError) {
-        console.warn('Attendance fetch failed:', attendanceError);
         response = { data: [] };
       }
       
@@ -132,12 +125,10 @@ const PedagogicoAsistencia = () => {
         asistenciasData = response.data;
       }
       
-      console.log('📊 Final attendance data:', asistenciasData);
       setAsistencias(asistenciasData);
       
       // If no asistencias found, create placeholders for all students in the session
       if (asistenciasData.length === 0 && estudiantesSesion.length > 0) {
-        console.log('Creating attendance placeholders for students:', estudiantesSesion);
         const placeholderAsistencias = estudiantesSesion.map(estudiante => ({
           cronograma_id: cronogramaId,
           paciente_id: estudiante.paciente_id || estudiante.id,
@@ -153,7 +144,6 @@ const PedagogicoAsistencia = () => {
       }
       
     } catch (err) {
-      console.error('Error fetching asistencias:', err);
       const errorMessage = sesionPedagogicaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
       setAsistencias([]);
@@ -183,16 +173,11 @@ const PedagogicoAsistencia = () => {
   };
 
   const handleRegistrarAsistencia = (estudianteData) => {
-    console.log('📝 Register attendance called with:', estudianteData);
-    console.log('🗓️ Selected cronograma:', selectedCronograma);
-    console.log('🆔 Current cronograma ID:', currentCronogramaId);
     
     // Get the cronograma ID - prioritize selectedCronograma since it's the main state
     const cronogramaId = selectedCronograma || currentCronogramaId;
-    console.log('🎯 Final cronograma ID to use:', cronogramaId);
     
     if (!cronogramaId) {
-      console.error('❌ No cronograma ID available!');
       setSnackbar({ 
         open: true, 
         message: 'Error: No se ha seleccionado una fecha de clase. Seleccione una fecha antes de registrar asistencias.', 
@@ -250,12 +235,6 @@ const PedagogicoAsistencia = () => {
       // Extra fallback for cronograma_id
       const finalCronogramaId = cronograma_id || selectedCronograma || currentCronogramaId;
 
-      console.log('🎓 Attendance dialog data:', asistenciaDialog.data);
-      console.log('👤 Student ID:', estudianteId);
-      console.log('📅 Cronograma ID from dialog:', cronograma_id);
-      console.log('🎯 Final cronograma ID:', finalCronogramaId);
-      console.log('🗓️ Selected cronograma state:', selectedCronograma);
-      console.log('🆔 Current cronograma state:', currentCronogramaId);
 
       if (!estudianteId) {
         setSnackbar({ open: true, message: 'Error: No se pudo identificar el estudiante', severity: 'error' });
@@ -280,7 +259,6 @@ const PedagogicoAsistencia = () => {
         observaciones_evaluacion: formData.observaciones_evaluacion?.trim() || null
       };
 
-      console.log('📝 Attendance data to send:', asistenciaData);
 
       // Usar siempre updateAsistenciaClase porque usa UPSERT (maneja tanto INSERT como UPDATE)
       await sesionPedagogicaService.updateAsistenciaClase(finalCronogramaId, estudianteId, asistenciaData);
@@ -295,7 +273,6 @@ const PedagogicoAsistencia = () => {
       await fetchAsistencias(selectedCronograma);
       if (selectedSesion) await fetchCronogramas(selectedSesion);
     } catch (error) {
-      console.error('Error saving attendance:', error);
       const errorMessage = sesionPedagogicaService.handleError(error);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     }

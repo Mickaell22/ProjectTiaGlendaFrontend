@@ -210,7 +210,6 @@ const DashboardE1Main = () => {
                       size="small" 
                       sx={{ mt: 1 }}
                       onClick={() => {
-                        console.log('Redirect to profile or contact admin');
                       }}
                     >
                       Más Información

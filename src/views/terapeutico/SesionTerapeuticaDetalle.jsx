@@ -182,12 +182,6 @@ const SesionTerapeuticaDetalle = () => {
   };
 
   const handleAddPatient = async () => {
-    console.log('handleAddPatient (detail) called with:', {
-      newPatientId,
-      sessionId: id,
-      pacientesDisponibles: pacientesDisponibles.length
-    });
-    
     // Validate required data
     if (!newPatientId) {
       setSnackbar({ 
@@ -207,21 +201,16 @@ const SesionTerapeuticaDetalle = () => {
       return;
     }
     
-    // Find selected patient info for logging
+    // Find selected patient info
     const selectedPatient = pacientesDisponibles.find(p => String(p.id) === String(newPatientId));
-    console.log('Selected patient in detail:', selectedPatient);
-    
+
     try {
       const patientData = {
         paciente_id: parseInt(newPatientId),
         fecha_incorporacion: new Date().toISOString().split('T')[0]
       };
       
-      console.log('Sending patient data in detail:', patientData);
-      
       const response = await sesionTerapiaService.addPacienteToSesion(id, patientData);
-      
-      console.log('Add patient response in detail:', response);
       
       setSnackbar({ 
         open: true, 
@@ -277,9 +266,7 @@ const SesionTerapeuticaDetalle = () => {
 
   const fetchAvailablePatients = async () => {
     try {
-      console.log('Fetching available patients in session detail...');
       const response = await sesionTerapiaService.getPacientesDisponibles();
-      console.log('Available patients response in detail:', response);
       
       let pacientesData = [];
       if (response?.data) {
@@ -288,7 +275,6 @@ const SesionTerapeuticaDetalle = () => {
         pacientesData = response;
       }
       
-      console.log('Processed available patients in detail:', pacientesData);
       setPacientesDisponibles(pacientesData);
       
       if (pacientesData.length === 0) {
@@ -299,7 +285,7 @@ const SesionTerapeuticaDetalle = () => {
         });
       }
     } catch (error) {
-      console.error('Error fetching available patients in detail:', error);
+      console.error('Error fetching available patients:', error);
       setSnackbar({ 
         open: true, 
         message: 'Error al cargar pacientes disponibles: ' + (error.message || 'Error desconocido'), 

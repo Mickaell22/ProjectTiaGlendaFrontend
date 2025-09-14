@@ -34,7 +34,6 @@ const DashboardFixed = () => {
       setLoading(true);
       setError(null);
       
-      console.log('[DashboardFixed] Cargando datos reales del backend...');
       
       // Llamar directamente a los endpoints del backend que funcionan
       const [
@@ -61,14 +60,6 @@ const DashboardFixed = () => {
       const sesiones = sesionesRes.status === 'fulfilled' && sesionesRes.value?.data ? sesionesRes.value.data : [];
       const sesionesClases = sesionesClasesRes.status === 'fulfilled' && sesionesClasesRes.value?.data ? sesionesClasesRes.value.data : [];
 
-      console.log('[DashboardFixed] Datos cargados:', {
-        usuarios: Array.isArray(usuarios) ? usuarios.length : 0,
-        pacientes: Array.isArray(pacientes) ? pacientes.length : 0,
-        personal: Array.isArray(personal) ? personal.length : 0,
-        especialidades: Array.isArray(especialidades) ? especialidades.length : 0,
-        sesiones: Array.isArray(sesiones) ? sesiones.length : 0,
-        sesionesClases: Array.isArray(sesionesClases) ? sesionesClases.length : 0
-      });
 
       // Calcular estadísticas reales - SIMPLIFICADO
       const usuariosActivos = Array.isArray(usuarios) ? usuarios.filter(u => u.estado === 'activo').length : 0;
@@ -168,7 +159,6 @@ const DashboardFixed = () => {
         source: 'real_backend_data'
       };
 
-      console.log('[DashboardFixed] Estadísticas calculadas:', statsReales);
       setStats(statsReales);
 
     } catch (error) {

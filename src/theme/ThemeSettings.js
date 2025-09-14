@@ -4,7 +4,6 @@ import { DefaultColors, DarkColors } from './DefaultColors';
 
 const ThemeSettings = (customizer) => {
   const theme = createTheme({
-    direction: customizer.activeDir,
     palette: {
       mode: customizer.activeMode,
       primary: {

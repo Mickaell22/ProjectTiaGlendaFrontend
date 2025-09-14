@@ -131,7 +131,6 @@ const CrearSesionPedagogica = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      console.log('Fetching data for pedagogical form...');
       
       const [estudiantesRes, pedagogosRes, especialidadesRes] = await Promise.all([
         sesionPedagogicaService.getEstudiantesDisponibles(),
@@ -139,17 +138,11 @@ const CrearSesionPedagogica = () => {
         sesionPedagogicaService.getEspecialidades()
       ]);
 
-      console.log('Raw responses:', { estudiantesRes, pedagogosRes, especialidadesRes });
 
       const estudiantes = estudiantesRes?.data || estudiantesRes || [];
       const pedagogos = pedagogosRes?.data || pedagogosRes || [];
       const especialidades = especialidadesRes?.data || especialidadesRes || [];
 
-      console.log('Processed data:', { 
-        estudiantes: estudiantes.length, 
-        pedagogos: pedagogos.length, 
-        especialidades: especialidades.length 
-      });
 
       setEstudiantesDisponibles(estudiantes);
       setPedagogosDisponibles(pedagogos);
@@ -262,9 +255,7 @@ const CrearSesionPedagogica = () => {
         observaciones: formData.observaciones?.trim() || null
       };
 
-      console.log('Creating pedagogical session with data:', sessionData);
       const response = await sesionPedagogicaService.createSesion(sessionData);
-      console.log('Session creation response:', response);
 
       setSnackbar({ 
         open: true, 

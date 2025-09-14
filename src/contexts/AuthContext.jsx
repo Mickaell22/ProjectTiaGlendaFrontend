@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }) => {
           try {
             user = JSON.parse(userStr);
           } catch (e) {
-            console.warn('Error parsing user data:', e);
+            // Silently handle parsing error
           }
         }
         
@@ -103,8 +103,7 @@ export const AuthProvider = ({ children }) => {
         type: 'LOGIN_SUCCESS',
         payload: { token, user }
       });
-      
-      console.log('Login successful in context');
+
       return true;
     } catch (error) {
       console.error('Error during login:', error);
@@ -144,7 +143,6 @@ export const AuthProvider = ({ children }) => {
     const token = getToken();
     
     if (!token) {
-      console.log('No token found, redirecting to login');
       navigate('/auth/login');
       return false;
     }

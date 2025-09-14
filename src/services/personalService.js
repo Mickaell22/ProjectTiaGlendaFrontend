@@ -88,8 +88,6 @@ export class PersonalService {
 
   // Formatear datos para el backend
   static formatForBackend(frontendData) {
-    console.log('Formatting data:', JSON.stringify(frontendData, null, 2));
-    
     const backendData = {
       id_persona: parseInt(frontendData.persona_id),
       id_especialidad: parseInt(frontendData.id_especialidad),

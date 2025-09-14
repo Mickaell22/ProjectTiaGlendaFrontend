@@ -13,7 +13,6 @@ class SesionTerapiaService {
       const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.BASE);
       return response.data;
     } catch (error) {
-      console.error('Error fetching therapy sessions:', error);
       throw error;
     }
   }
@@ -26,7 +25,6 @@ class SesionTerapiaService {
       const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.BY_ID(id));
       return response.data;
     } catch (error) {
-      console.error(`Error fetching therapy session ${id}:`, error);
       throw error;
     }
   }
@@ -39,7 +37,6 @@ class SesionTerapiaService {
       const response = await ApiService.post(API_ENDPOINTS.SESIONES_TERAPIA.BASE, sessionData);
       return response.data;
     } catch (error) {
-      console.error('Error creating therapy session:', error);
       throw error;
     }
   }
@@ -52,7 +49,6 @@ class SesionTerapiaService {
       const response = await ApiService.put(API_ENDPOINTS.SESIONES_TERAPIA.BY_ID(id), sessionData);
       return response.data;
     } catch (error) {
-      console.error(`Error updating therapy session ${id}:`, error);
       throw error;
     }
   }
@@ -65,7 +61,6 @@ class SesionTerapiaService {
       const response = await ApiService.delete(API_ENDPOINTS.SESIONES_TERAPIA.BY_ID(id));
       return response.data;
     } catch (error) {
-      console.error(`Error deleting therapy session ${id}:`, error);
       throw error;
     }
   }
@@ -80,7 +75,6 @@ class SesionTerapiaService {
       const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId));
       return response.data;
     } catch (error) {
-      console.error(`Error fetching patients for session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -96,7 +90,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error adding patients to session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -112,7 +105,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error adding patient to session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -127,7 +119,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error removing patient ${pacienteId} from session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -142,7 +133,6 @@ class SesionTerapiaService {
       const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.CRONOGRAMA(sesionId));
       return response.data;
     } catch (error) {
-      console.error(`Error fetching schedule for session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -158,7 +148,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error generating schedule for session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -174,7 +163,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error marking session ${cronogramaId} as completed:`, error);
       throw error;
     }
   }
@@ -190,7 +178,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error rescheduling session ${cronogramaId}:`, error);
       throw error;
     }
   }
@@ -206,7 +193,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error canceling session ${cronogramaId}:`, error);
       throw error;
     }
   }
@@ -221,7 +207,6 @@ class SesionTerapiaService {
       const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.ASISTENCIAS(sesionId));
       return response.data;
     } catch (error) {
-      console.error(`Error fetching attendance for session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -244,7 +229,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error registering attendance for patient ${pacienteId} in schedule ${cronogramaId}:`, error);
       throw error;
     }
   }
@@ -260,7 +244,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error updating attendance for patient ${pacienteId} in schedule ${cronogramaId}:`, error);
       throw error;
     }
   }
@@ -275,7 +258,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching attendance for schedule ${cronogramaId}:`, error);
       throw error;
     }
   }
@@ -290,7 +272,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching attendance for patient ${pacienteId}:`, error);
       throw error;
     }
   }
@@ -305,7 +286,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching attendance control for cronograma ${cronogramaId}:`, error);
       throw error;
     }
   }
@@ -322,7 +302,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching sessions for therapist ${terapeutaId}:`, error);
       throw error;
     }
   }
@@ -335,7 +314,6 @@ class SesionTerapiaService {
       const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.HOY);
       return response.data;
     } catch (error) {
-      console.error('Error fetching today\'s therapy sessions:', error);
       throw error;
     }
   }
@@ -348,7 +326,6 @@ class SesionTerapiaService {
       const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.ESTADISTICAS);
       return response.data;
     } catch (error) {
-      console.error('Error fetching therapy sessions statistics:', error);
       throw error;
     }
   }
@@ -363,7 +340,6 @@ class SesionTerapiaService {
       );
       return response.data;
     } catch (error) {
-      console.error(`Error fetching attendance statistics for session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -376,7 +352,6 @@ class SesionTerapiaService {
       const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES_DISPONIBLES);
       return response.data;
     } catch (error) {
-      console.error('Error fetching available patients:', error);
       throw error;
     }
   }
@@ -389,7 +364,6 @@ class SesionTerapiaService {
       const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.TERAPEUTAS_DISPONIBLES);
       return response.data;
     } catch (error) {
-      console.error('Error fetching available therapists:', error);
       throw error;
     }
   }
@@ -407,12 +381,11 @@ class SesionTerapiaService {
         return response.data;
       } catch (specificError) {
         // If specific endpoint fails, try getting all specialties
-        console.warn('Therapeutic specialties endpoint not available, fetching all specialties');
+        // Therapeutic specialties endpoint not available, fetching all specialties
         const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.BASE);
         return response.data;
       }
     } catch (error) {
-      console.error('Error fetching therapeutic specialties:', error);
       throw error;
     }
   }
@@ -425,7 +398,6 @@ class SesionTerapiaService {
       const response = await ApiService.get(API_ENDPOINTS.PACIENTES.BASE);
       return response.data;
     } catch (error) {
-      console.error('Error fetching patients:', error);
       throw error;
     }
   }
@@ -438,7 +410,6 @@ class SesionTerapiaService {
       const response = await ApiService.get(API_ENDPOINTS.PERSONAL.BASE);
       return response.data;
     } catch (error) {
-      console.error('Error fetching staff:', error);
       throw error;
     }
   }

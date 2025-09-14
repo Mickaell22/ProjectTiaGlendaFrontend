@@ -106,7 +106,6 @@ const PersonalMainComponent = () => {
         CentroService.getAll()
       ]);
 
-      console.log('Personas disponibles cargadas:', personasData);
       setPersonal(personalData);
       setPersonasDisponibles(personasData);
       setEspecialidades(especialidadesData);
@@ -129,11 +128,9 @@ const PersonalMainComponent = () => {
   };
 
   const handlePersonChange = (newValue) => {
-    console.log('Person changed:', newValue);
     setSelectedPerson(newValue);
     setFormData(prev => {
       const newFormData = { ...prev, persona_id: newValue ? newValue.id : '' };
-      console.log('FormData updated:', newFormData);
       return newFormData;
     });
     if (errors.persona_id) {
@@ -156,14 +153,11 @@ const PersonalMainComponent = () => {
   };
 
   const handleSubmit = async () => {
-    console.log('FormData antes de validar:', JSON.stringify(formData, null, 2));
-    console.log('SelectedPerson:', JSON.stringify(selectedPerson, null, 2));
     
     if (!validateForm()) return;
 
     try {
       const backendData = PersonalService.formatForBackend(formData);
-      console.log('BackendData to send:', JSON.stringify(backendData, null, 2));
 
       if (editingId) {
         await PersonalService.update(editingId, backendData);
@@ -201,21 +195,8 @@ const PersonalMainComponent = () => {
 
   // Manejadores de acciones
   const handleEdit = (item) => {
-    console.log('Editing item:', JSON.stringify(item, null, 2));
     
     setFormData({
-      persona_id: item.id_persona || item.persona_id,
-      id_especialidad: item.id_especialidad || '',
-      fecha_ingreso: formatDateForInput(item.fecha_ingreso) || '',
-      fecha_salida: formatDateForInput(item.fecha_salida) || '',
-      titulo_profesional: item.titulo_profesional || '',
-      cargo: item.cargo || '',
-      tipo_contrato: item.tipo_contrato || '',
-      observaciones: item.observaciones || '',
-      id_centro: item.id_centro || ''
-    });
-    
-    console.log('FormData set to:', {
       persona_id: item.id_persona || item.persona_id,
       id_especialidad: item.id_especialidad || '',
       fecha_ingreso: formatDateForInput(item.fecha_ingreso) || '',

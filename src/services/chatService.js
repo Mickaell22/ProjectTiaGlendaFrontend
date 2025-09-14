@@ -77,10 +77,7 @@ class ChatService {
         prioridad: messageData.prioridad || 'normal',
       };
 
-      console.log('🚀 Enviando mensaje:', payload);
-      console.log('🔗 URL completa:', `${this.baseURL}/enviar`);
       const response = await apiClient.post(`${this.baseURL}/enviar`, payload);
-      console.log('✅ Respuesta del servidor:', response.data);
       
       return {
         success: true,

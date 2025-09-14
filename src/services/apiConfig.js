@@ -38,7 +38,6 @@ apiClient.interceptors.response.use(
   (error) => {
     // Manejo de errores de autenticación (sin redirección automática)
     if (error.response?.status === 401) {
-      console.warn('Error de autenticación - Token inválido o expirado');
       // No redirigir automáticamente, dejar que los componentes manejen el error
     }
     

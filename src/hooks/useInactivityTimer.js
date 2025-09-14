@@ -58,8 +58,6 @@ const useInactivityTimer = () => {
 
   // Función para hacer logout por inactividad
   const logoutDueToInactivity = useCallback(() => {
-    console.log('Cerrando sesión por inactividad');
-    
     // Mostrar notificación si es posible
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('🔒 Sesión cerrada', {
@@ -103,8 +101,6 @@ const useInactivityTimer = () => {
     timeoutRef.current = setTimeout(() => {
       logoutDueToInactivity();
     }, timeout);
-
-    console.log(`Timer de inactividad reiniciado: ${timeout / (1000 * 60)} minutos`);
   }, [getInactivityTimeout, isAuthenticated, showWarning, logoutDueToInactivity]);
 
   // Manejar actividad del usuario
@@ -177,7 +173,6 @@ const useInactivityTimer = () => {
   // Escuchar cambios en la configuración de inactividad
   useEffect(() => {
     const handleConfigChange = (event) => {
-      console.log('Configuración de inactividad actualizada:', event.detail);
       resetTimer();
     };
 

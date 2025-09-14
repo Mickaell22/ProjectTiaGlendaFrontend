@@ -179,7 +179,7 @@ export class UsuarioService {
       const rolesData = await RolService.getAll();
       return RolService.formatRolesForSelect(rolesData);
     } catch (error) {
-      console.warn('Error obteniendo roles del backend, usando roles estáticos:', error);
+      // Fallback to static roles if backend fails
       return this.getRoles();
     }
   }

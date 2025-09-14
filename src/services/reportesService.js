@@ -232,7 +232,6 @@ export const reportesService = {
    */
   async exportarPDF(exportData) {
     try {
-      console.log('Exportando PDF con datos:', exportData);
       
       const response = await ApiService.post('/api/reportes/export/pdf', exportData, {
         responseType: 'blob', // Importante para archivos binarios
@@ -243,7 +242,6 @@ export const reportesService = {
         timeout: 30000 // 30 segundos de timeout
       });
 
-      console.log('Respuesta PDF recibida:', response);
 
       // Verificar que la respuesta sea un blob
       if (!response.data || response.data.size === 0) {
@@ -259,7 +257,6 @@ export const reportesService = {
       const fechaActual = new Date().toISOString().slice(0, 10);
       const fileName = `${tipoReporte}_${fechaActual}.pdf`;
       
-      console.log(`PDF generado exitosamente: ${fileName}, tamaño: ${blob.size} bytes`);
       
       return {
         success: true,
@@ -335,7 +332,6 @@ export const reportesService = {
   async getPacientesParaSelector() {
     try {
       const response = await ApiService.get('/api/pacientes');
-      console.log('Response pacientes:', response.data);
       
       if (response.data.status === 'success' && response.data.data) {
         return {
@@ -366,7 +362,6 @@ export const reportesService = {
   async getPersonalParaSelector() {
     try {
       const response = await ApiService.get('/api/personal');
-      console.log('Response personal:', response.data);
       
       if (response.data.status === 'success' && response.data.data) {
         return {

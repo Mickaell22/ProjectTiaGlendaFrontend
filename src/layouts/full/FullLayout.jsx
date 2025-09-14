@@ -1,5 +1,5 @@
 // src/layouts/full/FullLayout.jsx
-import React, { useState } from 'react';
+import React from 'react';
 import { styled, Container, Box, useTheme } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { Outlet } from 'react-router-dom';
@@ -10,7 +10,6 @@ import Customizer from './shared/customizer/Customizer';
 // Componentes de Chat y Notificaciones
 import NotificationCenter from 'src/components/notifications/NotificationCenter';
 // import ChatContainer from 'src/components/chat/ChatContainer'; // DESACTIVADO
-import SimpleChatTest from 'src/components/chat/SimpleChatTest';
 
 const MainWrapper = styled('div')(() => ({
   display: 'flex',
@@ -31,14 +30,6 @@ const PageWrapper = styled('div')(() => ({
 const FullLayout = () => {
   const customizer = useSelector((state) => state.customizer);
   const theme = useTheme();
-  
-  // Estados para notificaciones
-  // const [chatOpen, setChatOpen] = useState(false); // DESACTIVADO
-
-  // Handler para toggle del chat - DESACTIVADO
-  // const handleChatToggle = () => {
-  //   setChatOpen(!chatOpen);
-  // };
 
   return (
     <MainWrapper className="mainwrapper">
@@ -94,11 +85,6 @@ const FullLayout = () => {
       />
       */}
       
-      {/* Componente de prueba (para debugging si es necesario) */}
-      {/* <SimpleChatTest 
-        open={false}
-        onClose={() => setChatOpen(false)}
-      /> */}
     </MainWrapper>
   );
 };

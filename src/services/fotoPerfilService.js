@@ -58,20 +58,15 @@ class FotoPerfilService {
   static async obtenerMiFoto() {
     try {
       const url = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.FOTOS_PERFIL.MI_FOTO}`;
-      console.log('📡 Fetching photo from:', url);
-      
+
       const headers = this.getAuthHeaders();
-      console.log('🔑 Request headers:', headers);
       
       const response = await fetch(url, {
         method: 'GET',
         headers: headers
       });
-      
-      console.log('💬 Response status:', response.status);
-      
+
       const data = await response.json();
-      console.log('📄 Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Error obteniendo foto de perfil');
@@ -292,19 +287,13 @@ class FotoPerfilService {
    */
   static generarUrlFoto(rutaFoto) {
     if (!rutaFoto) {
-      console.log('ℹ️ No photo path provided');
       return null;
     }
     
     // Normalizar ruta para URL (reemplazar backslashes con forward slashes)
     const rutaNormalizada = rutaFoto.replace(/\\/g, '/');
     const fullUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.FOTOS_PERFIL.ARCHIVO_FOTO(rutaNormalizada)}`;
-    
-    console.log('🖼️ Photo URL generation:');
-    console.log('  Original path:', rutaFoto);
-    console.log('  Normalized path:', rutaNormalizada);
-    console.log('  Full URL:', fullUrl);
-    
+
     return fullUrl;
   }
 

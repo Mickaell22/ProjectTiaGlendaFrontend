@@ -47,11 +47,8 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      console.log('🎓 Fetching pedagogical sessions...');
       const response = await sesionPedagogicaService.getSesiones();
-      console.log('📋 Sessions response:', response);
       let sesionesData = response.data || [];
-      console.log('📚 Sessions data count:', sesionesData.length);
       
       // Filtrar por rol: si es pedagogo, mostrar solo sus sesiones
       if (user?.rol?.nombre === 'Pedagogo' || user?.rol?.nombre === 'Educador') {
@@ -60,12 +57,10 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
           sesion.pedagogo?.id === userId || 
           sesion.id_pedagogo === userId
         );
-        console.log('🎯 Filtered sessions for pedagogo:', sesionesData.length);
       }
       
       setSesiones(sesionesData);
     } catch (err) {
-      console.error('❌ Error fetching pedagogical sessions:', err);
       const errorMessage = sesionPedagogicaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
@@ -80,7 +75,6 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
         setSnackbar({ open: true, message: 'Sesión cancelada correctamente', severity: 'info' });
         fetchData();
       } catch (error) {
-        console.error('Error deleting session:', error);
         const errorMessage = sesionPedagogicaService.handleError(error);
         setSnackbar({ open: true, message: errorMessage, severity: 'error' });
       }
@@ -111,7 +105,6 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
         });
       }
     } catch (error) {
-      console.error('Error fetching available students:', error);
       setSnackbar({ 
         open: true, 
         message: 'Error al cargar estudiantes disponibles', 
@@ -168,7 +161,6 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
       setNewEstudianteId('');
       
     } catch (error) {
-      console.error('Error adding student to session:', error);
       
       let errorMessage = 'Error al agregar estudiante a la sesión';
       

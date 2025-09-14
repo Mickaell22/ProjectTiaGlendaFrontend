@@ -12,17 +12,11 @@ class DashboardE1Service {
    * @returns {Promise} API response with sessions data
    */
   async getTodayTherapySessions() {
-    try {
-      console.log('[E1] Fetching today therapy sessions...');
-      
+    try {      
       // Try role-based endpoint first
       try {
-        const response = await ApiService.get(DASHBOARD_E1_ENDPOINTS.MIS_SESIONES_HOY);
-        console.log('[E1] Therapy sessions (role-based):', response.data?.length || 0, 'sessions');
-        return response;
-      } catch (roleError) {
-        console.log('[E1] Role-based endpoint failed, falling back to general endpoint');
-        
+        const response = await ApiService.get(DASHBOARD_E1_ENDPOINTS.MIS_SESIONES_HOY);        return response;
+      } catch (roleError) {        
         // Fallback to general sessions endpoint
         const response = await ApiService.get('/api/sesiones-terapia');
         
@@ -34,10 +28,7 @@ class DashboardE1Service {
           } catch {
             return false;
           }
-        }) || [];
-        
-        console.log('[E1] Therapy sessions (fallback):', todaySessions.length, 'sessions for today');
-        return { data: todaySessions, source: 'fallback' };
+        }) || [];        return { data: todaySessions, source: 'fallback' };
       }
     } catch (error) {
       console.error('[E1] Error fetching therapy sessions:', error);
@@ -51,17 +42,11 @@ class DashboardE1Service {
    * @returns {Promise} API response with classes data
    */
   async getTodayPedagogicalClasses() {
-    try {
-      console.log('[E1] Fetching today pedagogical classes...');
-      
+    try {      
       // Try role-based endpoint first
       try {
-        const response = await ApiService.get(DASHBOARD_E1_ENDPOINTS.MIS_CLASES_HOY);
-        console.log('[E1] Pedagogical classes (role-based):', response.data?.length || 0, 'classes');
-        return response;
-      } catch (roleError) {
-        console.log('[E1] Role-based endpoint failed, falling back to general endpoint');
-        
+        const response = await ApiService.get(DASHBOARD_E1_ENDPOINTS.MIS_CLASES_HOY);        return response;
+      } catch (roleError) {        
         // Fallback to general pedagogical sessions endpoint
         const response = await ApiService.get('/api/sesiones-pedagogicas');
         
@@ -73,10 +58,7 @@ class DashboardE1Service {
           } catch {
             return false;
           }
-        }) || [];
-        
-        console.log('[E1] Pedagogical classes (fallback):', todayClasses.length, 'classes for today');
-        return { data: todayClasses, source: 'fallback' };
+        }) || [];        return { data: todayClasses, source: 'fallback' };
       }
     } catch (error) {
       console.error('[E1] Error fetching pedagogical classes:', error);
@@ -90,21 +72,13 @@ class DashboardE1Service {
    * @returns {Promise} API response with patients data
    */
   async getAssignedPatients() {
-    try {
-      console.log('[E1] Fetching assigned patients...');
-      
+    try {      
       // Try role-based endpoint first
       try {
-        const response = await ApiService.get(DASHBOARD_E1_ENDPOINTS.MIS_PACIENTES);
-        console.log('[E1] Assigned patients (role-based):', response.data?.length || 0, 'patients');
-        return response;
-      } catch (roleError) {
-        console.log('[E1] Role-based endpoint failed, falling back to general endpoint');
-        
+        const response = await ApiService.get(DASHBOARD_E1_ENDPOINTS.MIS_PACIENTES);        return response;
+      } catch (roleError) {        
         // Fallback to general patients endpoint
-        const response = await ApiService.get('/api/pacientes');
-        console.log('[E1] Patients (fallback):', response.data?.length || 0, 'total patients');
-        return { data: response.data || [], source: 'fallback' };
+        const response = await ApiService.get('/api/pacientes');        return { data: response.data || [], source: 'fallback' };
       }
     } catch (error) {
       console.error('[E1] Error fetching assigned patients:', error);
@@ -118,21 +92,13 @@ class DashboardE1Service {
    * @returns {Promise} API response with students data
    */
   async getAssignedStudents() {
-    try {
-      console.log('[E1] Fetching assigned students...');
-      
+    try {      
       // Try role-based endpoint first
       try {
-        const response = await ApiService.get(DASHBOARD_E1_ENDPOINTS.MIS_ESTUDIANTES);
-        console.log('[E1] Assigned students (role-based):', response.data?.length || 0, 'students');
-        return response;
-      } catch (roleError) {
-        console.log('[E1] Role-based endpoint failed, falling back to general endpoint');
-        
+        const response = await ApiService.get(DASHBOARD_E1_ENDPOINTS.MIS_ESTUDIANTES);        return response;
+      } catch (roleError) {        
         // Fallback to general patients endpoint (patients can be students in pedagogical context)
-        const response = await ApiService.get('/api/pacientes');
-        console.log('[E1] Students (fallback from patients):', response.data?.length || 0, 'total students');
-        return { data: response.data || [], source: 'fallback' };
+        const response = await ApiService.get('/api/pacientes');        return { data: response.data || [], source: 'fallback' };
       }
     } catch (error) {
       console.error('[E1] Error fetching assigned students:', error);
@@ -147,88 +113,7 @@ class DashboardE1Service {
    * @returns {Promise} Organized dashboard data
    */
   async getRoleBasedDashboardData(userRole) {
-    try {
-      console.log('[E1] Fetching role-based dashboard data for role:', userRole);
-      
-      const dashboardData = {
-        role: userRole,
-        sessions: { data: [], error: null },
-        classes: { data: [], error: null },
-        patients: { data: [], error: null },
-        students: { data: [], error: null },
-        timestamp: new Date().toISOString()
-      };
-
-      // Fetch data based on user role
-      const promises = [];
-
-      // Always try to fetch sessions and classes (backend will filter by role)
-      promises.push(
-        this.getTodayTherapySessions().then(result => {
-          dashboardData.sessions = result;
-        }).catch(error => {
-          dashboardData.sessions.error = error.message;
-        })
-      );
-
-      promises.push(
-        this.getTodayPedagogicalClasses().then(result => {
-          dashboardData.classes = result;
-        }).catch(error => {
-          dashboardData.classes.error = error.message;
-        })
-      );
-
-      promises.push(
-        this.getAssignedPatients().then(result => {
-          dashboardData.patients = result;
-        }).catch(error => {
-          dashboardData.patients.error = error.message;
-        })
-      );
-
-      promises.push(
-        this.getAssignedStudents().then(result => {
-          dashboardData.students = result;
-        }).catch(error => {
-          dashboardData.students.error = error.message;
-        })
-      );
-
-      // Wait for all promises to complete
-      await Promise.all(promises);
-
-      console.log('[E1] Role-based dashboard data fetched successfully');
-      console.log('[E1] Data summary:', {
-        sessions: dashboardData.sessions.data?.length || 0,
-        classes: dashboardData.classes.data?.length || 0,
-        patients: dashboardData.patients.data?.length || 0,
-        students: dashboardData.students.data?.length || 0
-      });
-
-      return dashboardData;
-
-    } catch (error) {
-      console.error('[E1] Error fetching role-based dashboard data:', error);
-      return {
-        role: userRole,
-        sessions: { data: [], error: error.message },
-        classes: { data: [], error: error.message },
-        patients: { data: [], error: error.message },
-        students: { data: [], error: error.message },
-        timestamp: new Date().toISOString()
-      };
-    }
-  }
-
-  /**
-   * Get quick stats for admin dashboard
-   * @returns {Promise} Quick statistics
-   */
-  async getQuickStats() {
-    try {
-      console.log('[E1] Fetching quick stats for admin...');
-      const data = await this.getRoleBasedDashboardData('admin');
+    try {      const data = await this.getRoleBasedDashboardData('admin');
       
       return {
         totalSessions: data.sessions.data?.length || 0,
@@ -254,9 +139,7 @@ class DashboardE1Service {
    * @returns {Promise} Health status
    */
   async healthCheck() {
-    try {
-      console.log('[E1] Running health check...');
-      const startTime = Date.now();
+    try {      const startTime = Date.now();
       
       // Test basic connectivity
       await Promise.all([

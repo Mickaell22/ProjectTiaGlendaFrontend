@@ -134,8 +134,6 @@ class NotificationService {
         console.error('Error en polling de notificaciones:', error);
       }
     }, intervalMs);
-
-    console.log('Polling de notificaciones iniciado');
   }
 
   /**
@@ -145,7 +143,6 @@ class NotificationService {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
       this.pollingInterval = null;
-      console.log('Polling de notificaciones detenido');
     }
   }
 

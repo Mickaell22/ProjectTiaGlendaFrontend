@@ -35,16 +35,10 @@ const Dashboard = () => {
   const cargarEstadisticas = async () => {
     setLoading(true);
     try {
-      // Debug authentication state first
       const token = localStorage.getItem('jwt_token');
       const userData = localStorage.getItem('user');
-      console.log('=== DEBUG AUTH STATE ===');
-      console.log('Token present:', !!token);
-      console.log('User data:', userData ? 'Present' : 'None');
-      console.log('Auth context user:', user ? 'Present' : 'None');
       
       if (!token) {
-        console.warn('No authentication token found!');
         setStats({
           totalUsuarios: 0,
           usuariosActivos: 0,
@@ -62,8 +56,6 @@ const Dashboard = () => {
         return;
       }
       
-      console.log('Iniciando carga de estadísticas...');
-      
       // Cargar datos reales del backend de forma individual para mejor debugging
       let usuariosResponse = { data: [] };
       let pacientesResponse = { data: [] };
@@ -71,40 +63,26 @@ const Dashboard = () => {
       let especialidadesResponse = { data: [] };
       
       try {
-        console.log('Cargando usuarios...');
         usuariosResponse = await UsuarioService.getAll();
-        console.log('Usuarios response:', usuariosResponse);
-        console.log('Usuarios cargados:', usuariosResponse.data?.length || 0);
       } catch (error) {
-        console.warn('Error cargando usuarios:', error.message);
-        console.warn('Error details:', error);
         usuariosResponse = { data: [] };
       }
       
       try {
-        console.log('Cargando pacientes...');
         pacientesResponse = await PacienteService.getAll();
-        console.log('Pacientes cargados:', pacientesResponse.data?.length || 0);
       } catch (error) {
-        console.warn('Error cargando pacientes:', error.message);
         pacientesResponse = { data: [] };
       }
       
       try {
-        console.log('Cargando personal...');
         personalResponse = await PersonalService.getAll();
-        console.log('Personal cargado:', personalResponse.data?.length || 0);
       } catch (error) {
-        console.warn('Error cargando personal:', error.message);
         personalResponse = { data: [] };
       }
       
       try {
-        console.log('Cargando especialidades...');
         especialidadesResponse = await EspecialidadService.getAll();
-        console.log('Especialidades cargadas:', especialidadesResponse.data?.length || 0);
       } catch (error) {
-        console.warn('Error cargando especialidades:', error.message);
         especialidadesResponse = { data: [] };
       }
 
@@ -113,8 +91,6 @@ const Dashboard = () => {
       const pacientes = pacientesResponse.data || [];
       const personal = personalResponse.data || [];
       const especialidades = especialidadesResponse.data || [];
-      
-      console.log('Datos procesados:', { usuarios: usuarios.length, pacientes: pacientes.length, personal: personal.length, especialidades: especialidades.length });
 
       // Filtrar personal por tipo
       const especialidadesTerapeuticas = especialidades.filter(esp => 
@@ -128,8 +104,6 @@ const Dashboard = () => {
         esp.area === 'Especialidad pedagógica' ||
         esp.area?.toLowerCase().includes('pedag')
       );
-      
-      console.log('Especialidades filtradas:', { terapeuticas: especialidadesTerapeuticas.length, pedagogicas: especialidadesPedagogicas.length });
 
       const terapeutas = personal.filter(p => {
         if (p.especialidades && p.especialidades.length > 0) {
@@ -152,13 +126,9 @@ const Dashboard = () => {
         }
         return false;
       });
-      
-      console.log('Personal filtrado:', { terapeutas: terapeutas.length, pedagogos: pedagogos.length });
 
       // Usuarios activos (usuarios que estén activos)
       const usuariosActivos = usuarios.filter(u => u.activo === true || u.activo === 1 || u.estado === 'activo').length;
-      
-      console.log('Usuarios activos calculados:', usuariosActivos);
 
       // Obtener sesiones de hoy de forma simple - por ahora usar estimación
       let sesionesHoy = 0;
@@ -169,8 +139,6 @@ const Dashboard = () => {
         // Estimar basado en pacientes (cada 5 pacientes = 1 sesión promedio)
         sesionesHoy = Math.floor(pacientes.length / 5);
       }
-      
-      console.log('Sesiones hoy estimadas:', sesionesHoy);
 
       // Generar actividades y alertas basadas en datos reales
       const actividadesRecientes = generarActividadesEjemplo(personal, pacientes);
@@ -194,8 +162,7 @@ const Dashboard = () => {
         alertas,
         rendimientoSemanal
       };
-      
-      console.log('Estadísticas finales calculadas:', statsCalculadas);
+
       setStats(statsCalculadas);
     } catch (error) {
       console.error('Error loading dashboard statistics:', error);
@@ -218,7 +185,6 @@ const Dashboard = () => {
         ],
         rendimientoSemanal: [0, 0, 0, 0, 0, 0, 0]
       };
-      console.log('Usando estadísticas de error:', statsError);
       setStats(statsError);
     } finally {
       setLoading(false);

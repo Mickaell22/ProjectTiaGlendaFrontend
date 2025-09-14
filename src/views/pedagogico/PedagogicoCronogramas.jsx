@@ -63,9 +63,7 @@ const PedagogicoCronogramas = () => {
 
   const fetchSesiones = async () => {
     try {
-      console.log('🎓 Fetching pedagogical sessions for cronograma...');
       const response = await sesionPedagogicaService.getSesiones();
-      console.log('📋 Sessions response for cronograma:', response);
       setSesiones(response.data?.data || response.data || []);
     } catch (err) {
       console.error('Error fetching sessions:', err);
@@ -198,7 +196,6 @@ const PedagogicoCronogramas = () => {
       
       // Force refresh cronograma data
       if (selectedSesion) {
-        console.log('🔄 Refreshing cronograma after marking class as completed...');
         await fetchCronograma(selectedSesion);
       }
     } catch (error) {
@@ -223,7 +220,6 @@ const PedagogicoCronogramas = () => {
       
       // Force refresh cronograma data
       if (selectedSesion) {
-        console.log('🔄 Refreshing cronograma after rescheduling class...');
         await fetchCronograma(selectedSesion);
       }
     } catch (error) {
@@ -252,7 +248,6 @@ const PedagogicoCronogramas = () => {
       
       // Force refresh cronograma data
       if (selectedSesion) {
-        console.log('🔄 Refreshing cronograma after canceling class...');
         await fetchCronograma(selectedSesion);
       }
     } catch (error) {
@@ -1001,7 +996,6 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
       motivo: motivoFinal
     };
     
-    console.log('Datos de reprogramación de clase a enviar:', dataToSend);
     onConfirm(dataToSend);
   };
 

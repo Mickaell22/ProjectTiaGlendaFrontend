@@ -115,7 +115,7 @@ const NotificationItem = ({
             // Abrir chat con el usuario específico
             if (datos.id_remitente) {
               // Aquí podrías emitir un evento para abrir el chat
-              console.log('Abrir chat con usuario:', datos.id_remitente);
+              // TODO: Implementar apertura del chat
             }
             break;
           
@@ -123,19 +123,19 @@ const NotificationItem = ({
           case 'sesion':
             // Navegar a la página de citas/sesiones
             if (datos.id_sesion || datos.id_cita) {
-              console.log('Navegar a sesión/cita:', datos);
+              // TODO: Implementar navegación a sesión/cita
             }
             break;
           
           case 'usuario':
             // Navegar a gestión de usuarios
             if (datos.id_usuario) {
-              console.log('Navegar a usuario:', datos.id_usuario);
+              // TODO: Implementar navegación a usuario
             }
             break;
           
           default:
-            console.log('Notificación vista:', notification.id);
+            // Notificación marcada como vista
         }
       } catch (error) {
         console.error('Error procesando datos de notificación:', error);

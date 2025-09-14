@@ -4,7 +4,6 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   activeMode: 'light', // light | dark
   activeTheme: 'BLUE_THEME', // BLUE_THEME, GREEN_THEME, PURPLE_THEME, RED_THEME, ORANGE_THEME, TEAL_THEME
-  activeDir: 'ltr', // ltr | rtl
   sidebarCollapse: false,
   isMobileSidebar: false,
   isSidebarHover: false,
@@ -46,10 +45,6 @@ export const CustomizerSlice = createSlice({
     },
     setDarkMode: (state, action) => {
       state.activeMode = action.payload;
-      saveState(state);
-    },
-    setDir: (state, action) => {
-      state.activeDir = action.payload;
       saveState(state);
     },
     setCardShadow: (state, action) => {
@@ -100,7 +95,6 @@ export const CustomizerSlice = createSlice({
 export const {
   setTheme,
   setDarkMode,
-  setDir,
   setCardShadow,
   setBorderRadius,
   setSidebarCollapse,

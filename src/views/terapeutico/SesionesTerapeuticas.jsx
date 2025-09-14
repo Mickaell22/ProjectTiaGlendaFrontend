@@ -25,7 +25,7 @@ const purpleOutlineSX = {
   }
 };
 
-const SesionesTerapeuticas = ({ onNavigateToCreate }) => {
+const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
   const [sesiones, setSesiones] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
@@ -43,6 +43,13 @@ const SesionesTerapeuticas = ({ onNavigateToCreate }) => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Efecto para refrescar cuando se crea una nueva sesión
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      fetchData();
+    }
+  }, [refreshTrigger]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -85,16 +92,13 @@ const SesionesTerapeuticas = ({ onNavigateToCreate }) => {
   };
 
   const handleViewDetail = (item) => {
-    console.log('Opening session detail dialog:', item.id);
     // En lugar de navegar, abrir el modal de detalles
     setDetailDialog({ open: true, data: item });
   };
 
   const fetchAvailablePatients = async () => {
     try {
-      console.log('Fetching available patients...');
       const response = await sesionTerapiaService.getPacientesDisponibles();
-      console.log('Available patients response:', response);
       
       let pacientesData = [];
       if (response?.data) {
@@ -103,7 +107,6 @@ const SesionesTerapeuticas = ({ onNavigateToCreate }) => {
         pacientesData = response;
       }
       
-      console.log('Processed available patients:', pacientesData);
       setPacientesDisponibles(pacientesData);
       
       if (pacientesData.length === 0) {
@@ -130,11 +133,6 @@ const SesionesTerapeuticas = ({ onNavigateToCreate }) => {
   };
 
   const handleAddPatient = async () => {
-    console.log('handleAddPatient called with:', {
-      newPatientId,
-      sessionId: addPatientDialog.sessionId,
-      pacientesDisponibles: pacientesDisponibles.length
-    });
     
     // Validate required data
     if (!newPatientId) {
@@ -157,7 +155,6 @@ const SesionesTerapeuticas = ({ onNavigateToCreate }) => {
     
     // Find selected patient info for logging
     const selectedPatient = pacientesDisponibles.find(p => String(p.id) === String(newPatientId));
-    console.log('Selected patient:', selectedPatient);
     
     try {
       const patientData = {
@@ -165,11 +162,9 @@ const SesionesTerapeuticas = ({ onNavigateToCreate }) => {
         fecha_incorporacion: new Date().toISOString().split('T')[0]
       };
       
-      console.log('Sending patient data:', patientData);
       
       const response = await sesionTerapiaService.addPacienteToSesion(addPatientDialog.sessionId, patientData);
       
-      console.log('Add patient response:', response);
       
       setSnackbar({ 
         open: true, 

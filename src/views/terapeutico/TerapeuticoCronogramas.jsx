@@ -815,7 +815,6 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
       motivo: motivoFinal
     };
     
-    console.log('Datos de reprogramación a enviar:', dataToSend);
     onConfirm(dataToSend);
   };
 

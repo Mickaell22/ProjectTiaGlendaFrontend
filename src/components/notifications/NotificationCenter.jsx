@@ -77,7 +77,6 @@ const NotificationCenter = ({
 
     // Configurar callback para nuevas notificaciones
     notificationService.onNewNotification((newCount) => {
-      console.log(`${newCount} nuevas notificaciones recibidas`);
       // Recargar lista si el popover está abierto
       if (open) {
         loadNotifications();

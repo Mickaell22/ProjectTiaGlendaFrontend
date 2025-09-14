@@ -42,13 +42,11 @@ const FotoPerfilConAutorizacion = ({
 
       try {
         setLoading(true);
-        console.log('🖼️ Loading image with authorization:', rutaFoto);
 
         const photoUrl = FotoPerfilService.generarUrlFoto(rutaFoto);
         const token = localStorage.getItem('jwt_token');
 
         if (!token) {
-          console.log('❌ No token found for image authorization');
           setImageSrc(null);
           return;
         }
@@ -65,9 +63,7 @@ const FotoPerfilConAutorizacion = ({
           const blob = await response.blob();
           const objectURL = URL.createObjectURL(blob);
           setImageSrc(objectURL);
-          console.log('✅ Image loaded successfully via blob');
         } else {
-          console.log('❌ Image fetch failed:', response.status, response.statusText);
           setImageSrc(null);
         }
       } catch (error) {

@@ -81,7 +81,7 @@ const useNotifications = () => {
 
         return notification;
       } catch (error) {
-        console.warn('Error showing notification:', error);
+        // Silently handle notification error
       }
     }
     return null;
@@ -105,7 +105,6 @@ const useNotifications = () => {
   useEffect(() => {
     if (permission === 'default') {
       // No solicitar automáticamente, esperar a que el usuario interactúe
-      console.log('Notifications: Permission not granted yet');
     }
   }, [permission]);
 

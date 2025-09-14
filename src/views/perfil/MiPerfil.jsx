@@ -61,7 +61,6 @@ const MiPerfil = () => {
       const userData = localStorage.getItem('user');
       if (userData) {
         const parsedData = JSON.parse(userData);
-        console.log('User data from AuthContext:', parsedData);
         return parsedData;
       }
       
@@ -69,7 +68,6 @@ const MiPerfil = () => {
       const loginData = localStorage.getItem('login_data');
       if (loginData) {
         const parsedLogin = JSON.parse(loginData);
-        console.log('Login data found:', parsedLogin);
         if (parsedLogin.user) {
           return {
             id: parsedLogin.user.id,
@@ -86,7 +84,6 @@ const MiPerfil = () => {
       const fullLoginData = localStorage.getItem('full_login_data');
       if (fullLoginData) {
         const parsedFullLogin = JSON.parse(fullLoginData);
-        console.log('Full login data found:', parsedFullLogin);
         if (parsedFullLogin.data?.user) {
           const user = parsedFullLogin.data.user;
           return {
@@ -105,7 +102,6 @@ const MiPerfil = () => {
       if (token && token.split('.').length === 3) {
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
-          console.log('User data from JWT:', payload);
           return {
             id: payload.user_id || payload.id || payload.sub,
             nombre_completo: payload.username || payload.nombre || 'Usuario',
@@ -129,10 +125,8 @@ const MiPerfil = () => {
   const loadUserData = async () => {
     try {
       setLoading(true);
-      console.log('🚀 Loading user data...');
       const currentUser = getCurrentUser();
-      console.log('👤 Current user from storage:', currentUser);
-      
+
       if (currentUser) {
         // Usar datos del localStorage/JWT como base
         const enhancedUser = {
@@ -141,14 +135,12 @@ const MiPerfil = () => {
           rol_nombre: currentUser.rol || 'Usuario',
           centro_nombre: currentUser.centro_nombre || 'Centro Tía Glenda'
         };
-        
-        console.log('✅ Enhanced user data:', enhancedUser);
+
         setUserData(enhancedUser);
-        
+
         // Cargar información específica de foto de perfil
         await loadPhotoData();
       } else {
-        console.log('❌ No user data found');
         showError('No se encontraron datos de usuario');
       }
     } catch (error) {
@@ -161,22 +153,11 @@ const MiPerfil = () => {
 
   const loadPhotoData = async () => {
     try {
-      console.log('🔄 Loading photo data...');
       const resultado = await FotoPerfilService.obtenerMiFoto();
-      console.log('📡 Photo API response:', resultado);
-      
+
       if (resultado.success) {
         setPhotoData(resultado.data);
-        console.log('✅ Photo data loaded:', resultado.data);
-        
-        if (resultado.data.foto_perfil) {
-          const photoUrl = FotoPerfilService.generarUrlFoto(resultado.data.foto_perfil);
-          console.log('🖼️ Generated photo URL:', photoUrl);
-        } else {
-          console.log('ℹ️ No photo file found for user');
-        }
       } else {
-        console.log('❌ No photo data:', resultado.message);
         // Set empty photo data structure
         setPhotoData({
           foto_perfil: null,
@@ -221,17 +202,8 @@ const MiPerfil = () => {
       
       const resultado = await FotoPerfilService.subirMiFoto(selectedFile);
       
-      if (resultado.success) {
-        console.log('✅ Photo uploaded successfully:', resultado);
-        showSuccess(resultado.message);
-        setPhotoDialogOpen(false);
-        setSelectedFile(null);
-        setPreviewUrl(null);
-        // Recargar datos de foto
-        console.log('🔄 Reloading photo data after upload...');
-        await loadPhotoData();
+      if (resultado.success) {        await loadPhotoData();
       } else {
-        console.log('❌ Photo upload failed:', resultado.message);
         showError(resultado.message);
       }
     } catch (error) {

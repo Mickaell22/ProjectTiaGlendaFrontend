@@ -6,9 +6,6 @@ import {
   Typography,
   IconButton,
   Divider,
-  FormControlLabel,
-  Switch,
-  Grid,
   Fab,
   Stack,
   Button,
@@ -19,7 +16,6 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import {
   setTheme,
   setDarkMode,
-  setDir,
   toggleCustomizer,
   resetCustomizer,
 } from 'src/store/customizer/CustomizerSlice';
@@ -37,9 +33,6 @@ const Customizer = () => {
     dispatch(setDarkMode(mode));
   };
 
-  const handleDirectionChange = (direction) => {
-    dispatch(setDir(direction));
-  };
 
   const handleReset = () => {
     dispatch(resetCustomizer());
@@ -303,23 +296,6 @@ const Customizer = () => {
 
         <Divider sx={{ mb: 3 }} />
 
-        {/* Dirección del texto */}
-        <Box mb={3}>
-          <Typography variant="h6" gutterBottom>
-            Dirección del Texto
-          </Typography>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={customizer.activeDir === 'rtl'}
-                onChange={(e) => handleDirectionChange(e.target.checked ? 'rtl' : 'ltr')}
-              />
-            }
-            label="Modo RTL"
-          />
-        </Box>
-
-        <Divider sx={{ mb: 3 }} />
 
         {/* Botón reset */}
         <Box textAlign="center">

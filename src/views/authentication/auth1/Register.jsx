@@ -46,7 +46,6 @@ const Register = () => {
     onSubmit: async (values, { setSubmitting, setFieldError }) => {
       try {
         // Aquí iría la lógica de registro
-        console.log('Register attempt:', values);
         
         // Simulación de registro exitoso
         setTimeout(() => {

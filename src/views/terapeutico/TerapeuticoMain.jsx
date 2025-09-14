@@ -41,21 +41,32 @@ function a11yProps(index) {
 
 const TerapeuticoMain = () => {
   const [value, setValue] = useState(0);
+  const [refreshSesiones, setRefreshSesiones] = useState(0);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+  };
+
+  const handleSessionCreated = () => {
+    // Refrescar la lista de sesiones
+    setRefreshSesiones(prev => prev + 1);
+    // Cambiar al tab de sesiones para mostrar la nueva sesión
+    setValue(0);
   };
 
   const tabs = [
     {
       label: 'Sesiones',
       icon: <Psychology />,
-      component: <SesionesTerapeuticas onNavigateToCreate={() => setValue(1)} />
+      component: <SesionesTerapeuticas
+        onNavigateToCreate={() => setValue(1)}
+        refreshTrigger={refreshSesiones}
+      />
     },
     {
       label: 'Crear',
       icon: <Add />,
-      component: <CrearSesionTerapeutica />
+      component: <CrearSesionTerapeutica onSessionCreated={handleSessionCreated} />
     },
     {
       label: 'Cronogramas',

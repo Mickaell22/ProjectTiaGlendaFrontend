@@ -68,13 +68,11 @@ const FotoPerfilTabla = ({
 
       try {
         setLoading(true);
-        console.log('📸 Loading table image:', rutaFoto);
 
         const photoUrl = FotoPerfilService.generarUrlFoto(rutaFoto);
         const token = localStorage.getItem('jwt_token');
 
         if (!token) {
-          console.log('❌ No token for table image');
           setImageSrc(null);
           return;
         }
@@ -91,9 +89,7 @@ const FotoPerfilTabla = ({
           const blob = await response.blob();
           const objectURL = URL.createObjectURL(blob);
           setImageSrc(objectURL);
-          console.log('✅ Table image loaded');
         } else {
-          console.log('❌ Table image fetch failed:', response.status);
           setImageSrc(null);
         }
       } catch (error) {

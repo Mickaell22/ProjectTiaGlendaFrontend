@@ -42,11 +42,9 @@ class ConfiguracionService {
    */
   static async updateConfiguracionGeneral(configuracion) {
     try {
-      console.log('DEBUG - Datos del frontend antes del mapeo:', configuracion);
       
       // Mapear datos del frontend al formato del backend
       const backendData = ConfiguracionService.mapGeneralConfigToBackend(configuracion);
-      console.log('DEBUG - Datos enviados al backend:', backendData);
       
       const response = await ApiService.put(ENDPOINTS.GENERAL, backendData);
       return {

@@ -72,7 +72,6 @@ const ReportesPage = () => {
       // Verificar conexión con el servidor
       const response = await ApiService.get('/api/test');
       setEstadoConexion({ autenticado: true, servidor: true });
-      console.log('Conexión verificada:', response.data);
     } catch (error) {
       console.error('Error verificando conexión:', error);
       setEstadoConexion({ 
@@ -93,29 +92,22 @@ const ReportesPage = () => {
     setError(null);
     
     try {
-      console.log('Cargando datos iniciales...');
       
       const [pacientesRes, personalRes] = await Promise.all([
         reportesService.getPacientesParaSelector(),
         reportesService.getPersonalParaSelector()
       ]);
 
-      console.log('Resultado pacientes:', pacientesRes);
-      console.log('Resultado personal:', personalRes);
 
       if (pacientesRes.success) {
         setPacientes(pacientesRes.data);
-        console.log(`${pacientesRes.data.length} pacientes cargados`);
       } else {
-        console.warn('Error cargando pacientes:', pacientesRes.error);
         setError(`Error cargando pacientes: ${pacientesRes.error}`);
       }
 
       if (personalRes.success) {
         setPersonal(personalRes.data);
-        console.log(`${personalRes.data.length} personal cargado`);
       } else {
-        console.warn('Error cargando personal:', personalRes.error);
         setError(prev => prev ? `${prev}. Error cargando personal: ${personalRes.error}` : `Error cargando personal: ${personalRes.error}`);
       }
 
@@ -264,7 +256,6 @@ const ReportesPage = () => {
     }
 
     try {
-      console.log(`Iniciando exportación ${formato.toUpperCase()}...`);
       
       const exportData = {
         data: reporteGenerado.data,
@@ -277,7 +268,6 @@ const ReportesPage = () => {
         }
       };
 
-      console.log('Datos de exportación:', exportData);
 
       let resultado;
       if (formato === 'pdf') {
@@ -286,11 +276,9 @@ const ReportesPage = () => {
         resultado = await reportesService.exportarExcel(exportData);
       }
 
-      console.log('Resultado de exportación:', resultado);
 
       if (resultado.success) {
         reportesService.descargarArchivo(resultado.url, resultado.fileName);
-        console.log(`${formato.toUpperCase()} descargado exitosamente: ${resultado.fileName}`);
       } else {
         const errorMsg = `Error exportando a ${formato.toUpperCase()}: ${resultado.error}`;
         setError(errorMsg);

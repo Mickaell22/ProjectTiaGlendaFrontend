@@ -10,26 +10,18 @@ class SesionPedagogicaService {
    */
   async getSesiones() {
     try {
-      console.log('🔐 Making request to:', API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE);
-      console.log('🔑 JWT Token:', localStorage.getItem('jwt_token') ? 'Present' : 'Missing');
       
       // Try authenticated endpoint first
       try {
         const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE);
-        console.log('✅ Authenticated response:', response);
         return response.data;
       } catch (authError) {
-        console.log('⚠️ Auth failed, trying debug endpoint:', authError.response?.status);
         // Fallback to debug endpoint
         const debugResponse = await ApiService.get('/api/sesiones-pedagogicas-debug');
-        console.log('✅ Debug endpoint response:', debugResponse);
         return debugResponse.data;
       }
       
     } catch (error) {
-      console.error('❌ Error fetching sessions:', error);
-      console.error('🔍 Error response:', error.response);
-      console.error('📊 Error status:', error.response?.status);
       throw error;
     }
   }
@@ -52,15 +44,9 @@ class SesionPedagogicaService {
    */
   async createSesion(sessionData) {
     try {
-      console.log('SesionPedagogicaService.createSesion - Data being sent:', sessionData);
       const response = await ApiService.post(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE, sessionData);
-      console.log('SesionPedagogicaService.createSesion - Success response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error creating pedagogical session:', error);
-      console.error('Error response data:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      console.error('Full error object:', error.originalError || error);
       throw error;
     }
   }
@@ -98,24 +84,18 @@ class SesionPedagogicaService {
    */
   async getEstudiantesSesion(sesionId) {
     try {
-      console.log('🔐 Getting students for session:', sesionId);
-      console.log('🔑 JWT Token:', localStorage.getItem('jwt_token') ? 'Present' : 'Missing');
       
       // Try authenticated endpoint first
       try {
         const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.ESTUDIANTES(sesionId));
-        console.log('✅ Authenticated students response:', response.data);
         return response.data;
       } catch (authError) {
-        console.log('⚠️ Auth failed for students, trying debug endpoint:', authError.response?.status);
         // Fallback to debug endpoint
         const debugResponse = await ApiService.get(`/api/sesiones-pedagogicas/${sesionId}/estudiantes-debug`);
-        console.log('✅ Debug students response:', debugResponse.data);
         return debugResponse.data;
       }
       
     } catch (error) {
-      console.error(`❌ Error fetching students for session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -169,9 +149,6 @@ class SesionPedagogicaService {
       }
       
     } catch (error) {
-      console.error(`❌ Error fetching schedule for session ${sesionId}:`, error);
-      console.error('🔍 Error status:', error.response?.status);
-      console.error('📝 Error message:', error.response?.data?.message);
       throw error;
     }
   }
@@ -207,7 +184,6 @@ class SesionPedagogicaService {
             fecha_programada: clase.fecha_programada
           }));
         } catch (error) {
-          console.error(`Error fetching cronograma for session ${sesion.id}:`, error);
           return [];
         }
       });
@@ -245,7 +221,6 @@ class SesionPedagogicaService {
       return { data: cronogramaFiltrado };
       
     } catch (error) {
-      console.error('Error fetching sessions schedule:', error);
       throw error;
     }
   }
@@ -298,24 +273,18 @@ class SesionPedagogicaService {
    */
   async getEstudiantesDisponibles() {
     try {
-      console.log('🔐 Getting available students...');
-      console.log('🔑 JWT Token:', localStorage.getItem('jwt_token') ? 'Present' : 'Missing');
       
       // Try authenticated endpoint first
       try {
         const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.ESTUDIANTES_DISPONIBLES);
-        console.log('✅ Authenticated available students response:', response.data);
         return response.data;
       } catch (authError) {
-        console.log('⚠️ Auth failed for available students, trying debug endpoint:', authError.response?.status);
         // Fallback to debug endpoint for available patients
         const debugResponse = await ApiService.get('/api/pacientes-disponibles-debug');
-        console.log('✅ Debug available patients response:', debugResponse.data);
         return debugResponse.data;
       }
       
     } catch (error) {
-      console.error('❌ Error fetching available students:', error);
       throw error;
     }
   }
@@ -325,24 +294,18 @@ class SesionPedagogicaService {
    */
   async getPedagogosDisponibles() {
     try {
-      console.log('🔐 Getting available pedagogues...');
-      console.log('🔑 JWT Token:', localStorage.getItem('jwt_token') ? 'Present' : 'Missing');
       
       // Try authenticated endpoint first
       try {
         const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.PEDAGOGOS_DISPONIBLES);
-        console.log('✅ Authenticated pedagogues response:', response.data);
         return response.data;
       } catch (authError) {
-        console.log('⚠️ Auth failed for pedagogues, trying personal endpoint:', authError.response?.status);
         // Fallback to personal endpoint (all staff)
         const debugResponse = await ApiService.get('/api/personal');
-        console.log('✅ Personal endpoint response:', debugResponse.data);
         return debugResponse.data;
       }
       
     } catch (error) {
-      console.error('❌ Error fetching available pedagogues:', error);
       throw error;
     }
   }
@@ -360,7 +323,6 @@ class SesionPedagogicaService {
         return response.data;
       } catch {
         // If specific endpoint fails, try getting all specialties and filter
-        console.warn('Pedagogical specialties endpoint not available, fetching all specialties');
         const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.BASE);
         // Filter only pedagogical specialties
         const allData = response.data?.data || response.data || [];
@@ -545,21 +507,17 @@ class SesionPedagogicaService {
    */
   async marcarClaseRealizada(claseId, observaciones = null) {
     try {
-      console.log('🎯 Marking class as completed:', claseId);
       
       // Try authenticated endpoint first
       try {
         const response = await ApiService.put(API_ENDPOINTS.SESIONES_PEDAGOGICAS.MARCAR_REALIZADA(claseId));
-        console.log('✅ Authenticated - Class marked as completed:', response.data);
         return response.data;
       } catch (authError) {
         const status = authError.response?.status;
-        console.log(`⚠️ Primary endpoint failed (${status}), trying working debug endpoint`);
         
         // Fallback to working debug endpoint for both auth failures (401) and missing endpoints (404)
         if (status === 401 || status === 404 || !status) {
           const debugResponse = await ApiService.put(`/api/cronograma-clases/${claseId}/marcar-realizada-working`);
-          console.log('✅ Working debug endpoint - Class marked as completed:', debugResponse.data);
           return debugResponse.data;
         } else {
           // Re-throw error if it's not an auth or endpoint issue
@@ -568,10 +526,6 @@ class SesionPedagogicaService {
       }
       
     } catch (error) {
-      console.error('❌ Error marking class as completed:', error);
-      console.error('🔍 Error status:', error.response?.status);
-      console.error('📝 Error data:', error.response?.data);
-      console.error('🌐 Request URL:', error.config?.url);
       throw error;
     }
   }
@@ -581,13 +535,11 @@ class SesionPedagogicaService {
    */
   async reprogramarClase(claseId, reprogramData) {
     try {
-      console.log('📅 Rescheduling class:', claseId, reprogramData);
-      
+
       try {
         const response = await ApiService.put(API_ENDPOINTS.SESIONES_PEDAGOGICAS.REPROGRAMAR_CLASE(claseId), reprogramData);
         return response.data;
       } catch (specificError) {
-        console.warn('Specific endpoint failed, trying generic update:', specificError);
         // Fallback to generic cronograma update
         const data = { ...reprogramData, estado: 'reprogramada' };
         const response = await ApiService.put(`/api/cronograma-clases/${claseId}`, data);
@@ -604,13 +556,11 @@ class SesionPedagogicaService {
    */
   async cancelarClase(claseId, cancelData) {
     try {
-      console.log('❌ Canceling class:', claseId, cancelData);
-      
+
       try {
         const response = await ApiService.put(API_ENDPOINTS.SESIONES_PEDAGOGICAS.CANCELAR_CLASE(claseId), cancelData);
         return response.data;
       } catch (specificError) {
-        console.warn('Specific endpoint failed, trying generic update:', specificError);
         // Fallback to generic cronograma update
         const data = { ...cancelData, estado: 'cancelada' };
         const response = await ApiService.put(`/api/cronograma-clases/${claseId}`, data);
@@ -640,28 +590,15 @@ class SesionPedagogicaService {
    */
   async registrarAsistenciaClase(cronogramaId, pacienteId, asistenciaData) {
     try {
-      console.log('📝 Registering attendance:', { cronogramaId, pacienteId, asistenciaData });
-      console.log('🔑 JWT Token:', localStorage.getItem('jwt_token') ? 'Present' : 'Missing');
-      console.log('🎯 Using endpoint:', API_ENDPOINTS.SESIONES_PEDAGOGICAS.REGISTRAR_ASISTENCIA(cronogramaId, pacienteId));
       
       const response = await ApiService.post(
         API_ENDPOINTS.SESIONES_PEDAGOGICAS.REGISTRAR_ASISTENCIA(cronogramaId, pacienteId),
         asistenciaData
       );
       
-      console.log('✅ Attendance registered successfully:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ Error registering class attendance:', error);
-      console.error('🔍 Error status:', error.response?.status);
-      console.error('📝 Error data:', error.response?.data);
-      console.error('🌐 Request URL:', error.config?.url);
       
-      if (error.response?.status === 401) {
-        console.error('🚫 Authentication error - please login again');
-      } else if (error.response?.status === 404) {
-        console.error('🔍 Endpoint not found - check if backend route exists');
-      }
       
       throw error;
     }
@@ -779,14 +716,9 @@ class SesionPedagogicaService {
    */
   async updateClaseInfo(cronogramaId, updateData) {
     try {
-      console.log('📝 Updating class info:', cronogramaId, updateData);
       const response = await ApiService.put(`/api/cronograma-clases/${cronogramaId}`, updateData);
-      console.log('✅ Class info updated successfully:', response.data);
       return response.data;
     } catch (error) {
-      console.error(`❌ Error updating class info for cronograma ${cronogramaId}:`, error);
-      console.error('🔍 Error status:', error.response?.status);
-      console.error('📝 Error data:', error.response?.data);
       throw error;
     }
   }
