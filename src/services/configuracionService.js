@@ -5,12 +5,9 @@ import { ApiService } from './apiService.js';
 
 const ENDPOINTS = {
   GENERAL: '/api/configuracion/general',
-  SESIONES: '/api/configuracion/sesiones',
   NOTIFICACIONES_GLOBAL: '/api/configuracion/notificaciones/global',
   NOTIFICACIONES_USUARIO: '/api/configuracion/notificaciones/usuario',
-  SEGURIDAD: '/api/configuracion/seguridad',
-  RESUMEN: '/api/configuracion/resumen',
-  INICIALIZAR: '/api/configuracion/inicializar'
+  RESUMEN: '/api/configuracion/resumen'
 };
 
 class ConfiguracionService {
@@ -66,54 +63,6 @@ class ConfiguracionService {
     }
   }
 
-  // ============================================
-  // CONFIGURACIÓN DE SESIONES
-  // ============================================
-  
-  /**
-   * Obtener configuración de sesiones
-   */
-  static async getConfiguracionSesiones() {
-    try {
-      const response = await ApiService.get(ENDPOINTS.SESIONES);
-      return {
-        success: true,
-        data: response.data.data,
-        message: response.data.message
-      };
-    } catch (error) {
-      console.error('Error al obtener configuración de sesiones:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Error al obtener configuración de sesiones',
-        error
-      };
-    }
-  }
-
-  /**
-   * Actualizar configuración de sesiones
-   */
-  static async updateConfiguracionSesiones(configuracion) {
-    try {
-      // Mapear datos del frontend al formato del backend
-      const backendData = ConfiguracionService.mapSesionesConfigToBackend(configuracion);
-      console.log('DEBUG - Datos de sesiones enviados al backend:', backendData);
-      
-      const response = await ApiService.put(ENDPOINTS.SESIONES, backendData);
-      return {
-        success: true,
-        message: response.data.message
-      };
-    } catch (error) {
-      console.error('Error al actualizar configuración de sesiones:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Error al actualizar configuración de sesiones',
-        error
-      };
-    }
-  }
 
   // ============================================
   // CONFIGURACIÓN DE NOTIFICACIONES
@@ -242,50 +191,6 @@ class ConfiguracionService {
     }
   }
 
-  // ============================================
-  // CONFIGURACIÓN DE SEGURIDAD
-  // ============================================
-  
-  /**
-   * Obtener configuración de seguridad (solo admin)
-   */
-  static async getConfiguracionSeguridad() {
-    try {
-      const response = await ApiService.get(ENDPOINTS.SEGURIDAD);
-      return {
-        success: true,
-        data: response.data.data,
-        message: response.data.message
-      };
-    } catch (error) {
-      console.error('Error al obtener configuración de seguridad:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Error al obtener configuración de seguridad',
-        error
-      };
-    }
-  }
-
-  /**
-   * Actualizar configuración de seguridad (solo admin)
-   */
-  static async updateConfiguracionSeguridad(configuracion) {
-    try {
-      const response = await ApiService.put(ENDPOINTS.SEGURIDAD, configuracion);
-      return {
-        success: true,
-        message: response.data.message
-      };
-    } catch (error) {
-      console.error('Error al actualizar configuración de seguridad:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Error al actualizar configuración de seguridad',
-        error
-      };
-    }
-  }
 
   // ============================================
   // UTILIDADES Y ADMINISTRACIÓN
@@ -312,25 +217,6 @@ class ConfiguracionService {
     }
   }
 
-  /**
-   * Inicializar sistema de configuración (solo admin)
-   */
-  static async inicializarSistemaConfiguracion() {
-    try {
-      const response = await ApiService.post(ENDPOINTS.INICIALIZAR);
-      return {
-        success: true,
-        message: response.data.message
-      };
-    } catch (error) {
-      console.error('Error al inicializar sistema de configuración:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Error al inicializar sistema de configuración',
-        error
-      };
-    }
-  }
 
   // ============================================
   // MÉTODOS DE UTILIDAD
@@ -379,43 +265,6 @@ class ConfiguracionService {
     };
   }
 
-  /**
-   * Mapear datos del backend al formato del frontend para configuración de sesiones
-   */
-  static mapSesionesConfigToFrontend(backendData) {
-    if (!backendData) return {};
-    
-    return {
-      duracionSesionTerapia: backendData.duracion_sesion_terapia || 60,
-      duracionClasePedagogica: backendData.duracion_clase_pedagogica || 45,
-      toleranciaLlegadaTarde: backendData.tolerancia_llegada_tarde || 15,
-      tiempoRecordatorio: backendData.tiempo_recordatorio || 15,
-      permitirCancelacionHoras: backendData.permitir_cancelacion_horas || 24,
-      permitirReprogramacionHoras: backendData.permitir_reprogramacion_horas || 24,
-      capacidadMaximaClase: backendData.capacidad_maxima_clase || 12,
-      sistemaCalificaciones: backendData.sistema_calificaciones || 'numerico',
-      escalaCalificacionMin: backendData.escala_calificacion_min || 1,
-      escalaCalificacionMax: backendData.escala_calificacion_max || 10
-    };
-  }
-
-  /**
-   * Mapear datos del frontend al formato del backend para configuración de sesiones
-   */
-  static mapSesionesConfigToBackend(frontendData) {
-    return {
-      duracion_sesion_terapia: frontendData.duracionSesionTerapia,
-      duracion_clase_pedagogica: frontendData.duracionClasePedagogica,
-      tolerancia_llegada_tarde: frontendData.toleranciaLlegadaTarde,
-      tiempo_recordatorio: frontendData.tiempoRecordatorio,
-      permitir_cancelacion_horas: frontendData.permitirCancelacionHoras,
-      permitir_reprogramacion_horas: frontendData.permitirReprogramacionHoras,
-      capacidad_maxima_clase: frontendData.capacidadMaximaClase,
-      sistema_calificaciones: frontendData.sistemaCalificaciones,
-      escala_calificacion_min: frontendData.escalaCalificacionMin,
-      escala_calificacion_max: frontendData.escalaCalificacionMax
-    };
-  }
 }
 
 export default ConfiguracionService;

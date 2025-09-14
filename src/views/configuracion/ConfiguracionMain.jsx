@@ -3,7 +3,7 @@ import {
   Box, Container, Paper, Typography, Tabs, Tab
 } from '@mui/material';
 import { 
-  Settings, Security, Notifications, Business, Schedule
+  Settings, Notifications, Business
 } from '@mui/icons-material';
 
 // Servicios y hooks
@@ -18,9 +18,7 @@ import ErrorBoundary from '../../components/shared/ErrorBoundary.jsx';
 
 // Componentes modulares
 import ConfiguracionGeneral from './ConfiguracionGeneral.jsx';
-import ConfiguracionSesiones from './ConfiguracionSesiones.jsx';
 import ConfiguracionNotificaciones from './ConfiguracionNotificaciones.jsx';
-import ConfiguracionSeguridad from './ConfiguracionSeguridad.jsx';
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -45,9 +43,7 @@ const ConfiguracionMain = () => {
   const [loading, setLoading] = useState(true);
   const [configuraciones, setConfiguraciones] = useState({
     general: {},
-    sesiones: {},
-    notificaciones: {},
-    seguridad: {}
+    notificaciones: {}
   });
 
   // Hooks personalizados
@@ -70,9 +66,7 @@ const ConfiguracionMain = () => {
         const apiData = result.data;
         setConfiguraciones({
           general: ConfiguracionService.mapGeneralConfigToFrontend(apiData.general || {}),
-          sesiones: ConfiguracionService.mapSesionesConfigToFrontend(apiData.sesiones || {}),
-          notificaciones: apiData.notificaciones_usuario || {},
-          seguridad: apiData.seguridad || {}
+          notificaciones: apiData.notificaciones_usuario || {}
         });
       } else {
         showError(result.message || 'Error al cargar configuraciones');
@@ -95,17 +89,8 @@ const ConfiguracionMain = () => {
           result = await ConfiguracionService.updateConfiguracionGeneral(nuevaConfig);
           break;
           
-        case 'sesiones':
-          // El servicio ya hace el mapeo internamente
-          result = await ConfiguracionService.updateConfiguracionSesiones(nuevaConfig);
-          break;
-          
         case 'notificaciones':
           result = await ConfiguracionService.updateConfiguracionNotificacionesUsuario(nuevaConfig);
-          break;
-          
-        case 'seguridad':
-          result = await ConfiguracionService.updateConfiguracionSeguridad(nuevaConfig);
           break;
           
         default:
@@ -133,21 +118,11 @@ const ConfiguracionMain = () => {
   const tabs = [
     {
       label: 'General',
-      icon: <Settings />,
+      icon: <Business />,
       component: (
         <ConfiguracionGeneral
           configuracion={configuraciones.general}
           onSave={(config) => saveConfiguracion('general', config)}
-        />
-      )
-    },
-    {
-      label: 'Sesiones',
-      icon: <Schedule />,
-      component: (
-        <ConfiguracionSesiones
-          configuracion={configuraciones.sesiones}
-          onSave={(config) => saveConfiguracion('sesiones', config)}
         />
       )
     },
@@ -158,16 +133,6 @@ const ConfiguracionMain = () => {
         <ConfiguracionNotificaciones
           configuracion={configuraciones.notificaciones}
           onSave={(config) => saveConfiguracion('notificaciones', config)}
-        />
-      )
-    },
-    {
-      label: 'Seguridad',
-      icon: <Security />,
-      component: (
-        <ConfiguracionSeguridad
-          configuracion={configuraciones.seguridad}
-          onSave={(config) => saveConfiguracion('seguridad', config)}
         />
       )
     }
@@ -206,7 +171,7 @@ const ConfiguracionMain = () => {
                 Configuraciones del Sistema
               </Typography>
               <Typography variant="body1" color="text.secondary" mb={3}>
-                Administra las configuraciones generales, seguridad, notificaciones y datos del sistema
+                Administra la información del centro y las preferencias de notificaciones
               </Typography>
             </Box>
           </Paper>

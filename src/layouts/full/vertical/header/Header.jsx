@@ -11,7 +11,8 @@ import {
   Avatar,
   Menu,
   MenuItem,
-  Divider
+  Divider,
+  Popover
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -25,13 +26,17 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
+import ChatIcon from '@mui/icons-material/Chat';
 
 // Servicios
 import ApiService, { extractData } from 'src/services/apiService.js';
 import FotoPerfilService from 'src/services/fotoPerfilService.js';
 import FotoPerfilConAutorizacion from 'src/components/shared/FotoPerfilConAutorizacion.jsx';
 
-const Header = () => {
+// Importar componentes de notificaciones
+import SimpleNotificationPopover from 'src/components/notifications/SimpleNotificationPopover';
+
+const Header = ({ onChatToggle = () => {} }) => {
   const customizer = useSelector((state) => state.customizer);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -43,6 +48,10 @@ const Header = () => {
   const [rutaFoto, setRutaFoto] = useState(null);
 
   const [horaActual, setHoraActual] = useState('');
+  
+  // Estados para notificaciones
+  const [notificationAnchor, setNotificationAnchor] = useState(null);
+  const notificationOpen = Boolean(notificationAnchor);
 
   useEffect(() => {
     const actualizarHora = () => {
@@ -196,6 +205,20 @@ const Header = () => {
     window.location.href = '/auth/login';
   };
 
+  // Handlers para chat
+  const handleChatToggle = () => {
+    onChatToggle();
+  };
+
+  // Handlers para notificaciones
+  const handleNotificationClick = (event) => {
+    setNotificationAnchor(event.currentTarget);
+  };
+
+  const handleNotificationClose = () => {
+    setNotificationAnchor(null);
+  };
+
   // Obtener initials del usuario
   const getUserInitials = () => {
     if (userData?.name) {
@@ -282,6 +305,7 @@ const Header = () => {
           {/* Notificaciones */}
           <IconButton
             color="inherit"
+            onClick={handleNotificationClick}
             sx={{
               '&:hover': {
                 backgroundColor: 'primary.light',
@@ -290,6 +314,20 @@ const Header = () => {
             }}
           >
             <NotificationsIcon />
+          </IconButton>
+
+          {/* Chat */}
+          <IconButton
+            color="inherit"
+            onClick={handleChatToggle}
+            sx={{
+              '&:hover': {
+                backgroundColor: 'primary.light',
+                color: 'primary.main'
+              }
+            }}
+          >
+            <ChatIcon />
           </IconButton>
 
           {/* Usuario info + Avatar / Menú */}
@@ -408,6 +446,26 @@ const Header = () => {
           </Menu>
         </Stack>
       </ToolbarStyled>
+      
+      {/* Popover de Notificaciones */}
+      <Popover
+        open={notificationOpen}
+        anchorEl={notificationAnchor}
+        onClose={handleNotificationClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        sx={{
+          mt: 1,
+        }}
+      >
+        <SimpleNotificationPopover />
+      </Popover>
     </AppBarStyled>
   );
 };
