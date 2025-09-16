@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Container, Paper, Typography, Tabs, Tab
+  Box, Container, Paper, Typography, Tabs, Tab, useTheme
 } from '@mui/material';
 import { 
   Settings, Notifications, Business
@@ -38,7 +38,15 @@ function TabPanel({ children, value, index, ...other }) {
   );
 }
 
+function a11yProps(index) {
+  return {
+    id: `configuracion-tab-${index}`,
+    'aria-controls': `configuracion-tabpanel-${index}`,
+  };
+}
+
 const ConfiguracionMain = () => {
+  const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [configuraciones, setConfiguraciones] = useState({
@@ -146,58 +154,75 @@ const ConfiguracionMain = () => {
     <ErrorBoundary>
       <Box>
         <Container maxWidth="xl" sx={{ py: 2 }}>
-          <Paper 
-            elevation={4} 
-            sx={{ 
-              borderRadius: 3, 
-              backgroundColor: '#fff', 
-              mb: 4, 
-              overflow: 'hidden', 
-              border: '4px solid transparent', 
-              backgroundImage: 'linear-gradient(white, white), linear-gradient(270deg, #607D8B, #455A64, #37474F, #263238)', 
-              backgroundOrigin: 'border-box', 
-              backgroundClip: 'padding-box, border-box', 
-              animation: 'rainbow 5s linear infinite', 
-              '@keyframes rainbow': { 
-                '0%': { backgroundPosition: '0% 50%' }, 
-                '100%': { backgroundPosition: '100% 50%' } 
-              }, 
-              backgroundSize: '300% 100%' 
+          <Paper
+            elevation={4}
+            sx={{
+              borderRadius: 3,
+              backgroundColor: 'background.paper',
+              mb: 4,
+              overflow: 'hidden',
+              border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '4px solid transparent',
+              backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, #607D8B, #455A64, #37474F, #263238)`,
+              backgroundOrigin: 'border-box',
+              backgroundClip: 'padding-box, border-box',
+              animation: theme.palette.mode === 'dark' ? 'none' : 'rainbow 5s linear infinite',
+              '@keyframes rainbow': {
+                '0%': { backgroundPosition: '0% 50%' },
+                '100%': { backgroundPosition: '100% 50%' }
+              },
+              backgroundSize: '300% 100%'
             }}
           >
             <Box sx={{ p: 3, pb: 0 }}>
-              <Typography variant="h4" fontWeight="bold" color="black" display="flex" alignItems="center" mb={2}>
+              <Typography variant="h4" fontWeight="bold" color="text.primary" display="flex" alignItems="center" mb={2}>
                 <Business sx={{ mr: 2, fontSize: 40 }} />
                 Configuraciones del Sistema
               </Typography>
               <Typography variant="body1" color="text.secondary" mb={3}>
                 Administra la información del centro y las preferencias de notificaciones
               </Typography>
+
+              <Tabs
+                value={activeTab}
+                onChange={(e, newValue) => setActiveTab(newValue)}
+                aria-label="Pestañas de configuración del sistema"
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{
+                  '& .MuiTabs-flexContainer': { gap: 2 },
+                  '& .MuiTab-root': {
+                    minHeight: 64,
+                    fontSize: '0.9rem',
+                    fontWeight: 500,
+                    textTransform: 'none',
+                    color: 'text.secondary',
+                    '&.Mui-selected': { color: 'primary.main', fontWeight: 600 }
+                  },
+                  '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0' }
+                }}
+              >
+                {tabs.map((tab, index) => (
+                  <Tab
+                    key={index}
+                    label={tab.label}
+                    icon={tab.icon}
+                    iconPosition="start"
+                    {...a11yProps(index)}
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 1
+                    }}
+                  />
+                ))}
+              </Tabs>
             </Box>
           </Paper>
         </Container>
 
-        {/* Navegación por pestañas */}
+        {/* Contenido de pestañas */}
         <Container maxWidth="xl">
-          <Paper elevation={2} sx={{ mb: 3 }}>
-            <Tabs 
-              value={activeTab} 
-              onChange={(e, newValue) => setActiveTab(newValue)} 
-              sx={{ borderBottom: 1, borderColor: 'divider' }}
-              variant="scrollable"
-              scrollButtons="auto"
-            >
-              {tabs.map((tab, index) => (
-                <Tab 
-                  key={index}
-                  label={tab.label} 
-                  icon={tab.icon} 
-                />
-              ))}
-            </Tabs>
-          </Paper>
-
-          {/* Contenido de pestañas */}
           {tabs.map((tab, index) => (
             <TabPanel key={index} value={activeTab} index={index}>
               {tab.component}

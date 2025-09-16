@@ -12,7 +12,8 @@ import {
   Box,
   Autocomplete,
   Avatar,
-  Chip
+  Chip,
+  useTheme
 } from '@mui/material';
 import {
   Add,
@@ -29,18 +30,18 @@ import EspecialidadService from '../../services/especialidadService.js';
 // Inputs sin estilos morados: usamos el tema por defecto
 const neutralInputSX = {};
 
-// Misma “carcasa”/tamaño que Persona/Usuario
-const cardShellSX = {
+// Misma "carcasa"/tamaño que Persona/Usuario
+const getCardShellSX = (theme) => ({
   borderRadius: 4,
   mb: 4,
-  background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
-  border: '1px solid',
-  borderColor: 'divider',
+  backgroundColor: 'background.paper',
+  border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '1px solid transparent',
+  borderColor: theme.palette.mode === 'dark' ? 'divider' : 'divider',
   overflow: 'hidden',
   width: '100%',
   maxWidth: { xs: '100%', sm: 680, md: 820, lg: 900 },
   mx: 'auto'
-};
+});
 
 // Fila con etiqueta a la izquierda y campo a la derecha
 const rowGridSX = {
@@ -64,6 +65,7 @@ const PersonalFormulario = ({
   onSubmit,
   onCancel
 }) => {
+  const theme = useTheme();
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit();
@@ -90,7 +92,7 @@ const PersonalFormulario = ({
     <Box>
       {/* ====== Card: Buscar Persona (cuando NO hay selección) ====== */}
       {!selectedPerson && (
-        <Card elevation={8} sx={cardShellSX}>
+        <Card elevation={8} sx={getCardShellSX(theme)}>
           <Box
             sx={{
               background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
@@ -152,7 +154,7 @@ const PersonalFormulario = ({
 
       {/* ====== Card: Persona Seleccionada (cuando SÍ hay selección) ====== */}
       {selectedPerson && (
-        <Card elevation={8} sx={cardShellSX}>
+        <Card elevation={8} sx={getCardShellSX(theme)}>
           <Box
             sx={{
               background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
@@ -192,7 +194,7 @@ const PersonalFormulario = ({
                     border: '1px solid',
                     borderColor: 'primary.light',
                     borderRadius: 1,
-                    bgcolor: '#fff'
+                    backgroundColor: 'background.paper'
                   }}
                 >
                   <Typography variant="subtitle2" color="primary" gutterBottom>
@@ -212,7 +214,7 @@ const PersonalFormulario = ({
       )}
 
       {/* ====== Card Principal (form) ====== */}
-      <Card elevation={8} sx={cardShellSX}>
+      <Card elevation={8} sx={getCardShellSX(theme)}>
         {/* Header dinámico (azul crear / naranja editar), igual a PersonaFormulario */}
         <Box
           sx={{
@@ -249,7 +251,7 @@ const PersonalFormulario = ({
                 border: '1px solid',
                 borderColor: 'divider',
                 borderRadius: 2,
-                bgcolor: '#fff'
+                backgroundColor: 'background.paper'
               }}
             >
               <Typography
@@ -288,7 +290,7 @@ const PersonalFormulario = ({
                 border: '1px solid',
                 borderColor: 'divider',
                 borderRadius: 2,
-                bgcolor: '#fff'
+                backgroundColor: 'background.paper'
               }}
             >
               <Typography

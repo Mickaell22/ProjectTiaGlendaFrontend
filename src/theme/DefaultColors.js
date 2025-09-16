@@ -129,7 +129,7 @@ const DarkColors = {
   },
 };
 
-// Opciones de colores primarios para el customizer
+// Opciones de colores primarios para el customizer (modo claro)
 const ColorOptions = [
   {
     name: 'BLUE_THEME',
@@ -223,4 +223,98 @@ const ColorOptions = [
   },
 ];
 
-export { DefaultColors, DarkColors, ColorOptions };
+// Opciones de colores para modo oscuro
+const DarkColorOptions = [
+  {
+    name: 'BLUE_THEME',
+    palette: {
+      primary: {
+        main: '#5D87FF',
+        light: '#253662',
+        dark: '#4570EA',
+      },
+      secondary: {
+        main: '#49BEFF',
+        light: '#1C455D',
+        dark: '#23afdb',
+      },
+    },
+  },
+  {
+    name: 'GREEN_THEME',
+    palette: {
+      primary: {
+        main: '#0C7040',
+        light: '#1B3B2F',
+        dark: '#06492C',
+      },
+      secondary: {
+        main: '#47D7BC',
+        light: '#0F2F28',
+        dark: '#39C7A6',
+      },
+    },
+  },
+  {
+    name: 'PURPLE_THEME',
+    palette: {
+      primary: {
+        main: '#7C59D4',
+        light: '#2D1F47',
+        dark: '#6C4AB6',
+      },
+      secondary: {
+        main: '#FB9678',
+        light: '#2F1F29',
+        dark: '#E07C5A',
+      },
+    },
+  },
+  {
+    name: 'RED_THEME',
+    palette: {
+      primary: {
+        main: '#D32F2F',
+        light: '#3D1A1A',
+        dark: '#C62828',
+      },
+      secondary: {
+        main: '#F48FB1',
+        light: '#2F1921',
+        dark: '#E91E63',
+      },
+    },
+  },
+  {
+    name: 'ORANGE_THEME',
+    palette: {
+      primary: {
+        main: '#FF9800',
+        light: '#3D2C14',
+        dark: '#F57C00',
+      },
+      secondary: {
+        main: '#66BB6A',
+        light: '#1F2F1F',
+        dark: '#43A047',
+      },
+    },
+  },
+  {
+    name: 'TEAL_THEME',
+    palette: {
+      primary: {
+        main: '#00695C',
+        light: '#0F2F2C',
+        dark: '#004D40',
+      },
+      secondary: {
+        main: '#4DB6AC',
+        light: '#17302E',
+        dark: '#26A69A',
+      },
+    },
+  },
+];
+
+export { DefaultColors, DarkColors, ColorOptions, DarkColorOptions };

@@ -5,7 +5,8 @@ import {
   Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
   Tooltip, Typography, Alert, Grid, MenuItem, Dialog, DialogTitle, DialogContent,
   DialogActions, Chip, Avatar, FormControl, InputLabel, Select, Switch,
-  FormControlLabel, InputAdornment
+  FormControlLabel, InputAdornment,
+ useTheme
 } from '@mui/material';
 import {
   CheckCircle, Cancel, Search, Visibility, Add, Edit, AccessTime,
@@ -41,6 +42,7 @@ const selectStableSX = {
 const menuProps = { PaperProps: { sx: { maxHeight: 280 } } };
 
 const PedagogicoAsistencia = () => {
+  const theme = useTheme();
   const [sesiones, setSesiones] = useState([]);
   const [cronogramas, setCronogramas] = useState([]);
   const [asistencias, setAsistencias] = useState([]);
@@ -316,7 +318,8 @@ const PedagogicoAsistencia = () => {
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8fff8 100%)',
+          backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
           overflow: 'hidden',
           width: '100%',
           maxWidth: { xs: '100%', sm: 1200 },
@@ -443,7 +446,8 @@ const PedagogicoAsistencia = () => {
           sx={{
             borderRadius: 4,
             mb: 4,
-            background: 'linear-gradient(145deg, #ffffff 0%, #f8fff8 100%)',
+            backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
             overflow: 'hidden',
             width: '100%',
             maxWidth: { xs: '100%', sm: 1200 },
@@ -893,7 +897,7 @@ const PedagogicoAsistencia = () => {
               {detailDialog.data.observaciones_educador && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="primary">Observaciones del Educador</Typography>
-                  <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
+                  <Paper sx={{ p: 2, backgroundColor: 'background.paper' }}>
                     <Typography variant="body2">{detailDialog.data.observaciones_educador}</Typography>
                   </Paper>
                 </Grid>

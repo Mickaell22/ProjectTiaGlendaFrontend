@@ -18,7 +18,9 @@ import {
   Alert,
   List,
   ListItem,
-  ListItemText
+  ListItemText,
+
+  useTheme
 } from '@mui/material';
 import {
   PersonAdd,
@@ -62,6 +64,7 @@ const UsuarioFormulario = ({
   onCancel,
   loading = false
 }) => {
+  const theme = useTheme();
   const [formData, setFormData] = useState({
     persona_id: '',
     nombre_usuario: '',
@@ -83,7 +86,8 @@ const UsuarioFormulario = ({
   const cardShellSX = {
     borderRadius: 4,
     mb: 3,
-    background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+    backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
     overflow: 'hidden',
     // 🔹 Responsivo: 100% en móvil, límites progresivos en pantallas mayores
     width: '100%',
@@ -300,7 +304,7 @@ const UsuarioFormulario = ({
         <Card elevation={8} sx={cardShellSX}>
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 3,
               display: 'flex',
@@ -340,7 +344,7 @@ const UsuarioFormulario = ({
         <Card elevation={8} sx={cardShellSX}>
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 3,
               display: 'flex',
@@ -374,7 +378,7 @@ const UsuarioFormulario = ({
           <CardContent sx={{ p: { xs: 2, md: 3 } }}>
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Box sx={{ p: 2, border: '1px solid', borderColor: 'primary.light', borderRadius: 1, bgcolor: '#fff' }}>
+                <Box sx={{ p: 2, border: '1px solid', borderColor: 'primary.light', borderRadius: 1, backgroundColor: 'background.paper' }}>
                   <Typography variant="subtitle2" color="primary" gutterBottom>
                     👤 DATOS DE LA PERSONA
                   </Typography>
@@ -399,9 +403,9 @@ const UsuarioFormulario = ({
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
-          border: '1px solid',
-          borderColor: 'divider',
+          backgroundColor: 'background.paper',
+          border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '1px solid transparent',
+          borderColor: theme.palette.mode === 'dark' ? 'divider' : 'divider',
           overflow: 'hidden',
           // 🔹 Responsivo: mismo ancho que los otros cards
           width: '100%',
@@ -413,8 +417,8 @@ const UsuarioFormulario = ({
         <Box
           sx={{
             background: isEditing
-              ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
-              : 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+              ? `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`
+              : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -438,7 +442,7 @@ const UsuarioFormulario = ({
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Box component="form" onSubmit={handleSubmit}>
             {/* ===== Bloque: Asignación ===== */}
-            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, backgroundColor: 'background.paper' }}>
               <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }} display="flex" alignItems="center">
                 <Assignment sx={{ mr: 1 }} />
                 Asignación
@@ -534,7 +538,7 @@ const UsuarioFormulario = ({
             </Box>
 
             {/* ===== Bloque: Credenciales ===== */}
-            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, backgroundColor: 'background.paper' }}>
               <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }} display="flex" alignItems="center">
                 <Security sx={{ mr: 1 }} />
                 Credenciales

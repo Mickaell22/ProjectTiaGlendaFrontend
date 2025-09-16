@@ -5,7 +5,8 @@ import {
   Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
   Tooltip, Typography, Alert, Grid, Dialog, DialogTitle, DialogContent,
   DialogActions, Chip, Avatar, Button, InputAdornment, ToggleButtonGroup,
-  ToggleButton, Paper, Divider, FormControl, InputLabel, Select, MenuItem
+  ToggleButton, Paper, Divider, FormControl, InputLabel, Select, MenuItem,
+ useTheme
 } from '@mui/material';
 import {
   Delete, Search, Visibility, Person,
@@ -26,6 +27,7 @@ const purpleOutlineSX = {
 };
 
 const SesionesPedagogicas = ({ onNavigateToCreate }) => {
+  const theme = useTheme();
   const [sesiones, setSesiones] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
@@ -273,7 +275,8 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
           overflow: 'hidden',
           width: '100%',
           maxWidth: { xs: '100%', sm: 1000, md: 1200 },
@@ -388,7 +391,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
             /* Vista de Horario */
             <Box sx={{ width: '100%', overflowX: 'auto' }}>
               <Paper variant="outlined" sx={{ borderRadius: 2 }}>
-                <Box sx={{ p: 2, bgcolor: 'grey.50', display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', display: 'flex', alignItems: 'center' }}>
                   <Event sx={{ mr: 1, color: 'primary.main' }} />
                   <Typography variant="h6" color="primary">
                     Vista de Horario Semanal
@@ -448,14 +451,14 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                               sx={{ 
                                 p: 1.5, 
                                 cursor: 'pointer',
-                                bgcolor: '#e8f5e8',
+                                bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : '#e8f5e8',
                                 border: '1px solid',
                                 borderColor: '#4caf50',
                                 color: 'text.primary',
                                 fontSize: '0.75rem',
                                 borderRadius: 1,
                                 '&:hover': {
-                                  bgcolor: '#c8e6c9',
+                                  bgcolor: theme.palette.mode === 'dark' ? 'success.main' : '#c8e6c9',
                                   borderColor: '#388e3c',
                                   transform: 'translateY(-2px)',
                                   boxShadow: 2
@@ -652,7 +655,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                                   key={dia}
                                   label={dia}
                                   size="small"
-                                  sx={{ mr: 0.5, mb: 0.5, bgcolor: '#e8f5e8', color: '#2e7d32' }}
+                                  sx={{ mr: 0.5, mb: 0.5, bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : '#e8f5e8', color: theme.palette.mode === 'dark' ? 'success.contrastText' : '#2e7d32' }}
                                 />
                               ))}
                             </Box>
@@ -821,7 +824,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
               {detailDialog.data.observaciones && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="primary">Observaciones</Typography>
-                  <Box sx={{ p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
+                  <Box sx={{ p: 2, backgroundColor: 'background.paper', borderRadius: 1 }}>
                     <Typography variant="body2">{detailDialog.data.observaciones}</Typography>
                   </Box>
                 </Grid>

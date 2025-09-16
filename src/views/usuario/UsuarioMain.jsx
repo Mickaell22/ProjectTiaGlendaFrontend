@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Container, Paper, Typography, Tabs, Tab
+  Box, Container, Paper, Typography, Tabs, Tab, useTheme
 } from '@mui/material';
 import { 
   AdminPanelSettings, PersonAdd, Group, VpnKey, Visibility, BarChart
@@ -50,6 +50,7 @@ function a11yProps(index) {
 }
 
 const UsuarioMain = () => {
+  const theme = useTheme();
   const [value, setValue] = useState(0);
   const [usuarios, setUsuarios] = useState([]);
   const [personasDisponibles, setPersonasDisponibles] = useState([]);
@@ -215,29 +216,29 @@ const UsuarioMain = () => {
     <ErrorBoundary>
       <Box>
         <Container maxWidth="xl" sx={{ py: 2 }}>
-          <Paper 
-            elevation={4} 
-            sx={{ 
-              borderRadius: 3, 
-              backgroundColor: '#fff', 
-              mb: 4, 
-              overflow: 'hidden', 
-              border: '4px solid transparent', 
-              backgroundImage: 'linear-gradient(white, white), linear-gradient(270deg, #673AB7, #E91E63, #FF9800, #4CAF50)', 
-              backgroundOrigin: 'border-box', 
-              backgroundClip: 'padding-box, border-box', 
-              animation: 'rainbow 5s linear infinite', 
-              '@keyframes rainbow': { 
-                '0%': { backgroundPosition: '0% 50%' }, 
-                '100%': { backgroundPosition: '100% 50%' } 
-              }, 
-              backgroundSize: '300% 100%' ,
+          <Paper
+            elevation={4}
+            sx={{
+              borderRadius: 3,
+              backgroundColor: 'background.paper',
+              mb: 4,
+              overflow: 'hidden',
+              border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '4px solid transparent',
+              backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, #673AB7, #E91E63, #FF9800, #4CAF50)`,
+              backgroundOrigin: 'border-box',
+              backgroundClip: 'padding-box, border-box',
+              animation: theme.palette.mode === 'dark' ? 'none' : 'rainbow 5s linear infinite',
+              '@keyframes rainbow': {
+                '0%': { backgroundPosition: '0% 50%' },
+                '100%': { backgroundPosition: '100% 50%' }
+              },
+              backgroundSize: '300% 100%',
               maxWidth: '90%',
               mx: 'auto'
             }}
           >
             <Box sx={{ p: 3, pb: 0 }}>
-              <Typography variant="h4" fontWeight="bold" color="black" display="flex" alignItems="center" mb={2}>
+              <Typography variant="h4" fontWeight="bold" color="text.primary" display="flex" alignItems="center" mb={2}>
                 <AdminPanelSettings sx={{ mr: 2, fontSize: 40 }} />
                 Gestión de Usuarios
               </Typography>

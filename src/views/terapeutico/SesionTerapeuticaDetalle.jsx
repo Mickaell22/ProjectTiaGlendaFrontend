@@ -5,7 +5,8 @@ import {
   DialogTitle, Divider, Grid, IconButton, Paper, Snackbar, Tab, Tabs,
   Table, TableBody, TableCell, TableHead, TableRow, Typography, Alert,
   Chip, Avatar, List, ListItem, ListItemText, ListItemAvatar, Tooltip,
-  TextField, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel
+  TextField, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel,
+ useTheme
 } from '@mui/material';
 import {
   ArrowBack, Person, Schedule, Group, Assignment, CalendarMonth,
@@ -312,13 +313,14 @@ const SesionTerapeuticaDetalle = () => {
         sx={{
           borderRadius: 4,
           mb: 3,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
           overflow: 'hidden'
         }}
       >
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -476,7 +478,7 @@ const SesionTerapeuticaDetalle = () => {
         >
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 2.5,
               display: 'flex',
@@ -562,7 +564,7 @@ const SesionTerapeuticaDetalle = () => {
         >
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 2.5,
               display: 'flex',
@@ -635,7 +637,7 @@ const SesionTerapeuticaDetalle = () => {
         >
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 2.5
             }}
@@ -761,6 +763,7 @@ const SesionTerapeuticaDetalle = () => {
 
 // Attendance Form Component
 const AttendanceForm = ({ cronogramaData, pacientes, onSubmit }) => {
+  const theme = useTheme();
   const [selectedPatient, setSelectedPatient] = useState('');
   const [attendanceData, setAttendanceData] = useState({
     asistio: true,

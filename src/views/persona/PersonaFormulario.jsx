@@ -9,7 +9,8 @@ import {
   Stack,
   Divider,
   Box,
-  InputAdornment
+  InputAdornment,
+  useTheme
 } from '@mui/material';
 import {
   Add,
@@ -28,17 +29,18 @@ import useSnackbar from '../../hooks/useSnackbar.js';
 /* ---------- Estilos coherentes con UsuarioFormulario ---------- */
 const neutralInputSX = {};
 
-const cardShellSX = {
+// Función para generar el sx del card principal con theming responsivo
+const getCardShellSX = (theme) => ({
   borderRadius: 4,
   mb: 4,
-  background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+  backgroundColor: 'background.paper',
   border: '1px solid',
   borderColor: 'divider',
   overflow: 'hidden',
   width: '100%',
   maxWidth: { xs: '100%', sm: 680, md: 820, lg: 900 },
   mx: 'auto'
-};
+});
 
 const rowGridSX = {
   display: 'grid',
@@ -99,6 +101,7 @@ const PersonaFormulario = ({
   onCancel,
   loading = false
 }) => {
+  const theme = useTheme();
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -204,13 +207,13 @@ const PersonaFormulario = ({
 
   return (
     <Box>
-      {/* Header dinámico (azul crear / naranja editar) */}
-      <Card elevation={8} sx={cardShellSX}>
+      {/* Header dinámico con theming apropiado */}
+      <Card elevation={8} sx={getCardShellSX(theme)}>
         <Box
           sx={{
             background: isEditing
-              ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
-              : 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+              ? `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`
+              : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -234,7 +237,16 @@ const PersonaFormulario = ({
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Box component="form" onSubmit={handleSubmit}>
             {/* ===== Información Personal ===== */}
-            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+            <Box
+              sx={{
+                mb: 3,
+                p: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+                backgroundColor: 'background.paper'
+              }}
+            >
               <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }} display="flex" alignItems="center">
                 <Person sx={{ mr: 1 }} />
                 Información Personal
@@ -332,7 +344,16 @@ const PersonaFormulario = ({
             </Box>
 
             {/* ===== Información de Contacto ===== */}
-            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+            <Box
+              sx={{
+                mb: 3,
+                p: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+                backgroundColor: 'background.paper'
+              }}
+            >
               <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }} display="flex" alignItems="center">
                 <Phone sx={{ mr: 1 }} />
                 Información de Contacto

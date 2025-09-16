@@ -1,7 +1,7 @@
 // src/views/terapeutico/TerapeuticoMain.jsx
 import React, { useState } from 'react';
 import {
-  Box, Container, Paper, Typography, Tabs, Tab
+  Box, Container, Paper, Typography, Tabs, Tab, useTheme
 } from '@mui/material';
 import { 
   Psychology, CalendarMonth, Assignment, Today, BarChart, Add
@@ -40,6 +40,7 @@ function a11yProps(index) {
 }
 
 const TerapeuticoMain = () => {
+  const theme = useTheme();
   const [value, setValue] = useState(0);
   const [refreshSesiones, setRefreshSesiones] = useState(0);
 
@@ -93,27 +94,27 @@ const TerapeuticoMain = () => {
   return (
     <Box>
       <Container maxWidth="xl" sx={{ py: 2 }}>
-        <Paper 
-          elevation={4} 
-          sx={{ 
-            borderRadius: 3, 
-            backgroundColor: '#fff', 
-            mb: 4, 
-            overflow: 'hidden', 
-            border: '4px solid transparent', 
-            backgroundImage: 'linear-gradient(white, white), linear-gradient(270deg, #E91E63, #9C27B0, #673AB7, #3F51B5)', 
-            backgroundOrigin: 'border-box', 
-            backgroundClip: 'padding-box, border-box', 
-            animation: 'rainbow 5s linear infinite', 
-            '@keyframes rainbow': { 
-              '0%': { backgroundPosition: '0% 50%' }, 
-              '100%': { backgroundPosition: '100% 50%' } 
-            }, 
-            backgroundSize: '300% 100%' 
+        <Paper
+          elevation={4}
+          sx={{
+            borderRadius: 3,
+            backgroundColor: 'background.paper',
+            mb: 4,
+            overflow: 'hidden',
+            border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '4px solid transparent',
+            backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, #E91E63, #9C27B0, #673AB7, #3F51B5)`,
+            backgroundOrigin: 'border-box',
+            backgroundClip: 'padding-box, border-box',
+            animation: theme.palette.mode === 'dark' ? 'none' : 'rainbow 5s linear infinite',
+            '@keyframes rainbow': {
+              '0%': { backgroundPosition: '0% 50%' },
+              '100%': { backgroundPosition: '100% 50%' }
+            },
+            backgroundSize: '300% 100%'
           }}
         >
           <Box sx={{ p: 3, pb: 0 }}>
-            <Typography variant="h4" fontWeight="bold" color="black" display="flex" alignItems="center" mb={2}>
+            <Typography variant="h4" fontWeight="bold" color="text.primary" display="flex" alignItems="center" mb={2}>
               <Psychology sx={{ mr: 2, fontSize: 40 }} />
               Área Terapéutica
             </Typography>

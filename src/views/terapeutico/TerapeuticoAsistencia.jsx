@@ -5,7 +5,8 @@ import {
   Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
   Tooltip, Typography, Alert, Grid, MenuItem, Dialog, DialogTitle, DialogContent,
   DialogActions, Chip, Avatar, FormControl, InputLabel, Select, Switch,
-  FormControlLabel, InputAdornment
+  FormControlLabel, InputAdornment,
+ useTheme
 } from '@mui/material';
 import {
   CheckCircle, Cancel, Search, Visibility, Add, Edit, AccessTime,
@@ -41,6 +42,7 @@ const selectStableSX = {
 const menuProps = { PaperProps: { sx: { maxHeight: 280 } } };
 
 const TerapeuticoAsistencia = () => {
+  const theme = useTheme();
   const [sesiones, setSesiones] = useState([]);
   const [cronogramas, setCronogramas] = useState([]);
   const [asistencias, setAsistencias] = useState([]);
@@ -369,7 +371,8 @@ const TerapeuticoAsistencia = () => {
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
           overflow: 'hidden',
           width: '100%',
           maxWidth: { xs: '100%', sm: 1200 },
@@ -378,7 +381,7 @@ const TerapeuticoAsistencia = () => {
       >
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -465,7 +468,7 @@ const TerapeuticoAsistencia = () => {
           </Grid>
 
           {selectedSesion && selectedCronograma && getSesionInfo(selectedSesion) && getCronogramaInfo(selectedCronograma) && (
-            <Paper sx={{ mt: 3, p: 2, backgroundColor: 'grey.50' }}>
+            <Paper sx={{ mt: 3, p: 2, backgroundColor: 'background.paper' }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={3}>
                   <Typography variant="subtitle2">Sesión:</Typography>
@@ -496,7 +499,8 @@ const TerapeuticoAsistencia = () => {
           sx={{
             borderRadius: 4,
             mb: 4,
-            background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+            backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
             overflow: 'hidden',
             width: '100%',
             maxWidth: { xs: '100%', sm: 1200 },
@@ -505,7 +509,7 @@ const TerapeuticoAsistencia = () => {
         >
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 3,
               display: 'flex',
@@ -876,7 +880,7 @@ const TerapeuticoAsistencia = () => {
               {detailDialog.data.observaciones_terapeuta && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="primary">Observaciones del Terapeuta</Typography>
-                  <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
+                  <Paper sx={{ p: 2, backgroundColor: 'background.paper' }}>
                     <Typography variant="body2">{detailDialog.data.observaciones_terapeuta}</Typography>
                   </Paper>
                 </Grid>

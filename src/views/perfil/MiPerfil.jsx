@@ -19,7 +19,9 @@ import {
   DialogContent,
   DialogActions,
   LinearProgress,
-  Alert
+  Alert,
+
+  useTheme
 } from '@mui/material';
 import {
   Person,
@@ -44,6 +46,7 @@ import FotoPerfilService from '../../services/fotoPerfilService.js';
 import FotoPerfilConAutorizacion from '../../components/shared/FotoPerfilConAutorizacion.jsx';
 
 const MiPerfil = () => {
+  const theme = useTheme();
   const [userData, setUserData] = useState(null);
   const [photoData, setPhotoData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -283,7 +286,8 @@ const MiPerfil = () => {
         sx={{
           mb: 4,
           borderRadius: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
           overflow: 'hidden'
         }}
       >

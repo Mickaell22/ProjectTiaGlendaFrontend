@@ -25,7 +25,9 @@ import {
   Divider,
   Alert,
   Tooltip,
-  Avatar
+  Avatar,
+
+  useTheme
 } from '@mui/material';
 import {
   AdminPanelSettings,
@@ -48,6 +50,7 @@ const cardWidthSX = {
 };
 
 const UsuarioRoles = ({ usuarios = [] }) => {
+  const theme = useTheme();
   const [rolesStats, setRolesStats] = useState({});
   const [selectedRole, setSelectedRole] = useState(null);
   const [roleDialog, setRoleDialog] = useState({ open: false, type: 'view', data: null });
@@ -143,7 +146,8 @@ const UsuarioRoles = ({ usuarios = [] }) => {
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
           overflow: 'hidden',
           ...cardWidthSX
         }}
@@ -151,7 +155,7 @@ const UsuarioRoles = ({ usuarios = [] }) => {
         {/* Header morado */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -256,14 +260,15 @@ const UsuarioRoles = ({ usuarios = [] }) => {
           sx={{
             borderRadius: 4,
             mb: 4,
-            background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+            backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
             overflow: 'hidden',
             ...cardWidthSX
           }}
         >
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 2
             }}

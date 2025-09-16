@@ -20,7 +20,8 @@ import {
   Avatar,
   FormControl,
   Select,
-  MenuItem
+  MenuItem,
+  useTheme
 } from '@mui/material';
 import {
   Edit,
@@ -186,6 +187,7 @@ const PacienteLista = ({
   loading = false
 }) => {
   const navigate = useNavigate();
+  const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
   const [page, setPage] = useState(0);
@@ -230,9 +232,10 @@ const PacienteLista = ({
       sx={{
         borderRadius: 4,
         mb: 4,
-        background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+        backgroundColor: 'background.paper',
         overflow: 'hidden',
         width: '100%',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
         maxWidth: { xs: '100%', sm: 800, md: 900 },
         mx: 'auto'
       }}
@@ -240,7 +243,7 @@ const PacienteLista = ({
       {/* Header morado estilo unificado */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
           color: 'white',
           p: 3,
           display: 'flex',

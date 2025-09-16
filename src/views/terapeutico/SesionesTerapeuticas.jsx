@@ -5,7 +5,8 @@ import {
   Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
   Tooltip, Typography, Alert, Grid, Dialog, DialogTitle, DialogContent,
   DialogActions, Chip, Avatar, Button, InputAdornment, ToggleButtonGroup,
-  ToggleButton, Paper, Divider, FormControl, InputLabel, Select, MenuItem
+  ToggleButton, Paper, Divider, FormControl, InputLabel, Select, MenuItem,
+ useTheme
 } from '@mui/material';
 import {
   Delete, Search, Visibility, Person,
@@ -26,6 +27,7 @@ const purpleOutlineSX = {
 };
 
 const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
+  const theme = useTheme();
   const [sesiones, setSesiones] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
@@ -290,7 +292,8 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
           overflow: 'hidden',
           width: '100%',
           maxWidth: { xs: '100%', sm: 1000, md: 1200 },
@@ -300,7 +303,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
         {/* Header morado al estilo TutorLista */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -405,7 +408,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
             /* Vista de Horario */
             <Box sx={{ width: '100%', overflowX: 'auto' }}>
               <Paper variant="outlined" sx={{ borderRadius: 2 }}>
-                <Box sx={{ p: 2, bgcolor: 'grey.50', display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', display: 'flex', alignItems: 'center' }}>
                   <Event sx={{ mr: 1, color: 'primary.main' }} />
                   <Typography variant="h6" color="primary">
                     Vista de Horario Semanal
@@ -465,7 +468,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                               sx={{ 
                                 p: 1.5, 
                                 cursor: 'pointer',
-                                bgcolor: '#f8f9fa',
+                                bgcolor: theme.palette.mode === 'dark' ? 'primary.dark' : '#f8f9fa',
                                 border: '1px solid',
                                 borderColor: 'primary.main',
                                 color: 'text.primary',
@@ -829,7 +832,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
               {detailDialog.data.observaciones && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="primary">Observaciones</Typography>
-                  <Box sx={{ p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
+                  <Box sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 1 }}>
                     <Typography variant="body2">{detailDialog.data.observaciones}</Typography>
                   </Box>
                 </Grid>
@@ -931,7 +934,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
             )}
             
             {/* Debug info - remove in production */}
-            <Box sx={{ mt: 2, p: 1, backgroundColor: 'grey.100', fontSize: '0.75rem', borderRadius: 1 }}>
+            <Box sx={{ mt: 2, p: 1, backgroundColor: theme.palette.mode === 'dark' ? 'grey.700' : 'grey.100', fontSize: '0.75rem', borderRadius: 1 }}>
               <Typography variant="caption" display="block">
                 <strong>Debug Info:</strong>
               </Typography>

@@ -1,7 +1,7 @@
 // src/views/tutores/TutorMain.jsx
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Container, Paper, Typography, Tabs, Tab
+  Box, Container, Paper, Typography, Tabs, Tab, useTheme
 } from '@mui/material';
 import { FamilyRestroom, PersonAdd } from '@mui/icons-material';
 
@@ -47,6 +47,7 @@ function a11yProps(index) {
 }
 
 const TutorMain = () => {
+  const theme = useTheme();
   // Estado principal
   const [activeTab, setActiveTab] = useState(0);
   const [tutores, setTutores] = useState([]);
@@ -188,15 +189,14 @@ const TutorMain = () => {
             elevation={4}
             sx={{
               borderRadius: 3,
-              backgroundColor: '#fff',
+              backgroundColor: 'background.paper',
               mb: 4,
               overflow: 'hidden',
-              border: '4px solid transparent',
-              backgroundImage:
-                'linear-gradient(white, white), linear-gradient(270deg, #673AB7, #E91E63, #FF9800, #4CAF50)',
+              border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '4px solid transparent',
+              backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, #673AB7, #E91E63, #FF9800, #4CAF50)`,
               backgroundOrigin: 'border-box',
               backgroundClip: 'padding-box, border-box',
-              animation: 'rainbow 5s linear infinite',
+              animation: theme.palette.mode === 'dark' ? 'none' : 'rainbow 5s linear infinite',
               '@keyframes rainbow': {
                 '0%': { backgroundPosition: '0% 50%' },
                 '100%': { backgroundPosition: '100% 50%' }
@@ -210,7 +210,7 @@ const TutorMain = () => {
               <Typography
                 variant="h4"
                 fontWeight="bold"
-                color="black"
+                color="text.primary"
                 display="flex"
                 alignItems="center"
                 mb={2}

@@ -8,6 +8,7 @@ import {
   Alert,
   Card,
   CardContent,
+  useTheme,
 } from '@mui/material';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useFormik } from 'formik';
@@ -24,6 +25,7 @@ const validationSchema = Yup.object({
 });
 
 const Login = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [errorMsg, setErrorMsg] = useState('');
@@ -319,9 +321,9 @@ const Login = () => {
               }}
             >
               <Box sx={{ flex: 1, bgcolor: '#6C4ACF' }} />
-              <Box sx={{ flex: 1, bgcolor: '#fff' }} />
+              <Box sx={{ flex: 1, bgcolor: 'background.paper' }} />
               <Box sx={{ flex: 1, bgcolor: '#6C4ACF' }} />
-              <Box sx={{ flex: 1, bgcolor: '#fff' }} />
+              <Box sx={{ flex: 1, bgcolor: 'background.paper' }} />
               <Box sx={{ flex: 1, bgcolor: '#6C4ACF' }} />
             </Box>
           </Card>

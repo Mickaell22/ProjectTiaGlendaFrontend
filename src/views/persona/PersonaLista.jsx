@@ -21,7 +21,8 @@ import {
   Box,
   MenuItem,
   Select,
-  FormControl
+  FormControl,
+  useTheme
 } from '@mui/material';
 import {
   Edit,
@@ -74,7 +75,7 @@ const PersonaLista = ({
   onNewPersona,
   loading = false
 }) => {
-  
+  const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
   const [page, setPage] = useState(0);
@@ -107,17 +108,18 @@ const PersonaLista = ({
       sx={{
         borderRadius: 4,
         mb: 4,
-        background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+        backgroundColor: 'background.paper',
         overflow: 'hidden',
         width: '100%',
         maxWidth: { xs: '100%', sm: 800, md: 900 },
-        mx: 'auto'
+        mx: 'auto',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none'
       }}
     >
       {/* Header */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
           color: 'white',
           p: 3,
           display: 'flex',
@@ -200,15 +202,21 @@ const PersonaLista = ({
         </Box>
 
         {/* Tabla */}
-        <Table>
+        <Table
+          sx={{
+            '& .MuiTableHead-root': {
+              backgroundColor: theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[50]
+            }
+          }}
+        >
           <TableHead>
             <TableRow>
-              <TableCell>Persona</TableCell>
-              <TableCell>Cédula</TableCell>
-              <TableCell>Contacto</TableCell>
-              <TableCell>Edad</TableCell>
-              <TableCell>Estado</TableCell>
-              <TableCell>Acciones</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Persona</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Cédula</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Contacto</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Edad</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Estado</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -229,7 +237,16 @@ const PersonaLista = ({
                   const telefono = p.telefono || '';
 
                   return (
-                    <TableRow key={p.id}>
+                    <TableRow
+                      key={p.id}
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: theme.palette.mode === 'dark'
+                            ? 'rgba(255, 255, 255, 0.05)'
+                            : 'rgba(0, 0, 0, 0.04)'
+                        }
+                      }}
+                    >
                       {/* Persona */}
                       <TableCell>
                         <Box display="flex" alignItems="center">

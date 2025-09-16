@@ -4,7 +4,8 @@ import {
   Box, Container, Paper, Typography, Card, CardContent,
   Grid, Button, IconButton, Tooltip, Alert, Snackbar,
   Table, TableBody, TableCell, TableHead, TableRow,
-  Chip, Avatar, LinearProgress, Divider
+  Chip, Avatar, LinearProgress, Divider,
+ useTheme
 } from '@mui/material';
 import {
   BarChart, TrendingUp, School, Groups, 
@@ -15,6 +16,7 @@ import { useAuth } from 'src/contexts/AuthContext';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 
 const PedagogicoEstadisticas = () => {
+  const theme = useTheme();
   const [estadisticas, setEstadisticas] = useState({});
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -68,7 +70,8 @@ const PedagogicoEstadisticas = () => {
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
           overflow: 'hidden',
           width: '100%',
           maxWidth: { xs: '100%', sm: 1000, md: 1200 },

@@ -2,13 +2,14 @@
 // Header reutilizable con animación arcoíris
 
 import React from 'react';
-import { Box, Paper, Typography } from '@mui/material';
+import { Box, Paper, Typography, useTheme } from '@mui/material';
 
-const ModernHeader = ({ 
-  title, 
-  icon: Icon, 
-  colors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0'] 
+const ModernHeader = ({
+  title,
+  icon: Icon,
+  colors = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0']
 }) => {
+  const theme = useTheme();
   const gradientColors = colors.join(', ');
   
   return (
@@ -16,7 +17,7 @@ const ModernHeader = ({
       elevation={4} 
       sx={{ 
         borderRadius: 3, 
-        backgroundColor: '#fff', 
+        backgroundColor: 'background.paper', 
         mb: 4, 
         p: 0, 
         overflow: 'hidden', 

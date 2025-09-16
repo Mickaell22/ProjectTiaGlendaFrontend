@@ -16,30 +16,33 @@ import {
   InputLabel,
   FormHelperText,
   Snackbar,
-  Alert
+  Alert,
+
+  useTheme
 } from '@mui/material';
 import { Add, School } from '@mui/icons-material';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 
 /* ---------- Estilos (como en UsuarioFormulario.jsx) ---------- */
-const cardShellSX = {
+const getCardShellSX = (theme) => ({
   borderRadius: 4,
   mb: 3,
-  background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+  backgroundColor: 'background.paper',
+  border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
   overflow: 'hidden',
   width: '100%',
   maxWidth: { xs: '100%', sm: 680, md: 820, lg: 900 },
   mx: 'auto'
-};
+});
 
-const mainHeaderSX = {
-  background: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)',
+const getMainHeaderSX = (theme) => ({
+  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
   color: 'white',
   p: 3,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between'
-};
+});
 
 const sectionBoxSX = {
   mb: 3,
@@ -47,7 +50,7 @@ const sectionBoxSX = {
   border: '1px solid',
   borderColor: 'divider',
   borderRadius: 2,
-  bgcolor: '#fff'
+  backgroundColor: 'background.paper'
 };
 
 /** Mantiene altura/ancho constantes de los Select
@@ -75,6 +78,7 @@ const menuProps = {
 };
 
 const CrearSesionPedagogica = () => {
+  const theme = useTheme();
   const [estudiantesDisponibles, setEstudiantesDisponibles] = useState([]);
   const [pedagogosDisponibles, setPedagogosDisponibles] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
@@ -299,8 +303,8 @@ const CrearSesionPedagogica = () => {
   return (
     <Box sx={{ px: { xs: 1, md: 2 }, py: 0 }}>
       {/* ===== Card principal con header estilo UsuarioFormulario ===== */}
-      <Card elevation={8} sx={cardShellSX}>
-        <Box sx={mainHeaderSX}>
+      <Card elevation={8} sx={getCardShellSX(theme)}>
+        <Box sx={getMainHeaderSX(theme)}>
           <Box>
             <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
               <School sx={{ mr: 1 }} />

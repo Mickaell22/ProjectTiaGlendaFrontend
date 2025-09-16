@@ -11,7 +11,9 @@ import {
   Divider,
   Card,
   CardContent,
-  InputAdornment
+  InputAdornment,
+
+  useTheme
 } from '@mui/material';
 import {
   PersonAdd,
@@ -31,17 +33,17 @@ import useSnackbar from '../../hooks/useSnackbar.js';
 const neutralInputSX = {};
 
 // Misma “carcasa”/tamaño que Persona/Usuario/Personal
-const cardShellSX = {
+const getCardShellSX = (theme) => ({
   borderRadius: 4,
   mb: 4,
-  background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
-  border: '1px solid',
-  borderColor: 'divider',
+  backgroundColor: 'background.paper',
+  border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '1px solid transparent',
+  borderColor: theme.palette.mode === 'dark' ? 'divider' : 'divider',
   overflow: 'hidden',
   width: '100%',
   maxWidth: { xs: '100%', sm: 680, md: 820, lg: 900 },
   mx: 'auto'
-};
+});
 
 // Fila con etiqueta a la izquierda y campo a la derecha
 const rowGridSX = {
@@ -123,6 +125,7 @@ const TutorFormulario = ({
   onCancel,
   loading = false
 }) => {
+  const theme = useTheme();
   const [formData, setFormData] = useState({
     id_persona: '',
     parentesco: '',
@@ -251,10 +254,10 @@ const TutorFormulario = ({
     <>
       {/* ====== Card: Buscar Persona integrado (cuando NO hay selección) ====== */}
       {!selectedPerson && (
-        <Card elevation={8} sx={cardShellSX}>
+        <Card elevation={8} sx={getCardShellSX(theme)}>
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 3,
               display: 'flex',
@@ -291,10 +294,10 @@ const TutorFormulario = ({
 
       {/* ====== Card: Persona Seleccionada ====== */}
       {selectedPerson && (
-        <Card elevation={8} sx={cardShellSX}>
+        <Card elevation={8} sx={getCardShellSX(theme)}>
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 3,
               display: 'flex',
@@ -330,7 +333,7 @@ const TutorFormulario = ({
                 border: '1px solid',
                 borderColor: 'primary.light',
                 borderRadius: 1,
-                bgcolor: '#fff'
+                backgroundColor: 'background.paper'
               }}
             >
               <Typography variant="subtitle2" color="primary" gutterBottom>
@@ -346,13 +349,13 @@ const TutorFormulario = ({
       )}
 
       {/* ====== Card Principal (form) ====== */}
-      <Card elevation={8} sx={cardShellSX}>
+      <Card elevation={8} sx={getCardShellSX(theme)}>
         {/* Header dinámico (azul crear / naranja editar) */}
         <Box
           sx={{
             background: isEditing
-              ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
-              : 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+              ? `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`
+              : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -376,7 +379,7 @@ const TutorFormulario = ({
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Box component="form" onSubmit={handleSubmit}>
             {/* ===== Asignación ===== */}
-            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, backgroundColor: 'background.paper' }}>
               <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
                 Asignación
               </Typography>
@@ -399,7 +402,7 @@ const TutorFormulario = ({
             </Box>
 
             {/* ===== Datos del Tutor ===== */}
-            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, backgroundColor: 'background.paper' }}>
               <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
                 Datos del Tutor
               </Typography>
@@ -454,7 +457,7 @@ const TutorFormulario = ({
             </Box>
 
             {/* ===== Información Laboral ===== */}
-            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, bgcolor: '#fff' }}>
+            <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, backgroundColor: 'background.paper' }}>
               <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
                 Información Laboral
               </Typography>

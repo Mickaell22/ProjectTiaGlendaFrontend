@@ -21,7 +21,8 @@ import {
   Box,
   MenuItem,
   Select,
-  FormControl
+  FormControl,
+  useTheme
 } from '@mui/material';
 import {
   SupervisorAccount,
@@ -55,6 +56,7 @@ const PersonalLista = ({
   onViewDocuments,
   onAddNew
 }) => {
+  const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterArea, setFilterArea] = useState('');
   const [page, setPage] = useState(0);
@@ -70,7 +72,8 @@ const PersonalLista = ({
       sx={{
         borderRadius: 4,
         mb: 4,
-        background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+        backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
         overflow: 'hidden',
         width: '100%',
         maxWidth: { xs: '100%', sm: 800, md: 900 },
@@ -80,7 +83,7 @@ const PersonalLista = ({
       {/* Header morado */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
           color: 'white',
           p: 3,
           display: 'flex',

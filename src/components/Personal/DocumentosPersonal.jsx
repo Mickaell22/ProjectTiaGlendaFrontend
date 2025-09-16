@@ -22,6 +22,7 @@ import {
   Snackbar,
   Divider,
   Paper,
+  useTheme,
 } from '@mui/material';
 import {
   Upload,
@@ -41,6 +42,7 @@ import { API_CONFIG } from '../../config/api.js';
 import ApiService, { extractData } from '../../services/apiService.js';
 
 const DocumentosPersonal = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
 
   // Soporta rutas /personal/:id/documentos o /personal/:personalId/documentos
@@ -273,7 +275,7 @@ const DocumentosPersonal = () => {
         elevation={6}
         sx={{
           borderRadius: 3,
-          backgroundColor: '#fff',
+          backgroundColor: 'background.paper',
           mb: 4,
           p: 0,
           overflow: 'hidden',
@@ -414,7 +416,7 @@ const DocumentosPersonal = () => {
                       height: '100%',
                       borderRadius: 3,
                       borderColor: 'divider',
-                      backgroundColor: '#fff',
+                      backgroundColor: 'background.paper',
                     }}
                   >
                     <CardContent>

@@ -4,7 +4,8 @@ import {
   Box, Button, Card, CardContent, Container, IconButton, Paper, Snackbar,
   Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
   Tooltip, Typography, Alert, Grid, MenuItem, Dialog, DialogTitle, DialogContent,
-  DialogActions, Chip, Avatar, FormControl, InputLabel, Select, InputAdornment
+  DialogActions, Chip, Avatar, FormControl, InputLabel, Select, InputAdornment,
+ useTheme
 } from '@mui/material';
 import {
   CalendarMonth, Edit, Search, Visibility, Refresh, CheckCircle, Cancel,
@@ -40,6 +41,7 @@ const selectStableSX = {
 const menuProps = { PaperProps: { sx: { maxHeight: 280 } } };
 
 const PedagogicoCronogramas = () => {
+  const theme = useTheme();
   const [sesiones, setSesiones] = useState([]);
   const [cronogramas, setCronogramas] = useState([]);
   const [selectedSesion, setSelectedSesion] = useState('');
@@ -334,7 +336,8 @@ const PedagogicoCronogramas = () => {
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8fff8 100%)',
+          backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
           overflow: 'hidden',
           width: '100%',
           maxWidth: { xs: '100%', sm: 1200 },
@@ -461,7 +464,8 @@ const PedagogicoCronogramas = () => {
           sx={{
             borderRadius: 4,
             mb: 4,
-            background: 'linear-gradient(145deg, #ffffff 0%, #f8fff8 100%)',
+            backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
             overflow: 'hidden',
             width: '100%',
             maxWidth: { xs: '100%', sm: 1200 },
@@ -868,7 +872,7 @@ const PedagogicoCronogramas = () => {
               {(detailDialog.data.observaciones_cronograma || detailDialog.data.observaciones) && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="primary">Observaciones</Typography>
-                  <Paper sx={{ p: 2, backgroundColor: 'grey.50' }}>
+                  <Paper sx={{ p: 2, backgroundColor: 'background.paper' }}>
                     <Typography variant="body2">
                       {detailDialog.data.observaciones_cronograma || detailDialog.data.observaciones}
                     </Typography>
@@ -946,6 +950,7 @@ const PedagogicoCronogramas = () => {
 
 // Reprogramar Dialog para clases pedagógicas
 const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
+  const theme = useTheme();
   const [nuevaFecha, setNuevaFecha] = useState('');
   const [nuevaHora, setNuevaHora] = useState('');
   const [motivo, setMotivo] = useState('');
@@ -1078,6 +1083,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
 
 // Cancelar Dialog para clases pedagógicas
 const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
+  const theme = useTheme();
   const [motivo, setMotivo] = useState('');
 
   useEffect(() => {
@@ -1127,6 +1133,7 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
 
 // Marcar como Realizada Dialog para Pedagogico
 const RealizadaDialogPedagogico = ({ open, data, onClose, onConfirm, loading }) => {
+  const theme = useTheme();
   const [observaciones, setObservaciones] = useState('');
 
   useEffect(() => {

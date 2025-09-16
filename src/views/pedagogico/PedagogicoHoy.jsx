@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Container, Paper, Typography, Card, CardContent,
   Grid, Button, IconButton, Tooltip, Alert, Snackbar,
-  Avatar, Chip, Divider
+  Avatar, Chip, Divider,
+ useTheme
 } from '@mui/material';
 import {
   Today, School, AccessTime, Person,
@@ -13,6 +14,7 @@ import { useAuth } from 'src/contexts/AuthContext';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 
 const PedagogicoHoy = () => {
+  const theme = useTheme();
   const [sesionesHoy, setSesionesHoy] = useState([]);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -90,7 +92,8 @@ const PedagogicoHoy = () => {
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          backgroundColor: 'background.paper',
+        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
           overflow: 'hidden',
           width: '100%',
           maxWidth: { xs: '100%', sm: 1000, md: 1200 },

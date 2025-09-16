@@ -10,7 +10,8 @@ import {
   Stack,
   Divider,
   Card,
-  CardContent
+  CardContent,
+  useTheme
 } from '@mui/material';
 import {
   PersonAdd,
@@ -50,17 +51,17 @@ function getUsuarioId() {
 
 /* ---------- Estilos coherentes con Usuario/Personal/Tutor ---------- */
 const neutralInputSX = {};
-const cardShellSX = {
+const getCardShellSX = (theme) => ({
   borderRadius: 4,
   mb: 4,
-  background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
-  border: '1px solid',
-  borderColor: 'divider',
+  backgroundColor: 'background.paper',
+  border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '1px solid transparent',
+  borderColor: theme.palette.mode === 'dark' ? 'divider' : 'divider',
   overflow: 'hidden',
   width: '100%',
   maxWidth: { xs: '100%', sm: 680, md: 820, lg: 900 },
   mx: 'auto'
-};
+});
 const rowGridSX = {
   display: 'grid',
   gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
@@ -76,6 +77,7 @@ const PacienteFormulario = ({
   onCancel,
   loading = false
 }) => {
+  const theme = useTheme();
   const [formData, setFormData] = useState({
     persona_id: '',
     tutor_id: '',
@@ -241,10 +243,10 @@ const PacienteFormulario = ({
     <Box>
       {/* ====== Card: Buscar Persona y Tutor (integrado, morado) ====== */}
       {(!personaEncontrada || !tutorEncontrado) && !isEditing && (
-        <Card elevation={8} sx={cardShellSX}>
+        <Card elevation={8} sx={getCardShellSX(theme)}>
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 3,
               display: 'flex',
@@ -301,10 +303,10 @@ const PacienteFormulario = ({
 
       {/* ====== Card: Selección Actual (morado) ====== */}
       {(personaEncontrada || tutorEncontrado) && (
-        <Card elevation={8} sx={cardShellSX}>
+        <Card elevation={8} sx={getCardShellSX(theme)}>
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 3,
               display: 'flex',
@@ -357,7 +359,7 @@ const PacienteFormulario = ({
                       border: '1px solid',
                       borderColor: 'primary.light',
                       borderRadius: 1,
-                      bgcolor: '#fff'
+                      backgroundColor: 'background.paper'
                     }}
                   >
                     <Typography variant="subtitle2" color="primary" gutterBottom>
@@ -380,7 +382,7 @@ const PacienteFormulario = ({
                       border: '1px solid',
                       borderColor: 'secondary.light',
                       borderRadius: 1,
-                      bgcolor: '#fff'
+                      backgroundColor: 'background.paper'
                     }}
                   >
                     <Typography variant="subtitle2" color="secondary" gutterBottom>
@@ -401,7 +403,7 @@ const PacienteFormulario = ({
       )}
 
       {/* ====== Card Principal (form) ====== */}
-      <Card elevation={8} sx={cardShellSX}>
+      <Card elevation={8} sx={getCardShellSX(theme)}>
         {/* Header dinámico */}
         <Box
           sx={{
@@ -438,7 +440,7 @@ const PacienteFormulario = ({
                 border: '1px solid',
                 borderColor: 'divider',
                 borderRadius: 2,
-                bgcolor: '#fff'
+                backgroundColor: 'background.paper'
               }}
             >
               <Typography
@@ -542,7 +544,7 @@ const PacienteFormulario = ({
                 border: '1px solid',
                 borderColor: 'divider',
                 borderRadius: 2,
-                bgcolor: '#fff'
+                backgroundColor: 'background.paper'
               }}
             >
               <Typography
@@ -629,7 +631,7 @@ const PacienteFormulario = ({
                 border: '1px solid',
                 borderColor: 'divider',
                 borderRadius: 2,
-                bgcolor: '#fff'
+                backgroundColor: 'background.paper'
               }}
             >
               <Typography
