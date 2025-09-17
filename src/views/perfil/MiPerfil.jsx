@@ -294,7 +294,7 @@ const MiPerfil = () => {
         {/* Header con gradiente */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 4,
             display: 'flex',

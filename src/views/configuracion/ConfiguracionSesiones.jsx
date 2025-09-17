@@ -10,7 +10,8 @@ import {
   Stack,
   Divider,
   Box,
-  InputAdornment
+  InputAdornment,
+  useTheme
 } from '@mui/material';
 import {
   Save,
@@ -23,6 +24,7 @@ import {
 } from '@mui/icons-material';
 
 const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
+  const theme = useTheme();
   const [formData, setFormData] = useState({
     duracionSesionTerapia: 60,
     duracionClasePedagogica: 45,
@@ -302,9 +304,9 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
                 <Grid item xs={12}>
                   <Box sx={{ 
                     p: 2, 
-                    backgroundColor: '#f8f9fa', 
+                    backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : '#f8f9fa', 
                     borderRadius: 2, 
-                    border: '1px solid #e9ecef' 
+                    border: `1px solid ${theme.palette.divider}` 
                   }}>
                     <Typography variant="body2" fontWeight="bold" color="text.secondary" gutterBottom>
                       Configuración Actual:
@@ -408,9 +410,9 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
                 <Grid item xs={12}>
                   <Box sx={{ 
                     p: 3, 
-                    backgroundColor: '#f8f9fa', 
+                    backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : '#f8f9fa', 
                     borderRadius: 2, 
-                    border: '1px solid #e9ecef',
+                    border: `1px solid ${theme.palette.divider}`,
                     textAlign: 'center'
                   }}>
                     <Typography variant="body2" fontWeight="bold" color="text.secondary" gutterBottom>

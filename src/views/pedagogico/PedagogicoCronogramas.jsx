@@ -421,7 +421,7 @@ const PedagogicoCronogramas = () => {
                   <Grid item xs={6}>
                     <Button
                       variant="outlined"
-                      sx={{ borderColor: '#4caf50', color: '#4caf50', '&:hover': { borderColor: '#388e3c', bgcolor: '#e8f5e8' } }}
+                      sx={{ borderColor: 'success.main', color: 'success.main', '&:hover': { borderColor: 'success.dark', bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : '#e8f5e8' } }}
                       startIcon={<Refresh />}
                       onClick={() => regenerarCronograma(selectedSesion)}
                       disabled={loading}
@@ -437,7 +437,7 @@ const PedagogicoCronogramas = () => {
           </Grid>
 
           {selectedSesion && getSesionInfo(selectedSesion) && (
-            <Paper sx={{ mt: 3, p: 2, backgroundColor: '#e8f5e8' }}>
+            <Paper sx={{ mt: 3, p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'success.dark' : '#e8f5e8' }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={4}>
                   <Typography variant="subtitle2">Título:</Typography>
@@ -892,7 +892,7 @@ const PedagogicoCronogramas = () => {
               {selectedSesion && getSesionInfo(selectedSesion) && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="primary">Información de la Sesión Pedagógica</Typography>
-                  <Paper sx={{ p: 2, backgroundColor: '#e8f5e8', border: '1px solid', borderColor: '#4caf50' }}>
+                  <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'success.dark' : '#e8f5e8', border: '1px solid', borderColor: 'success.main' }}>
                     <Typography variant="body2"><strong>Título:</strong> {getSesionInfo(selectedSesion).titulo || getSesionInfo(selectedSesion).nombre_clase}</Typography>
                     <Typography variant="body2"><strong>Pedagogo:</strong> {getSesionInfo(selectedSesion).pedagogo?.nombre || getSesionInfo(selectedSesion).pedagogo_nombre}</Typography>
                     <Typography variant="body2"><strong>Especialidad:</strong> {getSesionInfo(selectedSesion).especialidad?.nombre || getSesionInfo(selectedSesion).especialidad_nombre}</Typography>
@@ -1072,7 +1072,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
           onClick={handleConfirm} 
           variant="contained" 
           disabled={loading || !nuevaFecha || !nuevaHora || !motivo || !motivo.trim()}
-          sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}
+          sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
         >
           Reprogramar
         </Button>

@@ -249,7 +249,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
 
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2, mb: 2 }}>
+                <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2, mb: 2 }}>
                   <FormControlLabel
                     control={
                       <Switch
@@ -275,7 +275,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
               </Grid>
 
               <Grid item xs={12}>
-                <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2, mb: 2 }}>
+                <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2, mb: 2 }}>
                   <FormControlLabel
                     control={
                       <Switch
@@ -301,7 +301,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
               </Grid>
 
               <Grid item xs={12}>
-                <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2, mb: 2 }}>
+                <Box sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2, mb: 2 }}>
                   <FormControlLabel
                     control={
                       <Switch
@@ -327,7 +327,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
               </Grid>
 
               <Grid item xs={12}>
-                <Box sx={{ p: 1.5, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                <Box sx={{ p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
                   <FormControlLabel
                     control={
                       <Switch
@@ -389,7 +389,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
 
             <Grid container spacing={3}>
               <Grid item xs={12}>
-                <Box sx={{ p: 3, border: '1px solid #e0e0e0', borderRadius: 2 }}>
+                <Box sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
                   <FormControlLabel
                     control={
                       <Switch

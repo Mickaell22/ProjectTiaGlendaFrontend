@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import {
   Box, Typography, Card, CardContent, Paper, Tabs, Tab, 
-  Avatar, Button, Grid, Fade
+  Avatar, Button, Grid, Fade, useTheme
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon, Person as PersonIcon, BarChart, 
@@ -20,6 +20,7 @@ import { detectUserRole, ROLE_LABELS } from 'src/config/dashboardE1Api';
 import OriginalDashboard from './Dashboard';
 
 const DashboardE1Main = () => {
+  const theme = useTheme();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(0);
   const userRole = detectUserRole(user);
@@ -62,7 +63,7 @@ const DashboardE1Main = () => {
             p: 4,
             mb: 4,
             borderRadius: 3,
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             position: 'relative',
             overflow: 'hidden'

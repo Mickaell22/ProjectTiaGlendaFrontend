@@ -356,7 +356,9 @@ const DocumentosPaciente = () => {
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
+          background: theme.palette.mode === 'dark'
+            ? 'linear-gradient(145deg, #2e2e2e 0%, #3e3e3e 100%)'
+            : 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
           border: '1px solid',
           borderColor: 'divider',
           overflow: 'hidden'
@@ -365,7 +367,9 @@ const DocumentosPaciente = () => {
         {/* Cabecera de la lista */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #673ab7 0%, #5e35b1 100%)',
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, #8e24aa 0%, #7b1fa2 100%)'
+              : 'linear-gradient(135deg, #673ab7 0%, #5e35b1 100%)',
             color: 'white',
             p: 3,
             display: 'flex',
@@ -384,7 +388,7 @@ const DocumentosPaciente = () => {
               sx={{
                 textAlign: 'center',
                 py: 6,
-                background: '#fff',
+                background: theme.palette.background.paper,
                 borderRadius: 3,
                 border: '1px dashed',
                 borderColor: 'divider'

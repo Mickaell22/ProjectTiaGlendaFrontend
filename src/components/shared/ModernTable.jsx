@@ -40,7 +40,40 @@ const ModernTable = ({
 }) => {
   return (
     <Box>
-      <Table>
+      <Box
+        sx={{
+          width: '100%',
+          overflowX: 'auto',
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: '20px',
+            height: '100%',
+            background: 'linear-gradient(to left, rgba(0,0,0,0.1), transparent)',
+            pointerEvents: 'none',
+            opacity: 0,
+            transition: 'opacity 0.3s ease',
+          },
+          '&::-webkit-scrollbar': {
+            height: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'rgba(0,0,0,0.1)',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'rgba(0,0,0,0.3)',
+            borderRadius: '4px',
+            '&:hover': {
+              background: 'rgba(0,0,0,0.5)',
+            },
+          },
+        }}
+      >
+        <Table sx={{ minWidth: 650 }}>
         <TableHead>
           <TableRow>
             {columns.map((column) => (
@@ -124,7 +157,8 @@ const ModernTable = ({
               ))
           )}
         </TableBody>
-      </Table>
+        </Table>
+      </Box>
 
       <TablePagination
         component="div"

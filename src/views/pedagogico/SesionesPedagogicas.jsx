@@ -376,7 +376,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                   navigate('/pedagogico/crear-sesion');
                 }
               }}
-              sx={{ height: 40, px: 2, bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}
+              sx={{ height: 40, px: 2, bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
             >
               Nueva Sesión
             </Button>
@@ -534,7 +534,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                                     sx={{ 
                                       width: 18, 
                                       height: 18,
-                                      bgcolor: '#4caf50',
+                                      bgcolor: 'success.main',
                                       color: 'white',
                                       '&:hover': {
                                         bgcolor: '#388e3c'
@@ -598,7 +598,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                                   navigate('/pedagogico/crear-sesion');
                                 }
                               }}
-                              sx={{ mt: 2, bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}
+                              sx={{ mt: 2, bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
                             >
                               Crear Primera Sesión
                             </Button>
@@ -619,7 +619,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
 
                           <TableCell>
                             <Box display="flex" alignItems="center">
-                              <Avatar sx={{ mr: 2, bgcolor: '#4caf50' }}>
+                              <Avatar sx={{ mr: 2, bgcolor: 'success.main' }}>
                                 <School />
                               </Avatar>
                               <Typography variant="body2">
@@ -900,7 +900,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                 {estudiantesDisponibles.map((estudiante) => (
                   <MenuItem key={estudiante.id} value={estudiante.id}>
                     <Box display="flex" alignItems="center" width="100%">
-                      <Avatar sx={{ mr: 2, bgcolor: '#4caf50', width: 32, height: 32 }}>
+                      <Avatar sx={{ mr: 2, bgcolor: 'success.main', width: 32, height: 32 }}>
                         <Person fontSize="small" />
                       </Avatar>
                       <Box>
@@ -938,7 +938,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
             variant="contained"
             disabled={!newEstudianteId}
             startIcon={<PersonAdd />}
-            sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}
+            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
           >
             Agregar Estudiante
           </Button>

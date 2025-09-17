@@ -840,7 +840,7 @@ const PedagogicoAsistencia = () => {
           <Button 
             variant="contained" 
             onClick={handleSubmitAsistencia}
-            sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}
+            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
           >
             {asistenciaDialog.isEdit ? 'Actualizar' : 'Registrar'}
           </Button>

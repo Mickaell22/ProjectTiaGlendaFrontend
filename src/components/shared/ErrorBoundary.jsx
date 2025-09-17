@@ -93,7 +93,7 @@ class ErrorBoundary extends React.Component {
                   sx={{ 
                     p: 2, 
                     mt: 1, 
-                    backgroundColor: 'grey.100',
+                    backgroundColor: 'action.hover',
                     maxHeight: 200,
                     overflow: 'auto'
                   }}

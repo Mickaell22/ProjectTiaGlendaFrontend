@@ -83,7 +83,12 @@ const SimpleNotificationPopover = () => {
   };
 
   return (
-    <Box sx={{ width: 300, maxHeight: 400, p: 2 }}>
+    <Box sx={{
+      width: { xs: '90vw', sm: 350, md: 400 },
+      maxWidth: 400,
+      maxHeight: 400,
+      p: 2
+    }}>
       <Typography variant="h6" gutterBottom>
         Notificaciones
       </Typography>

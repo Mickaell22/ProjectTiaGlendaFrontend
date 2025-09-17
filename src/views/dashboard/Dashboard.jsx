@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Card, CardContent, Button, Stack, Grid, Paper,
   Avatar, Chip, LinearProgress, Divider, List, ListItem, ListItemAvatar,
-  ListItemText, IconButton, Tooltip, Tabs, Tab
+  ListItemText, IconButton, Tooltip, Tabs, Tab, useTheme
 } from '@mui/material';
 import {
   TrendingUp, Group, EventNote, School, Psychology, Assignment,
@@ -21,6 +21,7 @@ import { PersonalService } from 'src/services/personalService';
 import { EspecialidadService } from 'src/services/especialidadService';
 
 const Dashboard = () => {
+  const theme = useTheme();
   const dispatch = useDispatch();
   const customizer = useSelector((state) => state.customizer);
   const { user } = useAuth();
@@ -306,7 +307,7 @@ const Dashboard = () => {
             p: 4,
             mb: 4,
             borderRadius: 3,
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             position: 'relative',
             overflow: 'hidden'
@@ -380,8 +381,8 @@ const Dashboard = () => {
               p: 3,
               mb: 3,
               borderRadius: 2,
-              backgroundColor: stats.error ? '#ffebee' : '#e3f2fd',
-              borderLeft: `4px solid ${stats.error ? '#f44336' : '#2196f3'}`
+              backgroundColor: stats.error ? theme.palette.error.light : theme.palette.info.light,
+              borderLeft: `4px solid ${stats.error ? theme.palette.error.main : theme.palette.info.main}`
             }}
           >
             <Typography variant="h6" sx={{ mb: 2, color: stats.error ? 'error.main' : 'info.main' }}>

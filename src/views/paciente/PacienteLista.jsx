@@ -387,7 +387,7 @@ const PacienteLista = ({
                       {/* Paciente */}
                       <TableCell>
                         <Box display="flex" alignItems="center">
-                          <Avatar sx={{ mr: 2, bgcolor: '#7e57c2' }}>
+                          <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
                             <Person />
                           </Avatar>
                           <Box>

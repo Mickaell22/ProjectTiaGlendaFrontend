@@ -10,6 +10,7 @@ import {
   Divider,
   Alert,
   CircularProgress,
+  useTheme,
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -24,6 +25,7 @@ const ChatWindow = ({
   onSendMessage = () => {},
   onRefresh = () => {},
 }) => {
+  const theme = useTheme();
   const [messageText, setMessageText] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
@@ -261,7 +263,9 @@ const ChatWindow = ({
               background: 'rgba(0,0,0,0.3)',
             },
           },
-          background: 'linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%)',
+          background: theme.palette.mode === 'dark'
+            ? 'linear-gradient(to bottom, #2e2e2e 0%, #1e1e1e 100%)'
+            : 'linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%)',
           backgroundImage: 'radial-gradient(circle at 20px 20px, rgba(120, 144, 156, 0.03) 1px, transparent 0)',
           backgroundSize: '40px 40px',
         }}

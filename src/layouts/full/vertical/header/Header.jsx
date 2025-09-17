@@ -12,7 +12,8 @@ import {
   Menu,
   MenuItem,
   Divider,
-  Popover
+  Popover,
+  useTheme
 } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -37,6 +38,7 @@ import FotoPerfilConAutorizacion from 'src/components/shared/FotoPerfilConAutori
 import SimpleNotificationPopover from 'src/components/notifications/SimpleNotificationPopover';
 
 const Header = ({ onChatToggle = () => {} }) => {
+  const theme = useTheme();
   const customizer = useSelector((state) => state.customizer);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -234,43 +236,18 @@ const Header = ({ onChatToggle = () => {} }) => {
   return (
     <AppBarStyled position="sticky" color="default">
       <ToolbarStyled>
-        {/* ------------------------------------------- */}
-        {/* Buscar con Label */}
-        {/* ------------------------------------------- */}
-        <Box
-  sx={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: 2,
-    flexGrow: 1,
-    maxWidth: 500,
-    mr: 3
-  }}
->
-  <Typography variant="body1" color="text.primary" sx={{ whiteSpace: 'nowrap' }}>
-    Buscar:
-  </Typography>
-  <Box
-    sx={{
-      display: 'flex',
-      alignItems: 'center',
-      backgroundColor: 'grey.100',
-      borderRadius: 1,
-      px: 2,
-      py: 1,
-      flexGrow: 1,
-      '&:hover': {
-        backgroundColor: 'grey.200'
-      },
-      cursor: 'pointer'
-    }}
-  >
-    <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
-    <Typography variant="body2" color="text.secondary">
-      Buscar...
-    </Typography>
-  </Box>
-</Box>
+        {/* Búsqueda simplificada */}
+        <IconButton
+          color="inherit"
+          sx={{
+            '&:hover': {
+              backgroundColor: 'primary.light',
+              color: 'primary.main'
+            }
+          }}
+        >
+          <SearchIcon />
+        </IconButton>
 
         <Box flexGrow={1} />
 
