@@ -22,7 +22,8 @@ import {
 } from '@mui/icons-material';
 
 import PacienteService from '../../services/pacienteService.js';
-import BuscadorPersonas from '../../components/shared/BuscadorPersonas.jsx';
+import ModernPersonSelector from '../../components/shared/ModernPersonSelector.jsx';
+import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
 /* ---------- Helpers ---------- */
@@ -92,6 +93,9 @@ const PacienteFormulario = ({
   const [errors, setErrors] = useState({});
   const [personaEncontrada, setPersonaEncontrada] = useState(null);
   const [tutorEncontrado, setTutorEncontrado] = useState(null);
+  const [showPersonForm, setShowPersonForm] = useState(false);
+  const [showTutorForm, setShowTutorForm] = useState(false);
+  const [personFormType, setPersonFormType] = useState('persona');
 
   const { showError } = useSnackbar();
   const isEditing = !!editingData;
@@ -161,15 +165,34 @@ const PacienteFormulario = ({
   };
 
   const handlePersonaSelectBuscador = (persona) => {
-    setPersonaEncontrada(persona);
+    setPersonaEncontrada({
+      ...persona,
+      displayName: persona.displayName || `${persona.nombre} ${persona.apellido}`,
+      sourceType: 'persona'
+    });
     setFormData((prev) => ({ ...prev, persona_id: persona.id }));
     if (errors.persona_id) setErrors((prev) => ({ ...prev, persona_id: '' }));
   };
 
   const handleTutorSelectBuscador = (tutor) => {
-    setTutorEncontrado(tutor);
+    setTutorEncontrado({
+      ...tutor,
+      displayName: tutor.displayName || tutor.nombre_completo || `${tutor.nombre} ${tutor.apellido}`,
+      sourceType: 'tutor'
+    });
+    // For tutors, use the tutor ID, not the persona ID
     setFormData((prev) => ({ ...prev, tutor_id: tutor.id }));
     if (errors.tutor_id) setErrors((prev) => ({ ...prev, tutor_id: '' }));
+  };
+
+  const handlePersonCreated = (newPerson) => {
+    if (newPerson.sourceType === 'persona') {
+      handlePersonaSelectBuscador(newPerson);
+      setShowPersonForm(false);
+    } else if (newPerson.sourceType === 'tutor') {
+      handleTutorSelectBuscador(newPerson);
+      setShowTutorForm(false);
+    }
   };
 
   const validateForm = () => {
@@ -241,166 +264,8 @@ const PacienteFormulario = ({
 
   return (
     <Box>
-      {/* ====== Card: Buscar Persona y Tutor (integrado, morado) ====== */}
-      {(!personaEncontrada || !tutorEncontrado) && !isEditing && (
-        <Card elevation={8} sx={getCardShellSX(theme)}>
-          <Box
-            sx={{
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-              color: 'white',
-              p: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <Box>
-              <Typography variant="h6" fontWeight="bold">
-                🔍 Buscar Persona y Tutor
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Selecciona la persona (paciente) y su tutor/representante.
-              </Typography>
-            </Box>
-          </Box>
+      {/* Esta sección fue reemplazada por los nuevos componentes individuales arriba */}
 
-          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <BuscadorPersonas
-              onPersonaSelect={handlePersonaSelectBuscador}
-              onTutorSelect={handleTutorSelectBuscador}
-              showPersonas
-              showTutores
-              compact
-              maxHeight={350}
-              hideRegisteredPatients
-              editingPatientId={editingData?.id}
-            />
-            {(errors.persona_id || errors.tutor_id) && (
-              <Box sx={{ mt: 1 }}>
-                {errors.persona_id && (
-                  <Typography
-                    variant="caption"
-                    color="error"
-                    display="block"
-                  >
-                    {errors.persona_id}
-                  </Typography>
-                )}
-                {errors.tutor_id && (
-                  <Typography
-                    variant="caption"
-                    color="error"
-                    display="block"
-                  >
-                    {errors.tutor_id}
-                  </Typography>
-                )}
-              </Box>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ====== Card: Selección Actual (morado) ====== */}
-      {(personaEncontrada || tutorEncontrado) && (
-        <Card elevation={8} sx={getCardShellSX(theme)}>
-          <Box
-            sx={{
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-              color: 'white',
-              p: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <Box>
-              <Typography variant="h6" fontWeight="bold">
-                ✅ Selección Actual
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Verifica la persona y el tutor antes de continuar.
-              </Typography>
-            </Box>
-
-            {!isEditing && (
-              <Stack direction="row" spacing={1}>
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  onClick={() => {
-                    setPersonaEncontrada(null);
-                    setFormData((p) => ({ ...p, persona_id: '' }));
-                  }}
-                >
-                  Cambiar Persona
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  onClick={() => {
-                    setTutorEncontrado(null);
-                    setFormData((p) => ({ ...p, tutor_id: '' }));
-                  }}
-                >
-                  Cambiar Tutor
-                </Button>
-              </Stack>
-            )}
-          </Box>
-
-          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <Grid container spacing={3}>
-              {personaEncontrada && (
-                <Grid item xs={12} md={6}>
-                  <Box
-                    sx={{
-                      p: 2,
-                      border: '1px solid',
-                      borderColor: 'primary.light',
-                      borderRadius: 1,
-                      backgroundColor: 'background.paper'
-                    }}
-                  >
-                    <Typography variant="subtitle2" color="primary" gutterBottom>
-                      👤 PERSONA
-                    </Typography>
-                    <Typography>
-                      <strong>Nombre:</strong> {personaNombre || '—'}
-                    </Typography>
-                    <Typography>
-                      <strong>Cédula:</strong> {personaEncontrada?.cedula || '—'}
-                    </Typography>
-                  </Box>
-                </Grid>
-              )}
-              {tutorEncontrado && (
-                <Grid item xs={12} md={6}>
-                  <Box
-                    sx={{
-                      p: 2,
-                      border: '1px solid',
-                      borderColor: 'secondary.light',
-                      borderRadius: 1,
-                      backgroundColor: 'background.paper'
-                    }}
-                  >
-                    <Typography variant="subtitle2" color="secondary" gutterBottom>
-                      👥 TUTOR
-                    </Typography>
-                    <Typography>
-                      <strong>Nombre:</strong> {tutorNombre || '—'}
-                    </Typography>
-                    <Typography>
-                      <strong>Cédula:</strong> {tutorEncontrado?.cedula || '—'}
-                    </Typography>
-                  </Box>
-                </Grid>
-              )}
-            </Grid>
-          </CardContent>
-        </Card>
-      )}
 
       {/* ====== Card Principal (form) ====== */}
       <Card elevation={8} sx={getCardShellSX(theme)}>
@@ -454,35 +319,49 @@ const PacienteFormulario = ({
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              {/* Persona (solo lectura) */}
-              <Box sx={rowGridSX}>
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Persona *
-                </Typography>
-                <TextField
-                  fullWidth
-                  value={personaNombre || ''}
-                  placeholder="Seleccione una persona desde el buscador"
-                  InputProps={{ readOnly: true }}
-                  error={!!errors.persona_id}
-                  helperText={errors.persona_id}
-                  sx={neutralInputSX}
+              {/* Persona Selector */}
+              <Box sx={{ mb: 3 }}>
+                <ModernPersonSelector
+                  label="Persona (Paciente)"
+                  placeholder="Busca y selecciona la persona que será el paciente"
+                  selectedPerson={personaEncontrada}
+                  onPersonSelect={handlePersonaSelectBuscador}
+                  onClear={() => {
+                    setPersonaEncontrada(null);
+                    setFormData((p) => ({ ...p, persona_id: '' }));
+                  }}
+                  searchTypes={['personas']}
+                  hideRegisteredPatients={!isEditing}
+                  editingPatientId={isEditing ? editingData?.id : null}
+                  required={true}
+                  error={errors.persona_id}
+                  showCreateButton={true}
+                  onCreateNew={() => setShowPersonForm(true)}
+                  enableFavorites={true}
+                  showRecentSelections={true}
+                  contextualInfo={true}
                 />
               </Box>
 
-              {/* Tutor (solo lectura) */}
-              <Box sx={rowGridSX}>
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Tutor *
-                </Typography>
-                <TextField
-                  fullWidth
-                  value={tutorNombre || ''}
-                  placeholder="Seleccione un tutor desde el buscador"
-                  InputProps={{ readOnly: true }}
-                  error={!!errors.tutor_id}
-                  helperText={errors.tutor_id}
-                  sx={neutralInputSX}
+              {/* Tutor Selector */}
+              <Box sx={{ mb: 3 }}>
+                <ModernPersonSelector
+                  label="Tutor (Responsable)"
+                  placeholder="Busca y selecciona el tutor o responsable del paciente"
+                  selectedPerson={tutorEncontrado}
+                  onPersonSelect={handleTutorSelectBuscador}
+                  onClear={() => {
+                    setTutorEncontrado(null);
+                    setFormData((p) => ({ ...p, tutor_id: '' }));
+                  }}
+                  searchTypes={['tutores']}
+                  required={true}
+                  error={errors.tutor_id}
+                  showCreateButton={true}
+                  onCreateNew={() => setShowTutorForm(true)}
+                  enableFavorites={true}
+                  showRecentSelections={true}
+                  contextualInfo={true}
                 />
               </Box>
 
@@ -710,6 +589,25 @@ const PacienteFormulario = ({
           </Box>
         </CardContent>
       </Card>
+
+      {/* Formularios de Creación */}
+      <UnifiedPersonForm
+        open={showPersonForm}
+        onClose={() => setShowPersonForm(false)}
+        onPersonCreated={handlePersonCreated}
+        personType="persona"
+        title="Crear Nueva Persona (Paciente)"
+        enableMultiStep={false}
+      />
+
+      <UnifiedPersonForm
+        open={showTutorForm}
+        onClose={() => setShowTutorForm(false)}
+        onPersonCreated={handlePersonCreated}
+        personType="tutor"
+        title="Crear Nuevo Tutor"
+        enableMultiStep={true}
+      />
     </Box>
   );
 };

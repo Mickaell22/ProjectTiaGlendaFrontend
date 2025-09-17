@@ -22,6 +22,8 @@ import {
 } from '@mui/material';
 import { Add, School } from '@mui/icons-material';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
+import ModernPersonSelector from '../../components/shared/ModernPersonSelector.jsx';
+import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 
 /* ---------- Estilos (como en UsuarioFormulario.jsx) ---------- */
 const getCardShellSX = (theme) => ({
@@ -37,7 +39,7 @@ const getCardShellSX = (theme) => ({
 
 const getMainHeaderSX = (theme) => ({
   background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-  color: 'white',
+  color: theme.palette.primary.contrastText,
   p: 3,
   display: 'flex',
   alignItems: 'center',
@@ -104,6 +106,8 @@ const CrearSesionPedagogica = () => {
   const [errors, setErrors] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [loading, setLoading] = useState(false);
+  const [selectedPedagogo, setSelectedPedagogo] = useState(null);
+  const [showPersonForm, setShowPersonForm] = useState(false);
 
   const diasSemana = [
     { value: 'lunes', label: 'Lunes' },
@@ -179,6 +183,14 @@ const CrearSesionPedagogica = () => {
     setFormData(prev => ({ ...prev, dias_semana: typeof value === 'string' ? value.split(',') : value }));
     if (errors.dias_semana) {
       setErrors(prev => ({ ...prev, dias_semana: '' }));
+    }
+  };
+
+  const handlePedagogoSelect = (person) => {
+    setSelectedPedagogo(person);
+    setFormData(prev => ({ ...prev, pedagogo_id: person.id }));
+    if (errors.pedagogo_id) {
+      setErrors(prev => ({ ...prev, pedagogo_id: '' }));
     }
   };
 
@@ -298,6 +310,7 @@ const CrearSesionPedagogica = () => {
       observaciones: ''
     });
     setErrors({});
+    setSelectedPedagogo(null);
   };
 
   return (
@@ -341,38 +354,32 @@ const CrearSesionPedagogica = () => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <FormControl fullWidth error={!!errors.pedagogo_id}>
-                    <InputLabel shrink>Pedagogo/Educador</InputLabel>
-                    <Select
-                      sx={selectStableSX}
-                      name="pedagogo_id"
-                      value={formData.pedagogo_id}
-                      onChange={handleChange}
-                      label="Pedagogo/Educador"
-                      disabled={loading}
-                      displayEmpty
-                      renderValue={(selected) => {
-                        if (!selected) return 'Seleccione un pedagogo';
-                        const p = pedagogosDisponibles.find(x => x.id === selected || String(x.id) === String(selected));
-                        return p
-                          ? `${p.nombre_completo || p.nombre || 'Sin nombre'} - ${p.titulo_profesional || p.especialidad_nombre || 'Educador'}`
-                          : 'Seleccione un pedagogo';
-                      }}
-                      MenuProps={menuProps}
-                    >
-                      <MenuItem value="">{loading ? 'Cargando pedagogos...' : 'Seleccione un pedagogo'}</MenuItem>
-                      {!loading && pedagogosDisponibles.length === 0 ? (
-                        <MenuItem disabled>No hay pedagogos disponibles</MenuItem>
-                      ) : (
-                        pedagogosDisponibles.map((pedagogo, index) => (
-                          <MenuItem key={`pedagogo-${pedagogo.id || index}`} value={pedagogo.id}>
-                            {`${pedagogo.nombre_completo || pedagogo.nombre || 'Sin nombre'} - ${pedagogo.titulo_profesional || pedagogo.especialidad_nombre || 'Educador'}`}
-                          </MenuItem>
-                        ))
-                      )}
-                    </Select>
-                    {errors.pedagogo_id && <FormHelperText>{errors.pedagogo_id}</FormHelperText>}
-                  </FormControl>
+                  <ModernPersonSelector
+                    selectedPerson={selectedPedagogo ? {
+                      ...selectedPedagogo,
+                      displayName: selectedPedagogo.displayName || `${selectedPedagogo.nombre} ${selectedPedagogo.apellido}`,
+                      sourceType: 'personal'
+                    } : null}
+                    onPersonSelect={(person) => handlePedagogoSelect({
+                      ...person,
+                      displayName: person.displayName || `${person.nombre} ${person.apellido}`
+                    })}
+                    onClear={() => {
+                      setSelectedPedagogo(null);
+                      setFormData(prev => ({ ...prev, pedagogo_id: '' }));
+                    }}
+                    label="Pedagogo/Educador"
+                    placeholder="Buscar y seleccionar pedagogo para la sesión"
+                    required
+                    error={errors.pedagogo_id}
+                    searchTypes={['personas']}
+                    hideRegisteredPatients={false}
+                    showCreateButton={true}
+                    onCreateNew={() => setShowPersonForm(true)}
+                    contextualInfo={true}
+                    enableFavorites={true}
+                    showRecentSelections={true}
+                  />
                 </Grid>
 
                 <Grid item xs={12}>
@@ -703,6 +710,22 @@ const CrearSesionPedagogica = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Formulario de Creación de Persona */}
+      <UnifiedPersonForm
+        open={showPersonForm}
+        onClose={() => setShowPersonForm(false)}
+        onPersonCreated={(newPerson) => {
+          handlePedagogoSelect({
+            ...newPerson,
+            displayName: newPerson.displayName || `${newPerson.nombre} ${newPerson.apellido}`
+          });
+          setShowPersonForm(false);
+        }}
+        personType="persona"
+        title="Crear Nueva Persona (Pedagogo/Educador)"
+        enableMultiStep={false}
+      />
     </Box>
   );
 };

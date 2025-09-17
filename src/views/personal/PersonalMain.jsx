@@ -84,6 +84,7 @@ const PersonalMainComponent = () => {
   // Estados de UI
   const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
   const [confirmDialog, setConfirmDialog] = useState({ open: false, id: null });
+  const [showPersonForm, setShowPersonForm] = useState(false);
 
   // Hooks personalizados
   const { snackbar, showSuccess, showError, hideSnackbar } = useSnackbar();
@@ -281,6 +282,8 @@ const PersonalMainComponent = () => {
           onPersonChange={handlePersonChange}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
+          showPersonForm={showPersonForm}
+          setShowPersonForm={setShowPersonForm}
         />
       )
     }

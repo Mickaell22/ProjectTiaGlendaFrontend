@@ -25,7 +25,8 @@ import {
 } from '@mui/icons-material';
 
 import TutorService from '../../services/tutorService.js';
-import BuscadorPersonas from '../../components/shared/BuscadorPersonas.jsx';
+import ModernPersonSelector from '../../components/shared/ModernPersonSelector.jsx';
+import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
 /* ---------- Estilos coherentes con Persona/Personal ---------- */
@@ -137,6 +138,7 @@ const TutorFormulario = ({
   });
   const [errors, setErrors] = useState({});
   const [selectedPerson, setSelectedPerson] = useState(null);
+  const [showPersonForm, setShowPersonForm] = useState(false);
 
   const { showError } = useSnackbar();
   const isEditing = !!editingData;
@@ -257,8 +259,8 @@ const TutorFormulario = ({
         <Card elevation={8} sx={getCardShellSX(theme)}>
           <Box
             sx={{
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-              color: 'white',
+              background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
+              color: theme.palette.secondary.contrastText,
               p: 3,
               display: 'flex',
               alignItems: 'center',
@@ -276,18 +278,32 @@ const TutorFormulario = ({
           </Box>
 
           <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <BuscadorPersonas
-              onPersonaSelect={handlePersonaSelect}
-              showTutores={false}
-              showPersonas={true}
-              compact={true}
-              maxHeight={420}
+            <ModernPersonSelector
+              selectedPerson={selectedPerson ? {
+                ...selectedPerson,
+                displayName: selectedPerson.nombre_completo || `${selectedPerson.nombre} ${selectedPerson.apellido}`,
+                sourceType: 'persona'
+              } : null}
+              onPersonSelect={(person) => handlePersonaSelect({
+                ...person,
+                displayName: person.displayName || `${person.nombre} ${person.apellido}`
+              })}
+              onClear={() => {
+                setSelectedPerson(null);
+                setFormData(prev => ({ ...prev, id_persona: '' }));
+              }}
+              label="Tutor"
+              placeholder="Buscar y seleccionar persona para el tutor"
+              required
+              error={errors.id_persona}
+              searchTypes={['personas']}
+              hideRegisteredPatients={false}
+              showCreateButton={true}
+              onCreateNew={() => setShowPersonForm(true)}
+              contextualInfo={true}
+              enableFavorites={true}
+              showRecentSelections={true}
             />
-            {errors.id_persona && (
-              <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-                {errors.id_persona}
-              </Typography>
-            )}
           </CardContent>
         </Card>
       )}
@@ -297,8 +313,8 @@ const TutorFormulario = ({
         <Card elevation={8} sx={getCardShellSX(theme)}>
           <Box
             sx={{
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-              color: 'white',
+              background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`,
+              color: theme.palette.success.contrastText,
               p: 3,
               display: 'flex',
               alignItems: 'center',
@@ -356,7 +372,7 @@ const TutorFormulario = ({
             background: isEditing
               ? `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`
               : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-            color: 'white',
+            color: isEditing ? theme.palette.warning.contrastText : theme.palette.primary.contrastText,
             p: 3,
             display: 'flex',
             alignItems: 'center',
@@ -552,6 +568,22 @@ const TutorFormulario = ({
           </Box>
         </CardContent>
       </Card>
+
+      {/* Formulario de Creación de Persona */}
+      <UnifiedPersonForm
+        open={showPersonForm}
+        onClose={() => setShowPersonForm(false)}
+        onPersonCreated={(newPerson) => {
+          handlePersonaSelect({
+            ...newPerson,
+            displayName: newPerson.displayName || `${newPerson.nombre} ${newPerson.apellido}`
+          });
+          setShowPersonForm(false);
+        }}
+        personType="persona"
+        title="Crear Nueva Persona (Tutor)"
+        enableMultiStep={false}
+      />
     </>
   );
 };

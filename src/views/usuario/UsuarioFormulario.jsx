@@ -35,7 +35,8 @@ import {
 import UsuarioService from '../../services/usuarioService.js';
 import PersonaService from '../../services/personaService.js';
 import CentroService from '../../services/centroService.js';
-import BuscadorPersonas from '../../components/shared/BuscadorPersonas.jsx';
+import ModernPersonSelector from '../../components/shared/ModernPersonSelector.jsx';
+import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
 /* ---------- Helpers ---------- */
@@ -78,6 +79,7 @@ const UsuarioFormulario = ({
   const [showPassword, setShowPassword] = useState(false);
   const [rolesDisponibles, setRolesDisponibles] = useState([]);
   const [centrosDisponibles, setCentrosDisponibles] = useState([]);
+  const [showPersonForm, setShowPersonForm] = useState(false);
 
   const { showError } = useSnackbar();
   const isEditing = !!editingData;
@@ -304,8 +306,8 @@ const UsuarioFormulario = ({
         <Card elevation={8} sx={cardShellSX}>
           <Box
             sx={{
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-              color: 'white',
+              background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
+              color: theme.palette.secondary.contrastText,
               p: 3,
               display: 'flex',
               alignItems: 'center',
@@ -323,18 +325,32 @@ const UsuarioFormulario = ({
           </Box>
 
           <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <BuscadorPersonas
-              onPersonaSelect={handlePersonaSelect}
-              showPersonas={true}
-              showTutores={false}
-              compact={true}
-              maxHeight={350}
+            <ModernPersonSelector
+              selectedPerson={personaSeleccionada ? {
+                ...personaSeleccionada,
+                displayName: personaSeleccionada.nombre_completo || `${personaSeleccionada.nombre} ${personaSeleccionada.apellido}`,
+                sourceType: 'persona'
+              } : null}
+              onPersonSelect={(person) => handlePersonaSelect({
+                ...person,
+                displayName: person.displayName || `${person.nombre} ${person.apellido}`
+              })}
+              onClear={() => {
+                setPersonaSeleccionada(null);
+                setFormData(prev => ({ ...prev, persona_id: '', nombre_usuario: '' }));
+              }}
+              label="Usuario"
+              placeholder="Buscar y seleccionar persona para el usuario"
+              required
+              error={errors.persona_id}
+              searchTypes={['personas']}
+              hideRegisteredPatients={false}
+              showCreateButton={true}
+              onCreateNew={() => setShowPersonForm(true)}
+              contextualInfo={true}
+              enableFavorites={true}
+              showRecentSelections={true}
             />
-            {errors.persona_id && (
-              <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-                {errors.persona_id}
-              </Typography>
-            )}
           </CardContent>
         </Card>
       )}
@@ -344,8 +360,8 @@ const UsuarioFormulario = ({
         <Card elevation={8} sx={cardShellSX}>
           <Box
             sx={{
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-              color: 'white',
+              background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`,
+              color: theme.palette.success.contrastText,
               p: 3,
               display: 'flex',
               alignItems: 'center',
@@ -419,7 +435,7 @@ const UsuarioFormulario = ({
             background: isEditing
               ? `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`
               : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-            color: 'white',
+            color: isEditing ? theme.palette.warning.contrastText : theme.palette.primary.contrastText,
             p: 3,
             display: 'flex',
             alignItems: 'center',
@@ -614,6 +630,22 @@ const UsuarioFormulario = ({
           </Box>
         </CardContent>
       </Card>
+
+      {/* Formulario de Creación de Persona */}
+      <UnifiedPersonForm
+        open={showPersonForm}
+        onClose={() => setShowPersonForm(false)}
+        onPersonCreated={(newPerson) => {
+          handlePersonaSelect({
+            ...newPerson,
+            displayName: newPerson.displayName || `${newPerson.nombre} ${newPerson.apellido}`
+          });
+          setShowPersonForm(false);
+        }}
+        personType="persona"
+        title="Crear Nueva Persona (Usuario)"
+        enableMultiStep={false}
+      />
     </Box>
   );
 };

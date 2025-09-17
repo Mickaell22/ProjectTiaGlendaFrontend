@@ -25,6 +25,8 @@ import {
 } from '@mui/icons-material';
 
 import EspecialidadService from '../../services/especialidadService.js';
+import ModernPersonSelector from '../../components/shared/ModernPersonSelector.jsx';
+import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 
 /* ---------- Estilos coherentes con PersonaFormulario ---------- */
 // Inputs sin estilos morados: usamos el tema por defecto
@@ -62,6 +64,8 @@ const PersonalFormulario = ({
   selectedPerson,
   onChange,
   onPersonChange,
+  showPersonForm = false,
+  setShowPersonForm = () => {},
   onSubmit,
   onCancel
 }) => {
@@ -95,8 +99,8 @@ const PersonalFormulario = ({
         <Card elevation={8} sx={getCardShellSX(theme)}>
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
-              color: 'white',
+              background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
+              color: theme.palette.secondary.contrastText,
               p: 3,
               display: 'flex',
               alignItems: 'center',
@@ -114,39 +118,28 @@ const PersonalFormulario = ({
           </Box>
 
           <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <Autocomplete
-              value={selectedPerson || null}
-              onChange={(event, newValue) => onPersonChange(newValue)}
-              options={personasDisponibles}
-              getOptionLabel={(option) =>
-                `${option.nombre} ${option.apellido} - ${option.cedula}`
-              }
-              isOptionEqualToValue={(opt, val) => opt.id === val.id}
-              noOptionsText="No se encontraron personas"
-              renderOption={(props, option) => (
-                <Box component="li" {...props}>
-                  <Avatar sx={{ mr: 2, bgcolor: 'primary.light' }}>
-                    <Person />
-                  </Avatar>
-                  <Box>
-                    <Typography variant="body2" fontWeight="bold">
-                      {option.nombre} {option.apellido}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {option.cedula}
-                    </Typography>
-                  </Box>
-                </Box>
-              )}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  placeholder="Buscar y seleccionar persona..."
-                  error={!!errors.persona_id}
-                  helperText={errors.persona_id}
-                  sx={neutralInputSX}
-                />
-              )}
+            <ModernPersonSelector
+              selectedPerson={selectedPerson ? {
+                ...selectedPerson,
+                displayName: `${selectedPerson.nombre} ${selectedPerson.apellido}`,
+                sourceType: 'persona'
+              } : null}
+              onPersonSelect={(person) => onPersonChange({
+                ...person,
+                displayName: person.displayName || `${person.nombre} ${person.apellido}`
+              })}
+              onClear={() => onPersonChange(null)}
+              label="Personal"
+              placeholder="Buscar y seleccionar persona para el personal"
+              required
+              error={errors.persona_id}
+              searchTypes={['personas']}
+              hideRegisteredPatients={false}
+              showCreateButton={true}
+              onCreateNew={() => setShowPersonForm(true)}
+              contextualInfo={true}
+              enableFavorites={true}
+              showRecentSelections={true}
             />
           </CardContent>
         </Card>
@@ -157,8 +150,8 @@ const PersonalFormulario = ({
         <Card elevation={8} sx={getCardShellSX(theme)}>
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #7e57c2 0%, #673ab7 100%)',
-              color: 'white',
+              background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`,
+              color: theme.palette.success.contrastText,
               p: 3,
               display: 'flex',
               alignItems: 'center',
@@ -219,9 +212,9 @@ const PersonalFormulario = ({
         <Box
           sx={{
             background: editingId
-              ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
-              : 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
-            color: 'white',
+              ? `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`
+              : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+            color: editingId ? theme.palette.warning.contrastText : theme.palette.primary.contrastText,
             p: 3,
             display: 'flex',
             alignItems: 'center',
@@ -531,6 +524,22 @@ const PersonalFormulario = ({
           </Box>
         </CardContent>
       </Card>
+
+      {/* Formulario de Creación de Persona */}
+      <UnifiedPersonForm
+        open={showPersonForm}
+        onClose={() => setShowPersonForm(false)}
+        onPersonCreated={(newPerson) => {
+          onPersonChange({
+            ...newPerson,
+            displayName: newPerson.displayName || `${newPerson.nombre} ${newPerson.apellido}`
+          });
+          setShowPersonForm(false);
+        }}
+        personType="persona"
+        title="Crear Nueva Persona (Personal)"
+        enableMultiStep={false}
+      />
     </Box>
   );
 };

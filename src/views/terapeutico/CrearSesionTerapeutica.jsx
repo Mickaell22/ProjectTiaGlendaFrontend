@@ -24,6 +24,8 @@ import { Add, Psychology } from '@mui/icons-material';
 // import { useNavigate } from 'react-router-dom';
 // import { useAuth } from 'src/contexts/AuthContext';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
+import ModernPersonSelector from '../../components/shared/ModernPersonSelector.jsx';
+import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 
 /* ---------- Estilos (como en UsuarioFormulario.jsx) ---------- */
 const getCardShellSX = (theme) => ({
@@ -39,7 +41,7 @@ const getCardShellSX = (theme) => ({
 
 const getMainHeaderSX = (theme) => ({
   background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-  color: 'white',
+  color: theme.palette.primary.contrastText,
   p: 3,
   display: 'flex',
   alignItems: 'center',
@@ -103,6 +105,9 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
   const [errors, setErrors] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [loading, setLoading] = useState(false);
+  const [selectedTerapeuta, setSelectedTerapeuta] = useState(null);
+  const [selectedPaciente, setSelectedPaciente] = useState(null);
+  const [showPersonForm, setShowPersonForm] = useState(false);
   // const navigate = useNavigate();
   // const { user } = useAuth();
 
@@ -167,6 +172,22 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
     setFormData(prev => ({ ...prev, dias_semana: typeof value === 'string' ? value.split(',') : value }));
     if (errors.dias_semana) {
       setErrors(prev => ({ ...prev, dias_semana: '' }));
+    }
+  };
+
+  const handleTerapeutaSelect = (person) => {
+    setSelectedTerapeuta(person);
+    setFormData(prev => ({ ...prev, terapeuta_id: person.id }));
+    if (errors.terapeuta_id) {
+      setErrors(prev => ({ ...prev, terapeuta_id: '' }));
+    }
+  };
+
+  const handlePacienteSelect = (person) => {
+    setSelectedPaciente(person);
+    setFormData(prev => ({ ...prev, paciente_id: person.id }));
+    if (errors.paciente_id) {
+      setErrors(prev => ({ ...prev, paciente_id: '' }));
     }
   };
 
@@ -289,6 +310,8 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
       paciente_id: ''
     });
     setErrors({});
+    setSelectedTerapeuta(null);
+    setSelectedPaciente(null);
   };
 
   return (
@@ -332,38 +355,32 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <FormControl fullWidth error={!!errors.terapeuta_id}>
-                    <InputLabel shrink>Terapeuta</InputLabel>
-                    <Select
-                      sx={selectStableSX}
-                      name="terapeuta_id"
-                      value={formData.terapeuta_id}
-                      onChange={handleChange}
-                      label="Terapeuta"
-                      disabled={loading}
-                      displayEmpty
-                      renderValue={(selected) => {
-                        if (!selected) return 'Seleccione un terapeuta';
-                        const t = terapeutasDisponibles.find(x => x.id === selected || String(x.id) === String(selected));
-                        return t
-                          ? `${t.nombre_completo || t.nombre || 'Sin nombre'} - ${t.titulo_profesional || t.especialidad_nombre || 'Especialista'}`
-                          : 'Seleccione un terapeuta';
-                      }}
-                      MenuProps={menuProps}
-                    >
-                      <MenuItem value="">{loading ? 'Cargando terapeutas...' : 'Seleccione un terapeuta'}</MenuItem>
-                      {!loading && terapeutasDisponibles.length === 0 ? (
-                        <MenuItem disabled>No hay terapeutas disponibles</MenuItem>
-                      ) : (
-                        terapeutasDisponibles.map((terapeuta, index) => (
-                          <MenuItem key={`terapeuta-${terapeuta.id || index}`} value={terapeuta.id}>
-                            {`${terapeuta.nombre_completo || terapeuta.nombre || 'Sin nombre'} - ${terapeuta.titulo_profesional || terapeuta.especialidad_nombre || 'Especialista'}`}
-                          </MenuItem>
-                        ))
-                      )}
-                    </Select>
-                    {errors.terapeuta_id && <FormHelperText>{errors.terapeuta_id}</FormHelperText>}
-                  </FormControl>
+                  <ModernPersonSelector
+                    selectedPerson={selectedTerapeuta ? {
+                      ...selectedTerapeuta,
+                      displayName: selectedTerapeuta.displayName || `${selectedTerapeuta.nombre} ${selectedTerapeuta.apellido}`,
+                      sourceType: 'personal'
+                    } : null}
+                    onPersonSelect={(person) => handleTerapeutaSelect({
+                      ...person,
+                      displayName: person.displayName || `${person.nombre} ${person.apellido}`
+                    })}
+                    onClear={() => {
+                      setSelectedTerapeuta(null);
+                      setFormData(prev => ({ ...prev, terapeuta_id: '' }));
+                    }}
+                    label="Terapeuta"
+                    placeholder="Buscar y seleccionar terapeuta para la sesión"
+                    required
+                    error={errors.terapeuta_id}
+                    searchTypes={['personas']}
+                    hideRegisteredPatients={false}
+                    showCreateButton={true}
+                    onCreateNew={() => setShowPersonForm(true)}
+                    contextualInfo={true}
+                    enableFavorites={true}
+                    showRecentSelections={true}
+                  />
                 </Grid>
 
                 <Grid item xs={12}>
@@ -400,38 +417,32 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <FormControl fullWidth error={!!errors.paciente_id}>
-                    <InputLabel shrink>Paciente (Opcional - Sesión Individual)</InputLabel>
-                    <Select
-                      sx={selectStableSX}
-                      name="paciente_id"
-                      value={formData.paciente_id}
-                      onChange={handleChange}
-                      label="Paciente (Opcional - Sesión Individual)"
-                      disabled={loading}
-                      displayEmpty
-                      renderValue={(selected) => {
-                        if (!selected) return 'Sin paciente asignado (Sesión grupal)';
-                        const p = pacientesDisponibles.find(x => x.id === selected || String(x.id) === String(selected));
-                        return p
-                          ? `${p.nombre_completo || p.nombre || 'Sin nombre'} - ${p.numero_historial || p.cedula || 'Sin ID'}`
-                          : 'Sin paciente asignado (Sesión grupal)';
-                      }}
-                      MenuProps={menuProps}
-                    >
-                      <MenuItem value="">{loading ? 'Cargando pacientes...' : 'Sin paciente asignado (Sesión grupal)'}</MenuItem>
-                      {!loading && pacientesDisponibles.length === 0 ? (
-                        <MenuItem disabled>No hay pacientes disponibles</MenuItem>
-                      ) : (
-                        pacientesDisponibles.map((paciente, index) => (
-                          <MenuItem key={`paciente-${paciente.id || index}`} value={paciente.id}>
-                            {`${paciente.nombre_completo || paciente.nombre || 'Sin nombre'} - ${paciente.numero_historial || paciente.cedula || 'Sin ID'}`}
-                          </MenuItem>
-                        ))
-                      )}
-                    </Select>
-                    {errors.paciente_id && <FormHelperText>{errors.paciente_id}</FormHelperText>}
-                  </FormControl>
+                  <ModernPersonSelector
+                    selectedPerson={selectedPaciente ? {
+                      ...selectedPaciente,
+                      displayName: selectedPaciente.displayName || `${selectedPaciente.nombre} ${selectedPaciente.apellido}`,
+                      sourceType: 'persona'
+                    } : null}
+                    onPersonSelect={(person) => handlePacienteSelect({
+                      ...person,
+                      displayName: person.displayName || `${person.nombre} ${person.apellido}`
+                    })}
+                    onClear={() => {
+                      setSelectedPaciente(null);
+                      setFormData(prev => ({ ...prev, paciente_id: '' }));
+                    }}
+                    label="Paciente (Opcional - Sesión Individual)"
+                    placeholder="Buscar paciente para sesión individual (opcional)"
+                    required={false}
+                    error={errors.paciente_id}
+                    searchTypes={['personas']}
+                    hideRegisteredPatients={false}
+                    showCreateButton={true}
+                    onCreateNew={() => setShowPersonForm(true)}
+                    contextualInfo={true}
+                    enableFavorites={true}
+                    showRecentSelections={true}
+                  />
                 </Grid>
               </Grid>
             </Box>
@@ -664,6 +675,23 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Formulario de Creación de Persona */}
+      <UnifiedPersonForm
+        open={showPersonForm}
+        onClose={() => setShowPersonForm(false)}
+        onPersonCreated={(newPerson) => {
+          // Default to treating as terapeuta, but user can select role later
+          handleTerapeutaSelect({
+            ...newPerson,
+            displayName: newPerson.displayName || `${newPerson.nombre} ${newPerson.apellido}`
+          });
+          setShowPersonForm(false);
+        }}
+        personType="persona"
+        title="Crear Nueva Persona (Terapeuta/Paciente)"
+        enableMultiStep={false}
+      />
     </Box>
   );
 };
