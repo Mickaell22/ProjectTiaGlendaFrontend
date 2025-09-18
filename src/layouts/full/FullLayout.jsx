@@ -7,9 +7,8 @@ import Header from './vertical/header/Header';
 import Sidebar from './vertical/sidebar/Sidebar';
 import Customizer from './shared/customizer/Customizer';
 
-// Componentes de Chat y Notificaciones
-import NotificationCenter from 'src/components/notifications/NotificationCenter';
-// import ChatContainer from 'src/components/chat/ChatContainer'; // DESACTIVADO
+// Componentes de Chat
+import ChatContainer from 'src/components/chat/ChatContainer';
 
 const MainWrapper = styled('div')(() => ({
   display: 'flex',
@@ -30,6 +29,7 @@ const PageWrapper = styled('div')(() => ({
 const FullLayout = () => {
   const customizer = useSelector((state) => state.customizer);
   const theme = useTheme();
+  const [chatOpen, setChatOpen] = React.useState(false);
 
   return (
     <MainWrapper className="mainwrapper">
@@ -54,7 +54,7 @@ const FullLayout = () => {
         {/* ------------------------------------------- */}
         {/* Header */}
         {/* ------------------------------------------- */}
-        <Header />
+        <Header onChatToggle={() => setChatOpen(!chatOpen)} />
         
         {/* ------------------------------------------- */}
         {/* PageContent */}
@@ -76,14 +76,12 @@ const FullLayout = () => {
       {/* ------------------------------------------- */}
       <Customizer />
       
-      {/* Chat Container - DESACTIVADO */}
-      {/*
+      {/* Chat Container */}
       <ChatContainer
         isOpen={chatOpen}
-        onClose={setChatOpen}
+        onClose={() => setChatOpen(false)}
         mode="modal"
       />
-      */}
       
     </MainWrapper>
   );

@@ -20,7 +20,15 @@ import {
   DialogActions,
   LinearProgress,
   Alert,
-
+  Tabs,
+  Tab,
+  Chip,
+  Switch,
+  FormControlLabel,
+  CircularProgress,
+  Paper,
+  Stack,
+  TextField,
   useTheme
 } from '@mui/material';
 import {
@@ -37,13 +45,16 @@ import {
   CloudUpload,
   Delete,
   Visibility,
-  VisibilityOff
+  VisibilityOff,
+  Settings,
+  Notifications
 } from '@mui/icons-material';
 
 import useSnackbar from '../../hooks/useSnackbar.js';
 import { API_CONFIG, API_ENDPOINTS } from '../../config/api.js';
 import FotoPerfilService from '../../services/fotoPerfilService.js';
 import FotoPerfilConAutorizacion from '../../components/shared/FotoPerfilConAutorizacion.jsx';
+import ApiService, { extractData } from '../../services/apiService.js';
 
 const MiPerfil = () => {
   const theme = useTheme();
@@ -55,7 +66,49 @@ const MiPerfil = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
+  // Estados para las pestañas
+  const [activeTab, setActiveTab] = useState(0);
+
+  // Estados para configuración rápida
+  const [notificationSettings, setNotificationSettings] = useState({
+    push: true,
+    reminders: true
+  });
+
+  // Estados para edición de información personal
+  const [editInfoDialogOpen, setEditInfoDialogOpen] = useState(false);
+  const [editedUserData, setEditedUserData] = useState({});
+  const [savingInfo, setSavingInfo] = useState(false);
+
+  // Estados para cambio de contraseña
+  const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
+
   const { showSuccess, showError } = useSnackbar();
+
+  // Utility function para verificar roles de usuario
+  const getUserRole = () => {
+    if (!userData) return { isAdmin: false, isTerapeuta: false, roleType: 'unknown' };
+
+    const rol = userData.rol_nombre || userData.rol || '';
+    const roleLower = rol.toLowerCase();
+
+    const isAdmin = rol === 'Administrador' || roleLower.includes('admin');
+    const isTerapeuta = roleLower.includes('terapeuta') || roleLower.includes('terapia');
+    const isEducador = roleLower.includes('educador') || roleLower.includes('pedagog');
+
+    let roleType = 'usuario';
+    if (isAdmin) roleType = 'admin';
+    else if (isTerapeuta) roleType = 'terapeuta';
+    else if (isEducador) roleType = 'educador';
+
+    return { isAdmin, isTerapeuta, isEducador, roleType, roleName: rol };
+  };
 
   // Obtener datos del usuario desde localStorage o JWT
   const getCurrentUser = () => {
@@ -125,21 +178,57 @@ const MiPerfil = () => {
     loadUserData();
   }, []);
 
+
   const loadUserData = async () => {
     try {
       setLoading(true);
       const currentUser = getCurrentUser();
 
       if (currentUser) {
-        // Usar datos del localStorage/JWT como base
-        const enhancedUser = {
-          ...currentUser,
-          nombre_completo: currentUser.nombre_completo || currentUser.name || 'Usuario',
-          rol_nombre: currentUser.rol || 'Usuario',
-          centro_nombre: currentUser.centro_nombre || 'Centro Tía Glenda'
-        };
+        // Intentar cargar datos completos desde el backend primero
+        try {
+          const response = await ApiService.get('/api/me');
+          const backendUserData = extractData(response);
 
-        setUserData(enhancedUser);
+          if (backendUserData) {
+            // Usar datos del backend como fuente principal
+            const enhancedUser = {
+              ...currentUser, // Mantener datos base
+              ...backendUserData, // Sobrescribir con datos del backend
+              nombre_completo: backendUserData.nombre_completo || currentUser.nombre_completo || currentUser.name || 'Usuario',
+              rol_nombre: backendUserData.rol_nombre || backendUserData.rol || currentUser.rol || 'Usuario',
+              centro_nombre: backendUserData.centro_nombre || currentUser.centro_nombre || 'Centro Tía Glenda',
+              // Asegurar que cédula y otros datos personales estén incluidos
+              cedula: backendUserData.cedula || backendUserData.numero_identificacion || currentUser.cedula,
+              telefono: backendUserData.telefono || currentUser.telefono,
+              direccion: backendUserData.direccion || currentUser.direccion,
+              fecha_nacimiento: backendUserData.fecha_nacimiento || currentUser.fecha_nacimiento,
+              fecha_creacion: backendUserData.fecha_creacion || currentUser.fecha_creacion,
+              fecha_ultimo_acceso: backendUserData.fecha_ultimo_acceso || currentUser.fecha_ultimo_acceso
+            };
+
+            setUserData(enhancedUser);
+          } else {
+            // Fallback a datos locales si el backend no responde
+            const enhancedUser = {
+              ...currentUser,
+              nombre_completo: currentUser.nombre_completo || currentUser.name || 'Usuario',
+              rol_nombre: currentUser.rol || 'Usuario',
+              centro_nombre: currentUser.centro_nombre || 'Centro Tía Glenda'
+            };
+            setUserData(enhancedUser);
+          }
+        } catch (backendError) {
+          console.warn('No se pudo cargar datos desde el backend, usando datos locales:', backendError);
+          // Fallback a datos locales
+          const enhancedUser = {
+            ...currentUser,
+            nombre_completo: currentUser.nombre_completo || currentUser.name || 'Usuario',
+            rol_nombre: currentUser.rol || 'Usuario',
+            centro_nombre: currentUser.centro_nombre || 'Centro Tía Glenda'
+          };
+          setUserData(enhancedUser);
+        }
 
         // Cargar información específica de foto de perfil
         await loadPhotoData();
@@ -171,6 +260,110 @@ const MiPerfil = () => {
     } catch (error) {
       console.error('💥 Error loading photo data:', error);
       setPhotoData(null);
+    }
+  };
+
+
+
+
+  // Manejar edición de información personal
+  const handleEditInfo = () => {
+    setEditedUserData({
+      nombre_completo: userData.nombre_completo || '',
+      correo: userData.correo || '',
+      telefono: userData.telefono || '',
+      direccion: userData.direccion || ''
+    });
+    setEditInfoDialogOpen(true);
+  };
+
+  const handleSaveInfo = async () => {
+    setSavingInfo(true);
+    try {
+      // Actualizar información del usuario en el backend
+      const response = await ApiService.put(`/api/usuarios/${userData.id}`, editedUserData);
+      if (response.success || response.data) {
+        // Actualizar datos locales
+        setUserData(prev => ({
+          ...prev,
+          ...editedUserData
+        }));
+
+        // Actualizar localStorage también
+        const currentUserData = localStorage.getItem('user_data');
+        if (currentUserData) {
+          const parsed = JSON.parse(currentUserData);
+          localStorage.setItem('user_data', JSON.stringify({
+            ...parsed,
+            ...editedUserData
+          }));
+        }
+
+        showSuccess('Información personal actualizada correctamente');
+        setEditInfoDialogOpen(false);
+      } else {
+        showError('Error al actualizar la información');
+      }
+    } catch (error) {
+      console.error('Error updating user info:', error);
+      showError('Error al actualizar la información personal');
+    } finally {
+      setSavingInfo(false);
+    }
+  };
+
+  // Manejar cambio de contraseña
+  const handleChangePassword = () => {
+    console.log('handleChangePassword clicked');
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+    setChangePasswordDialogOpen(true);
+    console.log('Dialog should open, state set to true');
+  };
+
+  const handleSavePassword = async () => {
+    // Validaciones
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      showError('Todos los campos son obligatorios');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      showError('Las contraseñas nuevas no coinciden');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      showError('La nueva contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const response = await ApiService.put(`/api/usuarios/${userData.id}/cambiar-contrasenia`, {
+        nueva_contrasenia: passwordData.newPassword,
+        confirmar_contrasenia: passwordData.confirmPassword
+      });
+
+      if (response.success || response.data) {
+        showSuccess('Contraseña cambiada correctamente');
+        setChangePasswordDialogOpen(false);
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+      } else {
+        showError('Error al cambiar la contraseña. Verifica tu contraseña actual.');
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      showError('Error al cambiar la contraseña. Verifica tu contraseña actual.');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -249,24 +442,81 @@ const MiPerfil = () => {
 
   if (loading) {
     return (
-      <Box sx={{ p: 3 }}>
-        <LinearProgress />
-        <Typography sx={{ mt: 2, textAlign: 'center' }}>
+      <Box sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+        p: 3
+      }}>
+        <CircularProgress size={60} sx={{ mb: 3 }} />
+        <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
           Cargando perfil...
         </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Obteniendo información de usuario y configuraciones
+        </Typography>
+        <LinearProgress sx={{ width: '100%', maxWidth: 400, mt: 2 }} />
       </Box>
     );
   }
 
   if (!userData) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">
-          No se pudo cargar la información del perfil
+      <Box sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+        p: 3
+      }}>
+        <Alert
+          severity="error"
+          sx={{ mb: 3, width: '100%', maxWidth: 600 }}
+          action={
+            <Button color="error" size="small" onClick={loadUserData}>
+              Reintentar
+            </Button>
+          }
+        >
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            Error al cargar el perfil
+          </Typography>
+          <Typography variant="body2">
+            No se pudo cargar la información del perfil. Verifica tu conexión e intenta nuevamente.
+          </Typography>
         </Alert>
+
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+          Si el problema persiste, contacta al administrador del sistema.
+        </Typography>
       </Box>
     );
   }
+
+  // Handlers para configuración
+  const handleNotificationChange = (setting) => (event) => {
+    setNotificationSettings(prev => ({
+      ...prev,
+      [setting]: event.target.checked
+    }));
+    showSuccess(`Configuración de ${setting} actualizada`);
+  };
+
+  // Componentes para cada pestaña
+  const TabPanel = ({ children, value, index, ...other }) => (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`profile-tabpanel-${index}`}
+      aria-labelledby={`profile-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
 
   return (
     <Box sx={{ p: 3 }}>
@@ -287,7 +537,7 @@ const MiPerfil = () => {
           mb: 4,
           borderRadius: 4,
           backgroundColor: 'background.paper',
-        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
+          border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
           overflow: 'hidden'
         }}
       >
@@ -296,10 +546,12 @@ const MiPerfil = () => {
           sx={{
             background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
-            p: 4,
+            p: { xs: 2, sm: 4 },
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: 2, sm: 0 }
           }}
         >
           <Box display="flex" alignItems="center">
@@ -308,15 +560,16 @@ const MiPerfil = () => {
               <FotoPerfilConAutorizacion
                 rutaFoto={photoData?.foto_perfil}
                 nombreCompleto={userData?.nombre_completo || 'Usuario'}
-                size={120}
+                size={{ xs: 80, sm: 120 }}
                 showTooltip={false}
                 sx={{
-                  fontSize: '3rem',
-                  mr: 3,
+                  fontSize: { xs: '2rem', sm: '3rem' },
+                  mr: { xs: 0, sm: 3 },
+                  mb: { xs: 2, sm: 0 },
                   border: '4px solid rgba(255,255,255,0.3)'
                 }}
               />
-              
+
               <IconButton
                 onClick={() => setPhotoDialogOpen(true)}
                 sx={{
@@ -344,9 +597,44 @@ const MiPerfil = () => {
               </Typography>
             </Box>
           </Box>
+
+          {/* Estado online y acciones rápidas */}
+          <Box sx={{ textAlign: 'right' }}>
+            <Chip
+              label="Online"
+              color="success"
+              variant="filled"
+              sx={{ mb: 2, color: 'white', backgroundColor: 'success.main' }}
+            />
+            <Typography variant="body2" sx={{ opacity: 0.8 }}>
+              Último acceso: Hoy
+            </Typography>
+          </Box>
         </Box>
 
-        <CardContent sx={{ p: 4 }}>
+        {/* Sistema de pestañas */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs
+            value={activeTab}
+            onChange={(e, newValue) => setActiveTab(newValue)}
+            aria-label="Pestañas de perfil"
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              '& .MuiTab-root': {
+                minWidth: 120,
+                textTransform: 'none',
+                fontWeight: 500
+              }
+            }}
+          >
+            <Tab icon={<Person />} label="Información" />
+            <Tab icon={<Settings />} label="Configuración" />
+          </Tabs>
+        </Box>
+
+        {/* Contenido de las pestañas */}
+        <TabPanel value={activeTab} index={0}>
           <Grid container spacing={4}>
             {/* Información Personal */}
             <Grid item xs={12} md={6}>
@@ -355,13 +643,29 @@ const MiPerfil = () => {
                 Información Personal
               </Typography>
               <Divider sx={{ mb: 2 }} />
-              
+
               <List dense>
                 <ListItem>
                   <ListItemIcon><Badge color="primary" /></ListItemIcon>
                   <ListItemText
                     primary="Cédula de Identidad"
-                    secondary={userData.cedula || 'No registrada'}
+                    secondary={userData.cedula || userData.numero_identificacion || 'No registrada'}
+                  />
+                </ListItem>
+
+                <ListItem>
+                  <ListItemIcon><Person color="primary" /></ListItemIcon>
+                  <ListItemText
+                    primary="Nombre de Usuario"
+                    secondary={userData.usuario || userData.nombre_usuario || 'No registrado'}
+                  />
+                </ListItem>
+
+                <ListItem>
+                  <ListItemIcon><Email color="primary" /></ListItemIcon>
+                  <ListItemText
+                    primary="Correo Electrónico"
+                    secondary={userData.correo || userData.email || 'No registrado'}
                   />
                 </ListItem>
 
@@ -374,22 +678,12 @@ const MiPerfil = () => {
                 </ListItem>
 
                 <ListItem>
-                  <ListItemIcon><Email color="primary" /></ListItemIcon>
+                  <ListItemIcon><LocationOn color="primary" /></ListItemIcon>
                   <ListItemText
-                    primary="Correo Electrónico"
-                    secondary={userData.correo || 'No registrado'}
+                    primary="Dirección"
+                    secondary={userData.direccion || 'No registrada'}
                   />
                 </ListItem>
-
-                {userData.direccion && (
-                  <ListItem>
-                    <ListItemIcon><LocationOn color="primary" /></ListItemIcon>
-                    <ListItemText
-                      primary="Dirección"
-                      secondary={userData.direccion}
-                    />
-                  </ListItem>
-                )}
 
                 {userData.fecha_nacimiento && (
                   <ListItem>
@@ -397,6 +691,16 @@ const MiPerfil = () => {
                     <ListItemText
                       primary="Fecha de Nacimiento"
                       secondary={new Date(userData.fecha_nacimiento).toLocaleDateString()}
+                    />
+                  </ListItem>
+                )}
+
+                {userData.genero && (
+                  <ListItem>
+                    <ListItemIcon><Person color="primary" /></ListItemIcon>
+                    <ListItemText
+                      primary="Género"
+                      secondary={userData.genero}
                     />
                   </ListItem>
                 )}
@@ -410,7 +714,7 @@ const MiPerfil = () => {
                 Información del Sistema
               </Typography>
               <Divider sx={{ mb: 2 }} />
-              
+
               <List dense>
                 <ListItem>
                   <ListItemIcon><Business color="primary" /></ListItemIcon>
@@ -448,8 +752,291 @@ const MiPerfil = () => {
               </List>
             </Grid>
           </Grid>
-        </CardContent>
+        </TabPanel>
+
+
+        {/* Pestaña de Configuración Rápida */}
+        <TabPanel value={activeTab} index={1}>
+          <Grid container spacing={3}>
+            {/* Configuración de Notificaciones */}
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
+                <Notifications sx={{ mr: 1 }} />
+                Notificaciones
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+
+              <Card elevation={2} sx={{ p: 3 }}>
+                <List>
+                  <ListItem>
+                    <ListItemText
+                      primary="Notificaciones Push"
+                      secondary="Notificaciones en tiempo real en el navegador"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={notificationSettings.push}
+                          onChange={handleNotificationChange('push')}
+                          color="primary"
+                        />
+                      }
+                      label=""
+                    />
+                  </ListItem>
+
+                  <ListItem>
+                    <ListItemText
+                      primary="Recordatorios"
+                      secondary="Recordatorios de sesiones y citas"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={notificationSettings.reminders}
+                          onChange={handleNotificationChange('reminders')}
+                          color="primary"
+                        />
+                      }
+                      label=""
+                    />
+                  </ListItem>
+                </List>
+              </Card>
+            </Grid>
+
+            {/* Acciones Rápidas */}
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
+                <Settings sx={{ mr: 1 }} />
+                Acciones Rápidas
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+
+              <Card elevation={2} sx={{ p: 3 }}>
+                <Stack spacing={2}>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<Edit />}
+                    onClick={handleEditInfo}
+                  >
+                    Editar Información Personal
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<PhotoCamera />}
+                    onClick={() => setPhotoDialogOpen(true)}
+                  >
+                    Cambiar Foto de Perfil
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<Visibility />}
+                    onClick={() => {
+                      console.log('Button clicked directly');
+                      handleChangePassword();
+                    }}
+                  >
+                    Cambiar Contraseña
+                  </Button>
+
+
+                  <Divider />
+
+                  <Typography variant="body2" color="text.secondary" textAlign="center">
+                    Para configuraciones avanzadas del sistema,{' '}
+                    <Button
+                      variant="text"
+                      size="small"
+                      onClick={() => showSuccess('Redirección a configuración en desarrollo')}
+                    >
+                      visita Configuración
+                    </Button>
+                  </Typography>
+                </Stack>
+              </Card>
+            </Grid>
+          </Grid>
+        </TabPanel>
       </Card>
+
+      {/* Dialog para editar información personal */}
+      <Dialog
+        open={editInfoDialogOpen}
+        onClose={() => setEditInfoDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <Edit sx={{ mr: 1 }} />
+            Editar Información Personal
+          </Box>
+        </DialogTitle>
+
+        <DialogContent>
+          <Stack spacing={3} sx={{ mt: 1 }}>
+            <TextField
+              label="Nombre Completo"
+              fullWidth
+              value={editedUserData.nombre_completo || ''}
+              onChange={(e) => setEditedUserData(prev => ({
+                ...prev,
+                nombre_completo: e.target.value
+              }))}
+              disabled={savingInfo}
+            />
+
+            <TextField
+              label="Correo Electrónico"
+              type="email"
+              fullWidth
+              value={editedUserData.correo || ''}
+              onChange={(e) => setEditedUserData(prev => ({
+                ...prev,
+                correo: e.target.value
+              }))}
+              disabled={savingInfo}
+            />
+
+            <TextField
+              label="Teléfono"
+              fullWidth
+              value={editedUserData.telefono || ''}
+              onChange={(e) => setEditedUserData(prev => ({
+                ...prev,
+                telefono: e.target.value
+              }))}
+              disabled={savingInfo}
+            />
+
+            <TextField
+              label="Dirección"
+              fullWidth
+              multiline
+              rows={2}
+              value={editedUserData.direccion || ''}
+              onChange={(e) => setEditedUserData(prev => ({
+                ...prev,
+                direccion: e.target.value
+              }))}
+              disabled={savingInfo}
+            />
+
+            {savingInfo && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <CircularProgress size={20} />
+                <Typography variant="body2">Guardando cambios...</Typography>
+              </Box>
+            )}
+          </Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <Button
+            onClick={() => setEditInfoDialogOpen(false)}
+            disabled={savingInfo}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSaveInfo}
+            variant="contained"
+            disabled={savingInfo}
+          >
+            Guardar Cambios
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog para cambiar contraseña */}
+      {console.log('Rendering password dialog, open state:', changePasswordDialogOpen)}
+      <Dialog
+        open={changePasswordDialogOpen}
+        onClose={() => {
+          console.log('Closing password dialog');
+          setChangePasswordDialogOpen(false);
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <Visibility sx={{ mr: 1 }} />
+            Cambiar Contraseña
+          </Box>
+        </DialogTitle>
+
+        <DialogContent>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Como administrador, puedes cambiar la contraseña directamente sin necesidad de la contraseña actual.
+          </Alert>
+
+          <Stack spacing={3} sx={{ mt: 1 }}>
+            <TextField
+              label="Nueva Contraseña"
+              type="password"
+              fullWidth
+              value={passwordData.newPassword}
+              onChange={(e) => setPasswordData(prev => ({
+                ...prev,
+                newPassword: e.target.value
+              }))}
+              disabled={changingPassword}
+              required
+              helperText="Mínimo 6 caracteres"
+            />
+
+            <TextField
+              label="Confirmar Nueva Contraseña"
+              type="password"
+              fullWidth
+              value={passwordData.confirmPassword}
+              onChange={(e) => setPasswordData(prev => ({
+                ...prev,
+                confirmPassword: e.target.value
+              }))}
+              disabled={changingPassword}
+              required
+              error={passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword}
+              helperText={
+                passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword
+                  ? "Las contraseñas no coinciden"
+                  : ""
+              }
+            />
+
+            {changingPassword && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <CircularProgress size={20} />
+                <Typography variant="body2">Cambiando contraseña...</Typography>
+              </Box>
+            )}
+          </Stack>
+        </DialogContent>
+
+        <DialogActions>
+          <Button
+            onClick={() => setChangePasswordDialogOpen(false)}
+            disabled={changingPassword}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSavePassword}
+            variant="contained"
+            disabled={changingPassword || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+          >
+            Cambiar Contraseña
+          </Button>
+        </DialogActions>
+      </Dialog>
+
 
       {/* Dialog para gestión de foto de perfil */}
       <Dialog

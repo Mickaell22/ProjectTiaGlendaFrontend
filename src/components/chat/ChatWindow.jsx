@@ -253,20 +253,22 @@ const ChatWindow = ({
             width: '6px',
           },
           '&::-webkit-scrollbar-track': {
-            background: 'rgba(0,0,0,0.05)',
+            background: theme.palette.action.hover,
             borderRadius: '3px',
           },
           '&::-webkit-scrollbar-thumb': {
-            background: 'rgba(0,0,0,0.2)',
+            background: theme.palette.action.disabled,
             borderRadius: '3px',
             '&:hover': {
-              background: 'rgba(0,0,0,0.3)',
+              background: theme.palette.action.selected,
             },
           },
           background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(to bottom, #2e2e2e 0%, #1e1e1e 100%)'
-            : 'linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%)',
-          backgroundImage: 'radial-gradient(circle at 20px 20px, rgba(120, 144, 156, 0.03) 1px, transparent 0)',
+            ? `linear-gradient(to bottom, ${theme.palette.grey[800]} 0%, ${theme.palette.grey[900]} 100%)`
+            : `linear-gradient(to bottom, ${theme.palette.grey[50]} 0%, ${theme.palette.background.paper} 100%)`,
+          backgroundImage: theme.palette.mode === 'dark'
+            ? 'radial-gradient(circle at 20px 20px, rgba(255, 255, 255, 0.03) 1px, transparent 0)'
+            : 'radial-gradient(circle at 20px 20px, rgba(120, 144, 156, 0.03) 1px, transparent 0)',
           backgroundSize: '40px 40px',
         }}
       >
@@ -362,7 +364,9 @@ const ChatWindow = ({
           bgcolor: 'background.paper',
           borderTop: '1px solid',
           borderColor: 'divider',
-          boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 -2px 10px rgba(255,255,255,0.05)'
+            : '0 -2px 10px rgba(0,0,0,0.05)',
         }}
       >
         <Box
@@ -434,7 +438,9 @@ const ChatWindow = ({
                 color: 'white',
                 width: 48,
                 height: 48,
-                boxShadow: messageText.trim() ? '0 2px 8px rgba(25, 118, 210, 0.3)' : 'none',
+                boxShadow: messageText.trim()
+                  ? `0 2px 8px ${theme.palette.primary.main}30`
+                  : 'none',
                 transition: 'all 0.2s ease-in-out',
                 '&:hover': {
                   bgcolor: messageText.trim() ? 'primary.dark' : 'grey.400',

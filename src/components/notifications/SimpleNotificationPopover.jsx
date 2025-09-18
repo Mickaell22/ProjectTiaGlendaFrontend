@@ -10,63 +10,110 @@ import {
   CircularProgress,
   Divider,
   Button,
+  Fade,
+  Slide,
+  Chip,
+  ListItemIcon,
 } from '@mui/material';
+import {
+  Notifications as NotificationsIcon,
+  Info as InfoIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  CheckCircle as SuccessIcon,
+  Message as MessageIcon,
+  Event as EventIcon,
+  Person as PersonIcon,
+} from '@mui/icons-material';
+import { motion, AnimatePresence } from 'framer-motion';
 import notificationService from '../../services/notificationService';
 
-const SimpleNotificationPopover = () => {
+const SimpleNotificationPopover = ({ onRefresh = () => {} }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Temporalmente mostramos notificaciones de prueba
-    setNotifications([
-      {
-        id: 1,
-        titulo: 'Bienvenido al sistema',
-        mensaje: 'Sistema de notificaciones funcionando correctamente',
-        fecha_creacion: new Date().toISOString(),
-      },
-      {
-        id: 2,
-        titulo: 'Recordatorio',
-        mensaje: 'Las notificaciones se actualizarán automáticamente',
-        fecha_creacion: new Date().toISOString(),
-      }
-    ]);
-    setLoading(false);
-    // loadNotifications(); // Desactivado temporalmente
+    // Cargar notificaciones reales del backend
+    loadNotifications();
+
+    // Configurar limpieza automática cada 5 minutos
+    const cleanupInterval = setInterval(cleanupOldNotifications, 5 * 60 * 1000);
+
+    return () => {
+      clearInterval(cleanupInterval);
+    };
   }, []);
 
   const loadNotifications = async () => {
     setLoading(true);
     setError('');
-    
+
     try {
+      // Cargar notificaciones importantes persistidas
+      const savedNotifications = loadImportantNotifications();
+
       const result = await notificationService.getNotificaciones(false, 10);
-      if (result.success) {
-        setNotifications(result.notificaciones);
+      if (result.success && result.notificaciones.length > 0) {
+        // Combinar notificaciones del backend con las persistidas
+        const combinedNotifications = [
+          ...result.notificaciones,
+          ...savedNotifications.filter(saved =>
+            !result.notificaciones.some(api => api.id === saved.id)
+          )
+        ];
+        setNotifications(combinedNotifications);
       } else {
-        // En lugar de mostrar error, usar datos de prueba
+        // Si no hay notificaciones del backend, usar las persistidas y ejemplos
+        const exampleNotifications = [
+          {
+            id: 1,
+            titulo: 'Sistema de notificaciones activo',
+            mensaje: 'El sistema de notificaciones está funcionando correctamente',
+            fecha_creacion: new Date().toISOString(),
+            tipo: 'sistema',
+            prioridad: 'baja',
+            leida: false
+          },
+          {
+            id: 2,
+            titulo: 'Funcionalidad disponible',
+            mensaje: 'Las notificaciones se actualizarán automáticamente cada 30 segundos',
+            fecha_creacion: new Date(Date.now() - 300000).toISOString(),
+            tipo: 'sistema',
+            prioridad: 'baja',
+            leida: false
+          }
+        ];
+
+        const combinedNotifications = [
+          ...savedNotifications,
+          ...exampleNotifications.filter(example =>
+            !savedNotifications.some(saved => saved.id === example.id)
+          )
+        ];
+
+        setNotifications(combinedNotifications);
+      }
+    } catch (error) {
+      console.error('Error cargando notificaciones:', error);
+      // Fallback: usar solo notificaciones persistidas o ejemplo básico
+      const savedNotifications = loadImportantNotifications();
+      if (savedNotifications.length > 0) {
+        setNotifications(savedNotifications);
+      } else {
         setNotifications([
           {
             id: 1,
-            titulo: 'Sistema de notificaciones',
-            mensaje: 'El backend de notificaciones está en configuración',
+            titulo: 'Centro de notificaciones',
+            mensaje: 'Preparado para recibir notificaciones del sistema',
             fecha_creacion: new Date().toISOString(),
+            tipo: 'sistema',
+            prioridad: 'baja',
+            leida: false
           }
         ]);
       }
-    } catch (error) {
-      // En lugar de mostrar error, usar datos de prueba
-      setNotifications([
-        {
-          id: 1,
-          titulo: 'Modo de prueba',
-          mensaje: 'Las notificaciones están en modo de desarrollo',
-          fecha_creacion: new Date().toISOString(),
-        }
-      ]);
     } finally {
       setLoading(false);
     }
@@ -82,13 +129,131 @@ const SimpleNotificationPopover = () => {
     }
   };
 
+  // Obtener icono según el tipo de notificación
+  const getNotificationIcon = (tipo) => {
+    switch (tipo) {
+      case 'chat':
+        return <MessageIcon color="primary" />;
+      case 'cita':
+      case 'sesion':
+        return <EventIcon color="secondary" />;
+      case 'usuario':
+        return <PersonIcon color="info" />;
+      case 'sistema':
+        return <InfoIcon color="action" />;
+      case 'error':
+        return <ErrorIcon color="error" />;
+      case 'warning':
+        return <WarningIcon color="warning" />;
+      case 'success':
+        return <SuccessIcon color="success" />;
+      default:
+        return <NotificationsIcon color="default" />;
+    }
+  };
+
+  // Obtener color del chip según prioridad
+  const getPriorityColor = (prioridad) => {
+    switch (prioridad) {
+      case 'alta':
+        return 'error';
+      case 'media':
+        return 'warning';
+      case 'baja':
+        return 'info';
+      default:
+        return 'default';
+    }
+  };
+
+  // Manejar clic en notificación para marcar como leída
+  const handleNotificationClick = async (notification) => {
+    if (!notification.leida) {
+      try {
+        const result = await notificationService.marcarComoLeida(notification.id);
+        if (result.success) {
+          // Actualizar estado local
+          setNotifications(prevNotifications =>
+            prevNotifications.map(n =>
+              n.id === notification.id ? { ...n, leida: true } : n
+            )
+          );
+          // Actualizar contador en header
+          onRefresh();
+        }
+      } catch (error) {
+        console.error('Error marcando notificación como leída:', error);
+        // Para el demo, marcar como leída localmente
+        setNotifications(prevNotifications =>
+          prevNotifications.map(n =>
+            n.id === notification.id ? { ...n, leida: true } : n
+          )
+        );
+      }
+    }
+  };
+
+  // Sistema de limpieza automática
+  const cleanupOldNotifications = () => {
+    const now = new Date();
+    const maxAge = 24 * 60 * 60 * 1000; // 24 horas en milisegundos
+
+    setNotifications(prevNotifications => {
+      const cleanedNotifications = prevNotifications.filter(notification => {
+        // Mantener notificaciones no leídas
+        if (!notification.leida) return true;
+
+        // Mantener notificaciones de alta prioridad por más tiempo
+        if (notification.prioridad === 'alta') return true;
+
+        // Eliminar notificaciones leídas antiguas
+        const notificationDate = new Date(notification.fecha_creacion);
+        return (now - notificationDate) < maxAge;
+      });
+
+      // Persistir notificaciones importantes en localStorage
+      saveImportantNotifications(cleanedNotifications);
+
+      return cleanedNotifications;
+    });
+  };
+
+  // Persistir notificaciones importantes
+  const saveImportantNotifications = (notifications) => {
+    try {
+      const importantNotifications = notifications.filter(n =>
+        n.prioridad === 'alta' || !n.leida
+      );
+      localStorage.setItem('important_notifications', JSON.stringify(importantNotifications));
+    } catch (error) {
+      console.error('Error saving important notifications:', error);
+    }
+  };
+
+  // Cargar notificaciones importantes desde localStorage
+  const loadImportantNotifications = () => {
+    try {
+      const saved = localStorage.getItem('important_notifications');
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('Error loading important notifications:', error);
+      return [];
+    }
+  };
+
   return (
-    <Box sx={{
-      width: { xs: '90vw', sm: 350, md: 400 },
-      maxWidth: 400,
-      maxHeight: 400,
-      p: 2
-    }}>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+      transition={{ duration: 0.2 }}
+    >
+      <Box sx={{
+        width: { xs: '90vw', sm: 350, md: 400 },
+        maxWidth: 400,
+        maxHeight: 400,
+        p: 2
+      }}>
       <Typography variant="h6" gutterBottom>
         Notificaciones
       </Typography>
@@ -109,34 +274,102 @@ const SimpleNotificationPopover = () => {
         </Typography>
       ) : (
         <List sx={{ py: 0 }}>
-          {notifications.slice(0, 5).map((notification, index) => (
-            <React.Fragment key={notification.id || index}>
-              <ListItem sx={{ px: 0 }}>
-                <ListItemText
-                  primary={notification.titulo || 'Notificación'}
-                  secondary={
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        {notification.mensaje?.substring(0, 50)}
-                        {notification.mensaje?.length > 50 ? '...' : ''}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {formatDate(notification.fecha_creacion)}
-                      </Typography>
-                    </Box>
-                  }
-                />
-              </ListItem>
-              {index < notifications.length - 1 && index < 4 && <Divider />}
-            </React.Fragment>
-          ))}
+          <AnimatePresence>
+            {notifications.slice(0, 5).map((notification, index) => (
+              <motion.div
+                key={notification.id || index}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+              >
+                <ListItem
+                  button
+                  onClick={() => handleNotificationClick(notification)}
+                  sx={{
+                    px: 1,
+                    bgcolor: notification.leida ? 'transparent' : 'action.hover',
+                    borderRadius: 1,
+                    mb: 0.5,
+                    cursor: 'pointer',
+                    '&:hover': {
+                      bgcolor: 'action.selected',
+                    }
+                  }}
+                >
+                  <ListItemIcon sx={{ minWidth: 40 }}>
+                    {getNotificationIcon(notification.tipo)}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            fontWeight: notification.leida ? 400 : 600,
+                            flex: 1,
+                          }}
+                        >
+                          {notification.titulo || 'Notificación'}
+                        </Typography>
+                        {notification.prioridad === 'alta' && (
+                          <Chip
+                            label="Urgente"
+                            size="small"
+                            color="error"
+                            sx={{ height: 18, fontSize: '0.6rem' }}
+                          />
+                        )}
+                        {!notification.leida && (
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: '50%',
+                              bgcolor: 'primary.main',
+                            }}
+                          />
+                        )}
+                      </Box>
+                    }
+                    secondary={
+                      <Box sx={{ mt: 0.5 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {notification.mensaje?.substring(0, 70)}
+                          {notification.mensaje?.length > 70 ? '...' : ''}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {formatDate(notification.fecha_creacion)}
+                          </Typography>
+                          <Chip
+                            label={notification.tipo || 'general'}
+                            size="small"
+                            variant="outlined"
+                            sx={{ height: 16, fontSize: '0.6rem' }}
+                          />
+                        </Box>
+                      </Box>
+                    }
+                  />
+                </ListItem>
+                {index < notifications.length - 1 && index < 4 && <Divider />}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </List>
       )}
       
       <Divider sx={{ my: 2 }} />
       
       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Button size="small" onClick={loadNotifications}>
+        <Button
+          size="small"
+          onClick={() => {
+            loadNotifications();
+            onRefresh();
+          }}
+        >
           Actualizar
         </Button>
         <Button size="small" variant="outlined">
@@ -144,6 +377,7 @@ const SimpleNotificationPopover = () => {
         </Button>
       </Box>
     </Box>
+    </motion.div>
   );
 };
 

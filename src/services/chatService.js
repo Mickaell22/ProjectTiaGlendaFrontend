@@ -171,6 +171,27 @@ class ChatService {
   }
 
   /**
+   * Obtener conteo de mensajes no leídos
+   */
+  async getUnreadMessagesCount() {
+    try {
+      const response = await apiClient.get(`${this.baseURL}/mensajes-no-leidos/count`);
+      return {
+        success: true,
+        count: response.data?.count || 0,
+        data: response.data,
+      };
+    } catch (error) {
+      console.error('Error obteniendo conteo de mensajes no leídos:', error);
+      return {
+        success: false,
+        count: 0,
+        error: error.response?.data?.message || 'Error al obtener conteo de mensajes',
+      };
+    }
+  }
+
+  /**
    * Obtener estadísticas de chat del usuario
    */
   async getEstadisticas() {

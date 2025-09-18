@@ -387,7 +387,8 @@ const ChatContainer = ({
   if (mode === 'modal') {
     return (
       <>
-        {/* Botón flotante para abrir chat */}
+        {/* Botón flotante para abrir chat - DESACTIVADO: ya tenemos botón en header */}
+        {/*
         {!isOpen && (
           <Fab
             color="primary"
@@ -405,6 +406,7 @@ const ChatContainer = ({
             </Badge>
           </Fab>
         )}
+        */}
 
         {/* Modal del chat */}
         <Drawer
@@ -493,7 +495,9 @@ const ChatContainer = ({
                         <Typography variant="h6" sx={{
                           fontWeight: 600,
                           color: 'white',
-                          textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                          textShadow: theme.palette.mode === 'dark'
+                            ? '0 1px 2px rgba(255,255,255,0.1)'
+                            : '0 1px 2px rgba(0,0,0,0.1)'
                         }}>
                           {activeConversation?.nombre_contacto || 'Selecciona una conversación'}
                         </Typography>

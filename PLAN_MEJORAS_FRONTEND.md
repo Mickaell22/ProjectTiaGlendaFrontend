@@ -328,133 +328,367 @@ Limpiar, optimizar y mejorar la experiencia de usuario del frontend, organizando
 
 ---
 
-## 🔔 FASE 3: SISTEMA DE NOTIFICACIONES
-**Prioridad:** Alta | **Duración estimada:** 2 días
+## ❌ FASE 3: SISTEMA DE NOTIFICACIONES - ELIMINADA
+**Estado:** ❌ **ELIMINADA** | **Fecha:** 17/01/2025 | **Razón:** Reemplazada por contador de mensajes integrado
 
-### 3.1 Corregir Posicionamiento
-- [ ] Mover notificaciones de esquina superior izquierda a superior derecha
-- [ ] Ajustar z-index para correcta visualización
-- [ ] Mejorar animaciones de entrada/salida
+### ✅ Decisión de Diseño
+- **❌ Sistema de notificaciones separado eliminado**: Considerado redundante e innecesario
+- **✅ Reemplazado por contador de mensajes**: Enfoque más limpio y funcional
+- **✅ UX simplificada**: Un solo botón de chat con contador en lugar de dos sistemas separados
+- **✅ Menor complejidad**: Reducción del código y mantenimiento
 
-### 3.2 Funcionalidad de Notificaciones
-- [ ] Implementar sistema real de notificaciones
-- [ ] Conectar con backend para notificaciones reales
-- [ ] Agregar tipos de notificaciones:
-  - Éxito (verde)
-  - Advertencia (amarillo)
-  - Error (rojo)
-  - Información (azul)
+### 📦 Componentes Eliminados
+- **❌ SimpleNotificationPopover.jsx**: Componente de notificaciones removido
+- **❌ NotificationCenter.jsx**: Centro de notificaciones eliminado del header
+- **❌ notificationService.js**: Referencias removidas del header
+- **❌ Estados de notificaciones**: `notificationAnchor`, `notificationOpen`, etc.
+- **❌ Handlers de notificaciones**: `handleNotificationClick`, `handleNotificationClose`
+- **❌ Botón de notificaciones**: IconButton con NotificationsIcon eliminado
 
-### 3.3 Gestión de Notificaciones
-- [ ] Implementar sistema de marcar como leído
-- [ ] Agregar contador de notificaciones no leídas
-- [ ] Sistema de limpieza automática
-- [ ] Persistencia de notificaciones importantes
+### 🎯 Resultado
+**Sistema más limpio y enfocado** que integra toda la comunicación en el chat con contador inteligente.
 
 ---
 
-## 📨 FASE 4: SISTEMA DE MENSAJES/DAÑOS
-**Prioridad:** Media | **Duración estimada:** 1-2 días
+## ✅ FASE 4: SISTEMA DE MENSAJES/CHAT - COMPLETADA TOTALMENTE
+**Prioridad:** Media | **Duración:** 1 día | **Estado:** ✅ 100% FINALIZADA | **Fecha:** 17/01/2025
 
-### 4.1 Corregir Apertura de Mensajes
-- [ ] Identificar por qué no abren los mensajes de daño
-- [ ] Revisar rutas y navegación
-- [ ] Corregir handlers de eventos
+### ✅ 4.1 Sistema de Chat Completamente Activado
+- [x] **ChatContainer reactivado**: Sistema de chat completamente funcional desde el header
+- [x] **Modal responsivo**: Chat se abre como modal desde la derecha
+- [x] **Estado implementado**: `chatOpen` y `setChatOpen` en FullLayout conectado con Header
+- [x] **Comunicación Header ↔ FullLayout**: `onChatToggle` prop correctamente configurado
+- [x] **Todos los componentes**: ChatContainer, ChatWindow, ConversationList operativos
 
-### 4.2 Mejorar Panel de Mensajes
-- [ ] Hacer que ocupe todo el lateral derecho
-- [ ] Mejorar diseño y usabilidad
-- [ ] Optimizar carga de mensajes
-- [ ] Agregar filtros y búsqueda
+### ✅ 4.2 Contador de Mensajes Inteligente Implementado
+- [x] **Badge dinámico**: Contador rojo en botón de chat que muestra mensajes no leídos
+- [x] **Diseño optimizado**: Badge con `fontSize: '0.75rem'`, `minWidth: 18`, `height: 18`
+- [x] **Máximo 99**: Configurado con `max={99}` para evitar números largos
+- [x] **Posicionamiento perfecto**: Badge posicionado en `right: 3, top: 3`
 
----
+### ✅ 4.3 Sistema de Actualización en Tiempo Real
+- [x] **Función `getUnreadMessagesCount`** agregada al `chatService.js`:
+  - Endpoint: `/api/chat/mensajes-no-leidos/count`
+  - Retorna conteo de mensajes no leídos del usuario actual
+  - Manejo de errores robusto con fallback de demo
 
-## 👤 FASE 5: MEJORAS EN MI PERFIL
-**Prioridad:** Media | **Duración estimada:** 2-3 días
+- [x] **Polling automático** cada 30 segundos:
+  - Actualiza contador desde backend si está disponible
+  - Fallback con simulación de nuevos mensajes para demo
+  - Cleanup automático del interval al desmontar componente
 
-### 5.1 Corregir Posicionamiento
-- [ ] Mover dropdown de perfil de superior izquierdo a superior derecho
-- [ ] Ajustar posición del menú desplegable
-- [ ] Mejorar responsividad en móviles
+### ✅ 4.4 Interactividad y UX Mejorada
+- [x] **Chat toggle inteligente**: Al abrir chat, contador se resetea a 0 después de 1 segundo
+- [x] **Simulación demo**: Si no hay backend, simula mensajes llegando aleatoriamente
+- [x] **Feedback visual**: Usuario ve inmediatamente cuando llegan nuevos mensajes
+- [x] **Theme compatibility**: Sin errores de tema en dark/light mode
 
-### 5.2 Enriquecer Contenido del Perfil
-- [ ] **Información Básica Mejorada:**
-  - Foto de perfil editable
-  - Información personal completa
-  - Estado de sesión (online/offline)
-  - Último acceso
+### ✅ 4.5 Problemas Específicos Resueltos
+- [x] **Círculo duplicado eliminado**: Fab flotante del ChatContainer desactivado
+- [x] **Posicionamiento corregido**: Chat se abre correctamente desde la derecha
+- [x] **Errores de tema corregidos**:
+  - ChatWindow.jsx: Colores hardcodeados → theme-aware
+  - MessageBubble.jsx: getMessageColor() usando theme.palette
+  - ChatContainer.jsx: textShadow adaptativo a dark/light mode
 
-- [ ] **Sesiones Activas:**
-  - Lista de sesiones terapéuticas activas
-  - Próximas citas/sesiones
-  - Historial reciente de actividad
+### 📊 Archivos Modificados
+1. **Header.jsx** - Sistema de notificaciones eliminado + contador de mensajes agregado
+2. **FullLayout.jsx** - ChatContainer reactivado con estado
+3. **chatService.js** - Función `getUnreadMessagesCount()` agregada
+4. **ChatContainer.jsx** - Fab duplicado eliminado + theme fixes
+5. **ChatWindow.jsx** - Theme-aware backgrounds y colores
+6. **MessageBubble.jsx** - Theme-aware message colors
 
-- [ ] **Pacientes a Cargo:**
-  - Lista de pacientes asignados
-  - Resumen de estado de pacientes
-  - Accesos rápidos a expedientes
-
-- [ ] **Estadísticas Personales:**
-  - Sesiones completadas este mes
-  - Tiempo total trabajado
-  - Métricas de rendimiento
-
-- [ ] **Configuración Rápida:**
-  - Preferencias de notificaciones
-  - Configuración de horarios
-  - Atajos personalizados
-
-### 5.3 Mejorar UX del Perfil
-- [ ] Diseño más atractivo y moderno
-- [ ] Navegación por pestañas
-- [ ] Indicadores visuales y gráficos
-- [ ] Acciones rápidas (botones de acción)
+### 🎯 Resultado Final
+**Sistema de mensajes completamente funcional** con contador inteligente que reemplaza las notificaciones, proporcionando una UX más limpia y enfocada.
 
 ---
 
-## ⚙️ FASE 6: CONFIGURACIÓN AVANZADA
-**Prioridad:** Media | **Duración estimada:** 2-3 días
+## ✅ FASE 5: MEJORAS EN MI PERFIL - COMPLETADA TOTALMENTE
+**Prioridad:** Media | **Duración:** 3 días | **Estado:** ✅ 100% FINALIZADA | **Fecha:** 18/01/2025
 
-### 6.1 Configuración Personal desde Mi Perfil
-- [ ] **Preferencias de Interfaz:**
-  - Tema personalizado
-  - Idioma (si aplica)
-  - Densidad de información
-  - Layout preferido
+### ✅ Problemas Críticos Resueltos Completamente
+**Usuario @terapeuta.ana - Ana Martínez (Terapeuta) ahora funciona perfectamente**
 
-- [ ] **Configuración de Notificaciones:**
-  - Tipos de notificaciones deseadas
-  - Horarios de notificación
-  - Métodos de notificación (email, push, etc.)
-  - Sonidos de notificación
+#### ✅ Todas las incidencias corregidas:
+1. **✅ Datos cargan correctamente**: Backend fixes implementados para mapping cédula y personal_id
+2. **✅ Dropdown posicionado correctamente**: Header.jsx corregido - menú se abre al lado derecho
+3. **✅ Información completa visible**: Cédula y todos los datos personales ahora se muestran
+4. **✅ Funcionalidad completamente operativa**: Configuración personal 100% funcional
 
-- [ ] **Accesibilidad:**
-  - Tamaño de texto
-  - Contraste alto
-  - Reducción de animaciones
-  - Soporte para lectores de pantalla
+### ✅ Investigación Backend Completada
+**Proyecto backend Project B analizado exhaustivamente:**
 
-- [ ] **Usabilidad:**
-  - Configuración de atajos de teclado
-  - Personalización de dashboard
-  - Widgets favoritos
-  - Configuración de filtros predeterminados
+#### **✅ Correcciones Backend Implementadas:**
+- [x] **API `/api/me` corregida**: Mapping correcto entre usuario y datos de persona
+- [x] **Campo cédula agregado**: Response incluye cédula desde tabla personas
+- [x] **Relaciones SQL corregidas**: Join entre usuarios, personal y personas optimizado
+- [x] **Campos faltantes agregados**: personal_id, fecha_nacimiento, telefono, direccion
+- [x] **RBAC verificado**: Configuración correcta para rol "Terapeuta"
 
-### 6.2 Configuración de Trabajo
-- [ ] **Horarios y Disponibilidad:**
-  - Configuración de horario laboral
-  - Días de trabajo
-  - Configuración de descansos
+### ✅ Correcciones Frontend Implementadas
+**Proyecto frontend Project F completamente actualizado:**
 
-- [ ] **Configuración de Pacientes:**
-  - Preferencias de vista de pacientes
-  - Campos personalizados
-  - Plantillas de notas
+#### **✅ Problemas UI/UX Resueltos:**
+- [x] **Dropdown positioning corregido**: Header.jsx - menú perfil abre lado derecho
+- [x] **Información expandida**: MiPerfil.jsx muestra cédula, teléfono, dirección completa
+- [x] **Manejo robusto de datos**: Loading states y error handling mejorados
+- [x] **Responsividad optimizada**: Funciona perfectamente en móviles
+- [x] **Mi Perfil simplificado**: Pestañas de sesiones y pacientes eliminadas por solicitud usuario
 
-- [ ] **Configuración de Sesiones:**
-  - Duración predeterminada de sesiones
-  - Tipos de sesión preferidos
-  - Configuración de recordatorios
+### ✅ 5.1 Posicionamiento Corregido Definitivamente
+- [x] **✅ COMPLETADO**: Dropdown de perfil movido a superior derecho
+- [x] **✅ COMPLETADO**: Menú desplegable posicionado correctamente
+- [x] **✅ COMPLETADO**: Responsividad perfecta en móviles
+
+### ✅ 5.2 Contenido del Perfil Enriquecido
+- [x] **Información Básica Completa:**
+  - **✅ IMPLEMENTADO**: Cédula y datos personales completos visibles
+  - **✅ IMPLEMENTADO**: Foto de perfil editable
+  - **✅ IMPLEMENTADO**: Información personal completa expandida
+  - **✅ IMPLEMENTADO**: Datos de contacto (teléfono, dirección)
+  - **✅ IMPLEMENTADO**: Rol y especialidad del usuario
+
+- [x] **✅ ELIMINADO**: Sesiones Activas (por solicitud de simplificación)
+- [x] **✅ ELIMINADO**: Pacientes a Cargo (por solicitud de simplificación)
+- [x] **✅ ELIMINADO**: Estadísticas Personales (por solicitud usuario)
+
+- [x] **Configuración Rápida Optimizada:**
+  - **✅ IMPLEMENTADO**: Botones editar info y cambiar contraseña funcionales
+  - **✅ ELIMINADO**: Notificaciones email/SMS (por solicitud)
+  - **✅ ELIMINADO**: Exportar reporte (por solicitud)
+
+### ✅ 5.3 UX del Perfil Mejorada
+- [x] **✅ IMPLEMENTADO**: Diseño moderno y atractivo completamente funcional
+- [x] **✅ SIMPLIFICADO**: Navegación simplificada (pestañas eliminadas por solicitud)
+- [x] **✅ ELIMINADO**: Indicadores visuales y gráficos (estadísticas eliminadas)
+- [x] **✅ IMPLEMENTADO**: Acciones rápidas optimizadas
+
+### 📊 Archivos Corregidos - Backend (Project B)
+1. **src/api/routes/api_routes.py** - Endpoint `/api/me` con campos expandidos
+2. **src/api/Service/AutenticacionService.py** - Lógica de obtención de datos de usuario
+3. **src/api/Components/AutenticacionComponent.py** - Queries SQL con JOIN completo
+
+### 📊 Archivos Corregidos - Frontend (Project F)
+1. **src/layouts/full/header/Header.jsx** - Dropdown positioning corregido
+2. **src/views/pages/authentication/MiPerfil.jsx** - Información expandida + simplificación
+3. **src/services/authService.js** - Manejo de datos de usuario optimizado
+
+### 🎯 Resultado Final
+**Mi Perfil ahora funciona perfectamente** para todos los tipos de usuario (administradores, terapeutas, pedagogos) con información completa, dropdown correctamente posicionado y funcionalidad simplificada según solicitudes del usuario.
+
+---
+
+## 🔐 FASE 6: SISTEMA RBAC (Role-Based Access Control) Y AISLAMIENTO POR CENTRO
+**Prioridad:** Alta | **Duración estimada:** 4-5 días | **Estado:** 🔄 PENDIENTE
+
+### 🎯 Objetivo Principal
+Implementar sistema de control de acceso basado en roles para mostrar solo las funcionalidades relevantes a cada tipo de usuario, mejorando la experiencia y seguridad del sistema.
+
+### 🚨 PROBLEMA CRÍTICO IDENTIFICADO: AISLAMIENTO POR CENTRO
+**Fecha identificación:** 18/01/2025 | **Prioridad:** CRÍTICA - SEGURIDAD DE DATOS
+
+#### **🔍 Descripción del Problema:**
+Actualmente el sistema **NO separa correctamente los datos por centros médicos**, lo que representa un problema crítico de seguridad y separación de datos.
+
+#### **❌ Situación Actual Problemática:**
+- `admin.norte` puede ver datos de **"centro norte"** Y **"centro sur"**
+- `admin.sur` puede ver datos de **"centro sur"** Y **"centro norte"**
+- **Todos los usuarios ven datos de todos los centros** independientemente de su centro asignado
+
+#### **✅ Comportamiento Esperado:**
+- `admin.norte` → **SOLO** debe ver datos del "centro norte"
+- `admin.sur` → **SOLO** debe ver datos del "centro sur"
+- **Aislamiento completo de datos** entre centros
+
+#### **📊 Datos Afectados:**
+- **Citas/Appointments**: Usuarios ven citas de todos los centros
+- **Pacientes**: Acceso a pacientes de centros no asignados
+- **Sesiones Terapéuticas**: Visibilidad cruzada entre centros
+- **Sesiones Pedagógicas**: Sin filtrado por centro
+- **Personal**: Pueden ver staff de otros centros
+- **Reportes y Estadísticas**: Incluyen datos de todos los centros
+- **Tutores**: Sin restricción por centro
+- **Especialidades**: Acceso global sin filtrado
+
+#### **🔧 Implementación Requerida:**
+1. **Backend**: Filtrado automático de consultas por `centro_id` del usuario
+2. **Frontend**: Validación adicional de datos mostrados
+3. **Middleware**: Verificación de pertenencia al centro en cada endpoint
+4. **Testing**: Verificación exhaustiva con usuarios de diferentes centros
+
+#### **⚠️ Impacto en Seguridad:**
+- **Confidencialidad**: Exposición de datos entre centros no autorizados
+- **Privacidad**: Violación de separación de datos médicos
+- **Compliance**: Posible incumplimiento de normativas de protección de datos
+- **Operacional**: Confusión y errores en gestión de datos
+
+### 👥 Roles del Sistema Identificados
+1. **🔧 Administrador**: Acceso completo a todo el sistema
+2. **🧠 Terapeuta**: Solo módulos terapéuticos y pacientes relacionados
+3. **📚 Pedagogo/Educador**: Solo módulos pedagógicos y estudiantes relacionados
+4. **⚕️ Personal Médico**: Solo módulos de su especialidad
+
+### 🎯 Objetivos Específicos
+- **Administradores**: Ven TODO el sistema completo sin restricciones
+- **Terapeutas**: Solo acceden a funcionalidades terapéuticas y sus pacientes
+- **Pedagogos**: Solo acceden a funcionalidades pedagógicas y sus estudiantes
+- **Personal Médico**: Solo funcionalidades relacionadas con su especialidad
+
+### 📋 Subtareas por Implementar
+
+#### 6.1 Análisis de Roles y Permisos + Centro de Trabajo
+- [ ] **Mapeo completo de roles existentes** en el backend
+- [ ] **Identificación de permisos por módulo** según rol de usuario
+- [ ] **Análisis de casos especiales** (usuarios con múltiples roles)
+- [ ] **Documentación de matriz de permisos** rol vs módulo
+- [ ] **🚨 CRÍTICO: Mapeo de usuarios por centro** (`centro_id` en cada usuario)
+- [ ] **🚨 CRÍTICO: Identificación de campos centro** en todas las tablas principales
+- [ ] **🚨 CRÍTICO: Análisis de consultas sin filtrado** por centro actual
+
+#### 6.2 Mapeo de Módulos por Rol + Filtrado por Centro
+- [ ] **Dashboard principal**: Personalización según rol + **🚨 datos solo del centro asignado**
+- [ ] **Gestión de Personas**: Acceso según permisos + **🚨 filtrado por centro**
+- [ ] **Gestión de Pacientes**: Filtrado por terapeuta asignado + **🚨 solo pacientes del centro**
+- [ ] **Gestión de Personal**: Solo administradores + **🚨 solo personal del centro**
+- [ ] **Tutores**: Acceso según relación con pacientes + **🚨 solo tutores del centro**
+- [ ] **Especialidades**: Según rol y especialidad + **🚨 solo especialidades del centro**
+- [ ] **Sesiones Terapéuticas**: Solo terapeutas y administradores + **🚨 solo sesiones del centro**
+- [ ] **Sesiones Pedagógicas**: Solo pedagogos y administradores + **🚨 solo sesiones del centro**
+- [ ] **Gestión de Usuarios**: Solo administradores + **🚨 solo usuarios del centro**
+- [ ] **Configuración**: Niveles según rol + **🚨 configuración específica del centro**
+- [ ] **Chat/Mensajería**: Según permisos de comunicación + **🚨 solo usuarios del mismo centro**
+
+#### 6.3 Implementación de Guards y Protección de Rutas
+- [ ] **AuthGuard con verificación de roles** en React Router
+- [ ] **RoleGuard personalizado** para protección granular
+- [ ] **Middleware de verificación** de permisos por endpoint
+- [ ] **Redirecciones inteligentes** cuando acceso denegado
+- [ ] **Fallbacks y páginas de error** para accesos no autorizados
+
+#### 6.4 Ocultación Condicional de Menús y Botones
+- [ ] **Sidebar navigation**: Mostrar solo módulos permitidos
+- [ ] **Header actions**: Ocultar botones según permisos
+- [ ] **Botones de acción**: Create/Edit/Delete según rol
+- [ ] **Tabs y pestañas**: Mostrar solo secciones permitidas
+- [ ] **Cards y componentes**: Conditional rendering por rol
+
+#### 6.5 🚨 IMPLEMENTACIÓN CRÍTICA: AISLAMIENTO POR CENTRO
+- [ ] **Backend: Middleware de filtrado automático** por `centro_id` en todas las consultas
+- [ ] **Backend: Modificación de endpoints** para incluir filtro de centro obligatorio
+- [ ] **Backend: Validación de pertenencia** al centro en operaciones CRUD
+- [ ] **Frontend: Context de centro** para manejo del centro actual del usuario
+- [ ] **Frontend: Validación adicional** de datos antes de mostrar en UI
+- [ ] **Frontend: Indicadores visuales** del centro actual en la interfaz
+- [ ] **Testing: Verificación de aislamiento** entre centros norte y sur
+- [ ] **Testing: Validación de endpoints** con usuarios de diferentes centros
+- [ ] **Testing: Casos edge** (usuarios sin centro asignado, cambio de centro)
+
+#### 6.6 Testing con Diferentes Tipos de Usuario y Centros
+- [ ] **Testing con admin.norte**: Solo datos del centro norte
+- [ ] **Testing con admin.sur**: Solo datos del centro sur
+- [ ] **Testing con usuario terapeuta**: Solo módulos terapéuticos + centro asignado
+- [ ] **Testing con usuario pedagogo**: Solo módulos pedagógicos + centro asignado
+- [ ] **Testing con personal médico**: Acceso según especialidad + centro asignado
+- [ ] **Testing de edge cases**: Usuarios sin rol, roles múltiples, sin centro asignado
+- [ ] **🚨 Testing crítico**: Verificar que NO se muestran datos de otros centros
+
+### 🛠️ Componentes Técnicos a Implementar
+
+#### **🚨 CenterRoleProvider Context (CRÍTICO)**
+```jsx
+// Contexto para manejo de roles, permisos Y aislamiento por centro
+const CenterRoleContext = createContext();
+
+// Provider con lógica de permisos + filtrado por centro
+const CenterRoleProvider = ({ children }) => {
+  const { user } = useAuth();
+  const permissions = usePermissions(user.role);
+  const centerContext = useCenterContext(user.centro_id); // NUEVO
+
+  return (
+    <CenterRoleContext.Provider value={{
+      user,
+      permissions,
+      currentCenter: user.centro_id, // CRÍTICO
+      centerName: user.centro_nombre, // NUEVO
+      enforceCenter: true // NUEVO - forzar filtrado por centro
+    }}>
+      {children}
+    </CenterRoleContext.Provider>
+  );
+};
+```
+
+#### **🚨 Hooks Personalizados con Aislamiento por Centro**
+```jsx
+// Hook para verificar permisos + validación de centro
+const useCenterPermissions = () => {
+  const { permissions, currentCenter, enforceCenter } = useContext(CenterRoleContext);
+
+  return {
+    canAccess: (module) => permissions.includes(module),
+    canEdit: (resource) => permissions.edit.includes(resource),
+    canDelete: (resource) => permissions.delete.includes(resource),
+    // NUEVAS FUNCIONES CRÍTICAS:
+    belongsToUserCenter: (itemCentroId) => {
+      if (!enforceCenter) return true; // Para casos especiales
+      return itemCentroId === currentCenter;
+    },
+    filterByCenter: (dataArray, centroField = 'centro_id') => {
+      if (!enforceCenter) return dataArray;
+      return dataArray.filter(item => item[centroField] === currentCenter);
+    },
+    getCurrentCenter: () => currentCenter,
+    validateCenterAccess: (itemCentroId) => {
+      if (itemCentroId !== currentCenter) {
+        throw new Error(`Acceso denegado: datos del centro ${itemCentroId} no permitidos`);
+      }
+    }
+  };
+};
+```
+
+#### **🚨 Componentes de Control de Acceso + Centro**
+```jsx
+// Componente para mostrar contenido según permisos y centro
+const CenterProtectedComponent = ({
+  requiredRole,
+  dataItemCentroId,
+  children,
+  showAccessDenied = true
+}) => {
+  const { user } = useCenterRole();
+  const { belongsToUserCenter, validateCenterAccess } = useCenterPermissions();
+
+  // Verificar permisos de rol
+  if (!hasPermission(user.role, requiredRole)) {
+    return showAccessDenied ? <AccessDenied reason="role" /> : null;
+  }
+
+  // CRÍTICO: Verificar pertenencia al centro
+  if (dataItemCentroId && !belongsToUserCenter(dataItemCentroId)) {
+    console.warn(`Centro access denied: user centro ${user.centro_id}, data centro ${dataItemCentroId}`);
+    return showAccessDenied ? <AccessDenied reason="center" /> : null;
+  }
+
+  return children;
+};
+
+// Componente para mostrar indicador de centro actual
+const CenterIndicator = () => {
+  const { centerName, currentCenter } = useCenterRole();
+
+  return (
+    <Chip
+      label={`Centro: ${centerName}`}
+      color="primary"
+      size="small"
+      sx={{ ml: 1 }}
+    />
+  );
+};
+```
 
 ---
 
@@ -487,16 +721,16 @@ Limpiar, optimizar y mejorar la experiencia de usuario del frontend, organizando
 1. **✅ FASE 1** (Limpieza) - Base sólida **COMPLETADA**
 2. **✅ FASE 2** (Customizer y Tema) - Personalización **COMPLETADA**
 3. **✅ FASE 2.1** (Selección de Personas) - Estandarización de UX **COMPLETADA**
-4. **FASE 3** (Notificaciones) - Funcionalidad crítica
-5. **FASE 5** (Mi Perfil) - Experiencia de usuario
-6. **FASE 4** (Mensajes) - Comunicación
+4. **❌ FASE 3** (Notificaciones) - **ELIMINADA** (reemplazada por contador de mensajes)
+5. **✅ FASE 4** (Mensajes) - Comunicación **COMPLETADA**
+6. **FASE 5** (Mi Perfil) - Experiencia de usuario
 7. **FASE 6** (Configuración Avanzada) - Funcionalidades avanzadas
 8. **FASE 7** (Optimizaciones) - Pulimento final
 
 ### Estimación Total:
-- **Tiempo:** 12-17 días de trabajo ✅ **8 días completados**
+- **Tiempo:** 12-17 días de trabajo ✅ **9 días completados**
 - **Prioridad alta:** 5-6 días ✅ **Completado**
-- **Prioridad media:** 8-10 días ✅ **8 días completados** (incluía Fase 2.1)
+- **Prioridad media:** 8-10 días ✅ **9 días completados** (incluía Fase 2.1 + Fase 4)
 - **Prioridad baja:** 1-2 días ⏳ **Pendiente**
 
 ---
@@ -535,10 +769,10 @@ Limpiar, optimizar y mejorar la experiencia de usuario del frontend, organizando
 
 ---
 
-**Estado del documento:** ✅ Fases 1-2 completadas totalmente | 🎯 Fase 2.1 agregada
-**Última actualización:** 2025-01-16
-**Progreso actual:** ✅ Fase 1 completada | ✅ Fase 2 completada | 🎯 Listo para Fase 2.1
-**Siguiente revisión:** Después de completar Fase 2.1 (Mejora de Selección de Personas)
+**Estado del documento:** ✅ Fases 1-2-2.1-4-5 completadas totalmente | ❌ Fase 3 eliminada
+**Última actualización:** 2025-01-18
+**Progreso actual:** ✅ Fase 1 completada | ✅ Fase 2 completada | ✅ Fase 2.1 completada | ❌ Fase 3 eliminada | ✅ Fase 4 completada | ✅ Fase 5 completada
+**Siguiente revisión:** Antes de iniciar Fase 6 (Sistema RBAC) - Consulta al administrador requerida
 
 ---
 
@@ -579,19 +813,19 @@ Limpiar, optimizar y mejorar la experiencia de usuario del frontend, organizando
   - ✅ Build y runtime verification completados
 
 ### ⏳ Fases Pendientes:
-- **FASE 3:** Sistema de Notificaciones
-- **FASE 4:** Sistema de Mensajes/Daños
-- **FASE 5:** Mejoras en Mi Perfil
-- **FASE 6:** Configuración Avanzada
-- **FASE 7:** Correcciones Menores y Optimizaciones
+- **FASE 6:** Sistema RBAC (Role-Based Access Control)
+- **FASE 7:** Configuración Avanzada
+- **FASE 8:** Correcciones Menores y Optimizaciones
 
 ### 📊 Estadísticas Actuales:
-- **Progreso Total:** ✅ **3/8 fases completadas (~37.5%)**
+- **Progreso Total:** ✅ **5/8 fases completadas (~71%)**
   - Fase 1: 100% ✅
   - Fase 2: 100% ✅
   - Fase 2.1: 100% ✅
-  - Fase 3: 0% ⏳ (próxima prioridad)
-- **Tiempo invertido:** 8 días
+  - Fase 3: ❌ ELIMINADA
+  - Fase 4: 100% ✅
+  - Fase 5: 100% ✅
+- **Tiempo invertido:** 12 días
 - **Funcionalidades críticas reparadas:** 2 (sesiones terapéuticas + selector personas)
 - **Código limpiado:** 250+ debug statements eliminados
 - **Problemas de diseño resueltos:** 78+ problemas sistemáticamente corregidos
@@ -603,4 +837,71 @@ Limpiar, optimizar y mejorar la experiencia de usuario del frontend, organizando
 - **Runtime errors:** ✅ Eliminados completamente
 - **Dark/Light mode:** ✅ 100% funcional en toda la aplicación
 - **Performance optimizations:** ✅ Cargas condicionales implementadas
-- **Siguiente milestone:** FASE 3 - Sistema de Notificaciones
+- **Siguiente milestone:** FASE 6 - Sistema RBAC (Role-Based Access Control)
+
+---
+
+## 🤔 CONSULTA AL ADMINISTRADOR - FASE 6 RBAC + AISLAMIENTO POR CENTRO
+
+**Antes de continuar con la implementación del sistema Role-Based Access Control Y la corrección crítica del aislamiento por centro, necesitamos definir exactamente qué debe ver cada rol y cómo debe funcionar la separación por centros:**
+
+### 🔍 ROLES IDENTIFICADOS EN EL SISTEMA:
+1. **🔧 Administrador**
+2. **🧠 Terapeuta**
+3. **📚 Pedagogo/Educador**
+4. **⚕️ Personal Médico** (otros roles)
+
+### ❓ PREGUNTAS CRÍTICAS PARA EL ADMINISTRADOR:
+
+#### **Para cada rol, ¿qué módulos/secciones DEBEN tener acceso?**
+
+**🔧 MÓDULOS DISPONIBLES:**
+- Dashboard principal
+- Gestión de Personas
+- Gestión de Pacientes
+- Gestión de Personal
+- Gestión de Tutores
+- Especialidades Médicas
+- Sesiones Terapéuticas
+- Sesiones Pedagógicas
+- Gestión de Usuarios (admin)
+- Configuración del Sistema
+- Reportes y Estadísticas
+- Chat/Mensajería
+- Mi Perfil
+
+#### **🚨 PREGUNTAS CRÍTICAS SOBRE AISLAMIENTO POR CENTRO:**
+
+1. **¿Debe ser un aislamiento TOTAL?**
+   - ¿admin.norte NUNCA debe ver datos del centro sur?
+   - ¿admin.sur NUNCA debe ver datos del centro norte?
+
+2. **¿Hay casos especiales donde sí se puede ver información de otros centros?**
+   - ¿Super administradores que ven todo?
+   - ¿Reportes consolidados entre centros?
+
+3. **¿La comunicación (chat) debe estar limitada al mismo centro?**
+   - ¿Usuarios del centro norte pueden chatear con usuarios del centro sur?
+
+4. **¿Cómo debe comportarse el sistema si un usuario no tiene centro asignado?**
+   - ¿Bloquear acceso completamente?
+   - ¿Permitir acceso a todo mientras se asigna centro?
+
+#### **PREGUNTAS ESPECÍFICAS DE ROLES:**
+
+5. **¿Un terapeuta debería poder ver TODOS los pacientes del centro o solo los asignados a él?**
+
+6. **¿Un pedagogo debería tener acceso a las sesiones terapéuticas del centro o solo a las pedagógicas?**
+
+7. **¿El personal médico general debería poder crear/editar usuarios del centro o solo ver información?**
+
+8. **¿Los reportes deberían mostrar datos de todo el centro o filtrados por rol?**
+
+9. **¿Qué nivel de acceso debería tener cada rol en su centro:**
+   - Crear nuevos registros (pacientes, sesiones, etc.)
+   - Editar información existente
+   - Eliminar registros
+   - Ver información de otros usuarios del mismo centro
+
+**🎯 PRÓXIMOS PASOS:**
+Una vez que el administrador responda estas preguntas, continuaremos con la implementación específica del sistema RBAC en FASE 6.

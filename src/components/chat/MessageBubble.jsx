@@ -8,6 +8,7 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  useTheme,
 } from '@mui/material';
 import {
   Check as CheckIcon,
@@ -21,6 +22,8 @@ const MessageBubble = ({
   formatDate = () => '',
   currentUserId = null, // ID del usuario actual (obtenerlo del contexto de auth)
 }) => {
+  const theme = useTheme();
+
   if (!message) {
     return null;
   }
@@ -32,11 +35,13 @@ const MessageBubble = ({
   /**
    * Obtener color de fondo según el tipo de mensaje
    */
-  const getMessageColor = () => {
+  const getMessageColor = (theme) => {
     if (isOwnMessage) {
-      return '#1976d2'; // Azul más vibrante para mensajes propios
+      return theme.palette.primary.main; // Color primario del tema
     }
-    return '#f5f5f5'; // Gris más claro para mensajes recibidos
+    return theme.palette.mode === 'dark'
+      ? theme.palette.grey[700]
+      : theme.palette.grey[100]; // Adaptado al tema
   };
 
   /**
@@ -59,13 +64,13 @@ const MessageBubble = ({
       case 'enviado':
         return (
           <Tooltip title="Enviado">
-            <CheckIcon sx={{ fontSize: 16, color: 'rgba(255,255,255,0.7)' }} />
+            <CheckIcon sx={{ fontSize: 16, color: isOwnMessage ? 'rgba(255,255,255,0.7)' : 'text.secondary' }} />
           </Tooltip>
         );
       case 'entregado':
         return (
           <Tooltip title="Entregado">
-            <DoneAllIcon sx={{ fontSize: 16, color: 'rgba(255,255,255,0.7)' }} />
+            <DoneAllIcon sx={{ fontSize: 16, color: isOwnMessage ? 'rgba(255,255,255,0.7)' : 'text.secondary' }} />
           </Tooltip>
         );
       case 'leido':
@@ -77,7 +82,7 @@ const MessageBubble = ({
       case 'enviando':
         return (
           <Tooltip title="Enviando...">
-            <ScheduleIcon sx={{ fontSize: 16, color: 'rgba(255,255,255,0.7)' }} />
+            <ScheduleIcon sx={{ fontSize: 16, color: isOwnMessage ? 'rgba(255,255,255,0.7)' : 'text.secondary' }} />
           </Tooltip>
         );
       case 'error':
@@ -192,7 +197,7 @@ const MessageBubble = ({
           elevation={isOwnMessage ? 2 : 1}
           sx={{
             p: 2,
-            bgcolor: getMessageColor(),
+            bgcolor: getMessageColor(theme),
             color: getTextColor(),
             borderRadius: 3,
             borderBottomRightRadius: isOwnMessage ? 0.8 : 3,
