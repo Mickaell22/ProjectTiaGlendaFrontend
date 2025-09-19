@@ -1,199 +1,103 @@
-// src/services/dashboardService.js
-import ApiService from './apiService';
-import { API_ENDPOINTS } from 'src/config/api';
+// src/services/dashboardService.js - Servicio limpio para los nuevos endpoints de dashboard
+import { ApiService } from './apiService';
 
 class DashboardService {
-  // Obtener estadísticas generales del dashboard
-  async getEstadisticasGenerales() {
+  /**
+   * Get admin dashboard data
+   */
+  async getAdminDashboard() {
     try {
-      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.ESTADISTICAS);
-      return response;
+      const response = await ApiService.get('/api/dashboard/admin');
+      return response.data;
     } catch (error) {
-      console.error('Error fetching dashboard statistics:', error);
+      console.error('Error fetching admin dashboard:', error);
       throw error;
     }
   }
 
-  // Obtener usuarios activos
-  async getUsuariosActivos() {
+  /**
+   * Get therapist dashboard data
+   */
+  async getTherapistDashboard() {
     try {
-      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.USUARIOS_ACTIVOS);
-      return response;
+      const response = await ApiService.get('/api/dashboard/therapist');
+      return response.data;
     } catch (error) {
-      console.error('Error fetching active users:', error);
+      console.error('Error fetching therapist dashboard:', error);
       throw error;
     }
   }
 
-  // Obtener actividad reciente
-  async getActividadReciente(limite = 10) {
+  /**
+   * Get pedagogue dashboard data
+   */
+  async getPedagogueDashboard() {
     try {
-      const response = await ApiService.get(`${API_ENDPOINTS.DASHBOARD.ACTIVIDAD_RECIENTE}?limite=${limite}`);
-      return response;
+      const response = await ApiService.get('/api/dashboard/pedagogue');
+      return response.data;
     } catch (error) {
-      console.error('Error fetching recent activity:', error);
+      console.error('Error fetching pedagogue dashboard:', error);
       throw error;
     }
   }
 
-  // Obtener alertas del sistema
-  async getAlertasSistema() {
+  /**
+   * Get general statistics
+   */
+  async getGeneralStats() {
     try {
-      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.ALERTAS);
-      return response;
+      const response = await ApiService.get('/api/stats/general');
+      return response.data;
     } catch (error) {
-      console.error('Error fetching system alerts:', error);
+      console.error('Error fetching general stats:', error);
       throw error;
     }
   }
 
-  // Obtener estadísticas de sesiones
-  async getEstadisticasSesiones() {
+  /**
+   * Get personal agenda for current user
+   */
+  async getPersonalAgenda(fecha = null) {
     try {
-      const [terapeuticas, pedagogicas] = await Promise.all([
-        ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.ESTADISTICAS),
-        ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.ESTADISTICAS)
-      ]);
-      return {
-        terapeuticas: terapeuticas.data,
-        pedagogicas: pedagogicas.data
-      };
+      const params = fecha ? `?fecha=${fecha}` : '';
+      const response = await ApiService.get(`/api/agenda/personal${params}`);
+      return response.data;
     } catch (error) {
-      console.error('Error fetching sessions statistics:', error);
+      console.error('Error fetching personal agenda:', error);
       throw error;
     }
   }
 
-  // Obtener sesiones de hoy
-  async getSesionesHoy() {
-    try {
-      const [terapeuticas, pedagogicas] = await Promise.all([
-        ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.HOY),
-        ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.HOY)
-      ]);
-      return {
-        terapeuticas: terapeuticas.data || [],
-        pedagogicas: pedagogicas.data || [],
-        total: (terapeuticas.data || []).length + (pedagogicas.data || []).length
-      };
-    } catch (error) {
-      console.error('Error fetching today sessions:', error);
-      throw error;
-    }
-  }
+  /**
+   * Handle API errors and return user-friendly messages
+   */
+  handleError(error) {
+    if (error.response) {
+      const status = error.response.status;
+      const message = error.response.data?.message || 'Error en el servidor';
 
-  // Obtener conteo de pacientes
-  async getContadorPacientes() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.CONTADOR_PACIENTES);
-      return response;
-    } catch (error) {
-      console.error('Error fetching patients count:', error);
-      throw error;
-    }
-  }
-
-  // Obtener resumen del personal
-  async getResumenPersonal() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.RESUMEN_PERSONAL);
-      return response;
-    } catch (error) {
-      console.error('Error fetching staff summary:', error);
-      throw error;
-    }
-  }
-
-  // Obtener rendimiento semanal
-  async getRendimientoSemanal() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.RENDIMIENTO_SEMANAL);
-      return response;
-    } catch (error) {
-      console.error('Error fetching weekly performance:', error);
-      throw error;
-    }
-  }
-
-  // Obtener métricas de asistencia
-  async getMetricasAsistencia() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.METRICAS_ASISTENCIA);
-      return response;
-    } catch (error) {
-      console.error('Error fetching attendance metrics:', error);
-      throw error;
-    }
-  }
-
-  // ==================== PHASE E1 - ROLE-BASED DASHBOARD ====================
-  
-  // Obtener sesiones del día actual del terapeuta autenticado
-  async getMisSesionesHoy() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.MIS_SESIONES_HOY);
-      return response;
-    } catch (error) {
-      console.error('Error fetching my today sessions:', error);
-      throw error;
-    }
-  }
-
-  // Obtener clases del día actual del pedagogo autenticado
-  async getMisClasesHoy() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.MIS_CLASES_HOY);
-      return response;
-    } catch (error) {
-      console.error('Error fetching my today classes:', error);
-      throw error;
-    }
-  }
-
-  // Obtener pacientes asignados al terapeuta autenticado
-  async getMisPacientes() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.MIS_PACIENTES);
-      return response;
-    } catch (error) {
-      console.error('Error fetching my patients:', error);
-      throw error;
-    }
-  }
-
-  // Obtener estudiantes asignados al pedagogo autenticado
-  async getMisEstudiantes() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.DASHBOARD.MIS_ESTUDIANTES);
-      return response;
-    } catch (error) {
-      console.error('Error fetching my students:', error);
-      throw error;
-    }
-  }
-
-  // Obtener datos personalizados por rol del usuario autenticado
-  async getDatosPersonalizadosPorRol() {
-    try {
-      // Esta función combina las llamadas según el rol del usuario
-      const [misSesiones, misClases, misPacientes, misEstudiantes] = await Promise.allSettled([
-        this.getMisSesionesHoy(),
-        this.getMisClasesHoy(), 
-        this.getMisPacientes(),
-        this.getMisEstudiantes()
-      ]);
-
-      return {
-        sesiones: misSesiones.status === 'fulfilled' ? misSesiones.value : { data: [] },
-        clases: misClases.status === 'fulfilled' ? misClases.value : { data: [] },
-        pacientes: misPacientes.status === 'fulfilled' ? misPacientes.value : { data: [] },
-        estudiantes: misEstudiantes.status === 'fulfilled' ? misEstudiantes.value : { data: [] }
-      };
-    } catch (error) {
-      console.error('Error fetching role-based dashboard data:', error);
-      throw error;
+      switch (status) {
+        case 400:
+          return `Datos inválidos: ${message}`;
+        case 401:
+          return 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+        case 403:
+          return 'No tienes permisos para acceder a esta información.';
+        case 404:
+          return 'Los datos del dashboard no están disponibles.';
+        case 500:
+          return 'Error interno del servidor. Intenta nuevamente.';
+        default:
+          return `Error: ${message}`;
+      }
+    } else if (error.request) {
+      return 'Error de conexión. Verifica tu conexión a internet.';
+    } else {
+      return `Error: ${error.message}`;
     }
   }
 }
 
-export default new DashboardService();
+// Export a singleton instance
+export const dashboardService = new DashboardService();
+export default dashboardService;

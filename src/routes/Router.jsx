@@ -8,7 +8,7 @@ import BlankLayout from 'src/layouts/blank/BlankLayout';
 // Páginas principales
 import Login from 'src/views/authentication/auth1/Login';
 import Register from 'src/views/authentication/auth1/Register';
-import DashboardSimple from 'src/views/dashboard/DashboardSimple';
+import DashboardMain from 'src/views/dashboard/DashboardMain';
 import PersonaMain from 'src/views/persona/PersonaMain';
 import PacienteMain from 'src/views/paciente/PacienteMain';
  
@@ -137,7 +137,7 @@ const Router = [
     ),
     children: [
       { path: '/', element: <Navigate to={ROUTES.DASHBOARD} /> },
-      { path: ROUTES.DASHBOARD, element: <DashboardSimple /> },
+      { path: ROUTES.DASHBOARD, element: <DashboardMain /> },
       { path: ROUTES.PROFILE, element: <MiPerfil /> },
       
       // Gestión de Personas
