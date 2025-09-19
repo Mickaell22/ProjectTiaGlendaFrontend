@@ -33,147 +33,239 @@ import { ROUTES } from '../../../../config/routes';
 // Función simple para generar IDs únicos
 const uniqueId = () => Math.random().toString(36).substring(2, 15);
 
-const Menuitems = [
-  {
-    navlabel: true,
-    subheader: 'Panel Principal',
-  },
-  {
-    id: uniqueId(),
-    title: 'Dashboard',
-    icon: Dashboard,
-    href: ROUTES.DASHBOARD,
-  },
+// Función para obtener el rol del usuario
+const getUserRole = () => {
+  try {
+    const userData = localStorage.getItem('user_data');
+    if (userData) {
+      const user = JSON.parse(userData);
+      return (user.rol_nombre || user.rol || '').toLowerCase();
+    }
 
-  {
-    navlabel: true,
-    subheader: 'Gestión de Personas',
-  },
-  {
-    id: uniqueId(),
-    title: 'Registro de Personas',
-    icon: Person,
-    href: '/apps/contacts',
-    children: [
+    const token = localStorage.getItem('jwt_token');
+    if (token && token.split('.').length === 3) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return (payload.rol || payload.rol_nombre || '').toLowerCase();
+    }
+  } catch (error) {
+    console.error('Error getting user role:', error);
+  }
+  return null;
+};
+
+// Función para verificar permisos
+const hasPermission = (module, userRole) => {
+  const isAdmin = userRole === 'administrador';
+  const isTherapist = userRole === 'terapeuta';
+  const isPedagogue = userRole && userRole.includes('pedag');
+
+  switch (module) {
+    case 'personas':
+    case 'personal':
+    case 'usuarios':
+    case 'especialidades':
+    case 'configuracion':
+    case 'reportes':
+      return isAdmin;
+    case 'pacientes':
+    case 'tutores':
+      return isAdmin || isTherapist || isPedagogue;
+    case 'terapeutico':
+      return isAdmin || isTherapist;
+    case 'pedagogico':
+      return isAdmin || isPedagogue;
+    default:
+      return true; // Dashboard, perfil, etc.
+  }
+};
+
+// Función para generar menús basados en rol
+const getMenuItems = () => {
+  const userRole = getUserRole();
+
+  const allMenuItems = [
+    {
+      navlabel: true,
+      subheader: 'Panel Principal',
+    },
+    {
+      id: uniqueId(),
+      title: 'Dashboard',
+      icon: Dashboard,
+      href: ROUTES.DASHBOARD,
+    },
+
+    // Gestión de Personas - Solo Admins
+    ...(hasPermission('personas', userRole) ? [
       {
-        id: uniqueId(),
-        title: 'Gestión de Personas',
-        icon: People,
-        href: ROUTES.GESTION.PERSONA,
+        navlabel: true,
+        subheader: 'Gestión de Personas',
       },
-    ],
-  },
-  {
-    id: uniqueId(),
-    title: 'Administración del Sistema',
-    icon: Security,
-    href: '/apps/user-profile/followers',
-    children: [
       {
         id: uniqueId(),
-        title: 'Gestión de Usuarios',
-        icon: SupervisorAccount,
-        href: ROUTES.GESTION.USUARIO,
+        title: 'Registro de Personas',
+        icon: Person,
+        href: '/apps/contacts',
+        children: [
+          {
+            id: uniqueId(),
+            title: 'Gestión de Personas',
+            icon: People,
+            href: ROUTES.GESTION.PERSONA,
+          },
+        ],
       },
-    ],
-  },
-  {
-    id: uniqueId(),
-    title: 'Pacientes y Estudiantes',
-    icon: LocalHospital,
-    href: '/apps/user-profile/followers',
-    children: [
+    ] : []),
+
+    // Administración del Sistema - Solo Admins
+    ...(hasPermission('usuarios', userRole) ? [
       {
         id: uniqueId(),
-        title: 'Gestión de Pacientes',
-        icon: MedicalServices,
-        href: ROUTES.GESTION.PACIENTE,
+        title: 'Administración del Sistema',
+        icon: Security,
+        href: '/apps/user-profile/followers',
+        children: [
+          {
+            id: uniqueId(),
+            title: 'Gestión de Usuarios',
+            icon: SupervisorAccount,
+            href: ROUTES.GESTION.USUARIO,
+          },
+        ],
+      },
+    ] : []),
+
+    // Pacientes y Tutores - Admins y Terapeutas
+    ...(hasPermission('pacientes', userRole) ? [
+      {
+        navlabel: true,
+        subheader: 'Pacientes y Estudiantes',
       },
       {
         id: uniqueId(),
-        title: 'Gestión de Tutores',
-        icon: FamilyRestroom,
-        href: ROUTES.GESTION.TUTOR,
+        title: 'Pacientes y Estudiantes',
+        icon: LocalHospital,
+        href: '/apps/user-profile/followers',
+        children: [
+          {
+            id: uniqueId(),
+            title: 'Gestión de Pacientes',
+            icon: MedicalServices,
+            href: ROUTES.GESTION.PACIENTE,
+          },
+          {
+            id: uniqueId(),
+            title: 'Gestión de Tutores',
+            icon: FamilyRestroom,
+            href: ROUTES.GESTION.TUTOR,
+          },
+        ],
       },
-    ],
-  },
-  {
-    id: uniqueId(),
-    title: 'Personal del Centro',
-    icon: AccountCircle,
-    href: '/apps/user-profile/followers',
-    children: [
+    ] : []),
+
+    // Personal y Especialidades - Solo Admins
+    ...(hasPermission('personal', userRole) ? [
       {
         id: uniqueId(),
-        title: 'Gestión de Especialidades',
+        title: 'Personal del Centro',
+        icon: AccountCircle,
+        href: '/apps/user-profile/followers',
+        children: [
+          {
+            id: uniqueId(),
+            title: 'Gestión de Especialidades',
+            icon: Psychology,
+            href: ROUTES.GESTION.ESPECIALIDAD,
+          },
+          {
+            id: uniqueId(),
+            title: 'Gestión de Personal',
+            icon: SupervisorAccount,
+            href: ROUTES.GESTION.PERSONAL,
+          },
+        ],
+      },
+    ] : []),
+
+    // Área Clínica y Educativa
+    ...(hasPermission('terapeutico', userRole) || hasPermission('pedagogico', userRole) ? [
+      {
+        navlabel: true,
+        subheader: 'Área Clínica y Educativa',
+      },
+    ] : []),
+
+    // Área Terapéutica - Admins y Terapeutas
+    ...(hasPermission('terapeutico', userRole) ? [
+      {
+        id: uniqueId(),
+        title: 'Área Terapéutica',
         icon: Psychology,
-        href: ROUTES.GESTION.ESPECIALIDAD,
+        href: ROUTES.TERAPEUTICO.BASE,
+      },
+    ] : []),
+
+    // Área Pedagógica - Admins y Pedagogos
+    ...(hasPermission('pedagogico', userRole) ? [
+      {
+        id: uniqueId(),
+        title: 'Área Pedagógica',
+        icon: School,
+        href: ROUTES.PEDAGOGICO.BASE,
+      },
+    ] : []),
+
+    // Reportes - Solo Admins
+    ...(hasPermission('reportes', userRole) ? [
+      {
+        navlabel: true,
+        subheader: 'Reportes',
       },
       {
         id: uniqueId(),
-        title: 'Gestión de Personal',
-        icon: SupervisorAccount,
-        href: ROUTES.GESTION.PERSONAL,
+        title: 'Sistema de Reportes',
+        icon: Assessment,
+        href: ROUTES.REPORTES.SISTEMA,
       },
-    ],
-  },
+    ] : []),
 
-  {
-    navlabel: true,
-    subheader: 'Área Clínica y Educativa',
-  },
-  {
-    id: uniqueId(),
-    title: 'Área Terapéutica',
-    icon: Psychology,
-    href: ROUTES.TERAPEUTICO.BASE,
-  },
-  {
-    id: uniqueId(),
-    title: 'Área Pedagógica',
-    icon: School,
-    href: ROUTES.PEDAGOGICO.BASE,
-  },
+    // Configuración - Solo Admins
+    ...(hasPermission('configuracion', userRole) ? [
+      {
+        navlabel: true,
+        subheader: 'Configuración del Sistema',
+      },
+      {
+        id: uniqueId(),
+        title: 'Configuraciones del Sistema',
+        icon: AdminPanelSettings,
+        href: '/configuracion',
+      },
+    ] : []),
 
-  {
-    navlabel: true,
-    subheader: 'Reportes',
-  },
-  {
-    id: uniqueId(),
-    title: 'Sistema de Reportes',
-    icon: Assessment,
-    href: ROUTES.REPORTES.SISTEMA,
-  },
+    // Mi Cuenta - Todos
+    {
+      navlabel: true,
+      subheader: 'Mi Cuenta',
+    },
+    {
+      id: uniqueId(),
+      title: 'Mi Perfil',
+      icon: AccountBox,
+      href: ROUTES.PROFILE,
+    },
+    {
+      id: uniqueId(),
+      title: 'Cerrar Sesión',
+      icon: Logout,
+      href: ROUTES.AUTH.LOGOUT,
+      action: 'logout'
+    },
+  ];
 
-  {
-    navlabel: true,
-    subheader: 'Configuración del Sistema',
-  },
-  {
-    id: uniqueId(),
-    title: 'Configuraciones del Sistema',
-    icon: AdminPanelSettings,
-    href: '/configuracion',
-  },
+  return allMenuItems;
+};
 
-  {
-    navlabel: true,
-    subheader: 'Mi Cuenta',
-  },
-  {
-    id: uniqueId(),
-    title: 'Mi Perfil',
-    icon: AccountBox,
-    href: ROUTES.PROFILE,
-  },
-  {
-    id: uniqueId(),
-    title: 'Cerrar Sesión',
-    icon: Logout,
-    href: ROUTES.AUTH.LOGOUT,
-    action: 'logout'
-  },
-];
+const Menuitems = getMenuItems();
 
 export default Menuitems;

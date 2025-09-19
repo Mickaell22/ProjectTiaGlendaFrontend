@@ -29,6 +29,7 @@ import { ReportesPage } from 'src/views/reportes';
 
 
 
+
 // Componente para páginas en desarrollo
 import ComingSoon from 'src/components/shared/ComingSoon';
 import ProtectedRoute from 'src/components/shared/ProtectedRoute';
@@ -169,6 +170,7 @@ const Router = [
       { path: '/gestion/roles', element: <GestionRoles /> },
       { path: '/configuracion/general', element: <ConfiguracionGeneral /> },
       { path: '/configuracion/sistema', element: <ConfiguracionMain /> },
+
       
       // Centro
       { path: '/apps/user-profile/gallery', element: <Galeria /> },

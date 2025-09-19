@@ -37,12 +37,14 @@ import FotoPerfilConAutorizacion from 'src/components/shared/FotoPerfilConAutori
 // Chat service para contador de mensajes
 import chatService from 'src/services/chatService';
 
+
 const Header = ({ onChatToggle = () => {} }) => {
   const theme = useTheme();
   const customizer = useSelector((state) => state.customizer);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
+
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
@@ -61,11 +63,13 @@ const Header = ({ onChatToggle = () => {} }) => {
       const result = await chatService.getUnreadMessagesCount();
       if (result.success) {
         setUnreadMessagesCount(result.count || 0);
+      } else {
+        // Si el endpoint no está disponible, inicializar con 0
+        setUnreadMessagesCount(0);
       }
     } catch (error) {
-      console.error('Error configurando contador de mensajes:', error);
-      // Si no hay backend, simular algunos mensajes no leídos para demo
-      setUnreadMessagesCount(2);
+      // Si no hay backend o hay errores CORS, inicializar con 0 sin logging excesivo
+      setUnreadMessagesCount(0);
     }
 
     // Configurar polling para actualizar contador cada 30 segundos
@@ -74,19 +78,16 @@ const Header = ({ onChatToggle = () => {} }) => {
         const result = await chatService.getUnreadMessagesCount();
         if (result.success) {
           setUnreadMessagesCount(result.count || 0);
-        } else {
-          // Simular nuevos mensajes llegando aleatoriamente para demo
-          if (Math.random() > 0.7) { // 30% de probabilidad de nuevo mensaje
-            setUnreadMessagesCount(prev => prev + 1);
-          }
         }
+        // Si falla, no hacer nada - mantener el estado actual
       } catch (error) {
-        // En caso de error, simular comportamiento de demo
-        if (Math.random() > 0.8) { // 20% de probabilidad de nuevo mensaje
-          setUnreadMessagesCount(prev => prev + 1);
+        // En caso de error, mantener el estado actual sin logging
+        // Solo incrementar ocasionalmente para demo si no hay backend disponible
+        if (Math.random() > 0.95) { // 5% de probabilidad de demo
+          setUnreadMessagesCount(prev => Math.min(prev + 1, 3)); // Máximo 3 para demo
         }
       }
-    }, 30000); // Cada 30 segundos
+    }, 60000); // Cada 60 segundos (reducido para menos requests)
 
     return pollInterval;
   };
@@ -302,13 +303,14 @@ const Header = ({ onChatToggle = () => {} }) => {
         <Box flexGrow={1} />
 
         <Stack spacing={2} direction="row" alignItems="center">
+
           {/* Hora y Ciudad */}
           <Stack direction="row" spacing={1} alignItems="center">
-  <Typography variant="body2" color="text.secondary">
-    Guayaquil:
-  </Typography>
-  <Typography variant="body1">{horaActual}</Typography>
-</Stack>
+            <Typography variant="body2" color="text.secondary">
+              Guayaquil:
+            </Typography>
+            <Typography variant="body1">{horaActual}</Typography>
+          </Stack>
 
           {/* Chat con contador de mensajes */}
           <IconButton

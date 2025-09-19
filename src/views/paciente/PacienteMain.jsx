@@ -1,7 +1,7 @@
 // src/views/pacientes/PacienteMain.jsx
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Container, Paper, Typography, Tabs, Tab, useTheme
+  Box, Container, Paper, Typography, Tabs, Tab, useTheme, Alert
 } from '@mui/material';
 import { LocalHospital, PersonAdd } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,7 @@ import PacienteService from '../../services/pacienteService.js';
 import EspecialidadService from '../../services/especialidadService.js';
 import useSnackbar from '../../hooks/useSnackbar.js';
 import useAuth from '../../hooks/useAuth.js';
+import { useUserRole } from '../../hooks/useUserRole';
 
 // Componentes compartidos
 import CustomSnackbar from '../../components/shared/CustomSnackbar.jsx';
@@ -50,6 +51,7 @@ function a11yProps(index) {
 const PacienteMain = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { isAdmin, isTherapist, permissions, loading: roleLoading } = useUserRole();
 
   // Tabs/UI
   const [activeTab, setActiveTab] = useState(0);
@@ -186,6 +188,26 @@ const PacienteMain = () => {
       )
     }
   ];
+
+  // Verificar permisos de acceso después de todos los hooks
+  if (roleLoading) {
+    return <LoadingSpinner message="Verificando permisos..." fullHeight />;
+  }
+
+  if (!permissions.pacientes.view) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Alert severity="warning" sx={{ borderRadius: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Acceso no autorizado
+          </Typography>
+          <Typography>
+            No tienes permisos para acceder a la gestión de pacientes. Solo administradores y terapeutas pueden acceder a esta sección.
+          </Typography>
+        </Alert>
+      </Container>
+    );
+  }
 
   if (loading) {
     return <LoadingSpinner message="Cargando pacientes..." fullHeight />;

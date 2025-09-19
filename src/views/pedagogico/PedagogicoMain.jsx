@@ -1,7 +1,7 @@
 // src/views/pedagogico/PedagogicoMain.jsx
 import React, { useState } from 'react';
 import {
-  Box, Container, Paper, Typography, Tabs, Tab, useTheme
+  Box, Container, Paper, Typography, Tabs, Tab, useTheme, Alert
 } from '@mui/material';
 import {
   School, CalendarMonth, Assignment, Today, BarChart, Add
@@ -13,6 +13,7 @@ import PedagogicoCronogramas from './PedagogicoCronogramas';
 import PedagogicoAsistencia from './PedagogicoAsistencia';
 import PedagogicoHoy from './PedagogicoHoy';
 import PedagogicoEstadisticas from './PedagogicoEstadisticas';
+import { useUserRole } from '../../hooks/useUserRole';
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -41,44 +42,111 @@ function a11yProps(index) {
 
 const PedagogicoMain = () => {
   const theme = useTheme();
+  const { isAdmin, isPedagogue, permissions, loading } = useUserRole();
   const [value, setValue] = useState(0);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
-  const tabs = [
-    {
-      label: 'Sesiones',
-      icon: <School />,
-      component: <SesionesPedagogicas onNavigateToCreate={() => setValue(1)} />
-    },
-    {
-      label: 'Crear',
-      icon: <Add />,
-      component: <CrearSesionPedagogica />
-    },
-    {
-      label: 'Cronogramas',
-      icon: <CalendarMonth />,
-      component: <PedagogicoCronogramas />
-    },
-    {
-      label: 'Asistencia',
-      icon: <Assignment />,
-      component: <PedagogicoAsistencia />
-    },
-    {
-      label: 'Hoy',
-      icon: <Today />,
-      component: <PedagogicoHoy />
-    },
-    {
-      label: 'Estadísticas',
-      icon: <BarChart />,
-      component: <PedagogicoEstadisticas />
+  // Configurar tabs según permisos del usuario
+  const getAllTabs = () => {
+    const tabs = [];
+
+    // Tab Sesiones - Solo admins pueden ver la lista completa, pedagogos ven solo las suyas
+    if (permissions.sesionesPedagogicas.view) {
+      tabs.push({
+        label: 'Sesiones',
+        icon: <School />,
+        component: <SesionesPedagogicas
+          onNavigateToCreate={isAdmin ? () => setValue(tabs.length) : undefined}
+          readOnly={!isAdmin}
+          userViewMode={isPedagogue}
+        />
+      });
     }
-  ];
+
+    // Tab Crear - Solo admins
+    if (permissions.sesionesPedagogicas.create) {
+      tabs.push({
+        label: 'Crear',
+        icon: <Add />,
+        component: <CrearSesionPedagogica />
+      });
+    }
+
+    // Tab Cronogramas - Admins y pedagogos (pedagogos solo consulta)
+    if (permissions.sesionesPedagogicas.viewCronograma) {
+      tabs.push({
+        label: 'Cronogramas',
+        icon: <CalendarMonth />,
+        component: <PedagogicoCronogramas
+          readOnly={!permissions.sesionesPedagogicas.editCronograma}
+          userViewMode={isPedagogue}
+        />
+      });
+    }
+
+    // Tab Asistencia - Admins y pedagogos
+    if (permissions.sesionesPedagogicas.viewAsistencia) {
+      tabs.push({
+        label: 'Asistencia',
+        icon: <Assignment />,
+        component: <PedagogicoAsistencia
+          canRegister={permissions.sesionesPedagogicas.registerAsistencia}
+          canEdit={isAdmin}
+          userViewMode={isPedagogue}
+        />
+      });
+    }
+
+    // Tab Hoy - Todos los usuarios autorizados
+    if (permissions.sesionesPedagogicas.view) {
+      tabs.push({
+        label: 'Hoy',
+        icon: <Today />,
+        component: <PedagogicoHoy userViewMode={isPedagogue} />
+      });
+    }
+
+    // Tab Estadísticas - Solo admins
+    if (isAdmin) {
+      tabs.push({
+        label: 'Estadísticas',
+        icon: <BarChart />,
+        component: <PedagogicoEstadisticas />
+      });
+    }
+
+    return tabs;
+  };
+
+  const tabs = getAllTabs();
+
+  // Mostrar loading mientras se determina el rol
+  if (loading) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography>Cargando...</Typography>
+      </Box>
+    );
+  }
+
+  // Verificar si el usuario tiene permisos para el área pedagógica
+  if (!permissions.sesionesPedagogicas.view) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Alert severity="warning" sx={{ borderRadius: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Acceso no autorizado
+          </Typography>
+          <Typography>
+            No tienes permisos para acceder al área pedagógica. Solo administradores y pedagogos pueden acceder a esta sección.
+          </Typography>
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <Box>

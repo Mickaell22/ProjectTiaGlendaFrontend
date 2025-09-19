@@ -18,10 +18,95 @@ const SidebarItems = () => {
   const hideMenu = lgUp ? customizer.sidebarCollapse && !customizer.isSidebarHover : '';
   const dispatch = useDispatch();
 
+  // Obtener información del usuario desde localStorage para filtrado
+  const getUserRole = () => {
+    try {
+      const userData = localStorage.getItem('user_data');
+      if (userData) {
+        const parsedData = JSON.parse(userData);
+        return parsedData.rol_nombre || parsedData.rol || '';
+      }
+
+      // Fallback: intentar desde JWT token
+      const token = localStorage.getItem('jwt_token');
+      if (token && token.split('.').length === 3) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.rol || payload.rol_nombre || '';
+      }
+    } catch (error) {
+      console.error('Error obteniendo rol de usuario:', error);
+    }
+    return '';
+  };
+
+  // Filtrar elementos del menú según el rol del usuario
+  const filterMenuByRole = (menuItems, userRole) => {
+    const role = userRole.toLowerCase();
+
+    // Administradores ven todo
+    if (role === 'administrador') {
+      return menuItems;
+    }
+
+    // IDs permitidos para terapeutas
+    const therapistAllowedSections = [
+      'Panel Principal',
+      'Área Clínica y Educativa',
+      'Mi Cuenta'
+    ];
+
+    const therapistAllowedItems = [
+      'Dashboard',
+      'Pacientes y Estudiantes',
+      'Área Terapéutica',
+      'Mi Perfil',
+      'Cerrar Sesión'
+    ];
+
+    // IDs permitidos para pedagogos
+    const pedagogueAllowedSections = [
+      'Panel Principal',
+      'Área Clínica y Educativa',
+      'Mi Cuenta'
+    ];
+
+    const pedagogueAllowedItems = [
+      'Dashboard',
+      'Pacientes y Estudiantes',
+      'Área Pedagógica',
+      'Mi Perfil',
+      'Cerrar Sesión'
+    ];
+
+    return menuItems.filter(item => {
+      // Mantener siempre los separadores permitidos
+      if (item.subheader) {
+        if (role === 'terapeuta') {
+          return therapistAllowedSections.includes(item.subheader);
+        } else if (role.includes('pedag')) {
+          return pedagogueAllowedSections.includes(item.subheader);
+        }
+        return false;
+      }
+
+      // Filtrar elementos del menú
+      if (role === 'terapeuta') {
+        return therapistAllowedItems.includes(item.title);
+      } else if (role.includes('pedag')) {
+        return pedagogueAllowedItems.includes(item.title);
+      }
+
+      return false;
+    });
+  };
+
+  const userRole = getUserRole();
+  const filteredMenuItems = filterMenuByRole(Menuitems, userRole);
+
   return (
     <Box sx={{ px: 3 }}>
       <List sx={{ pt: 0 }} className="sidebarNav">
-        {Menuitems.map((item, index) => {
+        {filteredMenuItems.map((item, index) => {
           // {/********SubHeader**********/}
           if (item.subheader) {
             return <NavGroup item={item} hideMenu={hideMenu} key={item.subheader} />;

@@ -1,9 +1,9 @@
 // src/views/terapeutico/TerapeuticoMain.jsx
 import React, { useState } from 'react';
 import {
-  Box, Container, Paper, Typography, Tabs, Tab, useTheme
+  Box, Container, Paper, Typography, Tabs, Tab, useTheme, Alert
 } from '@mui/material';
-import { 
+import {
   Psychology, CalendarMonth, Assignment, Today, BarChart, Add
 } from '@mui/icons-material';
 
@@ -13,6 +13,7 @@ import TerapeuticoCronogramas from './TerapeuticoCronogramas';
 import TerapeuticoAsistencia from './TerapeuticoAsistencia';
 import TerapeuticoHoy from './TerapeuticoHoy';
 import TerapeuticoEstadisticas from './TerapeuticoEstadisticas';
+import { useUserRole } from '../../hooks/useUserRole';
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -41,6 +42,7 @@ function a11yProps(index) {
 
 const TerapeuticoMain = () => {
   const theme = useTheme();
+  const { isAdmin, isTherapist, permissions, loading } = useUserRole();
   const [value, setValue] = useState(0);
   const [refreshSesiones, setRefreshSesiones] = useState(0);
 
@@ -55,41 +57,105 @@ const TerapeuticoMain = () => {
     setValue(0);
   };
 
-  const tabs = [
-    {
-      label: 'Sesiones',
-      icon: <Psychology />,
-      component: <SesionesTerapeuticas
-        onNavigateToCreate={() => setValue(1)}
-        refreshTrigger={refreshSesiones}
-      />
-    },
-    {
-      label: 'Crear',
-      icon: <Add />,
-      component: <CrearSesionTerapeutica onSessionCreated={handleSessionCreated} />
-    },
-    {
-      label: 'Cronogramas',
-      icon: <CalendarMonth />,
-      component: <TerapeuticoCronogramas />
-    },
-    {
-      label: 'Asistencia',
-      icon: <Assignment />,
-      component: <TerapeuticoAsistencia />
-    },
-    {
-      label: 'Hoy',
-      icon: <Today />,
-      component: <TerapeuticoHoy />
-    },
-    {
-      label: 'Estadísticas',
-      icon: <BarChart />,
-      component: <TerapeuticoEstadisticas />
+  // Configurar tabs según permisos del usuario
+  const getAllTabs = () => {
+    const tabs = [];
+
+    // Tab Sesiones - Solo admins pueden ver la lista completa, terapeutas ven solo las suyas
+    if (permissions.sesionesTerapeuticas.view) {
+      tabs.push({
+        label: 'Sesiones',
+        icon: <Psychology />,
+        component: <SesionesTerapeuticas
+          onNavigateToCreate={isAdmin ? () => setValue(tabs.length) : undefined}
+          refreshTrigger={refreshSesiones}
+          readOnly={!isAdmin}
+          userViewMode={isTherapist}
+        />
+      });
     }
-  ];
+
+    // Tab Crear - Solo admins
+    if (permissions.sesionesTerapeuticas.create) {
+      tabs.push({
+        label: 'Crear',
+        icon: <Add />,
+        component: <CrearSesionTerapeutica onSessionCreated={handleSessionCreated} />
+      });
+    }
+
+    // Tab Cronogramas - Admins y terapeutas (terapeutas solo consulta)
+    if (permissions.sesionesTerapeuticas.viewCronograma) {
+      tabs.push({
+        label: 'Cronogramas',
+        icon: <CalendarMonth />,
+        component: <TerapeuticoCronogramas
+          readOnly={!permissions.sesionesTerapeuticas.editCronograma}
+          userViewMode={isTherapist}
+        />
+      });
+    }
+
+    // Tab Asistencia - Admins y terapeutas
+    if (permissions.sesionesTerapeuticas.viewAsistencia) {
+      tabs.push({
+        label: 'Asistencia',
+        icon: <Assignment />,
+        component: <TerapeuticoAsistencia
+          canRegister={permissions.sesionesTerapeuticas.registerAsistencia}
+          canEdit={isAdmin}
+          userViewMode={isTherapist}
+        />
+      });
+    }
+
+    // Tab Hoy - Todos los usuarios autorizados
+    if (permissions.sesionesTerapeuticas.view) {
+      tabs.push({
+        label: 'Hoy',
+        icon: <Today />,
+        component: <TerapeuticoHoy userViewMode={isTherapist} />
+      });
+    }
+
+    // Tab Estadísticas - Solo admins
+    if (isAdmin) {
+      tabs.push({
+        label: 'Estadísticas',
+        icon: <BarChart />,
+        component: <TerapeuticoEstadisticas />
+      });
+    }
+
+    return tabs;
+  };
+
+  const tabs = getAllTabs();
+
+  // Mostrar loading mientras se determina el rol
+  if (loading) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography>Cargando...</Typography>
+      </Box>
+    );
+  }
+
+  // Verificar si el usuario tiene permisos para el área terapéutica
+  if (!permissions.sesionesTerapeuticas.view) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Alert severity="warning" sx={{ borderRadius: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Acceso no autorizado
+          </Typography>
+          <Typography>
+            No tienes permisos para acceder al área terapéutica. Solo administradores y terapeutas pueden acceder a esta sección.
+          </Typography>
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <Box>
