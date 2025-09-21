@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Box, Typography, CircularProgress, Alert } from '@mui/material';
 import { useAuth } from 'src/contexts/AuthContext';
 import PageContainer from 'src/components/container/PageContainer';
+import DashboardErrorBoundary from 'src/components/shared/DashboardErrorBoundary';
 
 // Import role-specific dashboard views
 import AdminDashboardView from './AdminDashboardView';
@@ -56,41 +57,51 @@ const DashboardMain = () => {
   };
 
   const renderDashboardByRole = () => {
-    switch (userRole) {
-      case 'admin':
-        return <AdminDashboardView />;
-      case 'therapist':
-        return <TherapistDashboardView />;
-      case 'pedagogue':
-        return <PedagogueDashboardView />;
-      case 'general':
-        return (
-          <Box sx={{ textAlign: 'center', py: 6 }}>
-            <Alert severity="info" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
-              <Typography variant="h6" gutterBottom>
-                Bienvenido al Centro Tía Glenda
-              </Typography>
-              <Typography variant="body2">
-                Tu rol no tiene un dashboard específico asignado.
-                Contacta al administrador para obtener los permisos apropiados.
-              </Typography>
-            </Alert>
-          </Box>
-        );
-      default:
-        return (
-          <Box sx={{ textAlign: 'center', py: 6 }}>
-            <Alert severity="warning" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
-              <Typography variant="h6" gutterBottom>
-                No se pudo determinar tu rol
-              </Typography>
-              <Typography variant="body2">
-                Por favor, contacta al administrador del sistema.
-              </Typography>
-            </Alert>
-          </Box>
-        );
-    }
+    return (
+      <DashboardErrorBoundary>
+        {(() => {
+          switch (userRole) {
+            case 'admin':
+              return <AdminDashboardView />;
+            case 'therapist':
+              return <TherapistDashboardView />;
+            case 'pedagogue':
+              return <PedagogueDashboardView />;
+            case 'general':
+              return (
+                <PageContainer title="Dashboard" description="Bienvenido al Centro">
+                  <Box sx={{ textAlign: 'center', py: 6 }}>
+                    <Alert severity="info" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
+                      <Typography variant="h6" gutterBottom>
+                        Bienvenido al Centro Tía Glenda
+                      </Typography>
+                      <Typography variant="body2">
+                        Tu rol no tiene un dashboard específico asignado.
+                        Contacta al administrador para obtener los permisos apropiados.
+                      </Typography>
+                    </Alert>
+                  </Box>
+                </PageContainer>
+              );
+            default:
+              return (
+                <PageContainer title="Dashboard" description="Error de acceso">
+                  <Box sx={{ textAlign: 'center', py: 6 }}>
+                    <Alert severity="warning" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
+                      <Typography variant="h6" gutterBottom>
+                        No se pudo determinar tu rol
+                      </Typography>
+                      <Typography variant="body2">
+                        Por favor, contacta al administrador del sistema.
+                      </Typography>
+                    </Alert>
+                  </Box>
+                </PageContainer>
+              );
+          }
+        })()}
+      </DashboardErrorBoundary>
+    );
   };
 
   if (isLoading || authLoading) {

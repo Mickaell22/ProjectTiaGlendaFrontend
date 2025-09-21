@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Card, CardContent, Grid, Avatar, LinearProgress,
-  Divider, Paper, Button, Alert, useTheme
+  Divider, Paper, Button, Alert, useTheme, CircularProgress
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon, TrendingUp, Group, EventNote, School,
@@ -12,86 +12,96 @@ import { useAuth } from 'src/contexts/AuthContext';
 import { useDispatch } from 'react-redux';
 import { toggleCustomizer } from 'src/store/customizer/CustomizerSlice';
 import PageContainer from 'src/components/container/PageContainer';
-import { PacienteService } from 'src/services/pacienteService';
-import { UsuarioService } from 'src/services/usuarioService';
-import { PersonalService } from 'src/services/personalService';
-import { EspecialidadService } from 'src/services/especialidadService';
+import { dashboardService } from 'src/services/dashboardService';
 
 const AdminDashboardView = () => {
   const theme = useTheme();
   const dispatch = useDispatch();
   const { user } = useAuth();
+  const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalUsuarios: 0,
-    usuariosActivos: 0,
-    totalPacientes: 0,
-    totalPersonal: 0,
-    totalEspecialidades: 0,
-    terapeutas: 0,
-    pedagogos: 0,
-    sesionesHoy: 0,
-    asistenciaPromedio: 88
-  });
+  const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
-    loadBasicData();
+    loadDashboardData();
   }, []);
 
-  const loadBasicData = async () => {
+  const loadDashboardData = async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      // Only load basic data that we know works
-      const [usuariosRes, pacientesRes, personalRes, especialidadesRes] = await Promise.allSettled([
-        UsuarioService.getAll(),
-        PacienteService.getAll(),
-        PersonalService.getAll(),
-        EspecialidadService.getAll()
-      ]);
+      const result = await dashboardService.getAdminDashboard();
 
-      const usuarios = usuariosRes.status === 'fulfilled' ? usuariosRes.value.data || [] : [];
-      const pacientes = pacientesRes.status === 'fulfilled' ? pacientesRes.value.data || [] : [];
-      const personal = personalRes.status === 'fulfilled' ? personalRes.value.data || [] : [];
-      const especialidades = especialidadesRes.status === 'fulfilled' ? especialidadesRes.value.data || [] : [];
-
-      // Count therapists and pedagogues
-      const terapeutas = personal.filter(p =>
-        p.especialidades?.some(esp => esp.area?.toLowerCase().includes('terap')) ||
-        p.cargo?.toLowerCase().includes('terap')
-      ).length;
-
-      const pedagogos = personal.filter(p =>
-        p.especialidades?.some(esp => esp.area?.toLowerCase().includes('pedag')) ||
-        p.cargo?.toLowerCase().includes('pedag')
-      ).length;
-
-      // Generate estimated sessions for today
-      const sesionesHoy = Math.floor(pacientes.length * 0.2) + Math.floor(Math.random() * 8) + 5;
-
-      setStats({
-        totalUsuarios: usuarios.length,
-        usuariosActivos: usuarios.filter(u => u.activo === true || u.activo === 1).length,
-        totalPacientes: pacientes.length,
-        totalPersonal: personal.length,
-        totalEspecialidades: especialidades.length,
-        terapeutas,
-        pedagogos,
-        sesionesHoy,
-        asistenciaPromedio: 85 + Math.floor(Math.random() * 10)
-      });
-
+      if (result && result.status === 'success') {
+        setDashboardData(result.data);
+        setLastUpdated(new Date());
+      } else {
+        throw new Error(result?.message || 'Error al cargar datos del dashboard');
+      }
     } catch (error) {
-      console.error('Error loading dashboard:', error);
+      console.error('Error loading admin dashboard:', error);
+      setError(error.message || 'Error desconocido');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRetry = () => {
+    loadDashboardData();
+  };
+
   if (loading) {
     return (
       <PageContainer title="Panel Administrativo" description="Dashboard administrativo">
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-          <Typography variant="h6">Cargando panel administrativo...</Typography>
+        <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" minHeight="400px" gap={2}>
+          <CircularProgress size={60} thickness={4} />
+          <Typography variant="h6" color="text.secondary">
+            Cargando panel administrativo...
+          </Typography>
+        </Box>
+      </PageContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageContainer title="Panel Administrativo" description="Dashboard administrativo">
+        <Box sx={{ textAlign: 'center', py: 6 }}>
+          <Alert severity="error" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
+            <Typography variant="h6" gutterBottom>
+              Error al cargar el dashboard
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              {error}
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<Refresh />}
+              onClick={handleRetry}
+              sx={{ mt: 1 }}
+            >
+              Reintentar
+            </Button>
+          </Alert>
+        </Box>
+      </PageContainer>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <PageContainer title="Panel Administrativo" description="Dashboard administrativo">
+        <Box sx={{ textAlign: 'center', py: 6 }}>
+          <Alert severity="warning" sx={{ mb: 3, maxWidth: 600, mx: 'auto' }}>
+            <Typography variant="h6" gutterBottom>
+              No hay datos disponibles
+            </Typography>
+            <Typography variant="body2">
+              No se pudieron cargar los datos del dashboard.
+            </Typography>
+          </Alert>
         </Box>
       </PageContainer>
     );
@@ -120,7 +130,41 @@ const AdminDashboardView = () => {
           <Typography variant="body1" sx={{ opacity: 0.8 }}>
             Aquí tienes un resumen de la actividad del centro médico
           </Typography>
+          {lastUpdated && (
+            <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                Última actualización: {lastUpdated.toLocaleTimeString()}
+              </Typography>
+              <Button
+                size="small"
+                startIcon={<Refresh />}
+                onClick={handleRetry}
+                sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.5)' }}
+                variant="outlined"
+              >
+                Actualizar
+              </Button>
+            </Box>
+          )}
         </Paper>
+
+        {/* Data Status Notice */}
+        {dashboardData && Object.values(dashboardData).every(section =>
+          !section || Object.values(section).every(value =>
+            value === 0 || value === null || value === undefined ||
+            (typeof value === 'object' && Object.values(value).every(v => v === 0))
+          )
+        ) && (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <Typography variant="body2" fontWeight="medium" gutterBottom>
+              Configuración inicial del sistema
+            </Typography>
+            <Typography variant="body2">
+              Los datos del dashboard se actualizarán una vez que se registren usuarios, pacientes y se programen sesiones en el sistema.
+              El backend está funcionando correctamente, pero aún no hay información para mostrar.
+            </Typography>
+          </Alert>
+        )}
 
         {/* Main Statistics Grid */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -131,17 +175,17 @@ const AdminDashboardView = () => {
                   <Group fontSize="large" />
                 </Avatar>
                 <Typography variant="h4" fontWeight="bold" color="primary.main">
-                  {stats.totalUsuarios}
+                  {dashboardData.usuarios?.total || 0}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   Total Usuarios
                 </Typography>
                 <Typography variant="caption" color="success.main">
-                  {stats.usuariosActivos} activos
+                  {dashboardData.usuarios?.activos || 0} activos
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={stats.totalUsuarios > 0 ? (stats.usuariosActivos / stats.totalUsuarios) * 100 : 0}
+                  value={dashboardData.usuarios?.total > 0 ? (dashboardData.usuarios?.activos / dashboardData.usuarios?.total) * 100 : 0}
                   color="primary"
                   sx={{ mt: 1, borderRadius: 1 }}
                 />
@@ -156,10 +200,13 @@ const AdminDashboardView = () => {
                   <EventNote fontSize="large" />
                 </Avatar>
                 <Typography variant="h4" fontWeight="bold" color="success.main">
-                  {stats.totalPacientes}
+                  {dashboardData.pacientes?.total || 0}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   Pacientes Registrados
+                </Typography>
+                <Typography variant="caption" color="info.main">
+                  {dashboardData.pacientes?.nuevos_este_mes || 0} nuevos este mes
                 </Typography>
                 <LinearProgress
                   variant="determinate"
@@ -178,10 +225,13 @@ const AdminDashboardView = () => {
                   <CalendarToday fontSize="large" />
                 </Avatar>
                 <Typography variant="h4" fontWeight="bold" color="warning.main">
-                  {stats.sesionesHoy}
+                  {dashboardData.sesiones?.hoy || 0}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   Sesiones Hoy
+                </Typography>
+                <Typography variant="caption" color="primary.main">
+                  {dashboardData.sesiones?.esta_semana || 0} esta semana
                 </Typography>
                 <LinearProgress
                   variant="determinate"
@@ -200,14 +250,20 @@ const AdminDashboardView = () => {
                   <TrendingUp fontSize="large" />
                 </Avatar>
                 <Typography variant="h4" fontWeight="bold" color="info.main">
-                  {stats.asistenciaPromedio}%
+                  {dashboardData.estadisticas?.asistencia_promedio || 0}%
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   Asistencia Promedio
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={stats.asistenciaPromedio}
+                  value={dashboardData.estadisticas?.asistencia_promedio || 0}
+                  color="info"
+                  sx={{ mt: 1, borderRadius: 1 }}
+                />
+                <LinearProgress
+                  variant="determinate"
+                  value={dashboardData.estadisticas?.asistencia_promedio || 0}
                   color="info"
                   sx={{ mt: 1, borderRadius: 1 }}
                 />
@@ -218,7 +274,7 @@ const AdminDashboardView = () => {
 
         {/* Staff and Specialties Overview */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12}>
             <Card>
               <CardContent>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -236,7 +292,7 @@ const AdminDashboardView = () => {
                         <Psychology fontSize="small" />
                       </Avatar>
                       <Typography variant="h5" fontWeight="bold" color="primary.main">
-                        {stats.terapeutas}
+                        {dashboardData.personal?.terapeutas || 0}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Terapeutas
@@ -250,7 +306,7 @@ const AdminDashboardView = () => {
                         <School fontSize="small" />
                       </Avatar>
                       <Typography variant="h5" fontWeight="bold" color="success.main">
-                        {stats.pedagogos}
+                        {dashboardData.personal?.pedagogos || 0}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Pedagogos
@@ -264,7 +320,7 @@ const AdminDashboardView = () => {
                         <Assignment fontSize="small" />
                       </Avatar>
                       <Typography variant="h5" fontWeight="bold" color="warning.main">
-                        {stats.totalEspecialidades}
+                        {dashboardData.especialidades?.total || 0}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Especialidades
@@ -278,7 +334,7 @@ const AdminDashboardView = () => {
                         <Group fontSize="small" />
                       </Avatar>
                       <Typography variant="h5" fontWeight="bold" color="info.main">
-                        {stats.totalPersonal}
+                        {dashboardData.personal?.total || 0}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Total Personal
@@ -290,45 +346,6 @@ const AdminDashboardView = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  Estado del Sistema
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-
-                <Box sx={{ mb: 3 }}>
-                  <Alert severity="success" sx={{ mb: 2 }}>
-                    <Typography variant="body2" fontWeight="medium">
-                      Sistema operativo al 100%
-                    </Typography>
-                    <Typography variant="caption">
-                      Todos los servicios funcionando correctamente
-                    </Typography>
-                  </Alert>
-
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    <Typography variant="body2" fontWeight="medium">
-                      {stats.sesionesHoy} sesiones programadas para hoy
-                    </Typography>
-                    <Typography variant="caption">
-                      Buen nivel de actividad en el centro
-                    </Typography>
-                  </Alert>
-
-                  <Alert severity="warning">
-                    <Typography variant="body2" fontWeight="medium">
-                      Revisar cronogramas semanales
-                    </Typography>
-                    <Typography variant="caption">
-                      Optimizar distribución de horarios
-                    </Typography>
-                  </Alert>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
         </Grid>
 
         {/* Quick Actions */}

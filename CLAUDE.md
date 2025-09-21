@@ -11,9 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run lint` - Run ESLint on all JS/JSX files
 
 ### Testing
-There are standalone test files in the root directory:
-- `test_cronograma_asistencias.js` - Tests for schedule and attendance functionality
-- `test_form_validation.js` - Tests for form validation
+Currently no test framework is configured. Standalone test files were mentioned but are not present in the current codebase structure.
 
 ## Project Architecture
 
@@ -25,7 +23,9 @@ There are standalone test files in the root directory:
 - **Forms**: Formik with Yup validation  
 - **HTTP Client**: Axios with centralized API service
 - **PDF Generation**: jsPDF with autoTable
-- **Development**: ESLint with modern config
+- **Development**: ESLint with modern config and React hooks/refresh plugins
+- **Date Handling**: date-fns and dayjs for date utilities
+- **Animation**: Framer Motion for UI animations
 
 ### Core Architecture Patterns
 
@@ -92,15 +92,25 @@ The application is organized into functional modules:
 - Authorization-based photo access with `FotoPerfilConAutorizacion.jsx`
 
 ### Key Configuration Files
-- **Environment**: `.env` with `VITE_API_URL` and `VITE_NODE_ENV`
+- **Environment**: `.env` with `VITE_API_URL=http://localhost:5000` and `VITE_NODE_ENV=development`
 - **Build**: `vite.config.js` with path aliases (`src` alias configured)
-- **Linting**: `eslint.config.js` with React hooks and refresh plugins
-- **Routing**: Navigation defined in `MenuItems.js` with hierarchical structure
+- **Linting**: `eslint.config.js` with React hooks and refresh plugins, unused vars pattern matching
+- **Routing**: Centralized route configuration in `src/config/routes.js` with protected/public route validation
+- **API**: All endpoints configured in `src/config/api.js`
 
 ### Development Notes
-- Uses Redux store in `Store.js` with customizer slice
-- Theme system supports dark/light modes and RTL
+- Uses Redux store in `Store.js` with customizer slice for theme management
+- Theme system supports dark/light modes and RTL with `ThemeSettings.js`
 - Error boundaries implemented for graceful error handling
 - Loading states and spinners for async operations
-- Snackbar notifications system for user feedback
-- All API calls go through centralized error handling
+- Snackbar notifications system for user feedback with `useSnackbar.js` hook
+- All API calls go through centralized error handling in `ApiService.js`
+- Inactivity timeout wrapper for automatic logout
+- Role-based dashboard components and navigation
+- Notification system with chat components and user search functionality
+
+### Important Services Structure
+- Each domain entity has its own service file (e.g., `pacienteService.js`, `usuarioService.js`)
+- Centralized notification handling with `notificationService.js`
+- Session management for both therapeutic and pedagogical areas
+- Report generation services with PDF export capabilities
