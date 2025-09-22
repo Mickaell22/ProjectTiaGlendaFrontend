@@ -225,9 +225,6 @@ const EspecialidadLista = ({
                             <Typography variant="body2" fontWeight="bold">
                               {item.nombre}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              ID: {item.id}
-                            </Typography>
                           </Box>
                         </Box>
                       </TableCell>

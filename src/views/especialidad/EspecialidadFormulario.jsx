@@ -118,7 +118,7 @@ const EspecialidadFormulario = ({
             {/* Nombre */}
             <Box sx={rowGridSX}>
               <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                Nombre *
+                Nombre <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
               </Typography>
               <TextField
                 fullWidth
@@ -142,7 +142,7 @@ const EspecialidadFormulario = ({
             {/* Área */}
             <Box sx={rowGridSX}>
               <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                Área *
+                Área <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
               </Typography>
               <TextField
                 select

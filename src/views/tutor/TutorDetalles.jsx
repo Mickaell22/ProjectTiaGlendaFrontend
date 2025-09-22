@@ -207,10 +207,6 @@ const TutorDetalles = ({
                       />
                     </Box>
 
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">ID del Tutor</Typography>
-                      <Typography variant="body1" fontWeight="bold">{tutorData.id}</Typography>
-                    </Box>
                   </Stack>
                 </CardContent>
               </Card>

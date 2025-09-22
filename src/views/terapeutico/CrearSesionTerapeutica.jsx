@@ -24,7 +24,8 @@ import { Add, Psychology } from '@mui/icons-material';
 // import { useNavigate } from 'react-router-dom';
 // import { useAuth } from 'src/contexts/AuthContext';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
-import ModernPersonSelector from '../../components/shared/ModernPersonSelector.jsx';
+import TerapeutaSelector from '../../components/shared/TerapeutaSelector.jsx';
+import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
 import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 
 /* ---------- Estilos (como en UsuarioFormulario.jsx) ---------- */
@@ -355,32 +356,26 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <ModernPersonSelector
-                    selectedPerson={selectedTerapeuta ? {
-                      ...selectedTerapeuta,
-                      displayName: selectedTerapeuta.displayName || `${selectedTerapeuta.nombre} ${selectedTerapeuta.apellido}`,
-                      sourceType: 'personal'
-                    } : null}
-                    onPersonSelect={(person) => handleTerapeutaSelect({
-                      ...person,
-                      displayName: person.displayName || `${person.nombre} ${person.apellido}`
-                    })}
-                    onClear={() => {
-                      setSelectedTerapeuta(null);
-                      setFormData(prev => ({ ...prev, terapeuta_id: '' }));
+                  <Typography variant="body1" mb={1}>
+                    Terapeuta: *
+                  </Typography>
+                  <TerapeutaSelector
+                    selectedTerapeuta={selectedTerapeuta}
+                    onSelect={(terapeuta) => {
+                      setSelectedTerapeuta({
+                        ...terapeuta,
+                        nombre: terapeuta.nombres,
+                        apellido: terapeuta.apellidos
+                      });
+                      setFormData(prev => ({ ...prev, terapeuta_id: terapeuta.id }));
                     }}
-                    label="Terapeuta"
-                    placeholder="Buscar y seleccionar terapeuta para la sesión"
-                    required
-                    error={errors.terapeuta_id}
-                    searchTypes={['personas']}
-                    hideRegisteredPatients={false}
-                    showCreateButton={true}
-                    onCreateNew={() => setShowPersonForm(true)}
-                    contextualInfo={true}
-                    enableFavorites={true}
-                    showRecentSelections={true}
+                    placeholder="Seleccionar terapeuta para la sesión"
                   />
+                  {errors.terapeuta_id && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                      {errors.terapeuta_id}
+                    </Typography>
+                  )}
                 </Grid>
 
                 <Grid item xs={12}>
@@ -417,32 +412,26 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <ModernPersonSelector
-                    selectedPerson={selectedPaciente ? {
-                      ...selectedPaciente,
-                      displayName: selectedPaciente.displayName || `${selectedPaciente.nombre} ${selectedPaciente.apellido}`,
-                      sourceType: 'persona'
-                    } : null}
-                    onPersonSelect={(person) => handlePacienteSelect({
-                      ...person,
-                      displayName: person.displayName || `${person.nombre} ${person.apellido}`
-                    })}
-                    onClear={() => {
-                      setSelectedPaciente(null);
-                      setFormData(prev => ({ ...prev, paciente_id: '' }));
+                  <Typography variant="body1" mb={1}>
+                    Paciente (Opcional - Sesión Individual)
+                  </Typography>
+                  <PersonaGeneralSelector
+                    selectedPersona={selectedPaciente}
+                    onSelect={(paciente) => {
+                      setSelectedPaciente({
+                        ...paciente,
+                        nombre: paciente.nombres,
+                        apellido: paciente.apellidos
+                      });
+                      setFormData(prev => ({ ...prev, paciente_id: paciente.id }));
                     }}
-                    label="Paciente (Opcional - Sesión Individual)"
                     placeholder="Buscar paciente para sesión individual (opcional)"
-                    required={false}
-                    error={errors.paciente_id}
-                    searchTypes={['personas']}
-                    hideRegisteredPatients={false}
-                    showCreateButton={true}
-                    onCreateNew={() => setShowPersonForm(true)}
-                    contextualInfo={true}
-                    enableFavorites={true}
-                    showRecentSelections={true}
                   />
+                  {errors.paciente_id && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                      {errors.paciente_id}
+                    </Typography>
+                  )}
                 </Grid>
               </Grid>
             </Box>

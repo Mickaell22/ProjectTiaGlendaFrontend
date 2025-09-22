@@ -15,13 +15,10 @@ import {
   InputAdornment,
   Stack,
   Avatar,
-  Chip,
   Tooltip,
   Typography,
   Box,
-  MenuItem,
-  Select,
-  FormControl,
+  Chip,
   useTheme
 } from '@mui/material';
 import {
@@ -59,12 +56,6 @@ function calcularEdad(fechaNacimiento) {
   return `${edad} años`;
 }
 
-function getEstadoColor(estado) {
-  const s = (estado || '').toString().toLowerCase();
-  if (s === 'activo' || s === 'true' || s === '1') return 'success';
-  if (s === 'inactivo' || s === 'false' || s === '0') return 'default';
-  return 'default';
-}
 
 /* ---------------- Componente ---------------- */
 const PersonaLista = ({
@@ -77,7 +68,6 @@ const PersonaLista = ({
 }) => {
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterEstado, setFilterEstado] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -94,12 +84,7 @@ const PersonaLista = ({
       (p.cedula || '').includes(searchTerm) ||
       (telefono || '').includes(searchTerm);
 
-    const estadoOk =
-      !filterEstado ||
-      (filterEstado === 'activo' && (p.estado === true || p.estado === 'activo' || p.estado === 1)) ||
-      (filterEstado === 'inactivo' && (p.estado === false || p.estado === 'inactivo' || p.estado === 0));
-
-    return search && estadoOk;
+    return search;
   });
 
   return (
@@ -178,20 +163,7 @@ const PersonaLista = ({
             }}
           />
 
-          <FormControl size="small" sx={{ ...purpleOutlineSX, width: 160 }}>
-            <Select
-              value={filterEstado}
-              onChange={(e) => setFilterEstado(e.target.value)}
-              displayEmpty
-              renderValue={(val) => (val === '' ? 'Todos' : val === 'activo' ? 'Activo' : 'Inactivo')}
-            >
-              <MenuItem value="">Todos</MenuItem>
-              <MenuItem value="activo">Activo</MenuItem>
-              <MenuItem value="inactivo">Inactivo</MenuItem>
-            </Select>
-          </FormControl>
-
-          <Button
+<Button
             variant="contained"
             startIcon={<Add />}
             onClick={onNewPersona}
@@ -215,14 +187,13 @@ const PersonaLista = ({
               <TableCell sx={{ fontWeight: 'bold' }}>Cédula</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Contacto</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Edad</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Estado</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredPersonas.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" color="text.secondary">
                     No hay personas registradas
                   </Typography>
@@ -293,15 +264,6 @@ const PersonaLista = ({
                             {calcularEdad(p.fecha_nacimiento)}
                           </Typography>
                         </Box>
-                      </TableCell>
-
-                      {/* Estado */}
-                      <TableCell>
-                        <Chip
-                          label={p.estado ? 'activo' : (p.estado === false ? 'inactivo' : (p.estado || 'activo'))}
-                          color={getEstadoColor(p.estado)}
-                          size="small"
-                        />
                       </TableCell>
 
                       {/* Acciones */}

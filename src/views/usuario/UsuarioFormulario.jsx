@@ -35,7 +35,7 @@ import {
 import UsuarioService from '../../services/usuarioService.js';
 import PersonaService from '../../services/personaService.js';
 import CentroService from '../../services/centroService.js';
-import ModernPersonSelector from '../../components/shared/ModernPersonSelector.jsx';
+import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
 import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
@@ -75,7 +75,7 @@ const UsuarioFormulario = ({
     estado: 'activo' // default interno; NO se muestra en UI
   });
   const [errors, setErrors] = useState({});
-  const [personaSeleccionada, setPersonaSeleccionada] = useState(null);
+  const [personaEncontrada, setPersonaEncontrada] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [rolesDisponibles, setRolesDisponibles] = useState([]);
   const [centrosDisponibles, setCentrosDisponibles] = useState([]);
@@ -144,7 +144,7 @@ const UsuarioFormulario = ({
           cedula: editingData.cedula || editingData.cedula_persona || ''
         };
         
-        setPersonaSeleccionada(personaData);
+        setPersonaEncontrada(personaData);
       }
     } else {
       resetForm();
@@ -153,15 +153,15 @@ const UsuarioFormulario = ({
 
   // Sugerir username al elegir persona (solo creación)
   useEffect(() => {
-    if (personaSeleccionada && !isEditing) {
+    if (personaEncontrada && !isEditing) {
       const full =
-        personaSeleccionada.nombre_completo ||
-        `${personaSeleccionada.nombre || ''} ${personaSeleccionada.apellido || ''}`.trim();
+        personaEncontrada.nombre_completo ||
+        `${personaEncontrada.nombre || ''} ${personaEncontrada.apellido || ''}`.trim();
       const [nombre = '', apellido = ''] = full.split(' ');
       const sugerido = UsuarioService.generateUsernameFromName(nombre, apellido);
       setFormData(prev => ({ ...prev, nombre_usuario: sugerido }));
     }
-  }, [personaSeleccionada, isEditing]);
+  }, [personaEncontrada, isEditing]);
 
   /* ---------- Handlers ---------- */
   const resetForm = () => {
@@ -174,7 +174,7 @@ const UsuarioFormulario = ({
       estado: 'activo'
     });
     setErrors({});
-    setPersonaSeleccionada(null);
+    setPersonaEncontrada(null);
     setShowPassword(false);
   };
 
@@ -186,7 +186,7 @@ const UsuarioFormulario = ({
 
 
   const handlePersonaSelect = (persona) => {
-    setPersonaSeleccionada(persona);
+    setPersonaEncontrada(persona);
     setFormData(prev => ({ ...prev, persona_id: String(persona.id) }));
     if (errors.persona_id) setErrors(prev => ({ ...prev, persona_id: '' }));
   };
@@ -301,117 +301,7 @@ const UsuarioFormulario = ({
 
   return (
     <Box>
-      {/* ===== Buscador de Persona (SOLO personas) con header morado ===== */}
-      {!personaSeleccionada && (
-        <Card elevation={8} sx={cardShellSX}>
-          <Box
-            sx={{
-              background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
-              color: theme.palette.secondary.contrastText,
-              p: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <Box>
-              <Typography variant="h6" fontWeight="bold">
-                🔍 Buscar Persona
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Busca y selecciona la persona que será asociada a este usuario del sistema.
-              </Typography>
-            </Box>
-          </Box>
 
-          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <ModernPersonSelector
-              selectedPerson={personaSeleccionada ? {
-                ...personaSeleccionada,
-                displayName: personaSeleccionada.nombre_completo || `${personaSeleccionada.nombre} ${personaSeleccionada.apellido}`,
-                sourceType: 'persona'
-              } : null}
-              onPersonSelect={(person) => handlePersonaSelect({
-                ...person,
-                displayName: person.displayName || `${person.nombre} ${person.apellido}`
-              })}
-              onClear={() => {
-                setPersonaSeleccionada(null);
-                setFormData(prev => ({ ...prev, persona_id: '', nombre_usuario: '' }));
-              }}
-              label="Usuario"
-              placeholder="Buscar y seleccionar persona para el usuario"
-              required
-              error={errors.persona_id}
-              searchTypes={['personas']}
-              hideRegisteredPatients={false}
-              showCreateButton={true}
-              onCreateNew={() => setShowPersonForm(true)}
-              contextualInfo={true}
-              enableFavorites={true}
-              showRecentSelections={true}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ===== Persona Seleccionada con el mismo estilo morado ===== */}
-      {personaSeleccionada && (
-        <Card elevation={8} sx={cardShellSX}>
-          <Box
-            sx={{
-              background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`,
-              color: theme.palette.success.contrastText,
-              p: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <Box>
-              <Typography variant="h6" fontWeight="bold">
-                ✅ Persona Seleccionada
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Verifica la información antes de continuar.
-              </Typography>
-            </Box>
-
-            {!isEditing && (
-              <Button
-                variant="outlined"
-                color="inherit"
-                onClick={() => {
-                  setPersonaSeleccionada(null);
-                  setFormData(prev => ({ ...prev, persona_id: '', nombre_usuario: '' }));
-                }}
-              >
-                Cambiar Persona
-              </Button>
-            )}
-          </Box>
-
-          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Box sx={{ p: 2, border: '1px solid', borderColor: 'primary.light', borderRadius: 1, backgroundColor: 'background.paper' }}>
-                  <Typography variant="subtitle2" color="primary" gutterBottom>
-                    👤 DATOS DE LA PERSONA
-                  </Typography>
-                  <Typography>
-                    <strong>Nombre:</strong>{' '}
-                    {personaSeleccionada.nombre_completo ||
-                      (PersonaService.getFullName
-                        ? PersonaService.getFullName(personaSeleccionada)
-                        : `${personaSeleccionada.nombre || ''} ${personaSeleccionada.apellido || ''}`.trim())}
-                  </Typography>
-                  <Typography><strong>Cédula:</strong> {personaSeleccionada.cedula || '—'}</Typography>
-                </Box>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      )}
 
       {/* ===== Card principal (estilo Paciente) ===== */}
       <Card
@@ -465,32 +355,21 @@ const UsuarioFormulario = ({
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              {/* Persona */}
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', md: '240px 1fr' },
-                  gap: 2,
-                  alignItems: 'center',
-                  mb: 2
-                }}
-              >
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Persona *</Typography>
-                <TextField
-                  fullWidth
-                  value={
-                    personaSeleccionada
-                      ? (personaSeleccionada.nombre_completo ||
-                        (PersonaService.getFullName
-                          ? PersonaService.getFullName(personaSeleccionada)
-                          : `${personaSeleccionada.nombre || ''} ${personaSeleccionada.apellido || ''}`.trim()))
-                      : ''
-                  }
-                  placeholder="Seleccione una persona desde el buscador"
-                  InputProps={{ readOnly: true }}
-                  error={!!errors.persona_id}
-                  helperText={errors.persona_id}
+              {/* Persona Selector */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body1" mb={1}>
+                  Persona (Usuario): <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
+                </Typography>
+                <PersonaGeneralSelector
+                  selectedPersona={personaEncontrada}
+                  onSelect={(persona) => handlePersonaSelect(persona)}
+                  placeholder="Busca y selecciona la persona para el usuario"
                 />
+                {errors.persona_id && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                    {errors.persona_id}
+                  </Typography>
+                )}
               </Box>
 
               {/* Rol */}
@@ -503,7 +382,9 @@ const UsuarioFormulario = ({
                   mb: 2
                 }}
               >
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Rol *</Typography>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Rol <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
+                </Typography>
                 <TextField
                   select
                   fullWidth
@@ -532,7 +413,9 @@ const UsuarioFormulario = ({
                   alignItems: 'center'
                 }}
               >
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>Centro *</Typography>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Centro <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
+                </Typography>
                 <TextField
                   select
                   fullWidth
@@ -564,7 +447,9 @@ const UsuarioFormulario = ({
               <Grid container spacing={2}>
                 {/* Nombre de usuario */}
                 <Grid item xs={12} md={6}>
-                  <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>Nombre de usuario *</Typography>
+                  <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
+                    Nombre de usuario <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
+                  </Typography>
                   <TextField
                     fullWidth
                     name="nombre_usuario"
@@ -579,7 +464,9 @@ const UsuarioFormulario = ({
                 {/* Contraseña (solo creación) */}
                 {!isEditing && (
                   <Grid item xs={12} md={6}>
-                    <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>Contraseña *</Typography>
+                    <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
+                      Contraseña <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
+                    </Typography>
                     <TextField
                       fullWidth
                       type={showPassword ? 'text' : 'password'}
@@ -588,6 +475,7 @@ const UsuarioFormulario = ({
                       onChange={handleChange}
                       error={!!errors.contrasenia}
                       helperText={errors.contrasenia}
+                      placeholder="MiPassword123!"
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">

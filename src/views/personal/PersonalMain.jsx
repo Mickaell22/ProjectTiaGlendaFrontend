@@ -79,7 +79,7 @@ const PersonalMainComponent = () => {
   });
   const [editingId, setEditingId] = useState(null);
   const [errors, setErrors] = useState({});
-  const [selectedPerson, setSelectedPerson] = useState(null);
+  const [personaEncontrada, setPersonaEncontrada] = useState(null);
 
   // Estados de UI
   const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
@@ -130,7 +130,7 @@ const PersonalMainComponent = () => {
   };
 
   const handlePersonChange = (newValue) => {
-    setSelectedPerson(newValue);
+    setPersonaEncontrada(newValue);
     setFormData(prev => {
       const newFormData = { ...prev, persona_id: newValue ? newValue.id : '' };
       return newFormData;
@@ -192,7 +192,7 @@ const PersonalMainComponent = () => {
     });
     setEditingId(null);
     setErrors({});
-    setSelectedPerson(null);
+    setPersonaEncontrada(null);
   };
 
   // Manejadores de acciones
@@ -211,7 +211,7 @@ const PersonalMainComponent = () => {
     });
 
     const persona = personasDisponibles.find(p => p.id === (item.id_persona || item.persona_id));
-    if (persona) setSelectedPerson(persona);
+    if (persona) setPersonaEncontrada(persona);
 
     setEditingId(item.id);
     setActiveTab(1);
@@ -277,7 +277,7 @@ const PersonalMainComponent = () => {
           personasDisponibles={personasDisponibles}
           especialidades={especialidades}
           centros={centros}
-          selectedPerson={selectedPerson}
+          personaEncontrada={personaEncontrada}
           onChange={handleChange}
           onPersonChange={handlePersonChange}
           onSubmit={handleSubmit}

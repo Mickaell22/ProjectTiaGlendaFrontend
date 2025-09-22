@@ -25,7 +25,7 @@ import {
 } from '@mui/icons-material';
 
 import EspecialidadService from '../../services/especialidadService.js';
-import ModernPersonSelector from '../../components/shared/ModernPersonSelector.jsx';
+import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
 import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 
 /* ---------- Estilos coherentes con PersonaFormulario ---------- */
@@ -61,7 +61,7 @@ const PersonalFormulario = ({
   personasDisponibles = [],
   especialidades = [],
   centros = [],
-  selectedPerson,
+  personaEncontrada,
   onChange,
   onPersonChange,
   showPersonForm = false,
@@ -76,7 +76,7 @@ const PersonalFormulario = ({
   };
 
   const canSubmit =
-    (selectedPerson?.id || formData.persona_id) &&
+    (personaEncontrada?.id || formData.persona_id) &&
     formData.id_especialidad &&
     formData.fecha_ingreso &&
     formData.titulo_profesional?.trim() &&
@@ -85,8 +85,8 @@ const PersonalFormulario = ({
     formData.id_centro;
 
   const fullName =
-    selectedPerson
-      ? `${selectedPerson?.nombre || ''} ${selectedPerson?.apellido || ''}`.trim()
+    personaEncontrada
+      ? (personaEncontrada.nombre_completo || `${personaEncontrada?.nombres || personaEncontrada?.nombre || ''} ${personaEncontrada?.apellidos || personaEncontrada?.apellido || ''}`.trim())
       : '';
 
   // Iconos con mismo color que el texto
@@ -94,118 +94,6 @@ const PersonalFormulario = ({
 
   return (
     <Box>
-      {/* ====== Card: Buscar Persona (cuando NO hay selección) ====== */}
-      {!selectedPerson && (
-        <Card elevation={8} sx={getCardShellSX(theme)}>
-          <Box
-            sx={{
-              background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
-              color: theme.palette.secondary.contrastText,
-              p: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <Box>
-              <Typography variant="h6" fontWeight="bold">
-                🔍 Buscar Persona
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Busca y selecciona la persona que será asociada a este registro de personal.
-              </Typography>
-            </Box>
-          </Box>
-
-          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <ModernPersonSelector
-              selectedPerson={selectedPerson ? {
-                ...selectedPerson,
-                displayName: `${selectedPerson.nombre} ${selectedPerson.apellido}`,
-                sourceType: 'persona'
-              } : null}
-              onPersonSelect={(person) => onPersonChange({
-                ...person,
-                displayName: person.displayName || `${person.nombre} ${person.apellido}`
-              })}
-              onClear={() => onPersonChange(null)}
-              label="Personal"
-              placeholder="Buscar y seleccionar persona para el personal"
-              required
-              error={errors.persona_id}
-              searchTypes={['personas']}
-              hideRegisteredPatients={false}
-              showCreateButton={true}
-              onCreateNew={() => setShowPersonForm(true)}
-              contextualInfo={true}
-              enableFavorites={true}
-              showRecentSelections={true}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ====== Card: Persona Seleccionada (cuando SÍ hay selección) ====== */}
-      {selectedPerson && (
-        <Card elevation={8} sx={getCardShellSX(theme)}>
-          <Box
-            sx={{
-              background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`,
-              color: theme.palette.success.contrastText,
-              p: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <Box>
-              <Typography variant="h6" fontWeight="bold">
-                ✅ Persona Seleccionada
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Verifica la información antes de continuar.
-              </Typography>
-            </Box>
-
-            {!editingId && (
-              <Button
-                variant="outlined"
-                color="inherit"
-                onClick={() => onPersonChange(null)}
-              >
-                Cambiar Persona
-              </Button>
-            )}
-          </Box>
-
-          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Box
-                  sx={{
-                    p: 2,
-                    border: '1px solid',
-                    borderColor: 'primary.light',
-                    borderRadius: 1,
-                    backgroundColor: 'background.paper'
-                  }}
-                >
-                  <Typography variant="subtitle2" color="primary" gutterBottom>
-                    👤 DATOS DE LA PERSONA
-                  </Typography>
-                  <Typography>
-                    <strong>Nombre:</strong> {fullName || '—'}
-                  </Typography>
-                  <Typography>
-                    <strong>Cédula:</strong> {selectedPerson?.cedula || '—'}
-                  </Typography>
-                </Box>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      )}
-
       {/* ====== Card Principal (form) ====== */}
       <Card elevation={8} sx={getCardShellSX(theme)}>
         {/* Header dinámico (azul crear / naranja editar), igual a PersonaFormulario */}
@@ -258,20 +146,21 @@ const PersonalFormulario = ({
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              {/* Persona (solo lectura, viene del selector de arriba) */}
-              <Box sx={rowGridSX}>
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Persona *
+              {/* Persona Selector */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body1" mb={1}>
+                  Persona (Personal): <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
-                <TextField
-                  fullWidth
-                  value={fullName}
-                  placeholder="Seleccione una persona desde el buscador"
-                  InputProps={{ readOnly: true }}
-                  error={!!errors.persona_id}
-                  helperText={errors.persona_id}
-                  sx={neutralInputSX}
+                <PersonaGeneralSelector
+                  selectedPersona={personaEncontrada}
+                  onSelect={(persona) => onPersonChange(persona)}
+                  placeholder="Busca y selecciona la persona para el personal"
                 />
+                {errors.persona_id && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                    {errors.persona_id}
+                  </Typography>
+                )}
               </Box>
             </Box>
 
@@ -300,7 +189,7 @@ const PersonalFormulario = ({
               {/* Especialidad Principal */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Especialidad Principal *
+                  Especialidad Principal <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
                 <Autocomplete
                   value={especialidades.find(esp => esp.id === formData.id_especialidad) || null}
@@ -347,7 +236,7 @@ const PersonalFormulario = ({
               {/* Fecha de Ingreso */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Fecha de Ingreso *
+                  Fecha de Ingreso <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
                 <TextField
                   fullWidth
@@ -383,7 +272,7 @@ const PersonalFormulario = ({
               {/* Título Profesional */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Título Profesional *
+                  Título Profesional <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
                 <TextField
                   fullWidth
@@ -400,7 +289,7 @@ const PersonalFormulario = ({
               {/* Cargo */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Cargo *
+                  Cargo <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
                 <TextField
                   fullWidth
@@ -417,7 +306,7 @@ const PersonalFormulario = ({
               {/* Tipo de Contrato */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Tipo de Contrato *
+                  Tipo de Contrato <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
                 <Autocomplete
                   value={{ value: formData.tipo_contrato, label: formData.tipo_contrato ? 
@@ -454,7 +343,7 @@ const PersonalFormulario = ({
               {/* Centro */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Centro *
+                  Centro <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
                 <Autocomplete
                   value={centros.find(centro => centro.id === formData.id_centro) || null}

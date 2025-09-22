@@ -22,7 +22,7 @@ import {
 } from '@mui/icons-material';
 
 import PacienteService from '../../services/pacienteService.js';
-import ModernPersonSelector from '../../components/shared/ModernPersonSelector.jsx';
+import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
 import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
@@ -321,54 +321,48 @@ const PacienteFormulario = ({
 
               {/* Persona Selector */}
               <Box sx={{ mb: 3 }}>
-                <ModernPersonSelector
-                  label="Persona (Paciente)"
-                  placeholder="Busca y selecciona la persona que será el paciente"
-                  selectedPerson={personaEncontrada}
-                  onPersonSelect={handlePersonaSelectBuscador}
-                  onClear={() => {
-                    setPersonaEncontrada(null);
-                    setFormData((p) => ({ ...p, persona_id: '' }));
+                <Typography variant="body1" mb={1}>
+                  Persona (Paciente): <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
+                </Typography>
+                <PersonaGeneralSelector
+                  selectedPersona={personaEncontrada}
+                  onSelect={(persona) => {
+                    setPersonaEncontrada(persona);
+                    setFormData(p => ({ ...p, persona_id: persona.id }));
                   }}
-                  searchTypes={['personas']}
-                  hideRegisteredPatients={!isEditing}
-                  editingPatientId={isEditing ? editingData?.id : null}
-                  required={true}
-                  error={errors.persona_id}
-                  showCreateButton={true}
-                  onCreateNew={() => setShowPersonForm(true)}
-                  enableFavorites={true}
-                  showRecentSelections={true}
-                  contextualInfo={true}
+                  placeholder="Busca y selecciona la persona que será el paciente"
                 />
+                {errors.persona_id && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                    {errors.persona_id}
+                  </Typography>
+                )}
               </Box>
 
               {/* Tutor Selector */}
               <Box sx={{ mb: 3 }}>
-                <ModernPersonSelector
-                  label="Tutor (Responsable)"
-                  placeholder="Busca y selecciona el tutor o responsable del paciente"
-                  selectedPerson={tutorEncontrado}
-                  onPersonSelect={handleTutorSelectBuscador}
-                  onClear={() => {
-                    setTutorEncontrado(null);
-                    setFormData((p) => ({ ...p, tutor_id: '' }));
+                <Typography variant="body1" mb={1}>
+                  Tutor (Responsable): <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
+                </Typography>
+                <PersonaGeneralSelector
+                  selectedPersona={tutorEncontrado}
+                  onSelect={(tutor) => {
+                    setTutorEncontrado(tutor);
+                    setFormData(p => ({ ...p, tutor_id: tutor.id }));
                   }}
-                  searchTypes={['tutores']}
-                  required={true}
-                  error={errors.tutor_id}
-                  showCreateButton={true}
-                  onCreateNew={() => setShowTutorForm(true)}
-                  enableFavorites={true}
-                  showRecentSelections={true}
-                  contextualInfo={true}
+                  placeholder="Busca y selecciona el tutor o responsable del paciente"
                 />
+                {errors.tutor_id && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                    {errors.tutor_id}
+                  </Typography>
+                )}
               </Box>
 
               {/* Especialidad */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Especialidad Asignada *
+                  Especialidad Asignada <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
                 <TextField
                   select
@@ -440,7 +434,7 @@ const PacienteFormulario = ({
               {/* Fecha de Ingreso */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Fecha de Ingreso *
+                  Fecha de Ingreso <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
                 <TextField
                   fullWidth
@@ -462,7 +456,7 @@ const PacienteFormulario = ({
               {/* Inicio Tratamiento */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Inicio Tratamiento *
+                  Inicio Tratamiento <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
                 <TextField
                   fullWidth

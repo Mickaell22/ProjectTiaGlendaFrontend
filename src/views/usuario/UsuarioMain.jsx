@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 import {
   Box, Container, Paper, Typography, Tabs, Tab, useTheme
 } from '@mui/material';
-import { 
-  AdminPanelSettings, PersonAdd, Group, VpnKey, Visibility, BarChart
+import {
+  AdminPanelSettings, PersonAdd, VpnKey, Visibility, BarChart
 } from '@mui/icons-material';
 
 import UsuarioLista from './UsuarioLista';
 import UsuarioFormulario from './UsuarioFormulario';
 import UsuarioDetalles from './UsuarioDetalles';
 import UsuarioPassword from './UsuarioPassword';
-import UsuarioRoles from './UsuarioRoles';
 
 // Servicios y hooks
 import UsuarioService from '../../services/usuarioService.js';
@@ -197,15 +196,6 @@ const UsuarioMain = () => {
         />
       )
     },
-    {
-      label: 'Roles',
-      icon: <Group />,
-      component: (
-        <UsuarioRoles
-          usuarios={usuarios}
-        />
-      )
-    }
   ];
 
   if (loading) {

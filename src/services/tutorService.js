@@ -88,13 +88,13 @@ export class TutorService {
     return {
       // ID de la persona seleccionada (requerido)
       id_persona: frontendData.id_persona || (selectedPerson ? selectedPerson.id : null),
-      
+
       // Campos específicos del tutor
       parentesco: frontendData.parentesco?.trim(),
-      ocupacion: frontendData.cargo_trabajo?.trim() || '',
-      direccion_empresa: frontendData.direccion_trabajo?.trim() || '',
-      telefono_empresa: frontendData.telefono_emergencia?.trim() || '',
-      nombre_empresa: frontendData.empresa_trabajo?.trim() || '',
+      ocupacion: frontendData.ocupacion?.trim() || '',
+      direccion_empresa: frontendData.direccion_empresa?.trim() || '',
+      telefono_empresa: frontendData.telefono_empresa?.trim() || '',
+      nombre_empresa: frontendData.nombre_empresa?.trim() || '',
       estado: frontendData.estado || 'activo'
     };
   }

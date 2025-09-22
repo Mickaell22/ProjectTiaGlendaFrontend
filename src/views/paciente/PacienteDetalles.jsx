@@ -137,10 +137,6 @@ const PacienteDetalles = ({
                       <Typography variant="body1" fontWeight="bold">{pacienteData.cedula}</Typography>
                     </Box>
 
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">ID del Paciente</Typography>
-                      <Typography variant="body1" fontWeight="bold">{pacienteData.id}</Typography>
-                    </Box>
                   </Stack>
                 </CardContent>
               </Card>
@@ -171,10 +167,6 @@ const PacienteDetalles = ({
                       </Box>
                     )}
 
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">ID del Tutor</Typography>
-                      <Typography variant="body1" fontWeight="bold">{pacienteData.tutor_id || 'N/A'}</Typography>
-                    </Box>
                   </Stack>
                 </CardContent>
               </Card>

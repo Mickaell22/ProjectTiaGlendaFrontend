@@ -40,6 +40,7 @@ import { formatDateLocal } from 'src/utils/dateUtils';
 // Servicios
 import { API_CONFIG } from '../../config/api.js';
 import ApiService, { extractData } from '../../services/apiService.js';
+import { FileValidator } from '../../utils/fileValidation.js';
 
 const DocumentosPersonal = () => {
   const theme = useTheme();
@@ -63,22 +64,29 @@ const DocumentosPersonal = () => {
   // Estados del formulario
   const [uploadData, setUploadData] = useState({
     archivo: null,
-    tipo_documento: 'general',
+    tipo_documento: 'otros',
     descripcion: '',
     es_confidencial: false,
     fecha_vencimiento: ''
   });
 
   const tiposDocumento = [
-    { value: 'general', label: '📄 General' },
-    { value: 'cedula', label: '🆔 Cédula' },
-    { value: 'curriculum', label: '📄 Currículum' },
-    { value: 'titulo', label: '🎓 Título' },
-    { value: 'certificado', label: '🏆 Certificado' },
-    { value: 'contrato', label: '🤝 Contrato' },
+    { value: 'cedula', label: '🆔 Cédula de Identidad' },
+    { value: 'curriculum', label: '📄 Currículum Vitae' },
+    { value: 'titulo_profesional', label: '🎓 Título Profesional' },
+    { value: 'licencia_profesional', label: '🏥 Licencia Profesional' },
+    { value: 'colegiatura', label: '🎖️ Colegiatura' },
+    { value: 'certificacion', label: '🏆 Certificación' },
     { value: 'capacitacion', label: '📚 Capacitación' },
-    { value: 'evaluacion', label: '📊 Evaluación' },
-    { value: 'otros', label: '📎 Otros' }
+    { value: 'contrato', label: '🤝 Contrato' },
+    { value: 'acuerdo_confidencialidad', label: '🔒 Acuerdo de Confidencialidad' },
+    { value: 'seguro_responsabilidad', label: '🛡️ Seguro de Responsabilidad' },
+    { value: 'referencias', label: '📋 Referencias Laborales' },
+    { value: 'evaluacion_desempeño', label: '📊 Evaluación de Desempeño' },
+    { value: 'antecedentes_penales', label: '📜 Antecedentes Penales' },
+    { value: 'record_policial', label: '👮 Record Policial' },
+    { value: 'foto_personal', label: '📸 Foto Personal' },
+    { value: 'otros', label: '📎 Otros Documentos' }
   ];
 
   useEffect(() => {
@@ -117,16 +125,18 @@ const DocumentosPersonal = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.type !== 'application/pdf') {
-        setSnackbar({ open: true, message: 'Solo se permiten archivos PDF', severity: 'error' });
+      const validation = FileValidator.validateFile(file, 'PERSONAL_DOCUMENTS');
+
+      if (!validation.isValid) {
+        setSnackbar({
+          open: true,
+          message: validation.message,
+          severity: 'error'
+        });
         e.target.value = '';
         return;
       }
-      if (file.size > 10 * 1024 * 1024) {
-        setSnackbar({ open: true, message: 'El archivo no puede ser mayor a 10MB', severity: 'error' });
-        e.target.value = '';
-        return;
-      }
+
       setUploadData(prev => ({ ...prev, archivo: file }));
     }
   };
@@ -134,7 +144,7 @@ const DocumentosPersonal = () => {
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!uploadData.archivo) {
-      setSnackbar({ open: true, message: 'Debe seleccionar un archivo PDF', severity: 'error' });
+      setSnackbar({ open: true, message: 'Debe seleccionar un archivo', severity: 'error' });
       return;
     }
     try {
@@ -156,7 +166,7 @@ const DocumentosPersonal = () => {
       setShowUploadForm(false);
       setUploadData({
         archivo: null,
-        tipo_documento: 'general',
+        tipo_documento: 'otros',
         descripcion: '',
         es_confidencial: false,
         fecha_vencimiento: ''
@@ -307,7 +317,7 @@ const DocumentosPersonal = () => {
               Documentos de {personal?.nombre_completo || 'Personal'}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Gestión de documentos PDF del personal
+              Gestión de documentos del personal
             </Typography>
           </Box>
 
@@ -395,7 +405,7 @@ const DocumentosPersonal = () => {
                 Sin documentos
               </Typography>
               <Typography variant="body2" color="text.secondary" mb={3}>
-                Este personal no tiene documentos PDF cargados
+                Este personal no tiene documentos cargados
               </Typography>
               <Button
                 variant="contained"
@@ -505,13 +515,13 @@ const DocumentosPersonal = () => {
                 <TextField
                   type="file"
                   fullWidth
-                  label="Archivo PDF"
+                  label="Archivo de Documento"
                   InputLabelProps={{ shrink: true }}
-                  inputProps={{ accept: '.pdf' }}
+                  inputProps={{ accept: '.pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif,.webp' }}
                   onChange={handleFileChange}
                   required
                   disabled={uploading}
-                  helperText="Solo archivos PDF, máximo 10MB"
+                  helperText="Formatos: PDF, DOC, DOCX, XLS, XLSX, TXT, JPG, PNG, GIF, WebP. Máximo 15MB"
                 />
               </Grid>
 

@@ -384,12 +384,11 @@ const UnifiedPersonForm = ({
       <Grid item xs={12} md={6}>
         <TextField
           fullWidth
-          label="Nombre"
+          label={<span>Nombre <span style={{ color: 'red', fontWeight: 'bold' }}>*</span></span>}
           value={formData.nombre}
           onChange={handleChange('nombre')}
           error={!!errors.nombre}
           helperText={errors.nombre}
-          required
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -403,12 +402,11 @@ const UnifiedPersonForm = ({
       <Grid item xs={12} md={6}>
         <TextField
           fullWidth
-          label="Apellido"
+          label={<span>Apellido <span style={{ color: 'red', fontWeight: 'bold' }}>*</span></span>}
           value={formData.apellido}
           onChange={handleChange('apellido')}
           error={!!errors.apellido}
           helperText={errors.apellido}
-          required
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -422,12 +420,11 @@ const UnifiedPersonForm = ({
       <Grid item xs={12} md={6}>
         <TextField
           fullWidth
-          label="Cédula"
+          label={<span>Cédula <span style={{ color: 'red', fontWeight: 'bold' }}>*</span></span>}
           value={formData.cedula}
           onChange={handleChange('cedula')}
           error={!!errors.cedula}
           helperText={errors.cedula}
-          required
           inputProps={{ maxLength: 10 }}
           InputProps={{
             startAdornment: (
@@ -538,12 +535,11 @@ const UnifiedPersonForm = ({
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Relación con el paciente"
+                label={<span>Relación con el paciente <span style={{ color: 'red', fontWeight: 'bold' }}>*</span></span>}
                 value={formData.relacion}
                 onChange={handleChange('relacion')}
                 error={!!errors.relacion}
                 helperText={errors.relacion}
-                required
                 placeholder="Ej: Padre, Madre, Hermano, Tío..."
               />
             </Grid>
@@ -573,12 +569,11 @@ const UnifiedPersonForm = ({
 
             <Grid item xs={12} md={6}>
               <FormControl fullWidth error={!!errors.especialidad_id}>
-                <InputLabel>Especialidad</InputLabel>
+                <InputLabel><span>Especialidad <span style={{ color: 'red', fontWeight: 'bold' }}>*</span></span></InputLabel>
                 <Select
                   value={formData.especialidad_id}
                   onChange={handleChange('especialidad_id')}
                   label="Especialidad"
-                  required
                 >
                   {especialidades.map((esp) => (
                     <MenuItem key={esp.id} value={esp.id}>
@@ -595,12 +590,11 @@ const UnifiedPersonForm = ({
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Título Profesional"
+                label={<span>Título Profesional <span style={{ color: 'red', fontWeight: 'bold' }}>*</span></span>}
                 value={formData.titulo_profesional}
                 onChange={handleChange('titulo_profesional')}
                 error={!!errors.titulo_profesional}
                 helperText={errors.titulo_profesional}
-                required
                 placeholder="Ej: Licenciado en Psicología"
               />
             </Grid>

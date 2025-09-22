@@ -61,9 +61,17 @@ const ModernPersonSelector = ({
   selectedPerson = null,
   onPersonSelect,
   onClear,
-  searchTypes = ['personas'], // ['personas', 'tutores']
+  searchTypes = ['personas'], // ['personas', 'tutores', 'pacientes']
   hideRegisteredPatients = false,
+  hideRegisteredTutors = false, // NUEVO: Filtrar tutores registrados
+  hideRegisteredPersonal = false, // NUEVO: Filtrar personal registrado
+  hideRegisteredUsers = false, // NUEVO: Filtrar usuarios registrados
+  filterByRole = null, // NUEVO: 'terapeuta', 'pedagogo', etc.
+  excludeRoles = [], // NUEVO: Array de roles a excluir
   editingPatientId = null,
+  editingTutorId = null, // NUEVO: Para permitir edición
+  editingPersonalId = null, // NUEVO: Para permitir edición
+  editingUserId = null, // NUEVO: Para permitir edición
   disabled = false,
   required = false,
   error = "",
@@ -87,10 +95,10 @@ const ModernPersonSelector = ({
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'list'
   const [sortBy, setSortBy] = useState('name'); // 'name' | 'recent' | 'relevance'
 
-  // Filter states
+  // Filter states - DEFAULT: Solo personas disponibles por defecto
   const [activeFilters, setActiveFilters] = useState({
     type: 'all', // 'all' | 'personas' | 'tutores'
-    availability: 'all', // 'all' | 'available' | 'registered'
+    availability: 'available', // 'all' | 'available' | 'registered' - CAMBIO: default a 'available'
     hasContact: 'all' // 'all' | 'phone' | 'email' | 'both'
   });
 
@@ -106,7 +114,7 @@ const ModernPersonSelector = ({
       loadRecentSelections();
       loadFavorites();
     }
-  }, [open, searchTypes]);
+  }, [open]); // Removido searchTypes para evitar re-renders infinitos
 
   // Filter and sort data when dependencies change
   useEffect(() => {
@@ -118,11 +126,37 @@ const ModernPersonSelector = ({
       setLoading(true);
       const allData = [];
       let pacientesData = [];
+      let tutoresData = [];
+      let personalData = [];
+      let usuariosData = [];
 
-      // Load patients if we need to filter them out
-      if (hideRegisteredPatients) {
+      // Load patients if we need to filter them out OR if we want to show only patients
+      if (hideRegisteredPatients || searchTypes.includes('pacientes')) {
         const pacientesResponse = await ApiService.get(API_ENDPOINTS.PACIENTES.BASE);
         pacientesData = pacientesResponse.data?.data || [];
+      }
+
+      // Load tutors if we need to filter them out
+      if (hideRegisteredTutors) {
+        const tutoresResponse = await ApiService.get(API_ENDPOINTS.TUTORES.BASE);
+        tutoresData = tutoresResponse.data?.data || [];
+      }
+
+      // Load personal only if explicitly needed
+      if (hideRegisteredPersonal || (filterByRole && (filterByRole.includes('terapeuta') || filterByRole.includes('pedagog')))) {
+        try {
+          const personalResponse = await ApiService.get(API_ENDPOINTS.PERSONAL.BASE);
+          personalData = personalResponse.data?.data || [];
+        } catch (error) {
+          console.error('Error loading personal data:', error);
+          personalData = [];
+        }
+      }
+
+      // Load users if we need to filter them out
+      if (hideRegisteredUsers) {
+        const usuariosResponse = await ApiService.get(API_ENDPOINTS.USUARIOS.BASE);
+        usuariosData = usuariosResponse.data?.data || [];
       }
 
       // Load persons
@@ -136,6 +170,35 @@ const ModernPersonSelector = ({
             p.id === editingPatientId && p.persona_id === persona.id
           );
 
+          const isRegisteredTutor = tutoresData.some(t => t.persona_id === persona.id);
+          const isEditingTutor = editingTutorId && tutoresData.some(t =>
+            t.id === editingTutorId && t.persona_id === persona.id
+          );
+
+          const isRegisteredPersonal = personalData.some(p => p.persona_id === persona.id);
+          const isEditingPersonal = editingPersonalId && personalData.some(p =>
+            p.id === editingPersonalId && p.persona_id === persona.id
+          );
+
+          const isRegisteredUser = usuariosData.some(u => u.persona_id === persona.id);
+          const isEditingUser = editingUserId && usuariosData.some(u =>
+            u.id === editingUserId && u.persona_id === persona.id
+          );
+
+          // Lógica de disponibilidad más flexible:
+          // - Pacientes: no puede ser paciente a menos que se esté editando
+          // - Tutores: SÍ pueden tener múltiples pacientes (no excluir)
+          // - Personal: no puede duplicarse a menos que se esté editando
+          // - Usuarios: no puede duplicarse a menos que se esté editando
+          const isAvailable = (!isRegisteredPatient || isEditingPatient) &&
+                             (!isRegisteredPersonal || isEditingPersonal) &&
+                             (!isRegisteredUser || isEditingUser);
+          // Nota: Tutores removidos de la lógica de disponibilidad - pueden tener múltiples pacientes
+
+          // Obtener información de rol desde personal (solo si está cargado)
+          const personalInfo = personalData.find(p => p.persona_id === persona.id);
+          const personRole = personalInfo ? (personalInfo.rol || personalInfo.cargo || '').toLowerCase() : null;
+
           return {
             ...persona,
             sourceType: 'persona',
@@ -143,9 +206,18 @@ const ModernPersonSelector = ({
             avatar: getInitials(persona.nombre, persona.apellido),
             isRegisteredPatient,
             isEditingPatient,
+            isRegisteredTutor,
+            isEditingTutor,
+            isRegisteredPersonal,
+            isEditingPersonal,
+            isRegisteredUser,
+            isEditingUser,
+            isAvailable,
+            personRole, // NUEVO: rol de la persona
+            personalInfo, // NUEVO: información completa del personal
             contactInfo: getContactInfo(persona),
             contextInfo: getPersonContextInfo(persona),
-            searchableText: `${persona.nombre} ${persona.apellido} ${persona.cedula || ''} ${persona.telefono || ''} ${persona.correo || ''}`.toLowerCase()
+            searchableText: `${persona.nombre} ${persona.apellido} ${persona.cedula || ''} ${persona.telefono || ''} ${persona.correo || ''} ${personRole || ''}`.toLowerCase()
           };
         });
 
@@ -179,6 +251,35 @@ const ModernPersonSelector = ({
         allData.push(...tutoresWithType);
       }
 
+      // Load patients as searchable entities
+      if (searchTypes.includes('pacientes')) {
+        // También cargar personas para enriquecer datos de pacientes
+        const personasResponse = await ApiService.get(API_ENDPOINTS.PERSONAS.BASE);
+        const personas = personasResponse.data?.data || [];
+
+        const pacientesWithType = pacientesData.map(paciente => {
+          const persona = personas.find(p => p.id === paciente.persona_id);
+          const enrichedPaciente = persona ? { ...paciente, ...persona } : paciente;
+
+          const displayName = enrichedPaciente.nombre_completo ||
+                             `${enrichedPaciente.nombre || ''} ${enrichedPaciente.apellido || ''}`.trim();
+
+          return {
+            ...enrichedPaciente,
+            sourceType: 'paciente',
+            displayName,
+            avatar: getInitials(enrichedPaciente.nombre, enrichedPaciente.apellido),
+            contactInfo: getContactInfo(enrichedPaciente),
+            contextInfo: getPacienteContextInfo(enrichedPaciente),
+            searchableText: `${enrichedPaciente.nombre || ''} ${enrichedPaciente.apellido || ''} ${enrichedPaciente.cedula || ''} ${enrichedPaciente.telefono || ''} ${enrichedPaciente.correo || ''} paciente`.toLowerCase(),
+            isAvailable: true, // Los pacientes siempre están "disponibles" para selección
+            personRole: 'paciente'
+          };
+        });
+
+        allData.push(...pacientesWithType);
+      }
+
       setAllPersons(allData);
       calculateQuickStats(allData);
     } catch (error) {
@@ -208,11 +309,9 @@ const ModernPersonSelector = ({
 
     // Apply availability filter
     if (activeFilters.availability === 'available') {
-      filtered = filtered.filter(person =>
-        !person.isRegisteredPatient || person.isEditingPatient
-      );
+      filtered = filtered.filter(person => person.isAvailable);
     } else if (activeFilters.availability === 'registered') {
-      filtered = filtered.filter(person => person.isRegisteredPatient);
+      filtered = filtered.filter(person => !person.isAvailable);
     }
 
     // Apply contact filter
@@ -224,24 +323,51 @@ const ModernPersonSelector = ({
       filtered = filtered.filter(person => person.telefono && person.correo);
     }
 
+    // FILTRO POR ROL SIMPLE - Solo filtrar si tenemos datos de personal cargados
+    if (filterByRole && personalData.length > 0) {
+      const targetRole = filterByRole.toLowerCase();
+
+      // Obtener IDs de personas con el rol deseado
+      const personasConRol = personalData
+        .filter(personal => {
+          const rol = (personal.rol || personal.cargo || '').toLowerCase();
+
+          if (targetRole.includes('terapeuta')) {
+            return rol.includes('terapeuta') || rol.includes('psicolog') || rol.includes('terapia');
+          }
+
+          if (targetRole.includes('pedagog')) {
+            return rol.includes('pedagog') || rol.includes('educat') || rol.includes('maestr') || rol.includes('profesor');
+          }
+
+          return rol.includes(targetRole);
+        })
+        .map(personal => personal.persona_id);
+
+      // Si no hay personas con ese rol, mostrar todas (más flexible)
+      if (personasConRol.length > 0) {
+        filtered = filtered.filter(person => personasConRol.includes(person.id));
+      }
+    }
+
+    // Apply exclude roles filter
+    if (excludeRoles && excludeRoles.length > 0) {
+      filtered = filtered.filter(person => {
+        if (!person.personRole) return true; // Si no tiene rol, no excluir
+        return !excludeRoles.some(role =>
+          person.personRole.includes(role.toLowerCase()) || person.personRole === role.toLowerCase()
+        );
+      });
+    }
+
     // Apply sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'name':
           return a.displayName.localeCompare(b.displayName);
         case 'recent':
-          const aRecent = recentSelections.findIndex(r => r.id === a.id);
-          const bRecent = recentSelections.findIndex(r => r.id === b.id);
-          if (aRecent === -1 && bRecent === -1) return a.displayName.localeCompare(b.displayName);
-          if (aRecent === -1) return 1;
-          if (bRecent === -1) return -1;
-          return aRecent - bRecent;
         case 'relevance':
-          // Favorites first, then recent, then alphabetical
-          const aFav = favorites.includes(a.id);
-          const bFav = favorites.includes(b.id);
-          if (aFav && !bFav) return -1;
-          if (!aFav && bFav) return 1;
+          // Simplified sorting - just alphabetical for now to avoid circular dependencies
           return a.displayName.localeCompare(b.displayName);
         default:
           return 0;
@@ -249,16 +375,19 @@ const ModernPersonSelector = ({
     });
 
     setFilteredPersons(filtered);
-  }, [allPersons, searchTerm, activeFilters, sortBy, recentSelections, favorites]);
+  }, [allPersons, searchTerm, activeFilters, sortBy]); // Removidas dependencias problemáticas
 
   const calculateQuickStats = (data) => {
     const stats = {
       total: data.length,
       personas: data.filter(p => p.sourceType === 'persona').length,
       tutores: data.filter(p => p.sourceType === 'tutor').length,
-      available: data.filter(p => !p.isRegisteredPatient || p.isEditingPatient).length,
+      pacientes: data.filter(p => p.sourceType === 'paciente').length,
+      available: data.filter(p => p.isAvailable).length,
       withPhone: data.filter(p => p.telefono).length,
-      withEmail: data.filter(p => p.correo).length
+      withEmail: data.filter(p => p.correo).length,
+      terapeutas: data.filter(p => p.personRole && p.personRole.includes('terapeuta')).length,
+      pedagogos: data.filter(p => p.personRole && (p.personRole.includes('pedagog') || p.personRole.includes('educat'))).length
     };
     setQuickStats(stats);
   };
@@ -372,6 +501,14 @@ const ModernPersonSelector = ({
     const info = [];
     if (tutor.relacion) info.push(`👥 ${tutor.relacion}`);
     if (tutor.telefono) info.push(`📞 ${tutor.telefono}`);
+    return info.join(' • ');
+  };
+
+  const getPacienteContextInfo = (paciente) => {
+    const info = [];
+    if (paciente.especialidad_nombre) info.push(`🏥 ${paciente.especialidad_nombre}`);
+    if (paciente.estado_tratamiento) info.push(`📋 ${paciente.estado_tratamiento}`);
+    if (paciente.telefono) info.push(`📞 ${paciente.telefono}`);
     return info.join(' • ');
   };
 

@@ -29,15 +29,6 @@ import {
 import EspecialidadService from '../../services/especialidadService.js';
 
 /* ===== Helpers ===== */
-function formatDateLocal(dateString) {
-  if (!dateString) return '—';
-  try {
-    const d = new Date(dateString);
-    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-ES');
-  } catch {
-    return '—';
-  }
-}
 
 const renderAreaIcon = (areaIcon) => {
   switch (areaIcon) {
@@ -62,14 +53,6 @@ const EspecialidadDetalles = ({ open, data, onClose, onEdit }) => {
     ? EspecialidadService.getAreaInfo(data.area)
     : { label: data.area || '—', color: 'default', icon: 'Work' };
 
-  const estadoInfo = EspecialidadService.getEstadoInfo
-    ? EspecialidadService.getEstadoInfo(data.estado)
-    : { label: data.estado || 'activo', color: 'default' };
-
-  const fechaCreacion =
-    data.fecha_creacion || data.created_at || data.fechaRegistro || null;
-  const fechaModificacion =
-    data.fecha_modificacion || data.updated_at || data.fechaActualizacion || null;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -114,8 +97,6 @@ const EspecialidadDetalles = ({ open, data, onClose, onEdit }) => {
                   color={areaInfo.color || 'default'}
                   icon={renderAreaIcon(areaInfo.icon)}
                 />
-                {/* Estado */}
-                <Chip label={estadoInfo.label} color={estadoInfo.color || 'default'} />
               </Box>
             </Box>
           </Box>
@@ -125,7 +106,7 @@ const EspecialidadDetalles = ({ open, data, onClose, onEdit }) => {
         <Box sx={{ p: 3 }}>
           <Grid container spacing={3}>
             {/* Información de la Especialidad */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography
@@ -170,75 +151,6 @@ const EspecialidadDetalles = ({ open, data, onClose, onEdit }) => {
               </Card>
             </Grid>
 
-            {/* Información del Sistema */}
-            <Grid item xs={12} md={6}>
-              <Card elevation={1}>
-                <CardContent>
-                  <Typography variant="h6" color="primary" gutterBottom>
-                    Información del Sistema
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
-
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <Box p={1}>
-                        <Typography variant="caption" color="text.secondary">
-                          ID del Sistema
-                        </Typography>
-                        <Typography variant="body1" fontWeight="bold">
-                          {data.id}
-                        </Typography>
-                      </Box>
-                    </Grid>
-
-                    <Grid item xs={12} sm={6}>
-                      <Box p={1}>
-                        <Typography variant="caption" color="text.secondary">
-                          Estado
-                        </Typography>
-                        <Box>
-                          <Chip
-                            label={estadoInfo.label}
-                            color={estadoInfo.color || 'default'}
-                            size="small"
-                          />
-                        </Box>
-                      </Box>
-                    </Grid>
-
-                    {fechaCreacion && (
-                      <Grid item xs={12} sm={6}>
-                        <Box p={1}>
-                          <Typography variant="caption" color="text.secondary">
-                            Fecha de Registro
-                          </Typography>
-                          <Typography variant="body2" fontWeight="bold">
-                            {EspecialidadService.formatDate
-                              ? EspecialidadService.formatDate(fechaCreacion)
-                              : formatDateLocal(fechaCreacion)}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    )}
-
-                    {fechaModificacion && (
-                      <Grid item xs={12} sm={6}>
-                        <Box p={1}>
-                          <Typography variant="caption" color="text.secondary">
-                            Última Actualización
-                          </Typography>
-                          <Typography variant="body2" fontWeight="bold">
-                            {EspecialidadService.formatDate
-                              ? EspecialidadService.formatDate(fechaModificacion)
-                              : formatDateLocal(fechaModificacion)}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    )}
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
           </Grid>
         </Box>
       </DialogContent>

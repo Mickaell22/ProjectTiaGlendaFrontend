@@ -172,20 +172,6 @@ const PersonaDetalles = ({
                       </Box>
                     )}
 
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">Estado</Typography>
-                      <Chip 
-                        label={personaData.estado || 'activo'}
-                        color={getEstadoColor(personaData.estado)}
-                        size="small"
-                        sx={{ mt: 0.5 }}
-                      />
-                    </Box>
-
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">ID de la Persona</Typography>
-                      <Typography variant="body1" fontWeight="bold">{personaData.id}</Typography>
-                    </Box>
                   </Stack>
                 </CardContent>
               </Card>
@@ -250,71 +236,6 @@ const PersonaDetalles = ({
               </Card>
             </Grid>
 
-            {/* Información del Sistema */}
-            <Grid item xs={12}>
-              <Card elevation={1}>
-                <CardContent>
-                  <Typography variant="h6" color="primary" gutterBottom>
-                    Información del Sistema
-                  </Typography>
-                  <Divider sx={{ mb: 2 }} />
-                  
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Box textAlign="center" p={2}>
-                        <Typography variant="caption" color="text.secondary">
-                          ID del Sistema
-                        </Typography>
-                        <Typography variant="body1" fontWeight="bold">
-                          {personaData.id}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                    
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Box textAlign="center" p={2}>
-                        <Typography variant="caption" color="text.secondary">
-                          Estado
-                        </Typography>
-                        <Box>
-                          <Chip 
-                            label={personaData.estado || 'activo'}
-                            color={getEstadoColor(personaData.estado)}
-                            size="small"
-                          />
-                        </Box>
-                      </Box>
-                    </Grid>
-
-                    {personaData.created_at && (
-                      <Grid item xs={12} sm={6} md={3}>
-                        <Box textAlign="center" p={2}>
-                          <Typography variant="caption" color="text.secondary">
-                            Fecha de Registro
-                          </Typography>
-                          <Typography variant="body2" fontWeight="bold">
-                            {formatDateLocal(personaData.created_at)}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    )}
-
-                    {personaData.updated_at && (
-                      <Grid item xs={12} sm={6} md={3}>
-                        <Box textAlign="center" p={2}>
-                          <Typography variant="caption" color="text.secondary">
-                            Última Actualización
-                          </Typography>
-                          <Typography variant="body2" fontWeight="bold">
-                            {formatDateLocal(personaData.updated_at)}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    )}
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
           </Grid>
         </Box>
       </DialogContent>

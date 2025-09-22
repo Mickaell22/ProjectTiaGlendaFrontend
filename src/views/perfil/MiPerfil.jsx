@@ -29,7 +29,15 @@ import {
   Paper,
   Stack,
   TextField,
-  useTheme
+  useTheme,
+  Menu,
+  MenuItem,
+  Tooltip,
+  Checkbox,
+  Autocomplete,
+  FormControl,
+  InputLabel,
+  Select
 } from '@mui/material';
 import {
   Person,
@@ -47,7 +55,12 @@ import {
   Visibility,
   VisibilityOff,
   Settings,
-  Notifications
+  Notifications,
+  Description,
+  Upload,
+  EditNote,
+  CloudDownload,
+  Add
 } from '@mui/icons-material';
 
 import useSnackbar from '../../hooks/useSnackbar.js';
@@ -89,7 +102,60 @@ const MiPerfil = () => {
   });
   const [changingPassword, setChangingPassword] = useState(false);
 
+  // Estados para documentos personales
+  const [documentos, setDocumentos] = useState([]);
+  const [loadingDocumentos, setLoadingDocumentos] = useState(false);
+
+  // Estados para gestión de documentos
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  const [editingDoc, setEditingDoc] = useState(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showReuploadDialog, setShowReuploadDialog] = useState(false);
+  const [menuAnchor, setMenuAnchor] = useState(null);
+  const [selectedDoc, setSelectedDoc] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  // Estados para formularios de documentos
+  const [uploadForm, setUploadForm] = useState({
+    archivo: null,
+    tipo_documento: 'otros',
+    descripcion: '',
+    es_confidencial: false
+  });
+
+  const [editForm, setEditForm] = useState({
+    descripcion: '',
+    es_confidencial: false
+  });
+
+  const [reuploadForm, setReuploadForm] = useState({
+    archivo: null,
+    descripcion: '',
+    es_confidencial: false
+  });
+
+  // Tipos de documento disponibles
+  const tiposDocumento = [
+    { value: 'cedula', label: '🆔 Cédula de Identidad' },
+    { value: 'curriculum', label: '📄 Currículum Vitae' },
+    { value: 'titulo_profesional', label: '🎓 Título Profesional' },
+    { value: 'licencia_profesional', label: '🏥 Licencia Profesional' },
+    { value: 'colegiatura', label: '🎖️ Colegiatura' },
+    { value: 'certificacion', label: '🏆 Certificación' },
+    { value: 'capacitacion', label: '📚 Capacitación' },
+    { value: 'contrato', label: '🤝 Contrato' },
+    { value: 'referencias', label: '📋 Referencias Laborales' },
+    { value: 'foto_personal', label: '📸 Foto Personal' },
+    { value: 'otros', label: '📎 Otros Documentos' }
+  ];
+
   const { showSuccess, showError } = useSnackbar();
+
+  // Función para verificar si el usuario puede gestionar documentos
+  const canManageDocuments = () => {
+    const { isTerapeuta, isEducador, roleType } = getUserRole();
+    return isTerapeuta || isEducador || roleType === 'terapeuta' || roleType === 'educador';
+  };
 
   // Utility function para verificar roles de usuario
   const getUserRole = () => {
@@ -260,6 +326,172 @@ const MiPerfil = () => {
     } catch (error) {
       console.error('💥 Error loading photo data:', error);
       setPhotoData(null);
+    }
+  };
+
+  const loadDocumentos = async () => {
+    if (!userData?.id) return;
+
+    try {
+      setLoadingDocumentos(true);
+      // Si el usuario tiene personal_id, usar esa ruta; si no, usar su ID
+      const apiUrl = userData.personal_id
+        ? `/api/personal/${userData.personal_id}/documentos`
+        : `/api/usuarios/${userData.id}/documentos`;
+
+      const response = await ApiService.get(apiUrl);
+      const data = extractData(response);
+      setDocumentos(data || []);
+    } catch (error) {
+      console.error('Error loading documentos:', error);
+      // No mostrar error si simplemente no hay endpoint - es normal
+      setDocumentos([]);
+    } finally {
+      setLoadingDocumentos(false);
+    }
+  };
+
+  // Funciones para gestión de documentos
+  const handleMenuOpen = (event, documento) => {
+    setMenuAnchor(event.currentTarget);
+    setSelectedDoc(documento);
+  };
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null);
+    setSelectedDoc(null);
+  };
+
+  const handleUploadDocument = () => {
+    setUploadForm({
+      archivo: null,
+      tipo_documento: 'otros',
+      descripcion: '',
+      es_confidencial: false
+    });
+    setShowUploadDialog(true);
+  };
+
+  const handleEditDocument = () => {
+    setEditingDoc(selectedDoc);
+    setEditForm({
+      descripcion: selectedDoc.descripcion || '',
+      es_confidencial: selectedDoc.es_confidencial || false
+    });
+    setShowEditDialog(true);
+    handleMenuClose();
+  };
+
+  const handleReuploadDocument = () => {
+    setEditingDoc(selectedDoc);
+    setReuploadForm({
+      archivo: null,
+      descripcion: selectedDoc.descripcion || '',
+      es_confidencial: selectedDoc.es_confidencial || false
+    });
+    setShowReuploadDialog(true);
+    handleMenuClose();
+  };
+
+  const handleDeleteDocument = async () => {
+    if (!selectedDoc || !userData?.personal_id) return;
+
+    if (window.confirm('¿Está seguro de que desea eliminar este documento?')) {
+      try {
+        await ApiService.delete(`/api/personal/${userData.personal_id}/documentos/${selectedDoc.id}`);
+        showSuccess('Documento eliminado exitosamente');
+        loadDocumentos();
+      } catch (error) {
+        showError('Error al eliminar documento');
+      }
+    }
+    handleMenuClose();
+  };
+
+  const handleDownloadDocument = async (documento) => {
+    if (!userData?.personal_id) return;
+
+    try {
+      const response = await ApiService.get(`/api/personal/${userData.personal_id}/documentos/${documento.id}/download`, {
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', documento.nombre_original || documento.nombre_archivo);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      showError('Error al descargar documento');
+    }
+  };
+
+  const handleUploadSubmit = async (e) => {
+    e.preventDefault();
+    if (!uploadForm.archivo || !userData?.personal_id) return;
+
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append('archivo', uploadForm.archivo);
+      formData.append('tipo_documento', uploadForm.tipo_documento);
+      formData.append('descripcion', uploadForm.descripcion);
+      formData.append('es_confidencial', uploadForm.es_confidencial);
+
+      await ApiService.post(`/api/personal/${userData.personal_id}/documentos`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      showSuccess('Documento subido exitosamente');
+      setShowUploadDialog(false);
+      setUploadForm({ archivo: null, tipo_documento: 'otros', descripcion: '', es_confidencial: false });
+      loadDocumentos();
+    } catch (error) {
+      showError('Error al subir documento');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editingDoc || !userData?.personal_id) return;
+
+    try {
+      await ApiService.put(`/api/personal/${userData.personal_id}/documentos/${editingDoc.id}`, editForm);
+      showSuccess('Documento actualizado exitosamente');
+      setShowEditDialog(false);
+      setEditingDoc(null);
+      loadDocumentos();
+    } catch (error) {
+      showError('Error al actualizar documento');
+    }
+  };
+
+  const handleReuploadSubmit = async (e) => {
+    e.preventDefault();
+    if (!editingDoc || !reuploadForm.archivo || !userData?.personal_id) return;
+
+    try {
+      const formData = new FormData();
+      formData.append('archivo', reuploadForm.archivo);
+      formData.append('descripcion', reuploadForm.descripcion);
+      formData.append('es_confidencial', reuploadForm.es_confidencial);
+
+      await ApiService.put(`/api/personal/${userData.personal_id}/documentos/${editingDoc.id}/archivo`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      showSuccess('Documento resubido exitosamente');
+      setShowReuploadDialog(false);
+      setEditingDoc(null);
+      setReuploadForm({ archivo: null, descripcion: '', es_confidencial: false });
+      loadDocumentos();
+    } catch (error) {
+      showError('Error al resubir documento');
     }
   };
 
@@ -505,6 +737,15 @@ const MiPerfil = () => {
     showSuccess(`Configuración de ${setting} actualizada`);
   };
 
+  // Handler para cambio de pestañas
+  const handleTabChange = (e, newValue) => {
+    setActiveTab(newValue);
+    // Si es la pestaña de documentos (índice 2), cargar documentos
+    if (newValue === 2) {
+      loadDocumentos();
+    }
+  };
+
   // Componentes para cada pestaña
   const TabPanel = ({ children, value, index, ...other }) => (
     <div
@@ -616,7 +857,7 @@ const MiPerfil = () => {
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs
             value={activeTab}
-            onChange={(e, newValue) => setActiveTab(newValue)}
+            onChange={handleTabChange}
             aria-label="Pestañas de perfil"
             variant="scrollable"
             scrollButtons="auto"
@@ -630,6 +871,7 @@ const MiPerfil = () => {
           >
             <Tab icon={<Person />} label="Información" />
             <Tab icon={<Settings />} label="Configuración" />
+            <Tab icon={<Description />} label="Mis Documentos" />
           </Tabs>
         </Box>
 
@@ -862,6 +1104,174 @@ const MiPerfil = () => {
               </Card>
             </Grid>
           </Grid>
+        </TabPanel>
+
+        {/* Pestaña de Mis Documentos */}
+        <TabPanel value={activeTab} index={2}>
+          <Box>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+              <Typography variant="h6" color="primary" display="flex" alignItems="center">
+                <Description sx={{ mr: 1 }} />
+                Mis Documentos Personales
+              </Typography>
+
+              {canManageDocuments() && userData?.personal_id && (
+                <Button
+                  variant="contained"
+                  startIcon={<Add />}
+                  onClick={handleUploadDocument}
+                  sx={{ borderRadius: 3 }}
+                >
+                  Subir Documento
+                </Button>
+              )}
+            </Box>
+            <Divider sx={{ mb: 3 }} />
+
+            {loadingDocumentos ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress />
+                <Typography sx={{ ml: 2 }}>Cargando documentos...</Typography>
+              </Box>
+            ) : documentos.length === 0 ? (
+              <Paper
+                sx={{
+                  p: 4,
+                  textAlign: 'center',
+                  backgroundColor: 'background.default',
+                  border: '2px dashed',
+                  borderColor: 'divider'
+                }}
+              >
+                <Description sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  Sin documentos personales
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  {canManageDocuments()
+                    ? 'Aún no has subido documentos personales al sistema.'
+                    : 'Aún no tienes documentos personales cargados en el sistema.'
+                  }
+                </Typography>
+                {canManageDocuments() && userData?.personal_id ? (
+                  <Button
+                    variant="contained"
+                    startIcon={<Upload />}
+                    onClick={handleUploadDocument}
+                    sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 'bold' }}
+                  >
+                    Subir Primer Documento
+                  </Button>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    Los documentos personales son gestionados por el administrador del sistema.
+                  </Typography>
+                )}
+              </Paper>
+            ) : (
+              <Grid container spacing={3}>
+                {documentos.map((documento) => (
+                  <Grid item xs={12} sm={6} md={4} key={documento.id}>
+                    <Card
+                      variant="outlined"
+                      sx={{
+                        height: '100%',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          boxShadow: 4,
+                          transform: 'translateY(-2px)'
+                        }
+                      }}
+                    >
+                      <CardContent>
+                        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                          <Chip
+                            label={documento.tipo_documento?.replace('_', ' ').toUpperCase() || 'DOCUMENTO'}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                          />
+                          {documento.es_confidencial && (
+                            <Chip
+                              label="Confidencial"
+                              size="small"
+                              color="error"
+                              variant="filled"
+                            />
+                          )}
+                        </Box>
+
+                        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                          {documento.nombre_original || documento.nombre_archivo}
+                        </Typography>
+
+                        {documento.descripcion && (
+                          <Typography variant="body2" color="text.secondary" paragraph>
+                            {documento.descripcion}
+                          </Typography>
+                        )}
+
+                        <Box mb={2}>
+                          <Typography variant="caption" display="block">
+                            <strong>Tamaño:</strong> {documento.tamaño_archivo ? `${(documento.tamaño_archivo / 1024).toFixed(1)} KB` : 'N/A'}
+                          </Typography>
+                          <Typography variant="caption" display="block">
+                            <strong>Subido:</strong> {documento.fecha_creacion ? new Date(documento.fecha_creacion).toLocaleDateString() : 'N/A'}
+                          </Typography>
+                          {documento.fecha_vencimiento && (
+                            <Typography variant="caption" display="block">
+                              <strong>Vence:</strong> {new Date(documento.fecha_vencimiento).toLocaleDateString()}
+                            </Typography>
+                          )}
+                        </Box>
+
+                        <Divider sx={{ my: 1 }} />
+
+                        <Box display="flex" justifyContent="space-between" alignItems="center">
+                          <Tooltip title="Descargar">
+                            <IconButton
+                              color="primary"
+                              onClick={() => handleDownloadDocument(documento)}
+                              size="small"
+                            >
+                              <CloudDownload />
+                            </IconButton>
+                          </Tooltip>
+
+                          {canManageDocuments() && userData?.personal_id && (
+                            <Tooltip title="Opciones">
+                              <IconButton
+                                onClick={(e) => handleMenuOpen(e, documento)}
+                                size="small"
+                              >
+                                <EditNote />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+
+            {canManageDocuments() ? (
+              <Box sx={{ mt: 3, p: 2, backgroundColor: 'success.50', borderRadius: 2, border: '1px solid', borderColor: 'success.200' }}>
+                <Typography variant="body2" color="success.dark" textAlign="center">
+                  ✅ <strong>Gestión Habilitada:</strong> Como {getUserRole().roleName}, puedes gestionar tus propios documentos:
+                  subir, editar, resubir y eliminar archivos según tus necesidades.
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ mt: 3, p: 2, backgroundColor: 'background.default', borderRadius: 2 }}>
+                <Typography variant="body2" color="text.secondary" textAlign="center">
+                  💡 <strong>Información:</strong> Los documentos personales son administrados por el personal autorizado.
+                  Si necesitas actualizar o agregar documentos, contacta con tu supervisor o administrador del sistema.
+                </Typography>
+              </Box>
+            )}
+          </Box>
         </TabPanel>
       </Card>
 
@@ -1147,6 +1557,233 @@ const MiPerfil = () => {
           )}
         </DialogActions>
       </Dialog>
+
+      {/* Diálogo para subir documento */}
+      <Dialog open={showUploadDialog} onClose={() => setShowUploadDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Subir Nuevo Documento</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Tipo de Documento</InputLabel>
+                <Select
+                  value={uploadForm.tipo_documento}
+                  onChange={(e) => setUploadForm(prev => ({ ...prev, tipo_documento: e.target.value }))}
+                  label="Tipo de Documento"
+                >
+                  {tiposDocumento.map((tipo) => (
+                    <MenuItem key={tipo.value} value={tipo.value}>
+                      {tipo.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Descripción (opcional)"
+                value={uploadForm.descripcion}
+                onChange={(e) => setUploadForm(prev => ({ ...prev, descripcion: e.target.value }))}
+                margin="normal"
+                multiline
+                rows={2}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <input
+                id="document-upload"
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif,.webp"
+                onChange={(e) => setUploadForm(prev => ({ ...prev, archivo: e.target.files[0] }))}
+                style={{ display: 'none' }}
+              />
+              <label htmlFor="document-upload">
+                <Button
+                  variant="outlined"
+                  component="span"
+                  startIcon={<CloudUpload />}
+                  fullWidth
+                >
+                  {uploadForm.archivo ? `Archivo: ${uploadForm.archivo.name}` : 'Seleccionar Archivo'}
+                </Button>
+              </label>
+              {uploadForm.archivo && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  {(uploadForm.archivo.size / (1024 * 1024)).toFixed(2)} MB
+                </Typography>
+              )}
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowUploadDialog(false)}>Cancelar</Button>
+          <Button
+            onClick={() => {
+              // Handle upload logic here - will be implemented
+              console.log('Upload document:', uploadForm);
+              setShowUploadDialog(false);
+            }}
+            variant="contained"
+            disabled={!uploadForm.archivo || !uploadForm.tipo_documento || uploading}
+          >
+            {uploading ? 'Subiendo...' : 'Subir Documento'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Diálogo para editar documento */}
+      <Dialog open={showEditDialog} onClose={() => setShowEditDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Editar Documento</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Tipo de Documento</InputLabel>
+                <Select
+                  value={selectedDoc?.tipo_documento || ''}
+                  onChange={(e) => setSelectedDoc(prev => ({ ...prev, tipo_documento: e.target.value }))}
+                  label="Tipo de Documento"
+                >
+                  {tiposDocumento.map((tipo) => (
+                    <MenuItem key={tipo.value} value={tipo.value}>
+                      {tipo.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Descripción (opcional)"
+                value={editForm.descripcion}
+                onChange={(e) => setEditForm(prev => ({ ...prev, descripcion: e.target.value }))}
+                margin="normal"
+                multiline
+                rows={2}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowEditDialog(false)}>Cancelar</Button>
+          <Button
+            onClick={() => {
+              // Handle edit logic here - will be implemented
+              console.log('Edit document:', selectedDoc, editForm);
+              setShowEditDialog(false);
+            }}
+            variant="contained"
+            disabled={uploading}
+          >
+            {uploading ? 'Guardando...' : 'Guardar Cambios'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Diálogo para resubir documento */}
+      <Dialog open={showReuploadDialog} onClose={() => setShowReuploadDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Reemplazar Documento</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Selecciona un nuevo archivo para reemplazar: <strong>{selectedDoc?.nombre_archivo}</strong>
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <input
+                id="document-reupload"
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif,.webp"
+                onChange={(e) => setReuploadForm(prev => ({ ...prev, archivo: e.target.files[0] }))}
+                style={{ display: 'none' }}
+              />
+              <label htmlFor="document-reupload">
+                <Button
+                  variant="outlined"
+                  component="span"
+                  startIcon={<CloudUpload />}
+                  fullWidth
+                >
+                  {reuploadForm.archivo ? `Nuevo archivo: ${reuploadForm.archivo.name}` : 'Seleccionar Nuevo Archivo'}
+                </Button>
+              </label>
+              {reuploadForm.archivo && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  {(reuploadForm.archivo.size / (1024 * 1024)).toFixed(2)} MB
+                </Typography>
+              )}
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowReuploadDialog(false)}>Cancelar</Button>
+          <Button
+            onClick={() => {
+              // Handle reupload logic here - will be implemented
+              console.log('Reupload document:', selectedDoc, reuploadForm);
+              setShowReuploadDialog(false);
+            }}
+            variant="contained"
+            disabled={!reuploadForm.archivo || uploading}
+          >
+            {uploading ? 'Subiendo...' : 'Reemplazar Archivo'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Menú contextual para documentos */}
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={() => setMenuAnchor(null)}
+      >
+        <MenuItem onClick={() => {
+          // Handle download document
+          if (selectedDoc?.ruta_archivo) {
+            const link = document.createElement('a');
+            link.href = `${API_CONFIG.BASE_URL}/${selectedDoc.ruta_archivo}`;
+            link.download = selectedDoc.nombre_archivo || 'documento';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+          setMenuAnchor(null);
+        }}>
+          <ListItemIcon><CloudDownload fontSize="small" /></ListItemIcon>
+          <ListItemText primary="Descargar" />
+        </MenuItem>
+        {canManageDocuments() && (
+          [
+            <MenuItem key="edit" onClick={() => {
+              setEditForm({ descripcion: selectedDoc?.descripcion || '', es_confidencial: selectedDoc?.es_confidencial || false });
+              setShowEditDialog(true);
+              setMenuAnchor(null);
+            }}>
+              <ListItemIcon><Edit fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Editar" />
+            </MenuItem>,
+            <MenuItem key="reupload" onClick={() => {
+              setReuploadForm({ archivo: null, descripcion: selectedDoc?.descripcion || '', es_confidencial: selectedDoc?.es_confidencial || false });
+              setShowReuploadDialog(true);
+              setMenuAnchor(null);
+            }}>
+              <ListItemIcon><CloudUpload fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Resubir" />
+            </MenuItem>,
+            <MenuItem key="delete" onClick={() => {
+              if (window.confirm('¿Estás seguro de que deseas eliminar este documento?')) {
+                // Handle delete logic here - will be implemented
+                console.log('Delete document:', selectedDoc);
+              }
+              setMenuAnchor(null);
+            }}>
+              <ListItemIcon><Delete fontSize="small" /></ListItemIcon>
+              <ListItemText primary="Eliminar" />
+            </MenuItem>
+          ]
+        )}
+      </Menu>
     </Box>
   );
 };

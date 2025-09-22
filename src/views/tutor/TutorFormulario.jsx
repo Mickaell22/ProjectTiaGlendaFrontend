@@ -21,11 +21,12 @@ import {
   FamilyRestroom,
   Work,
   Phone,
-  Home
+  Home,
+  Assignment
 } from '@mui/icons-material';
 
 import TutorService from '../../services/tutorService.js';
-import ModernPersonSelector from '../../components/shared/ModernPersonSelector.jsx';
+import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
 import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
@@ -56,10 +57,11 @@ const rowGridSX = {
 };
 
 /* ---------- Helpers para edición robusta ---------- */
-function buildNombreCompleto({ nombre = '', apellido = '', nombre_completo = '' }) {
-  const n = (nombre || '').trim();
-  const a = (apellido || '').trim();
+function buildNombreCompleto({ nombre = '', apellido = '', nombres = '', apellidos = '', nombre_completo = '' }) {
   if (nombre_completo && nombre_completo.trim()) return nombre_completo.trim();
+
+  const n = (nombres || nombre || '').trim();
+  const a = (apellidos || apellido || '').trim();
   return `${n} ${a}`.trim();
 }
 
@@ -137,7 +139,7 @@ const TutorFormulario = ({
     // estado eliminado de la UI
   });
   const [errors, setErrors] = useState({});
-  const [selectedPerson, setSelectedPerson] = useState(null);
+  const [personaEncontrada, setPersonaEncontrada] = useState(null);
   const [showPersonForm, setShowPersonForm] = useState(false);
 
   const { showError } = useSnackbar();
@@ -158,7 +160,7 @@ const TutorFormulario = ({
 
       // Resolver persona seleccionada desde distintas formas de payload
       const resolved = resolveSelectedPerson(editingData, personasDisponibles);
-      if (resolved) setSelectedPerson(resolved);
+      if (resolved) setPersonaEncontrada(resolved);
     } else {
       resetForm();
     }
@@ -175,7 +177,7 @@ const TutorFormulario = ({
       nombre_empresa: ''
     });
     setErrors({});
-    setSelectedPerson(null);
+    setPersonaEncontrada(null);
   };
 
   const handleChange = (e) => {
@@ -187,7 +189,7 @@ const TutorFormulario = ({
   const validateForm = () => {
     // Formateo/validación del servicio
     const backendData = TutorService.formatForBackend
-      ? TutorService.formatForBackend(formData, selectedPerson)
+      ? TutorService.formatForBackend(formData, personaEncontrada)
       : { ...formData };
     
     const validation = TutorService.validateTutorData
@@ -196,7 +198,7 @@ const TutorFormulario = ({
 
     // Reglas adicionales de UI
     const personaId = formData.id_persona || formData.persona_id;
-    if (!personaId || !selectedPerson) {
+    if (!personaId || !personaEncontrada) {
       validation.errors.id_persona = 'Debe seleccionar una persona';
       validation.isValid = false;
     }
@@ -210,7 +212,7 @@ const TutorFormulario = ({
   };
 
   const handlePersonaSelect = (persona) => {
-    setSelectedPerson(persona);
+    setPersonaEncontrada(persona);
     setFormData(prev => ({ ...prev, id_persona: persona.id }));
     if (errors.id_persona) {
       setErrors(prev => ({ ...prev, id_persona: '' }));
@@ -223,7 +225,7 @@ const TutorFormulario = ({
 
     try {
       const backendData = TutorService.formatForBackend
-        ? TutorService.formatForBackend(formData, selectedPerson)
+        ? TutorService.formatForBackend(formData, personaEncontrada)
         : { ...formData };
       
       await onSubmit(backendData, isEditing);
@@ -235,135 +237,27 @@ const TutorFormulario = ({
 
   // Nombre completo robusto
   const fullName =
-    selectedPerson?.nombre_completo ||
-    buildNombreCompleto(selectedPerson || {});
+    personaEncontrada?.nombre_completo ||
+    buildNombreCompleto(personaEncontrada || {});
 
   const parentescos = TutorService.getParentescosComunes
     ? TutorService.getParentescosComunes()
     : [
         { value: 'padre', label: 'Padre' },
         { value: 'madre', label: 'Madre' },
-        { value: 'abuelo', label: 'Abuelo/a' },
-        { value: 'tio', label: 'Tío/a' },
-        { value: 'hermano', label: 'Hermano/a' },
-        { value: 'tutor_legal', label: 'Tutor Legal' },
-        { value: 'otro', label: 'Otro' }
+        { value: 'abuelo', label: 'Abuelo' },
+        { value: 'abuela', label: 'Abuela' },
+        { value: 'tio', label: 'Tío' },
+        { value: 'tia', label: 'Tía' },
+        { value: 'hermano', label: 'Hermano' },
+        { value: 'hermana', label: 'Hermana' },
+        { value: 'tutor_legal', label: 'Tutor Legal' }
       ];
 
   const iconColor = { color: 'text.primary' };
 
   return (
     <>
-      {/* ====== Card: Buscar Persona integrado (cuando NO hay selección) ====== */}
-      {!selectedPerson && (
-        <Card elevation={8} sx={getCardShellSX(theme)}>
-          <Box
-            sx={{
-              background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
-              color: theme.palette.secondary.contrastText,
-              p: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <Box>
-              <Typography variant="h6" fontWeight="bold">
-                🔍 Buscar Persona
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Busca y selecciona la persona que será asociada a este tutor.
-              </Typography>
-            </Box>
-          </Box>
-
-          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <ModernPersonSelector
-              selectedPerson={selectedPerson ? {
-                ...selectedPerson,
-                displayName: selectedPerson.nombre_completo || `${selectedPerson.nombre} ${selectedPerson.apellido}`,
-                sourceType: 'persona'
-              } : null}
-              onPersonSelect={(person) => handlePersonaSelect({
-                ...person,
-                displayName: person.displayName || `${person.nombre} ${person.apellido}`
-              })}
-              onClear={() => {
-                setSelectedPerson(null);
-                setFormData(prev => ({ ...prev, id_persona: '' }));
-              }}
-              label="Tutor"
-              placeholder="Buscar y seleccionar persona para el tutor"
-              required
-              error={errors.id_persona}
-              searchTypes={['personas']}
-              hideRegisteredPatients={false}
-              showCreateButton={true}
-              onCreateNew={() => setShowPersonForm(true)}
-              contextualInfo={true}
-              enableFavorites={true}
-              showRecentSelections={true}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* ====== Card: Persona Seleccionada ====== */}
-      {selectedPerson && (
-        <Card elevation={8} sx={getCardShellSX(theme)}>
-          <Box
-            sx={{
-              background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`,
-              color: theme.palette.success.contrastText,
-              p: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <Box>
-              <Typography variant="h6" fontWeight="bold">✅ Persona Seleccionada</Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Verifica la información antes de continuar.
-              </Typography>
-            </Box>
-
-            {!isEditing && (
-              <Button
-                variant="outlined"
-                color="inherit"
-                onClick={() => {
-                  setSelectedPerson(null);
-                  setFormData(prev => ({ ...prev, id_persona: '' }));
-                }}
-              >
-                Cambiar Persona
-              </Button>
-            )}
-          </Box>
-
-          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <Box
-              sx={{
-                p: 2,
-                border: '1px solid',
-                borderColor: 'primary.light',
-                borderRadius: 1,
-                backgroundColor: 'background.paper'
-              }}
-            >
-              <Typography variant="subtitle2" color="primary" gutterBottom>
-                👤 DATOS DE LA PERSONA
-              </Typography>
-              <Typography><strong>Nombre:</strong> {fullName || '—'}</Typography>
-              <Typography><strong>Cédula:</strong> {selectedPerson?.cedula || '—'}</Typography>
-              <Typography><strong>Teléfono:</strong> {selectedPerson?.telefono || 'N/A'}</Typography>
-              <Typography><strong>Email:</strong> {selectedPerson?.correo || 'N/A'}</Typography>
-            </Box>
-          </CardContent>
-        </Card>
-      )}
-
       {/* ====== Card Principal (form) ====== */}
       <Card elevation={8} sx={getCardShellSX(theme)}>
         {/* Header dinámico (azul crear / naranja editar) */}
@@ -396,24 +290,30 @@ const TutorFormulario = ({
           <Box component="form" onSubmit={handleSubmit}>
             {/* ===== Asignación ===== */}
             <Box sx={{ mb: 3, p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 2, backgroundColor: 'background.paper' }}>
-              <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+              <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }} display="flex" alignItems="center">
+                <Assignment sx={{ mr: 1 }} />
                 Asignación
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              <Box sx={rowGridSX}>
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Persona *
+              {/* Persona Selector */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="body1" mb={1}>
+                  Persona (Tutor): <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
-                <TextField
-                  fullWidth
-                  value={fullName || ''}
-                  placeholder="Seleccione una persona desde el buscador"
-                  InputProps={{ readOnly: true }}
-                  error={!!errors.id_persona}
-                  helperText={errors.id_persona}
-                  sx={neutralInputSX}
+                <PersonaGeneralSelector
+                  selectedPersona={personaEncontrada}
+                  onSelect={(persona) => {
+                    setPersonaEncontrada(persona);
+                    setFormData(prev => ({ ...prev, id_persona: persona.id }));
+                  }}
+                  placeholder="Busca y selecciona la persona que será el tutor"
                 />
+                {errors.id_persona && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                    {errors.id_persona}
+                  </Typography>
+                )}
               </Box>
             </Box>
 
@@ -427,7 +327,7 @@ const TutorFormulario = ({
               {/* Parentesco */}
               <Box sx={rowGridSX}>
                 <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Parentesco *
+                  Parentesco <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
                 <TextField
                   select
@@ -436,7 +336,7 @@ const TutorFormulario = ({
                   value={formData.parentesco}
                   onChange={handleChange}
                   error={!!errors.parentesco}
-                  helperText={errors.parentesco}
+                  helperText={errors.parentesco || 'Relación familiar con el paciente'}
                   sx={neutralInputSX}
                 >
                   <MenuItem value="">Seleccione el parentesco</MenuItem>
@@ -460,6 +360,7 @@ const TutorFormulario = ({
                   onChange={handleChange}
                   error={!!errors.ocupacion}
                   helperText={errors.ocupacion || 'Profesión u ocupación del tutor'}
+                  placeholder="Ej: Ingeniero, Doctora, Contador, Abogada..."
                   sx={neutralInputSX}
                   InputProps={{
                     startAdornment: (
@@ -490,7 +391,8 @@ const TutorFormulario = ({
                   value={formData.nombre_empresa}
                   onChange={handleChange}
                   error={!!errors.nombre_empresa}
-                  helperText={errors.nombre_empresa}
+                  helperText={errors.nombre_empresa || 'Nombre de la empresa donde trabaja (opcional)'}
+                  placeholder="Ej: Hospital San Juan, Empresa ABC, Colegio Norte..."
                   sx={neutralInputSX}
                 />
               </Box>
@@ -506,7 +408,8 @@ const TutorFormulario = ({
                   value={formData.direccion_empresa}
                   onChange={handleChange}
                   error={!!errors.direccion_empresa}
-                  helperText={errors.direccion_empresa}
+                  helperText={errors.direccion_empresa || 'Dirección de la empresa o lugar de trabajo'}
+                  placeholder="Ej: Av. Principal #123, Sector Norte, Ciudad..."
                   sx={neutralInputSX}
                   InputProps={{
                     startAdornment: (
@@ -529,7 +432,8 @@ const TutorFormulario = ({
                   value={formData.telefono_empresa}
                   onChange={handleChange}
                   error={!!errors.telefono_empresa}
-                  helperText={errors.telefono_empresa}
+                  helperText={errors.telefono_empresa || 'Teléfono laboral para contacto de emergencia'}
+                  placeholder="Ej: 02-234-5678, 0999-123-456"
                   sx={neutralInputSX}
                   InputProps={{
                     startAdornment: (

@@ -63,8 +63,11 @@ export class PersonaService {
       errors.telefono = 'El teléfono debe tener al menos 7 caracteres';
     }
 
-    if (data.correo && data.correo.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.correo)) {
-      errors.correo = 'El formato del correo no es válido';
+    if (data.correo && data.correo.trim()) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(data.correo.trim())) {
+        errors.correo = 'El formato del correo no es válido';
+      }
     }
 
     // La dirección es opcional

@@ -40,6 +40,7 @@ import { formatDateLocal } from 'src/utils/dateUtils';
 // Servicios
 import { API_CONFIG } from '../../config/api.js';
 import ApiService, { extractData } from '../../services/apiService.js';
+import { FileValidator } from '../../utils/fileValidation.js';
 
 const DocumentosPaciente = () => {
   const theme = useTheme();
@@ -63,7 +64,7 @@ const DocumentosPaciente = () => {
   // Estados del formulario
   const [uploadData, setUploadData] = useState({
     archivo: null,
-    tipo_documento: 'general',
+    tipo_documento: 'otros',
     descripcion: '',
     es_confidencial: false,
     fecha_vencimiento: ''
@@ -72,12 +73,14 @@ const DocumentosPaciente = () => {
   // Removido: ahora ApiService maneja los headers automáticamente
 
   const tiposDocumento = [
-    { value: 'general', label: '📄 General' },
     { value: 'historia_clinica', label: '🏥 Historia Clínica' },
-    { value: 'examenes_medicos', label: '🔬 Exámenes Médicos' },
-    { value: 'consentimientos', label: '✍️ Consentimientos' },
-    { value: 'reportes_terapia', label: '📊 Reportes de Terapia' },
-    { value: 'evaluaciones', label: '📝 Evaluaciones' },
+    { value: 'evaluacion_inicial', label: '📝 Evaluación Inicial' },
+    { value: 'informe_progreso', label: '📊 Informe de Progreso' },
+    { value: 'alta_medica', label: '🏥 Alta Médica' },
+    { value: 'consentimiento_informado', label: '✍️ Consentimiento Informado' },
+    { value: 'autorizacion_tratamiento', label: '✅ Autorización de Tratamiento' },
+    { value: 'cedula_paciente', label: '🆔 Cédula del Paciente' },
+    { value: 'cedula_tutor', label: '🆔 Cédula del Tutor' },
     { value: 'otros', label: '📎 Otros' }
   ];
 
@@ -117,16 +120,18 @@ const DocumentosPaciente = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.type !== 'application/pdf') {
-        setSnackbar({ open: true, message: 'Solo se permiten archivos PDF', severity: 'error' });
+      const validation = FileValidator.validateFile(file, 'PATIENT_DOCUMENTS');
+
+      if (!validation.isValid) {
+        setSnackbar({
+          open: true,
+          message: validation.message,
+          severity: 'error'
+        });
         e.target.value = '';
         return;
       }
-      if (file.size > 10 * 1024 * 1024) {
-        setSnackbar({ open: true, message: 'El archivo no puede ser mayor a 10MB', severity: 'error' });
-        e.target.value = '';
-        return;
-      }
+
       setUploadData(prev => ({ ...prev, archivo: file }));
     }
   };
@@ -156,7 +161,7 @@ const DocumentosPaciente = () => {
       setShowUploadForm(false);
       setUploadData({
         archivo: null,
-        tipo_documento: 'general',
+        tipo_documento: 'otros',
         descripcion: '',
         es_confidencial: false,
         fecha_vencimiento: ''

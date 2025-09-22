@@ -22,7 +22,8 @@ import {
 } from '@mui/material';
 import { Add, School } from '@mui/icons-material';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
-import ModernPersonSelector from '../../components/shared/ModernPersonSelector.jsx';
+import PedagogoSelector from '../../components/shared/PedagogoSelector.jsx';
+import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
 import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 
 /* ---------- Estilos (como en UsuarioFormulario.jsx) ---------- */
@@ -354,32 +355,26 @@ const CrearSesionPedagogica = () => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <ModernPersonSelector
-                    selectedPerson={selectedPedagogo ? {
-                      ...selectedPedagogo,
-                      displayName: selectedPedagogo.displayName || `${selectedPedagogo.nombre} ${selectedPedagogo.apellido}`,
-                      sourceType: 'personal'
-                    } : null}
-                    onPersonSelect={(person) => handlePedagogoSelect({
-                      ...person,
-                      displayName: person.displayName || `${person.nombre} ${person.apellido}`
-                    })}
-                    onClear={() => {
-                      setSelectedPedagogo(null);
-                      setFormData(prev => ({ ...prev, pedagogo_id: '' }));
+                  <Typography variant="body1" mb={1}>
+                    Pedagogo/Educador: *
+                  </Typography>
+                  <PedagogoSelector
+                    selectedPedagogo={selectedPedagogo}
+                    onSelect={(pedagogo) => {
+                      setSelectedPedagogo({
+                        ...pedagogo,
+                        nombre: pedagogo.nombres,
+                        apellido: pedagogo.apellidos
+                      });
+                      setFormData(prev => ({ ...prev, pedagogo_id: pedagogo.id }));
                     }}
-                    label="Pedagogo/Educador"
-                    placeholder="Buscar y seleccionar pedagogo para la sesión"
-                    required
-                    error={errors.pedagogo_id}
-                    searchTypes={['personas']}
-                    hideRegisteredPatients={false}
-                    showCreateButton={true}
-                    onCreateNew={() => setShowPersonForm(true)}
-                    contextualInfo={true}
-                    enableFavorites={true}
-                    showRecentSelections={true}
+                    placeholder="Seleccionar pedagogo para la sesión"
                   />
+                  {errors.pedagogo_id && (
+                    <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                      {errors.pedagogo_id}
+                    </Typography>
+                  )}
                 </Grid>
 
                 <Grid item xs={12}>
