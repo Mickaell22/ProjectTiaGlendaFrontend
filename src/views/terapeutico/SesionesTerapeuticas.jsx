@@ -858,7 +858,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
             variant="outlined"
             onClick={() => {
               setDetailDialog({ open: false, data: null });
-              navigate(`/dashboard/terapeutico/sesion/${detailDialog.data?.id}`);
+              navigate(`/terapeutico/sesion/${detailDialog.data?.id}`);
             }}
             disabled={!detailDialog.data?.id}
           >

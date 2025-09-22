@@ -71,6 +71,7 @@ const SesionTerapeuticaDetalle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const theme = useTheme();
 
   const [tabValue, setTabValue] = useState(0);
   const [sesion, setSesion] = useState(null);

@@ -846,11 +846,11 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
           >
             Agregar Estudiante
           </Button>
-          <Button 
+          <Button
             variant="outlined"
             onClick={() => {
               setDetailDialog({ open: false, data: null });
-              navigate(`/dashboard/pedagogico/sesion/${detailDialog.data?.id}`);
+              navigate(`/pedagogico/sesion/${detailDialog.data?.id}`);
             }}
             disabled={!detailDialog.data?.id}
           >

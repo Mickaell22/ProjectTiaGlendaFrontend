@@ -4,7 +4,7 @@ import {
   Box, Container, Paper, Typography, Tabs, Tab, useTheme, Alert
 } from '@mui/material';
 import {
-  School, CalendarMonth, Assignment, Today, BarChart, Add
+  School, CalendarMonth, Assignment, Today, Add
 } from '@mui/icons-material';
 
 import SesionesPedagogicas from './SesionesPedagogicas';
@@ -12,7 +12,6 @@ import CrearSesionPedagogica from './CrearSesionPedagogica';
 import PedagogicoCronogramas from './PedagogicoCronogramas';
 import PedagogicoAsistencia from './PedagogicoAsistencia';
 import PedagogicoHoy from './PedagogicoHoy';
-import PedagogicoEstadisticas from './PedagogicoEstadisticas';
 import { useUserRole } from '../../hooks/useUserRole';
 
 function TabPanel({ children, value, index, ...other }) {
@@ -109,14 +108,6 @@ const PedagogicoMain = () => {
       });
     }
 
-    // Tab Estadísticas - Solo admins
-    if (isAdmin) {
-      tabs.push({
-        label: 'Estadísticas',
-        icon: <BarChart />,
-        component: <PedagogicoEstadisticas />
-      });
-    }
 
     return tabs;
   };

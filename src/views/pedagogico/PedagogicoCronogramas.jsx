@@ -68,7 +68,6 @@ const PedagogicoCronogramas = () => {
       const response = await sesionPedagogicaService.getSesiones();
       setSesiones(response.data?.data || response.data || []);
     } catch (err) {
-      console.error('Error fetching sessions:', err);
       const errorMessage = sesionPedagogicaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     }
@@ -81,7 +80,6 @@ const PedagogicoCronogramas = () => {
       const cronogramaData = response.data?.data || response.data || [];
       setCronogramas(cronogramaData);
     } catch (err) {
-      console.error('Error fetching cronograma:', err);
       const errorMessage = sesionPedagogicaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
       setCronogramas([]);
@@ -108,7 +106,6 @@ const PedagogicoCronogramas = () => {
         setSnackbar({ open: true, message: 'Cronograma regenerado exitosamente', severity: 'success' });
         fetchCronograma(sesionId);
       } catch (error) {
-        console.error('Error regenerating cronograma:', error);
         const errorMessage = sesionPedagogicaService.handleError(error);
         setSnackbar({ open: true, message: errorMessage, severity: 'error' });
       } finally {

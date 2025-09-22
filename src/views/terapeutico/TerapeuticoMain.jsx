@@ -4,7 +4,7 @@ import {
   Box, Container, Paper, Typography, Tabs, Tab, useTheme, Alert
 } from '@mui/material';
 import {
-  Psychology, CalendarMonth, Assignment, Today, BarChart, Add
+  Psychology, CalendarMonth, Assignment, Today, Add
 } from '@mui/icons-material';
 
 import CrearSesionTerapeutica from './CrearSesionTerapeutica';
@@ -12,7 +12,6 @@ import SesionesTerapeuticas from './SesionesTerapeuticas';
 import TerapeuticoCronogramas from './TerapeuticoCronogramas';
 import TerapeuticoAsistencia from './TerapeuticoAsistencia';
 import TerapeuticoHoy from './TerapeuticoHoy';
-import TerapeuticoEstadisticas from './TerapeuticoEstadisticas';
 import { useUserRole } from '../../hooks/useUserRole';
 
 function TabPanel({ children, value, index, ...other }) {
@@ -118,14 +117,6 @@ const TerapeuticoMain = () => {
       });
     }
 
-    // Tab Estadísticas - Solo admins
-    if (isAdmin) {
-      tabs.push({
-        label: 'Estadísticas',
-        icon: <BarChart />,
-        component: <TerapeuticoEstadisticas />
-      });
-    }
 
     return tabs;
   };

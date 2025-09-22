@@ -67,7 +67,6 @@ const TerapeuticoCronogramas = () => {
       const response = await sesionTerapiaService.getSesiones();
       setSesiones(response.data || []);
     } catch (err) {
-      console.error('Error fetching sessions:', err);
       const errorMessage = sesionTerapiaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     }
@@ -79,7 +78,6 @@ const TerapeuticoCronogramas = () => {
       const response = await sesionTerapiaService.getCronograma(sesionId);
       setCronogramas(response.data || []);
     } catch (err) {
-      console.error('Error fetching cronograma:', err);
       const errorMessage = sesionTerapiaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
       setCronogramas([]);
