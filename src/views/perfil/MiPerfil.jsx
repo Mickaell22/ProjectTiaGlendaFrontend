@@ -60,7 +60,8 @@ import {
   Upload,
   EditNote,
   CloudDownload,
-  Add
+  Add,
+  ExitToApp
 } from '@mui/icons-material';
 
 import useSnackbar from '../../hooks/useSnackbar.js';
@@ -556,6 +557,20 @@ const MiPerfil = () => {
     console.log('Dialog should open, state set to true');
   };
 
+  // Manejar cerrar sesión
+  const handleLogout = () => {
+    // Limpiar datos de localStorage
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('user_data');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('login_data');
+    localStorage.removeItem('full_login_data');
+
+    // Recargar la página para limpiar estado
+    window.location.href = '/auth/login';
+  };
+
   const handleSavePassword = async () => {
     // Validaciones
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
@@ -755,12 +770,12 @@ const MiPerfil = () => {
       aria-labelledby={`profile-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>{children}</Box>}
     </div>
   );
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" fontWeight="bold" gutterBottom>
@@ -1087,6 +1102,22 @@ const MiPerfil = () => {
                     Cambiar Contraseña
                   </Button>
 
+                  <Divider />
+
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    color="error"
+                    startIcon={<ExitToApp />}
+                    onClick={handleLogout}
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: 'bold',
+                      py: 1.5
+                    }}
+                  >
+                    Cerrar Sesión
+                  </Button>
 
                   <Divider />
 

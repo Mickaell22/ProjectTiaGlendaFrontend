@@ -1,17 +1,22 @@
 // src/components/container/PageContainer.js
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { Helmet } from 'react-helmet';
 
-const PageContainer = ({ title, description, children }) => (
-  <div>
-    <Helmet>
-      <title>{title}</title>
-      <meta name="description" content={description} />
-    </Helmet>
-    {children}
-  </div>
-);
+const PageContainer = ({ title, description, children }) => {
+  useEffect(() => {
+    if (title) {
+      document.title = title;
+    }
+    if (description) {
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', description);
+      }
+    }
+  }, [title, description]);
+
+  return <div>{children}</div>;
+};
 
 PageContainer.propTypes = {
   title: PropTypes.string,

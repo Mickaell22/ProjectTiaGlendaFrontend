@@ -82,7 +82,7 @@ const ReportesPage = () => {
       if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
         setError('Sesión expirada. Por favor, recarga la página e inicia sesión nuevamente.');
       } else {
-        setError('No se puede conectar al servidor. Verifica que el backend esté funcionando en http://localhost:5000');
+        setError('No se puede conectar al servidor. Verifica que el backend esté funcionando correctamente.');
       }
     }
   };
@@ -452,7 +452,7 @@ const ReportesPage = () => {
         {estadoConexion.servidor === false && estadoConexion.autenticado !== false && (
           <Alert severity="error" sx={{ mb: 3 }}>
             <AlertTitle>Sin conexión al servidor</AlertTitle>
-            No se puede conectar al backend. Verifica que esté funcionando en http://localhost:5000
+            No se puede conectar al backend. Verifica que esté funcionando correctamente.
             <Box sx={{ mt: 2 }}>
               <Button 
                 variant="outlined" 

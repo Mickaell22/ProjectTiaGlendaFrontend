@@ -63,6 +63,7 @@ const FullLayout = () => {
           sx={{
             maxWidth: '100%',
             paddingTop: '20px',
+            px: { xs: 1, sm: 2, md: 3 }, // Padding responsive
           }}
         >
           <Box sx={{ minHeight: 'calc(100vh - 170px)' }}>

@@ -8,11 +8,6 @@ import {
   styled,
   Stack,
   Typography,
-  Avatar,
-  Menu,
-  MenuItem,
-  Divider,
-  Popover,
   Badge,
   useTheme
 } from '@mui/material';
@@ -23,11 +18,8 @@ import {
   toggleMobileSidebar
 } from 'src/store/customizer/CustomizerSlice';
 
-import SearchIcon from '@mui/icons-material/Search';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import SettingsIcon from '@mui/icons-material/Settings';
-import LogoutIcon from '@mui/icons-material/Logout';
 import ChatIcon from '@mui/icons-material/Chat';
+import MenuIcon from '@mui/icons-material/Menu';
 
 // Servicios
 import ApiService, { extractData } from 'src/services/apiService.js';
@@ -46,8 +38,6 @@ const Header = ({ onChatToggle = () => {} }) => {
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
 
 
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const open = Boolean(anchorEl);
   const [userData, setUserData] = useState(null);
   const [rutaFoto, setRutaFoto] = useState(null);
 
@@ -217,32 +207,9 @@ const Header = ({ onChatToggle = () => {} }) => {
   }, []);
 
   const handleProfileClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleMiPerfil = () => {
-    handleClose();
     navigate('/mi-perfil');
   };
 
-  const handleConfiguracion = () => {
-    handleClose();
-    navigate('/configuracion/general');
-  };
-
-  const handleLogout = () => {
-    handleClose();
-    // Limpiar datos de localStorage
-    localStorage.removeItem('jwt_token');
-    localStorage.removeItem('user_data');
-    localStorage.removeItem('refreshToken');
-    // Recargar la página para limpiar estado
-    window.location.href = '/auth/login';
-  };
 
   // Handlers para chat
   const handleChatToggle = () => {
@@ -281,31 +248,38 @@ const Header = ({ onChatToggle = () => {} }) => {
   const ToolbarStyled = styled(Toolbar)(({ theme }) => ({
     width: '100%',
     color: theme.palette.text.secondary,
-    padding: '0 24px'
+    padding: '0 16px',
+    [theme.breakpoints.up('sm')]: {
+      padding: '0 24px'
+    }
   }));
 
   return (
     <AppBarStyled position="sticky" color="default">
       <ToolbarStyled>
-        {/* Búsqueda simplificada */}
-        <IconButton
-          color="inherit"
-          sx={{
-            '&:hover': {
-              backgroundColor: 'primary.light',
-              color: 'primary.main'
-            }
-          }}
-        >
-          <SearchIcon />
-        </IconButton>
+        {/* Botón de menú hamburguesa para móviles */}
+        {!lgUp && (
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            onClick={() => dispatch(toggleMobileSidebar())}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+        )}
 
         <Box flexGrow={1} />
 
-        <Stack spacing={2} direction="row" alignItems="center">
+        <Stack spacing={{ xs: 1, sm: 2 }} direction="row" alignItems="center">
 
-          {/* Hora y Ciudad */}
-          <Stack direction="row" spacing={1} alignItems="center">
+          {/* Hora y Ciudad - Se oculta en móviles muy pequeños */}
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            sx={{ display: { xs: 'none', sm: 'flex' } }}
+          >
             <Typography variant="body2" color="text.secondary">
               Guayaquil:
             </Typography>
@@ -355,7 +329,6 @@ const Header = ({ onChatToggle = () => {} }) => {
             )}
             
             <IconButton
-              id="profile-menu-button"
               onClick={handleProfileClick}
               sx={{
                 '&:hover': {
@@ -377,98 +350,6 @@ const Header = ({ onChatToggle = () => {} }) => {
             </IconButton>
           </Stack>
 
-          <Menu
-            id="profile-menu"
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            onClick={handleClose}
-            MenuListProps={{
-              'aria-labelledby': 'profile-menu-button',
-            }}
-            slotProps={{
-              paper: {
-                elevation: 8,
-                sx: {
-                  overflow: 'visible',
-                  filter: 'drop-shadow(0px 4px 12px rgba(0,0,0,0.15))',
-                  mt: 1.5,
-                  minWidth: { xs: 260, sm: 280 },
-                  maxWidth: { xs: 320, sm: 340 },
-                  width: { xs: '90vw', sm: 'auto' },
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 2,
-                  '& .MuiAvatar-root': {
-                    width: 32,
-                    height: 32,
-                    ml: -0.5,
-                    mr: 1
-                  },
-                  '&:before': {
-                    content: '""',
-                    display: 'block',
-                    position: 'absolute',
-                    top: 0,
-                    right: 14,
-                    width: 10,
-                    height: 10,
-                    bgcolor: 'background.paper',
-                    transform: 'translateY(-50%) rotate(45deg)',
-                    zIndex: 0,
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderBottom: 'none',
-                    borderRight: 'none'
-                  }
-                }
-              }
-            }}
-            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          >
-            {/* Header del menú con info del usuario */}
-            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-              <Stack direction="row" spacing={2} alignItems="center">
-                <FotoPerfilConAutorizacion
-                  rutaFoto={rutaFoto}
-                  nombreCompleto={userData?.name || 'Usuario'}
-                  size={48}
-                  showTooltip={false}
-                  sx={{
-                    border: rutaFoto ? '2px solid' : 'none',
-                    borderColor: 'primary.main',
-                    fontSize: '1.2rem'
-                  }}
-                />
-                <Stack>
-                  <Typography variant="subtitle1" fontWeight="bold" noWrap>
-                    {userData?.name || 'Usuario'}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" noWrap>
-                    {userData?.rol || 'Usuario'}
-                  </Typography>
-                  {userData?.email && (
-                    <Typography variant="caption" color="text.secondary" noWrap>
-                      {userData.email}
-                    </Typography>
-                  )}
-                </Stack>
-              </Stack>
-            </Box>
-
-            <MenuItem onClick={handleMiPerfil}>
-              <AccountCircleIcon sx={{ mr: 2 }} />
-              Mi Perfil
-            </MenuItem>
-            <MenuItem onClick={handleConfiguracion}>
-              <SettingsIcon sx={{ mr: 2 }} />
-              Configuración
-            </MenuItem>
-            <Divider />
-            <MenuItem onClick={handleLogout}>
-              <LogoutIcon sx={{ mr: 2 }} />
-              Cerrar Sesión
-            </MenuItem>
-          </Menu>
         </Stack>
       </ToolbarStyled>
     </AppBarStyled>

@@ -168,7 +168,7 @@ const AdminDashboardView = () => {
 
         {/* Main Statistics Grid */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <Card sx={{ height: '100%' }}>
               <CardContent sx={{ textAlign: 'center', p: 3 }}>
                 <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'primary.main', width: 56, height: 56 }}>
@@ -193,7 +193,7 @@ const AdminDashboardView = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <Card sx={{ height: '100%' }}>
               <CardContent sx={{ textAlign: 'center', p: 3 }}>
                 <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'success.main', width: 56, height: 56 }}>
@@ -218,7 +218,7 @@ const AdminDashboardView = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <Card sx={{ height: '100%' }}>
               <CardContent sx={{ textAlign: 'center', p: 3 }}>
                 <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'warning.main', width: 56, height: 56 }}>
@@ -243,7 +243,7 @@ const AdminDashboardView = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
+          <Grid size={{ xs: 12, md: 3 }}>
             <Card sx={{ height: '100%' }}>
               <CardContent sx={{ textAlign: 'center', p: 3 }}>
                 <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'info.main', width: 56, height: 56 }}>
@@ -274,7 +274,7 @@ const AdminDashboardView = () => {
 
         {/* Staff and Specialties Overview */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Card>
               <CardContent>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -286,7 +286,7 @@ const AdminDashboardView = () => {
                 <Divider sx={{ mb: 3 }} />
 
                 <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                  <Grid size={6}>
                     <Box textAlign="center" p={2} sx={{ bgcolor: 'primary.50', borderRadius: 2 }}>
                       <Avatar sx={{ mx: 'auto', mb: 1, bgcolor: 'primary.main', width: 40, height: 40 }}>
                         <Psychology fontSize="small" />
@@ -300,7 +300,7 @@ const AdminDashboardView = () => {
                     </Box>
                   </Grid>
 
-                  <Grid item xs={6}>
+                  <Grid size={6}>
                     <Box textAlign="center" p={2} sx={{ bgcolor: 'success.50', borderRadius: 2 }}>
                       <Avatar sx={{ mx: 'auto', mb: 1, bgcolor: 'success.main', width: 40, height: 40 }}>
                         <School fontSize="small" />
@@ -314,7 +314,7 @@ const AdminDashboardView = () => {
                     </Box>
                   </Grid>
 
-                  <Grid item xs={6}>
+                  <Grid size={6}>
                     <Box textAlign="center" p={2} sx={{ bgcolor: 'warning.50', borderRadius: 2 }}>
                       <Avatar sx={{ mx: 'auto', mb: 1, bgcolor: 'warning.main', width: 40, height: 40 }}>
                         <Assignment fontSize="small" />
@@ -328,7 +328,7 @@ const AdminDashboardView = () => {
                     </Box>
                   </Grid>
 
-                  <Grid item xs={6}>
+                  <Grid size={6}>
                     <Box textAlign="center" p={2} sx={{ bgcolor: 'info.50', borderRadius: 2 }}>
                       <Avatar sx={{ mx: 'auto', mb: 1, bgcolor: 'info.main', width: 40, height: 40 }}>
                         <Group fontSize="small" />
@@ -352,7 +352,7 @@ const AdminDashboardView = () => {
         <Card sx={{ bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
           <CardContent>
             <Grid container alignItems="center" spacing={2}>
-              <Grid item xs={12} md={8}>
+              <Grid size={{ xs: 12, md: 8 }}>
                 <Typography variant="h6" fontWeight="bold" gutterBottom>
                   Personalizar Interfaz
                 </Typography>
@@ -360,7 +360,7 @@ const AdminDashboardView = () => {
                   Ajusta temas, colores y configuraciones según tus preferencias.
                 </Typography>
               </Grid>
-              <Grid item xs={12} md={4} textAlign={{ xs: 'left', md: 'right' }}>
+              <Grid size={{ xs: 12, md: 4 }} textAlign={{ xs: 'left', md: 'right' }}>
                 <Button
                   variant="contained"
                   size="large"

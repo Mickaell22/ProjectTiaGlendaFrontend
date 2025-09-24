@@ -9,4 +9,12 @@ export default defineConfig({
       src: resolve(__dirname, 'src'),
     },
   },
+  server: {
+    host: true, // Permite conexiones desde cualquier IP
+    port: 3000,
+  },
+  preview: {
+    host: true,
+    port: 3000,
+  },
 })

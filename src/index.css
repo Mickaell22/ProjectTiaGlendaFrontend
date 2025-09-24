@@ -85,3 +85,58 @@ body {
 .MuiButton-containedPrimary:hover {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
+
+/* Mejoras para dispositivos móviles */
+@media (max-width: 768px) {
+  /* Evitar zoom en inputs en iOS */
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+
+  /* Hacer que las tablas sean scrolleables horizontalmente */
+  .MuiTableContainer-root {
+    overflow-x: auto;
+  }
+
+  /* Ajustar el padding de los diálogos */
+  .MuiDialog-paper {
+    margin: 16px;
+    width: calc(100% - 32px);
+    max-height: calc(100% - 64px);
+  }
+
+  /* Mejorar el tap target size para botones pequeños */
+  .MuiIconButton-root {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Ajustar el tamaño de fuente para mejor legibilidad en móvil */
+  .MuiTypography-h4 {
+    font-size: 1.75rem !important;
+  }
+
+  .MuiTypography-h5 {
+    font-size: 1.5rem !important;
+  }
+
+  .MuiTypography-h6 {
+    font-size: 1.25rem !important;
+  }
+}
+
+/* Estilos para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .MuiTypography-h4 {
+    font-size: 1.5rem !important;
+  }
+
+  .MuiCard-root {
+    margin: 8px 0 !important;
+  }
+
+  /* Hacer que los Grids sean más compactos */
+  .MuiGrid-spacing-xs-3 > .MuiGrid-item {
+    padding: 8px !important;
+  }
+}
