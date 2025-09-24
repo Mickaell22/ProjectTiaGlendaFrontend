@@ -3,7 +3,7 @@ import { useMediaQuery, Box, Drawer, useTheme, Typography } from '@mui/material'
 import SidebarItems from './SidebarItems';
 import { useSelector, useDispatch } from 'react-redux';
 import { toggleMobileSidebar } from 'src/store/customizer/CustomizerSlice';
-import Logo from '../../shared/logo/Logo';
+import Logo from '../../shared/logo/logo';
 import { useAuth } from 'src/contexts/AuthContext';
 
 const Sidebar = () => {
