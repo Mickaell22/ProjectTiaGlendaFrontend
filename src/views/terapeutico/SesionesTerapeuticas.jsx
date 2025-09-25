@@ -239,7 +239,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
 
   // Función para generar horarios de la semana (después de filteredSesiones)
   const generateWeekSchedule = () => {
-    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
     const horas = Array.from({ length: 12 }, (_, i) => {
       const hora = 7 + i; // De 7 AM a 6 PM
       return `${hora.toString().padStart(2, '0')}:00`;
@@ -260,14 +260,11 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
         // Normalizar día: mapear nombres completos  
         const diasMap = {
           'lunes': 'Lunes',
-          'martes': 'Martes', 
+          'martes': 'Martes',
           'miercoles': 'Miércoles',
           'miércoles': 'Miércoles',
           'jueves': 'Jueves',
-          'viernes': 'Viernes',
-          'sabado': 'Sábado',
-          'sábado': 'Sábado',
-          'domingo': 'Domingo'
+          'viernes': 'Viernes'
         };
         
         const diaLowerCase = dia.toLowerCase().trim();
@@ -409,8 +406,8 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
             <Box sx={{ width: '100%', overflowX: 'auto' }}>
               <Paper variant="outlined" sx={{ borderRadius: 2 }}>
                 <Box sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', display: 'flex', alignItems: 'center' }}>
-                  <Event sx={{ mr: 1, color: 'primary.main' }} />
-                  <Typography variant="h6" color="primary">
+                  <Event sx={{ mr: 1, color: 'success.main' }} />
+                  <Typography variant="h6" sx={{ color: 'success.main' }}>
                     Vista de Horario Semanal
                   </Typography>
                   <Chip 
@@ -436,7 +433,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                   {/* Encabezado con días */}
                   <Box /> {/* Espacio para la columna de horas */}
                   {dias.map(dia => (
-                    <Box key={dia} sx={{ textAlign: 'center', p: 1, fontWeight: 'bold', color: 'primary.main' }}>
+                    <Box key={dia} sx={{ textAlign: 'center', p: 1, fontWeight: 'bold', color: 'success.main' }}>
                       {dia}
                     </Box>
                   ))}
@@ -465,18 +462,18 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                           {horario[dia] && horario[dia][hora] && horario[dia][hora].map((sesion, index) => (
                             <Paper 
                               key={`${sesion.id}-${index}`}
-                              sx={{ 
-                                p: 1.5, 
+                              sx={{
+                                p: 1.5,
                                 cursor: 'pointer',
-                                bgcolor: theme.palette.mode === 'dark' ? 'primary.dark' : '#f8f9fa',
+                                bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : 'success.light',
                                 border: '1px solid',
-                                borderColor: 'primary.main',
+                                borderColor: 'success.main',
                                 color: 'text.primary',
                                 fontSize: '0.75rem',
                                 borderRadius: 1,
                                 '&:hover': {
-                                  bgcolor: 'primary.light',
-                                  borderColor: 'primary.dark',
+                                  bgcolor: theme.palette.mode === 'dark' ? 'success.main' : 'success.light',
+                                  borderColor: 'success.dark',
                                   transform: 'translateY(-2px)',
                                   boxShadow: 2
                                 },
@@ -498,10 +495,10 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                                 {sesion.titulo}
                               </Typography>
                               
-                              <Typography 
-                                variant="caption" 
-                                sx={{ 
-                                  color: 'primary.main',
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: 'success.main',
                                   fontWeight: 'medium',
                                   display: 'block',
                                   mb: 0.3,
@@ -548,13 +545,13 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                                 <Tooltip title="Ver detalles">
                                   <IconButton
                                     size="small"
-                                    sx={{ 
-                                      width: 18, 
+                                    sx={{
+                                      width: 18,
                                       height: 18,
-                                      bgcolor: 'primary.main',
+                                      bgcolor: 'success.main',
                                       color: 'white',
                                       '&:hover': {
-                                        bgcolor: 'primary.dark'
+                                        bgcolor: 'success.dark'
                                       }
                                     }}
                                     onClick={(e) => {
@@ -656,7 +653,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                           {/* Horario */}
                           <TableCell>
                             <Box>
-                              <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'primary.main' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'success.main' }}>
                                 {item.hora_inicio || 'No definido'}
                                 {item.hora_fin && ` - ${item.hora_fin}`}
                               </Typography>
@@ -882,7 +879,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
       >
         <DialogTitle>
           <Box display="flex" alignItems="center">
-            <PersonAdd sx={{ mr: 2, color: 'primary.main' }} />
+            <PersonAdd sx={{ mr: 2, color: 'success.main' }} />
             Agregar Paciente a la Sesión
           </Box>
         </DialogTitle>

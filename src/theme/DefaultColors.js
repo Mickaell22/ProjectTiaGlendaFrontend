@@ -62,42 +62,42 @@ const DefaultColors = {
   divider: '#e5eaef',
 };
 
-// Colores para modo oscuro
+// Colores para modo oscuro - Versión más suavizada para mejor legibilidad
 const DarkColors = {
   primary: {
-    main: '#5D87FF',
+    main: '#6B85F0',
     light: '#253662',
-    dark: '#4570EA',
+    dark: '#5A73D6',
     contrastText: '#ffffff',
   },
   secondary: {
-    main: '#49BEFF',
+    main: '#5CB8EA',
     light: '#1C455D',
-    dark: '#23afdb',
+    dark: '#4FA6D6',
     contrastText: '#ffffff',
   },
   success: {
-    main: '#13DEB9',
+    main: '#2FC5A8',
     light: '#1B3C48',
-    dark: '#02b3a9',
+    dark: '#26A890',
     contrastText: '#ffffff',
   },
   info: {
-    main: '#539BFF',
+    main: '#6195EA',
     light: '#223662',
-    dark: '#1682d4',
+    dark: '#5280D6',
     contrastText: '#ffffff',
   },
   error: {
-    main: '#FA896B',
+    main: '#EA8368',
     light: '#4B313D',
-    dark: '#f3704d',
+    dark: '#D66E55',
     contrastText: '#ffffff',
   },
   warning: {
-    main: '#FFAE1F',
+    main: '#EAA528',
     light: '#4D3A2A',
-    dark: '#ae8e59',
+    dark: '#D68F24',
     contrastText: '#ffffff',
   },
   purple: {
@@ -223,20 +223,20 @@ const ColorOptions = [
   },
 ];
 
-// Opciones de colores para modo oscuro
+// Opciones de colores para modo oscuro - Versión más suavizada
 const DarkColorOptions = [
   {
     name: 'BLUE_THEME',
     palette: {
       primary: {
-        main: '#5D87FF',
+        main: '#6B85F0',
         light: '#253662',
-        dark: '#4570EA',
+        dark: '#5A73D6',
       },
       secondary: {
-        main: '#49BEFF',
+        main: '#5CB8EA',
         light: '#1C455D',
-        dark: '#23afdb',
+        dark: '#4FA6D6',
       },
     },
   },
@@ -244,14 +244,14 @@ const DarkColorOptions = [
     name: 'GREEN_THEME',
     palette: {
       primary: {
-        main: '#0C7040',
+        main: '#2E7A4E',
         light: '#1B3B2F',
-        dark: '#06492C',
+        dark: '#235C42',
       },
       secondary: {
-        main: '#47D7BC',
+        main: '#5CD4B6',
         light: '#0F2F28',
-        dark: '#39C7A6',
+        dark: '#49B098',
       },
     },
   },
@@ -259,14 +259,14 @@ const DarkColorOptions = [
     name: 'PURPLE_THEME',
     palette: {
       primary: {
-        main: '#7C59D4',
+        main: '#8B6BD0',
         light: '#2D1F47',
-        dark: '#6C4AB6',
+        dark: '#7458B1',
       },
       secondary: {
-        main: '#FB9678',
+        main: '#EA9168',
         light: '#2F1F29',
-        dark: '#E07C5A',
+        dark: '#D67B55',
       },
     },
   },
@@ -274,14 +274,14 @@ const DarkColorOptions = [
     name: 'RED_THEME',
     palette: {
       primary: {
-        main: '#D32F2F',
+        main: '#C84843',
         light: '#3D1A1A',
-        dark: '#C62828',
+        dark: '#B23C37',
       },
       secondary: {
-        main: '#F48FB1',
+        main: '#EA8AA9',
         light: '#2F1921',
-        dark: '#E91E63',
+        dark: '#D67495',
       },
     },
   },
@@ -289,14 +289,14 @@ const DarkColorOptions = [
     name: 'ORANGE_THEME',
     palette: {
       primary: {
-        main: '#FF9800',
+        main: '#EA9238',
         light: '#3D2C14',
-        dark: '#F57C00',
+        dark: '#D67E2E',
       },
       secondary: {
-        main: '#66BB6A',
+        main: '#6AB86E',
         light: '#1F2F1F',
-        dark: '#43A047',
+        dark: '#57A15B',
       },
     },
   },
@@ -304,14 +304,14 @@ const DarkColorOptions = [
     name: 'TEAL_THEME',
     palette: {
       primary: {
-        main: '#00695C',
+        main: '#2E796D',
         light: '#0F2F2C',
-        dark: '#004D40',
+        dark: '#236459',
       },
       secondary: {
-        main: '#4DB6AC',
+        main: '#5FB5A7',
         light: '#17302E',
-        dark: '#26A69A',
+        dark: '#4CA190',
       },
     },
   },

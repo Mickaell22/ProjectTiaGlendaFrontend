@@ -139,11 +139,11 @@ const getMenuItems = () => {
     ...(hasPermission('pacientes', userRole) ? [
       {
         navlabel: true,
-        subheader: 'Pacientes y Estudiantes',
+        subheader: 'Pacientes y Tutores',
       },
       {
         id: uniqueId(),
-        title: 'Pacientes y Estudiantes',
+        title: 'Pacientes y Tutores',
         icon: LocalHospital,
         href: '/apps/user-profile/followers',
         children: [
@@ -215,19 +215,19 @@ const getMenuItems = () => {
       },
     ] : []),
 
-    // Reportes - Solo Admins
-    ...(hasPermission('reportes', userRole) ? [
-      {
-        navlabel: true,
-        subheader: 'Reportes',
-      },
-      {
-        id: uniqueId(),
-        title: 'Sistema de Reportes',
-        icon: Assessment,
-        href: ROUTES.REPORTES.SISTEMA,
-      },
-    ] : []),
+    // Reportes - Solo Admins (OCULTO TEMPORALMENTE)
+    // ...(hasPermission('reportes', userRole) ? [
+    //   {
+    //     navlabel: true,
+    //     subheader: 'Reportes',
+    //   },
+    //   {
+    //     id: uniqueId(),
+    //     title: 'Sistema de Reportes',
+    //     icon: Assessment,
+    //     href: ROUTES.REPORTES.SISTEMA,
+    //   },
+    // ] : []),
 
     // Configuración - Solo Admins
     ...(hasPermission('configuracion', userRole) ? [

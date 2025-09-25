@@ -143,44 +143,73 @@ const PersonSelector = ({
     }
   };
 
-  // Debug info (remove in production)
-  if (process.env.NODE_ENV === 'development' && selectedPerson) {
-    console.log('PersonSelector selectedPerson:', selectedPerson);
-  }
 
   return (
     <Box className={className}>
-      <Button
-        variant="outlined"
-        fullWidth
-        onClick={() => setOpen(true)}
-        startIcon={<Person />}
-        sx={{
-          justifyContent: 'flex-start',
-          textAlign: 'left',
-          minHeight: 56,
-          py: 1.5
-        }}
-      >
-        {selectedPerson ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
-            <Typography variant="body1" sx={{ fontWeight: 500 }}>
-              {selectedPerson.nombre_completo ||
-               `${selectedPerson.nombres || selectedPerson.nombre || ''} ${selectedPerson.apellidos || selectedPerson.apellido || ''}`.trim() ||
-               'Sin nombre'}
-            </Typography>
-            {selectedPerson.cedula && (
-              <Typography variant="caption" color="text.secondary">
-                Cédula: {selectedPerson.cedula}
+      <Box sx={{ position: 'relative' }}>
+        <Button
+          variant="outlined"
+          fullWidth
+          onClick={() => setOpen(true)}
+          startIcon={<Person />}
+          sx={{
+            justifyContent: 'flex-start',
+            textAlign: 'left',
+            minHeight: 56,
+            py: 1.5,
+            '&:hover': {
+              backgroundColor: 'action.hover',
+              borderColor: 'primary.main'
+            }
+          }}
+        >
+          {selectedPerson ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                {selectedPerson.nombre_completo ||
+                 `${selectedPerson.nombres || selectedPerson.nombre || ''} ${selectedPerson.apellidos || selectedPerson.apellido || ''}`.trim() ||
+                 'Sin nombre'}
               </Typography>
-            )}
-          </Box>
-        ) : (
-          <Typography variant="body1" color="text.secondary">
-            {placeholder}
-          </Typography>
+              {selectedPerson.cedula && (
+                <Typography variant="caption" color="text.secondary">
+                  Cédula: {selectedPerson.cedula}
+                </Typography>
+              )}
+            </Box>
+          ) : (
+            <Typography variant="body1" color="text.secondary">
+              {placeholder}
+            </Typography>
+          )}
+        </Button>
+
+        {/* Botón para deseleccionar */}
+        {selectedPerson && (
+          <Button
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePersonSelect(null);
+            }}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              minWidth: 32,
+              height: 32,
+              p: 0,
+              color: 'text.secondary',
+              '&:hover': {
+                backgroundColor: 'error.main',
+                color: 'error.contrastText'
+              }
+            }}
+          >
+            ×
+          </Button>
         )}
-      </Button>
+      </Box>
 
       <Dialog
         open={open}

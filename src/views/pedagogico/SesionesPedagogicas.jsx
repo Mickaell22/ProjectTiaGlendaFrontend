@@ -84,6 +84,10 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
   };
 
   const handleViewDetail = (item) => {
+    console.log('Datos de sesión pedagógica:', item);
+    console.log('costo_total:', item.costo_total);
+    console.log('costo_por_clase:', item.costo_por_clase);
+    console.log('periodo_academico:', item.periodo_academico);
     setDetailDialog({ open: true, data: item });
   };
 
@@ -223,7 +227,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
 
   // Función para generar horarios de la semana
   const generateWeekSchedule = () => {
-    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    const dias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
     const horas = Array.from({ length: 12 }, (_, i) => {
       const hora = 7 + i;
       return `${hora.toString().padStart(2, '0')}:00`;
@@ -247,10 +251,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
           'miercoles': 'Miércoles',
           'miércoles': 'Miércoles',
           'jueves': 'Jueves',
-          'viernes': 'Viernes',
-          'sabado': 'Sábado',
-          'sábado': 'Sábado',
-          'domingo': 'Domingo'
+          'viernes': 'Viernes'
         };
         
         const diaLowerCase = dia.toLowerCase().trim();
@@ -286,7 +287,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
         {/* Header verde para sesiones pedagógicas */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -451,15 +452,15 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                               sx={{ 
                                 p: 1.5, 
                                 cursor: 'pointer',
-                                bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : '#e8f5e8',
+                                bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : 'success.light',
                                 border: '1px solid',
-                                borderColor: '#4caf50',
+                                borderColor: 'success.main',
                                 color: 'text.primary',
                                 fontSize: '0.75rem',
                                 borderRadius: 1,
                                 '&:hover': {
-                                  bgcolor: theme.palette.mode === 'dark' ? 'success.main' : '#c8e6c9',
-                                  borderColor: '#388e3c',
+                                  bgcolor: theme.palette.mode === 'dark' ? 'success.main' : 'success.light',
+                                  borderColor: 'success.dark',
                                   transform: 'translateY(-2px)',
                                   boxShadow: 2
                                 },
@@ -484,7 +485,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                               <Typography 
                                 variant="caption" 
                                 sx={{ 
-                                  color: '#4caf50',
+                                  color: 'success.main',
                                   fontWeight: 'medium',
                                   display: 'block',
                                   mb: 0.3,
@@ -537,7 +538,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                                       bgcolor: 'success.main',
                                       color: 'white',
                                       '&:hover': {
-                                        bgcolor: '#388e3c'
+                                        bgcolor: 'success.dark'
                                       }
                                     }}
                                     onClick={(e) => {
@@ -636,7 +637,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
 
                           <TableCell>
                             <Box>
-                              <Typography variant="body2" sx={{ fontWeight: 'medium', color: '#4caf50' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'success.main' }}>
                                 {item.hora_inicio || 'No definido'}
                                 {item.hora_fin && ` - ${item.hora_fin}`}
                               </Typography>
@@ -655,7 +656,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                                   key={dia}
                                   label={dia}
                                   size="small"
-                                  sx={{ mr: 0.5, mb: 0.5, bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : '#e8f5e8', color: theme.palette.mode === 'dark' ? 'success.contrastText' : '#2e7d32' }}
+                                  sx={{ mr: 0.5, mb: 0.5, bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : 'success.light', color: theme.palette.mode === 'dark' ? 'success.contrastText' : 'success.dark' }}
                                 />
                               ))}
                             </Box>

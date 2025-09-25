@@ -108,14 +108,14 @@ const TerapeuticoMain = () => {
       });
     }
 
-    // Tab Hoy - Todos los usuarios autorizados
-    if (permissions.sesionesTerapeuticas.view) {
-      tabs.push({
-        label: 'Hoy',
-        icon: <Today />,
-        component: <TerapeuticoHoy userViewMode={isTherapist} />
-      });
-    }
+    // Tab Hoy - Todos los usuarios autorizados (OCULTO TEMPORALMENTE)
+    // if (permissions.sesionesTerapeuticas.view) {
+    //   tabs.push({
+    //     label: 'Hoy',
+    //     icon: <Today />,
+    //     component: <TerapeuticoHoy userViewMode={isTherapist} />
+    //   });
+    // }
 
 
     return tabs;

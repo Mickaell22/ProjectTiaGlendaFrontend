@@ -103,7 +103,7 @@ const PedagogicoHoy = () => {
         {/* Header */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -189,7 +189,7 @@ const PedagogicoHoy = () => {
                           <Avatar
                             sx={{
                               mr: 2,
-                              bgcolor: '#4caf50',
+                              bgcolor: 'success.main',
                               width: 32,
                               height: 32
                             }}

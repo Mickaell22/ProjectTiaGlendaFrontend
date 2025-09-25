@@ -273,8 +273,8 @@ const PacienteFormulario = ({
         <Box
           sx={{
             background: isEditing
-              ? 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)'
-              : 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)',
+              ? `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`
+              : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',

@@ -99,14 +99,14 @@ const PedagogicoMain = () => {
       });
     }
 
-    // Tab Hoy - Todos los usuarios autorizados
-    if (permissions.sesionesPedagogicas.view) {
-      tabs.push({
-        label: 'Hoy',
-        icon: <Today />,
-        component: <PedagogicoHoy userViewMode={isPedagogue} />
-      });
-    }
+    // Tab Hoy - Todos los usuarios autorizados (OCULTO TEMPORALMENTE)
+    // if (permissions.sesionesPedagogicas.view) {
+    //   tabs.push({
+    //     label: 'Hoy',
+    //     icon: <Today />,
+    //     component: <PedagogicoHoy userViewMode={isPedagogue} />
+    //   });
+    // }
 
 
     return tabs;
@@ -150,7 +150,7 @@ const PedagogicoMain = () => {
             mb: 4,
             overflow: 'hidden',
             border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '4px solid transparent',
-            backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, #4CAF50, #2E7D32, #388E3C, #1B5E20)`,
+            backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, ${theme.palette.success.main}, ${theme.palette.success.dark}, ${theme.palette.success.main}, ${theme.palette.success.dark})`,
             backgroundOrigin: 'border-box',
             backgroundClip: 'padding-box, border-box',
             animation: theme.palette.mode === 'dark' ? 'none' : 'rainbow 5s linear infinite',
@@ -187,14 +187,14 @@ const PedagogicoMain = () => {
                   textTransform: 'none',
                   color: 'text.secondary',
                   '&.Mui-selected': {
-                    color: '#4CAF50',
+                    color: 'success.main',
                     fontWeight: 600
                   }
                 },
                 '& .MuiTabs-indicator': {
                   height: 3,
                   borderRadius: '3px 3px 0 0',
-                  backgroundColor: '#4CAF50'
+                  backgroundColor: 'success.main'
                 }
               }}
             >

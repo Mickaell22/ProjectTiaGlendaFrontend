@@ -115,9 +115,7 @@ const CrearSesionPedagogica = () => {
     { value: 'martes', label: 'Martes' },
     { value: 'miercoles', label: 'Miércoles' },
     { value: 'jueves', label: 'Jueves' },
-    { value: 'viernes', label: 'Viernes' },
-    { value: 'sabado', label: 'Sábado' },
-    { value: 'domingo', label: 'Domingo' }
+    { value: 'viernes', label: 'Viernes' }
   ];
 
   const nivelesAcademicos = [
@@ -140,28 +138,38 @@ const CrearSesionPedagogica = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      
-      const [estudiantesRes, pedagogosRes, especialidadesRes] = await Promise.all([
+      // Use Promise.allSettled to handle partial failures gracefully
+      const results = await Promise.allSettled([
         sesionPedagogicaService.getEstudiantesDisponibles(),
         sesionPedagogicaService.getPedagogosDisponibles(),
         sesionPedagogicaService.getEspecialidades()
       ]);
 
-
-      const estudiantes = estudiantesRes?.data || estudiantesRes || [];
-      const pedagogos = pedagogosRes?.data || pedagogosRes || [];
-      const especialidades = especialidadesRes?.data || especialidadesRes || [];
-
+      // Process results with better error handling
+      const estudiantes = results[0].status === 'fulfilled'
+        ? results[0].value?.data || results[0].value || []
+        : [];
+      const pedagogos = results[1].status === 'fulfilled'
+        ? results[1].value?.data || results[1].value || []
+        : [];
+      const especialidades = results[2].status === 'fulfilled'
+        ? results[2].value?.data || results[2].value || []
+        : [];
 
       setEstudiantesDisponibles(estudiantes);
       setPedagogosDisponibles(pedagogos);
       setEspecialidades(especialidades);
-      
-      setSnackbar({ 
-        open: true, 
-        message: `Datos cargados: ${estudiantes.length} estudiantes, ${pedagogos.length} pedagogos, ${especialidades.length} especialidades`, 
-        severity: 'info' 
-      });
+
+      // Show warning if any request failed
+      const failedRequests = results.filter(r => r.status === 'rejected');
+      if (failedRequests.length > 0) {
+        const failedCount = failedRequests.length;
+        setSnackbar({
+          open: true,
+          message: `Advertencia: ${failedCount} recurso(s) no se pudieron cargar completamente`,
+          severity: 'warning'
+        });
+      }
     } catch (err) {
       console.error('Error fetching form data:', err);
       const errorMessage = sesionPedagogicaService.handleError(err);
@@ -263,7 +271,7 @@ const CrearSesionPedagogica = () => {
         duracion_minutos: parseInt(formData.duracion_minutos),
         numero_clases_programadas: parseInt(formData.numero_clases_programadas),
         costo_total: parseFloat(formData.costo_total),
-        costo_por_clase: parseFloat(formData.costo_total) / parseInt(formData.numero_clases_programadas),
+        costo_por_clase: Math.round((parseFloat(formData.costo_total) / parseInt(formData.numero_clases_programadas)) * 100) / 100,
         nivel_academico: formData.nivel_academico,
         modalidad: formData.modalidad,
         capacidad_maxima: parseInt(formData.capacidad_maxima),
@@ -500,8 +508,13 @@ const CrearSesionPedagogica = () => {
                     value={formData.fecha_fin}
                     onChange={handleChange}
                     error={!!errors.fecha_fin}
-                    helperText={errors.fecha_fin}
+                    helperText={errors.fecha_fin || 'La fecha de fin debe ser posterior a la fecha de inicio'}
                     InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      inputProps: {
+                        min: formData.fecha_inicio || new Date().toISOString().split('T')[0] // Fecha mínima: fecha de inicio o hoy
+                      }
+                    }}
                   />
                 </Grid>
 

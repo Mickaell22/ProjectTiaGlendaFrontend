@@ -18,13 +18,13 @@ import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 import { formatDateLocal } from 'src/utils/dateUtils';
 
 /* ---------- Estilos tipo "listar" ---------- */
-const greenOutlineSX = {
+const getGreenOutlineSX = (theme) => ({
   '& .MuiOutlinedInput-root': {
-    '& fieldset': { borderColor: '#4caf50' },
-    '&:hover fieldset': { borderColor: '#4caf50' },
-    '&.Mui-focused fieldset': { borderColor: '#4caf50', borderWidth: 2 }
+    '& fieldset': { borderColor: theme.palette.success.main },
+    '&:hover fieldset': { borderColor: theme.palette.success.main },
+    '&.Mui-focused fieldset': { borderColor: theme.palette.success.main, borderWidth: 2 }
   }
-};
+});
 
 // Evita "saltos" al seleccionar y trunca texto largo
 const selectStableSX = {
@@ -328,7 +328,7 @@ const PedagogicoAsistencia = () => {
       >
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -360,7 +360,7 @@ const PedagogicoAsistencia = () => {
               <FormControl fullWidth>
                 <InputLabel shrink>Sesión Pedagógica</InputLabel>
                 <Select
-                  sx={{ ...selectStableSX, ...greenOutlineSX }}
+                  sx={{ ...selectStableSX, ...getGreenOutlineSX(theme) }}
                   value={selectedSesion}
                   onChange={handleSesionChange}
                   label="Sesión Pedagógica"
@@ -386,7 +386,7 @@ const PedagogicoAsistencia = () => {
               <FormControl fullWidth disabled={!selectedSesion}>
                 <InputLabel shrink>Fecha de Clase</InputLabel>
                 <Select
-                  sx={{ ...selectStableSX, ...greenOutlineSX }}
+                  sx={{ ...selectStableSX, ...getGreenOutlineSX(theme) }}
                   value={selectedCronograma}
                   onChange={handleCronogramaChange}
                   label="Fecha de Clase"
@@ -415,7 +415,7 @@ const PedagogicoAsistencia = () => {
           </Grid>
 
           {selectedSesion && selectedCronograma && getSesionInfo(selectedSesion) && getCronogramaInfo(selectedCronograma) && (
-            <Paper sx={{ mt: 3, p: 2, backgroundColor: '#e8f5e8' }}>
+            <Paper sx={{ mt: 3, p: 2, backgroundColor: 'success.light' }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={3}>
                   <Typography variant="subtitle2">Sesión:</Typography>
@@ -456,7 +456,7 @@ const PedagogicoAsistencia = () => {
         >
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 3,
               display: 'flex',
@@ -508,13 +508,13 @@ const PedagogicoAsistencia = () => {
                     </InputAdornment>
                   )
                 }}
-                sx={{ ...greenOutlineSX, minWidth: 260, flex: '1 1 380px' }}
+                sx={{ ...getGreenOutlineSX(theme), minWidth: 260, flex: '1 1 380px' }}
               />
 
               <FormControl size="small" sx={{ minWidth: 200 }}>
                 <InputLabel shrink>Filtrar por asistencia</InputLabel>
                 <Select
-                  sx={{ ...selectStableSX, ...greenOutlineSX }}
+                  sx={{ ...selectStableSX, ...getGreenOutlineSX(theme) }}
                   value={filterAsistio}
                   onChange={(e) => setFilterAsistio(e.target.value)}
                   label="Filtrar por asistencia"
@@ -555,7 +555,7 @@ const PedagogicoAsistencia = () => {
                           <TableRow key={estudianteId}>
                             <TableCell>
                               <Box display="flex" alignItems="center">
-                                <Avatar sx={{ mr: 2, bgcolor: '#4caf50' }}>
+                                <Avatar sx={{ mr: 2, bgcolor: 'success.main' }}>
                                   <School />
                                 </Avatar>
                                 <Box>
@@ -627,7 +627,7 @@ const PedagogicoAsistencia = () => {
                                       <IconButton 
                                         size="small" 
                                         onClick={() => handleEditarAsistencia(asistencia)}
-                                        sx={{ color: '#4caf50' }}
+                                        sx={{ color: 'success.main' }}
                                       >
                                         <Edit fontSize="small" />
                                       </IconButton>
@@ -717,8 +717,8 @@ const PedagogicoAsistencia = () => {
                       checked={formData.asistio}
                       onChange={(e) => setFormData(prev => ({ ...prev, asistio: e.target.checked }))}
                       sx={{ 
-                        '& .MuiSwitch-switchBase.Mui-checked': { color: '#4caf50' },
-                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#4caf50' }
+                        '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
+                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
                       }}
                     />
                   }
@@ -758,8 +758,8 @@ const PedagogicoAsistencia = () => {
                       onChange={(e) => setFormData(prev => ({ ...prev, tareas_entregadas: e.target.checked }))}
                       disabled={!formData.asistio}
                       sx={{ 
-                        '& .MuiSwitch-switchBase.Mui-checked': { color: '#4caf50' },
-                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: '#4caf50' }
+                        '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
+                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
                       }}
                     />
                   }
@@ -906,7 +906,7 @@ const PedagogicoAsistencia = () => {
               {detailDialog.data.notas_progreso_academico && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="primary">Notas de Progreso Académico</Typography>
-                  <Paper sx={{ p: 2, backgroundColor: '#e8f5e8', border: '1px solid', borderColor: '#4caf50' }}>
+                  <Paper sx={{ p: 2, backgroundColor: 'success.light', border: '1px solid', borderColor: 'success.main' }}>
                     <Typography variant="body2">{detailDialog.data.notas_progreso_academico}</Typography>
                   </Paper>
                 </Grid>

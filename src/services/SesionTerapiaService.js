@@ -375,16 +375,17 @@ class SesionTerapiaService {
    */
   async getEspecialidades() {
     try {
-      // Try to get therapeutic specialties first
-      try {
-        const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.TERAPEUTICAS);
-        return response.data;
-      } catch (specificError) {
-        // If specific endpoint fails, try getting all specialties
-        // Therapeutic specialties endpoint not available, fetching all specialties
-        const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.BASE);
-        return response.data;
-      }
+      // Fetch all specialties and filter on frontend to avoid URL encoding issues
+      const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.BASE);
+      const allEspecialidades = response.data?.data || response.data || [];
+
+      // Filter therapeutic specialties
+      const terapeuticas = allEspecialidades.filter(esp =>
+        esp.area === 'Especialidad terapéutica' ||
+        esp.area === 'Especialidad terapeutica'
+      );
+
+      return { data: terapeuticas };
     } catch (error) {
       throw error;
     }

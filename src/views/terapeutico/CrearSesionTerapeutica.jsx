@@ -117,9 +117,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
     { value: 'martes', label: 'Martes' },
     { value: 'miercoles', label: 'Miércoles' },
     { value: 'jueves', label: 'Jueves' },
-    { value: 'viernes', label: 'Viernes' },
-    { value: 'sabado', label: 'Sábado' },
-    { value: 'domingo', label: 'Domingo' }
+    { value: 'viernes', label: 'Viernes' }
   ];
 
   useEffect(() => {
@@ -129,28 +127,38 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      
-      const [pacientesRes, terapeutasRes, especialidadesRes] = await Promise.all([
+      // Use Promise.allSettled to handle partial failures gracefully
+      const results = await Promise.allSettled([
         sesionTerapiaService.getPacientesDisponibles(),
         sesionTerapiaService.getTerapeutasDisponibles(),
         sesionTerapiaService.getEspecialidades()
       ]);
 
-
-      const pacientes = pacientesRes?.data || pacientesRes || [];
-      const terapeutas = terapeutasRes?.data || terapeutasRes || [];
-      const especialidades = especialidadesRes?.data || especialidadesRes || [];
-
+      // Process results with better error handling
+      const pacientes = results[0].status === 'fulfilled'
+        ? results[0].value?.data || results[0].value || []
+        : [];
+      const terapeutas = results[1].status === 'fulfilled'
+        ? results[1].value?.data || results[1].value || []
+        : [];
+      const especialidades = results[2].status === 'fulfilled'
+        ? results[2].value?.data || results[2].value || []
+        : [];
 
       setPacientesDisponibles(pacientes);
       setTerapeutasDisponibles(terapeutas);
       setEspecialidades(especialidades);
-      
-      setSnackbar({ 
-        open: true, 
-        message: `Datos cargados: ${pacientes.length} pacientes, ${terapeutas.length} terapeutas, ${especialidades.length} especialidades`, 
-        severity: 'info' 
-      });
+
+      // Show warning if any request failed
+      const failedRequests = results.filter(r => r.status === 'rejected');
+      if (failedRequests.length > 0) {
+        const failedCount = failedRequests.length;
+        setSnackbar({
+          open: true,
+          message: `Advertencia: ${failedCount} recurso(s) no se pudieron cargar completamente`,
+          severity: 'warning'
+        });
+      }
     } catch (err) {
       console.error('Error fetching form data:', err);
       const errorMessage = sesionTerapiaService.handleError(err);
@@ -223,7 +231,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
     if (!formData.numero_sesiones_contratadas || formData.numero_sesiones_contratadas < 1) {
       newErrors.numero_sesiones_contratadas = 'Número de sesiones debe ser mayor a 0';
     }
-    if (!formData.costo_total || formData.costo_total < 0) {
+    if (formData.costo_total === '' || formData.costo_total < 0) {
       newErrors.costo_total = 'Costo total debe ser mayor o igual a 0';
     }
 
@@ -233,6 +241,17 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
       if (fechaFin <= fechaInicio) {
         newErrors.fecha_fin = 'Fecha de fin debe ser posterior a fecha de inicio';
       }
+    }
+
+    // Validaciones adicionales para prevenir errores 500
+    if (isNaN(parseInt(formData.terapeuta_id))) {
+      newErrors.terapeuta_id = 'ID de terapeuta inválido';
+    }
+    if (isNaN(parseInt(formData.especialidad_id))) {
+      newErrors.especialidad_id = 'ID de especialidad inválido';
+    }
+    if (formData.paciente_id && isNaN(parseInt(formData.paciente_id))) {
+      newErrors.paciente_id = 'ID de paciente inválido';
     }
 
     setErrors(newErrors);
@@ -257,7 +276,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
         duracion_minutos: parseInt(formData.duracion_minutos),
         numero_sesiones_contratadas: parseInt(formData.numero_sesiones_contratadas),
         costo_total: parseFloat(formData.costo_total),
-        costo_sesion: parseFloat(formData.costo_total) / parseInt(formData.numero_sesiones_contratadas),
+        costo_sesion: Math.round((parseFloat(formData.costo_total) / parseInt(formData.numero_sesiones_contratadas)) * 100) / 100,
         meses_contrato: formData.meses_contrato ? parseInt(formData.meses_contrato) : null,
         estado: formData.estado,
         observaciones: formData.observaciones?.trim() || null,
@@ -267,6 +286,9 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
       if (formData.paciente_id) {
         sessionData.paciente_id = parseInt(formData.paciente_id);
       }
+
+      // Log para debug
+      console.log('Datos a enviar:', sessionData);
 
       const response = await sesionTerapiaService.createSesion(sessionData);
 
@@ -472,8 +494,13 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                     value={formData.fecha_fin}
                     onChange={handleChange}
                     error={!!errors.fecha_fin}
-                    helperText={errors.fecha_fin}
+                    helperText={errors.fecha_fin || 'La fecha de fin debe ser posterior a la fecha de inicio'}
                     InputLabelProps={{ shrink: true }}
+                    InputProps={{
+                      inputProps: {
+                        min: formData.fecha_inicio || new Date().toISOString().split('T')[0] // Fecha mínima: fecha de inicio o hoy
+                      }
+                    }}
                   />
                 </Grid>
 

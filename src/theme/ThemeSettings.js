@@ -7,13 +7,21 @@ const ThemeSettings = (customizer) => {
     palette: {
       mode: customizer.activeMode,
       primary: {
-        main: customizer.activeTheme === 'BLUE_THEME' ? DefaultColors.primary.main :
-              customizer.activeTheme === 'GREEN_THEME' ? '#0C7040' :
-              customizer.activeTheme === 'PURPLE_THEME' ? '#7C59D4' :
-              customizer.activeTheme === 'RED_THEME' ? '#D32F2F' :
-              customizer.activeTheme === 'ORANGE_THEME' ? '#FF9800' :
-              customizer.activeTheme === 'TEAL_THEME' ? '#00695C' :
-              DefaultColors.primary.main,
+        main: customizer.activeMode === 'dark' ?
+               (customizer.activeTheme === 'BLUE_THEME' ? DarkColors.primary.main :
+                customizer.activeTheme === 'GREEN_THEME' ? '#2E7A4E' :
+                customizer.activeTheme === 'PURPLE_THEME' ? '#8B6BD0' :
+                customizer.activeTheme === 'RED_THEME' ? '#C84843' :
+                customizer.activeTheme === 'ORANGE_THEME' ? '#EA9238' :
+                customizer.activeTheme === 'TEAL_THEME' ? '#2E796D' :
+                DarkColors.primary.main) :
+               (customizer.activeTheme === 'BLUE_THEME' ? DefaultColors.primary.main :
+                customizer.activeTheme === 'GREEN_THEME' ? '#0C7040' :
+                customizer.activeTheme === 'PURPLE_THEME' ? '#7C59D4' :
+                customizer.activeTheme === 'RED_THEME' ? '#D32F2F' :
+                customizer.activeTheme === 'ORANGE_THEME' ? '#FF9800' :
+                customizer.activeTheme === 'TEAL_THEME' ? '#00695C' :
+                DefaultColors.primary.main),
         light: customizer.activeMode === 'dark' ?
                (customizer.activeTheme === 'BLUE_THEME' ? DarkColors.primary.light :
                 customizer.activeTheme === 'GREEN_THEME' ? '#1B3B2F' :
@@ -29,23 +37,39 @@ const ThemeSettings = (customizer) => {
                 customizer.activeTheme === 'ORANGE_THEME' ? '#FFF3E0' :
                 customizer.activeTheme === 'TEAL_THEME' ? '#E0F2F1' :
                 DefaultColors.primary.light),
-        dark: customizer.activeTheme === 'BLUE_THEME' ? DefaultColors.primary.dark :
-              customizer.activeTheme === 'GREEN_THEME' ? '#06492C' :
-              customizer.activeTheme === 'PURPLE_THEME' ? '#6C4AB6' :
-              customizer.activeTheme === 'RED_THEME' ? '#C62828' :
-              customizer.activeTheme === 'ORANGE_THEME' ? '#F57C00' :
-              customizer.activeTheme === 'TEAL_THEME' ? '#004D40' :
-              DefaultColors.primary.dark,
+        dark: customizer.activeMode === 'dark' ?
+               (customizer.activeTheme === 'BLUE_THEME' ? DarkColors.primary.dark :
+                customizer.activeTheme === 'GREEN_THEME' ? '#235C42' :
+                customizer.activeTheme === 'PURPLE_THEME' ? '#7458B1' :
+                customizer.activeTheme === 'RED_THEME' ? '#B23C37' :
+                customizer.activeTheme === 'ORANGE_THEME' ? '#D67E2E' :
+                customizer.activeTheme === 'TEAL_THEME' ? '#236459' :
+                DarkColors.primary.dark) :
+               (customizer.activeTheme === 'BLUE_THEME' ? DefaultColors.primary.dark :
+                customizer.activeTheme === 'GREEN_THEME' ? '#06492C' :
+                customizer.activeTheme === 'PURPLE_THEME' ? '#6C4AB6' :
+                customizer.activeTheme === 'RED_THEME' ? '#C62828' :
+                customizer.activeTheme === 'ORANGE_THEME' ? '#F57C00' :
+                customizer.activeTheme === 'TEAL_THEME' ? '#004D40' :
+                DefaultColors.primary.dark),
         contrastText: '#ffffff',
       },
       secondary: {
-        main: customizer.activeTheme === 'BLUE_THEME' ? DefaultColors.secondary.main :
-              customizer.activeTheme === 'GREEN_THEME' ? '#47D7BC' :
-              customizer.activeTheme === 'PURPLE_THEME' ? '#FB9678' :
-              customizer.activeTheme === 'RED_THEME' ? '#F48FB1' :
-              customizer.activeTheme === 'ORANGE_THEME' ? '#66BB6A' :
-              customizer.activeTheme === 'TEAL_THEME' ? '#4DB6AC' :
-              DefaultColors.secondary.main,
+        main: customizer.activeMode === 'dark' ?
+               (customizer.activeTheme === 'BLUE_THEME' ? DarkColors.secondary.main :
+                customizer.activeTheme === 'GREEN_THEME' ? '#5CD4B6' :
+                customizer.activeTheme === 'PURPLE_THEME' ? '#EA9168' :
+                customizer.activeTheme === 'RED_THEME' ? '#EA8AA9' :
+                customizer.activeTheme === 'ORANGE_THEME' ? '#6AB86E' :
+                customizer.activeTheme === 'TEAL_THEME' ? '#5FB5A7' :
+                DarkColors.secondary.main) :
+               (customizer.activeTheme === 'BLUE_THEME' ? DefaultColors.secondary.main :
+                customizer.activeTheme === 'GREEN_THEME' ? '#47D7BC' :
+                customizer.activeTheme === 'PURPLE_THEME' ? '#FB9678' :
+                customizer.activeTheme === 'RED_THEME' ? '#F48FB1' :
+                customizer.activeTheme === 'ORANGE_THEME' ? '#66BB6A' :
+                customizer.activeTheme === 'TEAL_THEME' ? '#4DB6AC' :
+                DefaultColors.secondary.main),
         light: customizer.activeMode === 'dark' ?
                (customizer.activeTheme === 'BLUE_THEME' ? DarkColors.secondary.light :
                 customizer.activeTheme === 'GREEN_THEME' ? '#0F2F28' :
@@ -61,13 +85,21 @@ const ThemeSettings = (customizer) => {
                 customizer.activeTheme === 'ORANGE_THEME' ? '#E8F5E8' :
                 customizer.activeTheme === 'TEAL_THEME' ? '#B2DFDB' :
                 DefaultColors.secondary.light),
-        dark: customizer.activeTheme === 'BLUE_THEME' ? DefaultColors.secondary.dark :
-              customizer.activeTheme === 'GREEN_THEME' ? '#39C7A6' :
-              customizer.activeTheme === 'PURPLE_THEME' ? '#E07C5A' :
-              customizer.activeTheme === 'RED_THEME' ? '#E91E63' :
-              customizer.activeTheme === 'ORANGE_THEME' ? '#43A047' :
-              customizer.activeTheme === 'TEAL_THEME' ? '#26A69A' :
-              DefaultColors.secondary.dark,
+        dark: customizer.activeMode === 'dark' ?
+               (customizer.activeTheme === 'BLUE_THEME' ? DarkColors.secondary.dark :
+                customizer.activeTheme === 'GREEN_THEME' ? '#49B098' :
+                customizer.activeTheme === 'PURPLE_THEME' ? '#D67B55' :
+                customizer.activeTheme === 'RED_THEME' ? '#D67495' :
+                customizer.activeTheme === 'ORANGE_THEME' ? '#57A15B' :
+                customizer.activeTheme === 'TEAL_THEME' ? '#4CA190' :
+                DarkColors.secondary.dark) :
+               (customizer.activeTheme === 'BLUE_THEME' ? DefaultColors.secondary.dark :
+                customizer.activeTheme === 'GREEN_THEME' ? '#39C7A6' :
+                customizer.activeTheme === 'PURPLE_THEME' ? '#E07C5A' :
+                customizer.activeTheme === 'RED_THEME' ? '#E91E63' :
+                customizer.activeTheme === 'ORANGE_THEME' ? '#43A047' :
+                customizer.activeTheme === 'TEAL_THEME' ? '#26A69A' :
+                DefaultColors.secondary.dark),
         contrastText: '#ffffff',
       },
       success: customizer.activeMode === 'dark' ? DarkColors.success : DefaultColors.success,

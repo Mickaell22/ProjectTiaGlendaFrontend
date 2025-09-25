@@ -17,13 +17,13 @@ import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 import { formatDateLocal } from 'src/utils/dateUtils';
 
 /* ---------- Estilos compartidos tipo "listar" ---------- */
-const greenOutlineSX = {
+const getGreenOutlineSX = (theme) => ({
   '& .MuiOutlinedInput-root': {
-    '& fieldset': { borderColor: '#4caf50' },
-    '&:hover fieldset': { borderColor: '#4caf50' },
-    '&.Mui-focused fieldset': { borderColor: '#4caf50', borderWidth: 2 }
+    '& fieldset': { borderColor: theme.palette.success.main },
+    '&:hover fieldset': { borderColor: theme.palette.success.main },
+    '&.Mui-focused fieldset': { borderColor: theme.palette.success.main, borderWidth: 2 }
   }
-};
+});
 
 // Evita "saltos" al seleccionar opciones y trunca texto largo
 const selectStableSX = {
@@ -343,7 +343,7 @@ const PedagogicoCronogramas = () => {
       >
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -375,7 +375,7 @@ const PedagogicoCronogramas = () => {
               <FormControl fullWidth>
                 <InputLabel shrink>Sesión Pedagógica</InputLabel>
                 <Select
-                  sx={{ ...selectStableSX, ...greenOutlineSX }}
+                  sx={{ ...selectStableSX, ...getGreenOutlineSX(theme) }}
                   value={selectedSesion}
                   onChange={handleSesionChange}
                   label="Sesión Pedagógica"
@@ -418,7 +418,7 @@ const PedagogicoCronogramas = () => {
                   <Grid item xs={6}>
                     <Button
                       variant="outlined"
-                      sx={{ borderColor: 'success.main', color: 'success.main', '&:hover': { borderColor: 'success.dark', bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : '#e8f5e8' } }}
+                      sx={{ borderColor: 'success.main', color: 'success.main', '&:hover': { borderColor: 'success.dark', bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : 'success.light' } }}
                       startIcon={<Refresh />}
                       onClick={() => regenerarCronograma(selectedSesion)}
                       disabled={loading}
@@ -434,7 +434,7 @@ const PedagogicoCronogramas = () => {
           </Grid>
 
           {selectedSesion && getSesionInfo(selectedSesion) && (
-            <Paper sx={{ mt: 3, p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'success.dark' : '#e8f5e8' }}>
+            <Paper sx={{ mt: 3, p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'success.dark' : 'success.light' }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} md={4}>
                   <Typography variant="subtitle2">Título:</Typography>
@@ -471,7 +471,7 @@ const PedagogicoCronogramas = () => {
         >
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: 'white',
               p: 3,
               display: 'flex',
@@ -529,7 +529,7 @@ const PedagogicoCronogramas = () => {
               <FormControl size="small" sx={{ minWidth: 200 }}>
                 <InputLabel shrink>Filtrar por estado</InputLabel>
                 <Select
-                  sx={{ ...selectStableSX, ...greenOutlineSX }}
+                  sx={{ ...selectStableSX, ...getGreenOutlineSX(theme) }}
                   value={filterEstado}
                   onChange={(e) => setFilterEstado(e.target.value)}
                   label="Filtrar por estado"
@@ -889,7 +889,7 @@ const PedagogicoCronogramas = () => {
               {selectedSesion && getSesionInfo(selectedSesion) && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="primary">Información de la Sesión Pedagógica</Typography>
-                  <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'success.dark' : '#e8f5e8', border: '1px solid', borderColor: 'success.main' }}>
+                  <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'success.dark' : 'success.light', border: '1px solid', borderColor: 'success.main' }}>
                     <Typography variant="body2"><strong>Título:</strong> {getSesionInfo(selectedSesion).titulo || getSesionInfo(selectedSesion).nombre_clase}</Typography>
                     <Typography variant="body2"><strong>Pedagogo:</strong> {getSesionInfo(selectedSesion).pedagogo?.nombre || getSesionInfo(selectedSesion).pedagogo_nombre}</Typography>
                     <Typography variant="body2"><strong>Especialidad:</strong> {getSesionInfo(selectedSesion).especialidad?.nombre || getSesionInfo(selectedSesion).especialidad_nombre}</Typography>

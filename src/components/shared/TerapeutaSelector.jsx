@@ -11,8 +11,9 @@ const TerapeutaSelector = ({
   const { terapeutas, loading, loadTerapeutas } = useTerapeutas();
 
   useEffect(() => {
+    // Cargar terapeutas sin filtros visibles para el usuario
     loadTerapeutas();
-  }, []); // Sin dependencias problemáticas
+  }, []);
 
   return (
     <PersonSelector

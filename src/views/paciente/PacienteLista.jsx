@@ -394,9 +394,6 @@ const PacienteLista = ({
                             <Typography variant="body2" fontWeight="bold">
                               {p.nombre_completo}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              ID: {p.id}
-                            </Typography>
                           </Box>
                         </Box>
                       </TableCell>

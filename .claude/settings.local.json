@@ -45,7 +45,8 @@
       "Bash(dir:*)",
       "Bash(railway login:*)",
       "Bash(railway link:*)",
-      "Bash(railway up:*)"
+      "Bash(railway up:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

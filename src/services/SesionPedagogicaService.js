@@ -317,22 +317,18 @@ class SesionPedagogicaService {
    */
   async getEspecialidades() {
     try {
-      // Try to get pedagogical specialties first
-      try {
-        const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.PEDAGOGICAS);
-        return response.data;
-      } catch {
-        // If specific endpoint fails, try getting all specialties and filter
-        const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.BASE);
-        // Filter only pedagogical specialties
-        const allData = response.data?.data || response.data || [];
-        const filteredData = allData.filter(esp => 
-          esp.area === 'Especialidad pedagógica' || 
-          esp.area === 'pedagogica' ||
-          esp.area?.toLowerCase().includes('pedagog')
-        );
-        return { data: filteredData };
-      }
+      // Fetch all specialties and filter on frontend to avoid URL encoding issues
+      const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.BASE);
+      const allEspecialidades = response.data?.data || response.data || [];
+
+      // Filter pedagogical specialties
+      const pedagogicas = allEspecialidades.filter(esp =>
+        esp.area === 'Especialidad pedagógica' ||
+        esp.area === 'pedagogica' ||
+        esp.area?.toLowerCase().includes('pedagog')
+      );
+
+      return { data: pedagogicas };
     } catch (error) {
       console.error('Error fetching pedagogical specialties:', error);
       throw error;

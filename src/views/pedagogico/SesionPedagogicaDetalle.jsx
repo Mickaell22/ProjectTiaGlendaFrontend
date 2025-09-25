@@ -21,9 +21,9 @@ import { formatDateLocal } from 'src/utils/dateUtils';
 /* ---------- Estilos tipo "listar" ---------- */
 const greenOutlineSX = {
   '& .MuiOutlinedInput-root': {
-    '& fieldset': { borderColor: '#4caf50' },
-    '&:hover fieldset': { borderColor: '#4caf50' },
-    '&.Mui-focused fieldset': { borderColor: '#4caf50', borderWidth: 2 }
+    '& fieldset': { borderColor: 'success.main' },
+    '&:hover fieldset': { borderColor: 'success.main' },
+    '&.Mui-focused fieldset': { borderColor: 'success.main', borderWidth: 2 }
   }
 };
 
@@ -249,7 +249,7 @@ const SesionPedagogicaDetalle = () => {
       >
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #4caf50 0%, #388e3c 100%)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -305,7 +305,7 @@ const SesionPedagogicaDetalle = () => {
         <CardContent sx={{ p: 3 }}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
                 Información General
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -316,7 +316,7 @@ const SesionPedagogicaDetalle = () => {
                   <strong>Modalidad:</strong> {sesion.modalidad || 'Presencial'}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Período Académico:</strong> {sesion.periodo_academico || 'No especializado'}
+                  <strong>Período Académico:</strong> {sesion.periodo_academico || 'No especificado'}
                 </Typography>
                 <Typography variant="body2" component="div">
                   <strong>Estado:</strong>
@@ -331,7 +331,7 @@ const SesionPedagogicaDetalle = () => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
                 Detalles Técnicos
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -353,10 +353,10 @@ const SesionPedagogicaDetalle = () => {
 
           {sesion.observaciones && (
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: '#4caf50' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
                 Observaciones
               </Typography>
-              <Paper sx={{ p: 2, backgroundColor: '#e8f5e8', border: '1px solid', borderColor: '#4caf50' }}>
+              <Paper sx={{ p: 2, backgroundColor: '#e8f5e8', border: '1px solid', borderColor: 'success.main' }}>
                 <Typography variant="body2">{sesion.observaciones}</Typography>
               </Paper>
             </Box>
@@ -372,8 +372,8 @@ const SesionPedagogicaDetalle = () => {
           variant="scrollable"
           scrollButtons="auto"
           sx={{
-            '& .MuiTabs-indicator': { backgroundColor: '#4caf50' },
-            '& .MuiTab-root.Mui-selected': { color: '#4caf50' }
+            '& .MuiTabs-indicator': { backgroundColor: 'success.main' },
+            '& .MuiTab-root.Mui-selected': { color: 'success.main' }
           }}
         >
           <Tab
@@ -404,14 +404,14 @@ const SesionPedagogicaDetalle = () => {
         <Card elevation={3}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6" sx={{ color: '#4caf50' }}>
+              <Typography variant="h6" sx={{ color: 'success.main' }}>
                 Estudiantes Inscritos ({estudiantes.length})
               </Typography>
               <Button
                 variant="contained"
                 startIcon={<Add />}
                 onClick={handleOpenAddStudentDialog}
-                sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}
+                sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: '#388e3c' } }}
               >
                 Agregar Estudiante
               </Button>
@@ -437,7 +437,7 @@ const SesionPedagogicaDetalle = () => {
                       }
                     >
                       <ListItemAvatar>
-                        <Avatar sx={{ bgcolor: '#4caf50' }}>
+                        <Avatar sx={{ bgcolor: 'success.main' }}>
                           <Person />
                         </Avatar>
                       </ListItemAvatar>
@@ -459,7 +459,7 @@ const SesionPedagogicaDetalle = () => {
       <TabPanel value={tabValue} index={1}>
         <Card elevation={3}>
           <CardContent>
-            <Typography variant="h6" sx={{ color: '#4caf50' }} gutterBottom>
+            <Typography variant="h6" sx={{ color: 'success.main' }} gutterBottom>
               Cronograma de Clases ({cronograma.length})
             </Typography>
 
@@ -518,7 +518,7 @@ const SesionPedagogicaDetalle = () => {
           <Grid item xs={12} md={6}>
             <Card elevation={3}>
               <CardContent>
-                <Typography variant="h6" sx={{ color: '#4caf50' }} gutterBottom>
+                <Typography variant="h6" sx={{ color: 'success.main' }} gutterBottom>
                   Estadísticas de la Sesión
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -559,7 +559,7 @@ const SesionPedagogicaDetalle = () => {
           <Grid item xs={12} md={6}>
             <Card elevation={3}>
               <CardContent>
-                <Typography variant="h6" sx={{ color: '#4caf50' }} gutterBottom>
+                <Typography variant="h6" sx={{ color: 'success.main' }} gutterBottom>
                   Información Adicional
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -570,7 +570,7 @@ const SesionPedagogicaDetalle = () => {
                     <strong>Modalidad de Clases:</strong> {sesion.modalidad || 'Presencial'}
                   </Typography>
                   <Typography variant="body2">
-                    <strong>Período Académico:</strong> {sesion.periodo_academico || 'No especializado'}
+                    <strong>Período Académico:</strong> {sesion.periodo_academico || 'No especificado'}
                   </Typography>
                   <Typography variant="body2" component="div">
                     <strong>Estado General:</strong>
@@ -627,7 +627,7 @@ const SesionPedagogicaDetalle = () => {
             onClick={handleAddStudent}
             variant="contained"
             disabled={!selectedStudent}
-            sx={{ bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}
+            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: '#388e3c' } }}
           >
             Agregar
           </Button>
