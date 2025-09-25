@@ -1,7 +1,7 @@
 // src/views/tutores/TutorMain.jsx
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Container, Paper, Typography, Tabs, Tab, useTheme
+  Box, Container, Paper, Typography, Tabs, Tab, useTheme, Alert
 } from '@mui/material';
 import { FamilyRestroom, PersonAdd } from '@mui/icons-material';
 
@@ -14,6 +14,7 @@ import TutorService from '../../services/tutorService.js';
 import PersonaService from '../../services/personaService.js';
 import useSnackbar from '../../hooks/useSnackbar.js';
 import useAuth from '../../hooks/useAuth.js';
+import { useUserRole } from '../../hooks/useUserRole';
 
 // Componentes compartidos
 import CustomSnackbar from '../../components/shared/CustomSnackbar.jsx';
@@ -48,6 +49,8 @@ function a11yProps(index) {
 
 const TutorMain = () => {
   const theme = useTheme();
+  const { isAdmin, isTherapist, permissions, loading: roleLoading } = useUserRole();
+
   // Estado principal
   const [activeTab, setActiveTab] = useState(0);
   const [tutores, setTutores] = useState([]);
@@ -153,15 +156,17 @@ const TutorMain = () => {
       component: (
         <TutorLista
           tutores={tutores}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={permissions.tutores.edit ? handleEdit : null}
+          onDelete={permissions.tutores.edit ? handleDelete : null}
           onViewDetail={handleViewDetail}
-          onNewTutor={handleNewTutor}
+          onNewTutor={permissions.tutores.create ? handleNewTutor : null}
           loading={loading}
+          showFinancialInfo={isAdmin}
         />
       )
     },
-    {
+    // Solo mostrar tab de Crear/Editar si tiene permisos
+    ...(permissions.tutores.create || permissions.tutores.edit ? [{
       label: editingData ? 'Editar' : 'Crear',
       icon: <PersonAdd />,
       component: (
@@ -171,10 +176,31 @@ const TutorMain = () => {
           onSubmit={handleFormSubmit}
           onCancel={handleFormCancel}
           loading={loading}
+          showFinancialInfo={isAdmin}
         />
       )
-    }
+    }] : [])
   ];
+
+  // Verificar permisos de acceso
+  if (roleLoading) {
+    return <LoadingSpinner message="Verificando permisos..." fullHeight />;
+  }
+
+  if (!permissions.tutores.view) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Alert severity="warning" sx={{ borderRadius: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            Acceso no autorizado
+          </Typography>
+          <Typography>
+            No tienes permisos para acceder a la gestión de tutores. Solo administradores, terapeutas y pedagogos pueden acceder a esta sección.
+          </Typography>
+        </Alert>
+      </Container>
+    );
+  }
 
   if (loading) {
     return <LoadingSpinner message="Cargando tutores..." fullHeight />;

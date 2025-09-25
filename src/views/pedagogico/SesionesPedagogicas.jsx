@@ -15,6 +15,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
+import { useUserRole } from 'src/hooks/useUserRole';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 
 /* ---------- Estilos compartidos ---------- */
@@ -28,6 +29,7 @@ const purpleOutlineSX = {
 
 const SesionesPedagogicas = ({ onNavigateToCreate }) => {
   const theme = useTheme();
+  const { isAdmin } = useUserRole();
   const [sesiones, setSesiones] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);

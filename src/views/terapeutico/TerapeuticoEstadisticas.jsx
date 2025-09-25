@@ -1,19 +1,21 @@
 // src/views/terapeutico/TerapeuticoEstadisticas.jsx
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Card, CardContent, Container, Paper, Snackbar, Typography, Alert, 
+  Box, Card, CardContent, Container, Paper, Snackbar, Typography, Alert,
   Grid, Chip, LinearProgress, Divider, IconButton, Tooltip
 } from '@mui/material';
-import { 
-  BarChart, TrendingUp, Psychology, CheckCircle, Schedule, Cancel, 
+import {
+  BarChart, TrendingUp, Psychology, CheckCircle, Schedule, Cancel,
   AccessTime, AttachMoney, EventAvailable, Group, Person, Refresh,
   CalendarMonth, Timer, Assessment
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
+import { useUserRole } from 'src/hooks/useUserRole';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 
 const TerapeuticoEstadisticas = () => {
+  const { isAdmin } = useUserRole();
   const [estadisticas, setEstadisticas] = useState({
     sesiones: {
       total: 0,
@@ -247,15 +249,17 @@ const TerapeuticoEstadisticas = () => {
             />
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Ingresos Totales"
-              value={formatCurrency(estadisticas.financiero?.ingresos_totales)}
-              subtitle="Valor de contratos"
-              icon={<AttachMoney />}
-              color="warning"
-            />
-          </Grid>
+          {isAdmin && (
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Ingresos Totales"
+                value={formatCurrency(estadisticas.financiero?.ingresos_totales)}
+                subtitle="Valor de contratos"
+                icon={<AttachMoney />}
+                color="warning"
+              />
+            </Grid>
+          )}
         </Grid>
 
         {/* Métricas operacionales */}
@@ -290,15 +294,17 @@ const TerapeuticoEstadisticas = () => {
             />
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Sesiones Contratadas"
-              value={formatNumber(estadisticas.financiero?.sesiones_contratadas)}
-              subtitle="Total contratadas"
-              icon={<Assessment />}
-              color="primary"
-            />
-          </Grid>
+          {isAdmin && (
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Sesiones Contratadas"
+                value={formatNumber(estadisticas.financiero?.sesiones_contratadas)}
+                subtitle="Total contratadas"
+                icon={<Assessment />}
+                color="primary"
+              />
+            </Grid>
+          )}
         </Grid>
 
         {/* Gráficos de progreso */}
@@ -321,52 +327,54 @@ const TerapeuticoEstadisticas = () => {
         </Grid>
 
         {/* Resumen financiero */}
-        <Card sx={{ mt: 3 }}>
-          <CardContent>
-            <Typography variant="h6" fontWeight="bold" mb={3} display="flex" alignItems="center">
-              <AttachMoney sx={{ mr: 1 }} />
-              Resumen Financiero
-            </Typography>
-            
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={4}>
-                <Box textAlign="center" p={2}>
-                  <Typography variant="h4" color="success.main" fontWeight="bold">
-                    {formatCurrency(estadisticas.financiero?.ingresos_totales)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Ingresos Totales
-                  </Typography>
-                </Box>
+        {isAdmin && (
+          <Card sx={{ mt: 3 }}>
+            <CardContent>
+              <Typography variant="h6" fontWeight="bold" mb={3} display="flex" alignItems="center">
+                <AttachMoney sx={{ mr: 1 }} />
+                Resumen Financiero
+              </Typography>
+
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={4}>
+                  <Box textAlign="center" p={2}>
+                    <Typography variant="h4" color="success.main" fontWeight="bold">
+                      {formatCurrency(estadisticas.financiero?.ingresos_totales)}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Ingresos Totales
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} md={4}>
+                  <Box textAlign="center" p={2}>
+                    <Typography variant="h4" color="primary.main" fontWeight="bold">
+                      {formatNumber(estadisticas.financiero?.sesiones_contratadas)}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Sesiones Contratadas
+                    </Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} md={4}>
+                  <Box textAlign="center" p={2}>
+                    <Typography variant="h4" color="info.main" fontWeight="bold">
+                      {estadisticas.financiero?.sesiones_contratadas > 0 ?
+                        formatCurrency(estadisticas.financiero.ingresos_totales / estadisticas.financiero.sesiones_contratadas) :
+                        formatCurrency(0)
+                      }
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Precio Promedio por Sesión
+                    </Typography>
+                  </Box>
+                </Grid>
               </Grid>
-              
-              <Grid item xs={12} md={4}>
-                <Box textAlign="center" p={2}>
-                  <Typography variant="h4" color="primary.main" fontWeight="bold">
-                    {formatNumber(estadisticas.financiero?.sesiones_contratadas)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Sesiones Contratadas
-                  </Typography>
-                </Box>
-              </Grid>
-              
-              <Grid item xs={12} md={4}>
-                <Box textAlign="center" p={2}>
-                  <Typography variant="h4" color="info.main" fontWeight="bold">
-                    {estadisticas.financiero?.sesiones_contratadas > 0 ? 
-                      formatCurrency(estadisticas.financiero.ingresos_totales / estadisticas.financiero.sesiones_contratadas) :
-                      formatCurrency(0)
-                    }
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Precio Promedio por Sesión
-                  </Typography>
-                </Box>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         <Snackbar
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}

@@ -41,6 +41,39 @@ export class PacienteService {
     return extractData(response);
   }
 
+  // Pausar paciente (todas las especialidades)
+  static async pausarPacienteGeneral(pacienteId, pauseData) {
+    const response = await ApiService.put(`${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/pausar`, pauseData);
+    return extractData(response);
+  }
+
+  // Reactivar paciente
+  static async reactivarPacienteGeneral(pacienteId) {
+    const response = await ApiService.put(`${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/reactivar`, { paciente_id: pacienteId });
+    return extractData(response);
+  }
+
+  // Pausar especialidad específica
+  static async pausarEspecialidadPaciente(pacienteId, especialidadId, pauseData) {
+    const response = await ApiService.put(`${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/especialidades-multiples/${especialidadId}/pausar`, pauseData);
+    return extractData(response);
+  }
+
+  // Reactivar especialidad específica
+  static async reactivarEspecialidadPaciente(pacienteId, especialidadId) {
+    const response = await ApiService.put(`${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/especialidades-multiples/${especialidadId}/reactivar`, {
+      paciente_id: pacienteId,
+      especialidad_id: especialidadId
+    });
+    return extractData(response);
+  }
+
+  // Obtener pacientes pausados
+  static async getPacientesPausados() {
+    const response = await ApiService.get(`${API_ENDPOINTS.PACIENTES.BASE}/pausados`);
+    return extractData(response);
+  }
+
   // Validar datos de paciente
   static validatePacienteData(data) {
     const errors = {};
@@ -147,12 +180,25 @@ export class PacienteService {
     return [
       { value: 'activo', label: 'Activo' },
       { value: 'completado', label: 'Completado' },
-      { value: 'suspendido', label: 'Suspendido' }
+      { value: 'suspendido', label: 'Suspendido' },
+      { value: 'pausado', label: 'Pausado' }
+    ];
+  }
+
+  // Obtener estados de pausa
+  static getEstadosPausa() {
+    return [
+      { value: 'activo', label: 'Activo' },
+      { value: 'pausado', label: 'Pausado' }
     ];
   }
 
   // Obtener estado con color para UI
   static getEstadoInfo(estado) {
+    if (!estado) {
+      return { label: 'Sin estado', color: 'default' };
+    }
+
     const estadoMap = {
       activo: { label: 'Activo', color: 'success' },
       inactivo: { label: 'Inactivo', color: 'error' },
@@ -169,10 +215,93 @@ export class PacienteService {
     const estadoMap = {
       activo: { label: 'Activo', color: 'success' },
       completado: { label: 'Completado', color: 'info' },
-      suspendido: { label: 'Suspendido', color: 'warning' }
+      suspendido: { label: 'Suspendido', color: 'warning' },
+      pausado: { label: 'Pausado', color: 'error' }
     };
 
     return estadoMap[estadoTratamiento] || { label: estadoTratamiento, color: 'default' };
+  }
+
+  // Obtener estado de pausa con color para UI
+  static getEstadoPausaInfo(estadoPausa) {
+    const estadoMap = {
+      activo: { label: 'Activo', color: 'success' },
+      pausado: { label: 'Pausado', color: 'error' }
+    };
+
+    return estadoMap[estadoPausa] || { label: estadoPausa, color: 'default' };
+  }
+
+  // Verificar si un paciente está pausado
+  static isPacientePausado(paciente) {
+    if (!paciente) {
+      return { pausado: false };
+    }
+
+    // Verificar si está pausado generalmente
+    if (paciente.fecha_inicio_pausa || paciente.estado === 'pausado') {
+      return {
+        pausado: true,
+        tipo: 'general',
+        motivo: paciente.motivo_pausa || paciente.motivo_pausa_general
+      };
+    }
+
+    // Verificar especialidades pausadas
+    if (paciente.especialidades && paciente.especialidades.length > 0) {
+      const especialidadesPausadas = paciente.especialidades.filter(esp =>
+        esp.estado_pausa === 'pausado_especialidad' || esp.estado_pausa === 'pausado_general'
+      );
+      if (especialidadesPausadas.length > 0) {
+        return {
+          pausado: true,
+          tipo: 'especialidad',
+          especialidades_pausadas: especialidadesPausadas.length,
+          detalles: especialidadesPausadas
+        };
+      }
+    }
+
+    return { pausado: false, tipo: 'activo' };
+  }
+
+  // Validar datos de pausa
+  static validatePauseData(data) {
+    const errors = {};
+
+    if (!data.fecha_inicio_pausa) {
+      errors.fecha_inicio_pausa = 'La fecha de inicio de pausa es requerida';
+    }
+
+    // Validar que la fecha de inicio no sea futura
+    if (data.fecha_inicio_pausa) {
+      const fechaInicio = new Date(data.fecha_inicio_pausa);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      if (fechaInicio > hoy) {
+        errors.fecha_inicio_pausa = 'La fecha de inicio no puede ser futura';
+      }
+    }
+
+    // Validar fecha de fin si se proporciona
+    if (data.fecha_fin_pausa && data.fecha_inicio_pausa) {
+      const fechaInicio = new Date(data.fecha_inicio_pausa);
+      const fechaFin = new Date(data.fecha_fin_pausa);
+
+      if (fechaFin <= fechaInicio) {
+        errors.fecha_fin_pausa = 'La fecha de fin debe ser posterior a la fecha de inicio';
+      }
+    }
+
+    if (!data.motivo_pausa?.trim()) {
+      errors.motivo_pausa = 'El motivo de la pausa es requerido';
+    }
+
+    return {
+      isValid: Object.keys(errors).length === 0,
+      errors
+    };
   }
 
   // Generar nombre completo

@@ -23,6 +23,7 @@ import {
 import { Add, Psychology } from '@mui/icons-material';
 // import { useNavigate } from 'react-router-dom';
 // import { useAuth } from 'src/contexts/AuthContext';
+import { useUserRole } from 'src/hooks/useUserRole';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 import TerapeutaSelector from '../../components/shared/TerapeutaSelector.jsx';
 import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
@@ -84,6 +85,7 @@ const menuProps = {
 
 const CrearSesionTerapeutica = ({ onSessionCreated }) => {
   const theme = useTheme();
+  const { isAdmin } = useUserRole();
   const [pacientesDisponibles, setPacientesDisponibles] = useState([]);
   const [terapeutasDisponibles, setTerapeutasDisponibles] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
@@ -231,7 +233,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
     if (!formData.numero_sesiones_contratadas || formData.numero_sesiones_contratadas < 1) {
       newErrors.numero_sesiones_contratadas = 'Número de sesiones debe ser mayor a 0';
     }
-    if (formData.costo_total === '' || formData.costo_total < 0) {
+    if (isAdmin && (formData.costo_total === '' || formData.costo_total < 0)) {
       newErrors.costo_total = 'Costo total debe ser mayor o igual a 0';
     }
 
@@ -275,8 +277,10 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
         hora_inicio: formData.hora_inicio,
         duracion_minutos: parseInt(formData.duracion_minutos),
         numero_sesiones_contratadas: parseInt(formData.numero_sesiones_contratadas),
-        costo_total: parseFloat(formData.costo_total),
-        costo_sesion: Math.round((parseFloat(formData.costo_total) / parseInt(formData.numero_sesiones_contratadas)) * 100) / 100,
+        ...(isAdmin && {
+          costo_total: parseFloat(formData.costo_total),
+          costo_sesion: Math.round((parseFloat(formData.costo_total) / parseInt(formData.numero_sesiones_contratadas)) * 100) / 100,
+        }),
         meses_contrato: formData.meses_contrato ? parseInt(formData.meses_contrato) : null,
         estado: formData.estado,
         observaciones: formData.observaciones?.trim() || null,
@@ -609,20 +613,22 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Costo Total"
-                    name="costo_total"
-                    value={formData.costo_total}
-                    onChange={handleChange}
-                    error={!!errors.costo_total}
-                    helperText={errors.costo_total}
-                    inputProps={{ min: 0, step: 0.01 }}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
+                {isAdmin && (
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Costo Total"
+                      name="costo_total"
+                      value={formData.costo_total}
+                      onChange={handleChange}
+                      error={!!errors.costo_total}
+                      helperText={errors.costo_total}
+                      inputProps={{ min: 0, step: 0.01 }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                )}
 
                 <Grid item xs={12}>
                   <TextField

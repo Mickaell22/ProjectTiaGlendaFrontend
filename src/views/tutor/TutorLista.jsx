@@ -46,7 +46,8 @@ const TutorLista = ({
   onDelete,
   onViewDetail,
   onNewTutor,
-  loading = false
+  loading = false,
+  showFinancialInfo = false
 }) => {
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
@@ -138,14 +139,16 @@ const TutorLista = ({
             }}
           />
 
-          <Button
-            variant="contained"
-            startIcon={<PersonAdd />}
-            onClick={onNewTutor}
-            sx={{ height: 40, px: 2 }}
-          >
-            Nuevo Tutor
-          </Button>
+          {onNewTutor && (
+            <Button
+              variant="contained"
+              startIcon={<PersonAdd />}
+              onClick={onNewTutor}
+              sx={{ height: 40, px: 2 }}
+            >
+              Nuevo Tutor
+            </Button>
+          )}
         </Box>
 
         <>
@@ -176,7 +179,7 @@ const TutorLista = ({
                             ? 'Intenta con otros términos de búsqueda'
                             : 'Comienza agregando el primer tutor al sistema'}
                         </Typography>
-                        {!searchTerm && (
+                        {!searchTerm && onNewTutor && (
                           <Button
                             variant="contained"
                             startIcon={<PersonAdd />}
@@ -250,16 +253,20 @@ const TutorLista = ({
                                 <Visibility fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Editar">
-                              <IconButton color="primary" onClick={() => onEdit(t)} size="small">
-                                <Edit fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Eliminar">
-                              <IconButton color="error" onClick={() => onDelete(t.id)} size="small">
-                                <Delete fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
+                            {onEdit && (
+                              <Tooltip title="Editar">
+                                <IconButton color="primary" onClick={() => onEdit(t)} size="small">
+                                  <Edit fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                            {onDelete && (
+                              <Tooltip title="Eliminar">
+                                <IconButton color="error" onClick={() => onDelete(t.id)} size="small">
+                                  <Delete fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
                           </Box>
                         </TableCell>
                       </TableRow>

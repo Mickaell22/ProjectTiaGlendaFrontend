@@ -15,6 +15,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
+import { useUserRole } from 'src/hooks/useUserRole';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 
 /* ---------- Estilos compartidos (como TutorLista) ---------- */
@@ -28,6 +29,7 @@ const purpleOutlineSX = {
 
 const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
   const theme = useTheme();
+  const { isAdmin } = useUserRole();
   const [sesiones, setSesiones] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
@@ -810,21 +812,23 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                 </Typography>
               </Grid>
 
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="primary">Información Financiera</Typography>
-                <Typography variant="body2">
-                  <strong>Sesiones Contratadas:</strong> {detailDialog.data.numero_sesiones_contratadas}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Costo Total:</strong> ${detailDialog.data.costo_total}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Costo por Sesión:</strong> ${detailDialog.data.costo_por_sesion}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Meses de Contrato:</strong> {detailDialog.data.meses_contrato}
-                </Typography>
-              </Grid>
+              {isAdmin && (
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" color="primary">Información Financiera</Typography>
+                  <Typography variant="body2">
+                    <strong>Sesiones Contratadas:</strong> {detailDialog.data.numero_sesiones_contratadas}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Costo Total:</strong> ${detailDialog.data.costo_total}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Costo por Sesión:</strong> ${detailDialog.data.costo_por_sesion}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Meses de Contrato:</strong> {detailDialog.data.meses_contrato}
+                  </Typography>
+                </Grid>
+              )}
 
               {detailDialog.data.observaciones && (
                 <Grid item xs={12}>

@@ -51,13 +51,14 @@ const SidebarItems = () => {
     // IDs permitidos para terapeutas
     const therapistAllowedSections = [
       'Panel Principal',
+      'Pacientes y Tutores',
       'Área Clínica y Educativa',
       'Mi Cuenta'
     ];
 
     const therapistAllowedItems = [
       'Dashboard',
-      'Pacientes y Estudiantes',
+      'Pacientes y Tutores',
       'Área Terapéutica',
       'Mi Perfil',
       'Cerrar Sesión'
@@ -66,13 +67,14 @@ const SidebarItems = () => {
     // IDs permitidos para pedagogos
     const pedagogueAllowedSections = [
       'Panel Principal',
+      'Pacientes y Tutores',
       'Área Clínica y Educativa',
       'Mi Cuenta'
     ];
 
     const pedagogueAllowedItems = [
       'Dashboard',
-      'Pacientes y Estudiantes',
+      'Pacientes y Tutores',
       'Área Pedagógica',
       'Mi Perfil',
       'Cerrar Sesión'

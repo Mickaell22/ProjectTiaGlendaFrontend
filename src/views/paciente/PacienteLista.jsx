@@ -32,11 +32,16 @@ import {
   Description,
   Person,
   LocalHospital,
-  CalendarToday
+  CalendarToday,
+  Pause,
+  PlayArrow
 } from '@mui/icons-material';
 import { CircularProgress } from '@mui/material';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useNavigate } from 'react-router-dom';
+import PauseDialog from '../../components/Pacientes/PauseDialog';
+import ResumeDialog from '../../components/Pacientes/ResumeDialog';
+import PacienteService from '../../services/pacienteService';
 
 /* ---------------- Helpers ---------------- */
 const purpleOutlineSX = {
@@ -185,6 +190,8 @@ const PacienteLista = ({
   onDelete,
   onViewDetail,
   onNewPatient,
+  onPauseSuccess,
+  showFinancialInfo = false,
   loading = false,
   loadingDetails = false
 }) => {
@@ -192,8 +199,21 @@ const PacienteLista = ({
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
+  const [filterPausa, setFilterPausa] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Pause dialog states
+  const [pauseDialog, setPauseDialog] = useState({
+    open: false,
+    paciente: null,
+    especialidadId: null
+  });
+  const [resumeDialog, setResumeDialog] = useState({
+    open: false,
+    paciente: null,
+    especialidadId: null
+  });
 
   const handleDocs = (paciente) => {
     navigate(`/pacientes/${paciente.id}/documentos`);
@@ -209,8 +229,57 @@ const PacienteLista = ({
     }
   };
 
-  // Filtrar pacientes (búsqueda + estado)
+  // Pause/Resume handlers
+  const handlePauseClick = (paciente, especialidadId = null) => {
+    setPauseDialog({
+      open: true,
+      paciente,
+      especialidadId
+    });
+  };
+
+  const handleResumeClick = (paciente, especialidadId = null) => {
+    setResumeDialog({
+      open: true,
+      paciente,
+      especialidadId
+    });
+  };
+
+  const handlePauseSuccess = (result) => {
+    console.log('Pause successful:', result);
+    if (onPauseSuccess) {
+      onPauseSuccess(result);
+    }
+  };
+
+  const handleResumeSuccess = (result) => {
+    console.log('Resume successful:', result);
+    if (onPauseSuccess) {
+      onPauseSuccess(result);
+    }
+  };
+
+  const closePauseDialog = () => {
+    setPauseDialog({
+      open: false,
+      paciente: null,
+      especialidadId: null
+    });
+  };
+
+  const closeResumeDialog = () => {
+    setResumeDialog({
+      open: false,
+      paciente: null,
+      especialidadId: null
+    });
+  };
+
+  // Filtrar pacientes (búsqueda + estado + pausa)
   let filteredPacientes = (pacientes || []).filter((p) => {
+    // Validar que el paciente no sea null o undefined
+    if (!p) return false;
     const searchOk =
       !searchTerm ||
       normalize(p.nombre_completo).includes(normalize(searchTerm)) ||
@@ -224,7 +293,16 @@ const PacienteLista = ({
       (filterEstado === 'inactivo' && estado === 'inactivo') ||
       (filterEstado === 'finalizado' && estado === 'finalizado');
 
-    return searchOk && estadoOk;
+    // Filter by pause status
+    const pauseStatus = PacienteService.isPacientePausado(p);
+    const pausaOk =
+      !filterPausa ||
+      (filterPausa === 'activo' && !pauseStatus.pausado) ||
+      (filterPausa === 'pausado' && pauseStatus.pausado) ||
+      (filterPausa === 'general' && pauseStatus.pausado && pauseStatus.tipo === 'general') ||
+      (filterPausa === 'especialidad' && pauseStatus.pausado && pauseStatus.tipo === 'especialidad');
+
+    return searchOk && estadoOk && pausaOk;
   });
 
   return (
@@ -303,14 +381,14 @@ const PacienteLista = ({
             }}
           />
 
-          <FormControl size="small" sx={{ ...purpleOutlineSX, width: 180 }}>
+          <FormControl size="small" sx={{ ...purpleOutlineSX, width: 160 }}>
             <Select
               value={filterEstado}
               onChange={(e) => setFilterEstado(e.target.value)}
               displayEmpty
               renderValue={(val) =>
                 val === ''
-                  ? 'Todos'
+                  ? 'Estado'
                   : val === 'activo'
                   ? 'Activo'
                   : val === 'inactivo'
@@ -318,22 +396,49 @@ const PacienteLista = ({
                   : 'Finalizado'
               }
             >
-              <MenuItem value="">Todos</MenuItem>
+              <MenuItem value="">Todos los Estados</MenuItem>
               <MenuItem value="activo">Activo</MenuItem>
               <MenuItem value="inactivo">Inactivo</MenuItem>
               <MenuItem value="finalizado">Finalizado</MenuItem>
             </Select>
           </FormControl>
 
-          <Button
-            variant="contained"
-            startIcon={<PersonAdd />}
-            onClick={onNewPatient}
-            sx={{ height: 40, px: 2 }}
-            disabled={loading}
-          >
-            Nuevo Paciente
-          </Button>
+          <FormControl size="small" sx={{ ...purpleOutlineSX, width: 160 }}>
+            <Select
+              value={filterPausa}
+              onChange={(e) => setFilterPausa(e.target.value)}
+              displayEmpty
+              renderValue={(val) =>
+                val === ''
+                  ? 'Pausa'
+                  : val === 'activo'
+                  ? 'Activos'
+                  : val === 'pausado'
+                  ? 'Pausados'
+                  : val === 'general'
+                  ? 'Pausa General'
+                  : 'Pausa Especialidad'
+              }
+            >
+              <MenuItem value="">Todos</MenuItem>
+              <MenuItem value="activo">Solo Activos</MenuItem>
+              <MenuItem value="pausado">Solo Pausados</MenuItem>
+              <MenuItem value="general">Pausa General</MenuItem>
+              <MenuItem value="especialidad">Pausa Especialidad</MenuItem>
+            </Select>
+          </FormControl>
+
+          {onNewPatient && (
+            <Button
+              variant="contained"
+              startIcon={<PersonAdd />}
+              onClick={onNewPatient}
+              sx={{ height: 40, px: 2 }}
+              disabled={loading}
+            >
+              Nuevo Paciente
+            </Button>
+          )}
         </Box>
 
         {/* Tabla con scroll horizontal y ancho mínimo para que quepan las acciones */}
@@ -344,8 +449,9 @@ const PacienteLista = ({
                 <TableCell>Paciente</TableCell>
                 <TableCell>Cédula</TableCell>
                 <TableCell>Tutor</TableCell>
+                <TableCell>Estado</TableCell>
                 <TableCell>Fecha Ingreso</TableCell>
-                <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 260 }}>
+                <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 320 }}>
                   Acciones
                 </TableCell>
               </TableRow>
@@ -353,7 +459,7 @@ const PacienteLista = ({
             <TableBody>
               {filteredPacientes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                     <Box>
                       <Search sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
                       <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -364,7 +470,7 @@ const PacienteLista = ({
                           ? 'Intenta con otros términos de búsqueda'
                           : 'Comienza agregando el primer paciente al sistema'}
                       </Typography>
-                      {!searchTerm && (
+                      {!searchTerm && onNewPatient && (
                         <Button
                           variant="contained"
                           startIcon={<PersonAdd />}
@@ -410,6 +516,33 @@ const PacienteLista = ({
                         </Typography>
                       </TableCell>
 
+                      {/* Estado */}
+                      <TableCell>
+                        {(() => {
+                          const pauseStatus = PacienteService.isPacientePausado(p);
+                          if (pauseStatus.pausado) {
+                            return (
+                              <Chip
+                                label={pauseStatus.tipo === 'general' ? 'Pausado General' : `${pauseStatus.especialidades_pausadas} Esp. Pausadas`}
+                                color="error"
+                                size="small"
+                                variant="outlined"
+                              />
+                            );
+                          } else {
+                            const estadoInfo = PacienteService.getEstadoInfo(p?.estado);
+                            return (
+                              <Chip
+                                label={estadoInfo?.label || 'Sin estado'}
+                                color={estadoInfo?.color || 'default'}
+                                size="small"
+                                variant="outlined"
+                              />
+                            );
+                          }
+                        })()}
+                      </TableCell>
+
                       {/* Fecha Ingreso */}
                       <TableCell>
                         <Box display="flex" alignItems="center">
@@ -421,7 +554,7 @@ const PacienteLista = ({
                       </TableCell>
 
                       {/* Acciones */}
-                      <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 260 }}>
+                      <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 320 }}>
                         <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'nowrap' }}>
                           <Tooltip title="Ver Detalles">
                             <IconButton
@@ -437,16 +570,51 @@ const PacienteLista = ({
                               )}
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Editar">
-                            <IconButton color="primary" onClick={() => onEdit(p)} size="small">
-                              <Edit fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Eliminar">
-                            <IconButton color="error" onClick={() => onDelete(p.id)} size="small">
-                              <Delete fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          {onEdit && (
+                            <Tooltip title="Editar">
+                              <IconButton color="primary" onClick={() => onEdit(p)} size="small">
+                                <Edit fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+
+                          {/* Pause/Resume buttons */}
+                          {(() => {
+                            const pauseStatus = PacienteService.isPacientePausado(p);
+                            if (pauseStatus.pausado) {
+                              return (
+                                <Tooltip title="Reactivar Tratamiento">
+                                  <IconButton
+                                    color="success"
+                                    onClick={() => handleResumeClick(p)}
+                                    size="small"
+                                  >
+                                    <PlayArrow fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              );
+                            } else {
+                              return (
+                                <Tooltip title="Pausar Tratamiento">
+                                  <IconButton
+                                    color="warning"
+                                    onClick={() => handlePauseClick(p)}
+                                    size="small"
+                                  >
+                                    <Pause fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              );
+                            }
+                          })()}
+
+                          {onDelete && (
+                            <Tooltip title="Eliminar">
+                              <IconButton color="error" onClick={() => onDelete(p.id)} size="small">
+                                <Delete fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                           <Tooltip title="Documentos">
                             <IconButton color="info" onClick={() => handleDocs(p)} size="small">
                               <Description fontSize="small" />
@@ -485,6 +653,24 @@ const PacienteLista = ({
           }
         />
       </CardContent>
+
+      {/* Pause Dialog */}
+      <PauseDialog
+        open={pauseDialog.open}
+        onClose={closePauseDialog}
+        paciente={pauseDialog.paciente}
+        especialidadId={pauseDialog.especialidadId}
+        onPauseSuccess={handlePauseSuccess}
+      />
+
+      {/* Resume Dialog */}
+      <ResumeDialog
+        open={resumeDialog.open}
+        onClose={closeResumeDialog}
+        paciente={resumeDialog.paciente}
+        especialidadId={resumeDialog.especialidadId}
+        onResumeSuccess={handleResumeSuccess}
+      />
     </Card>
   );
 };

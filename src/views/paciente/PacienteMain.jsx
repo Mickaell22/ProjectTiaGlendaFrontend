@@ -176,16 +176,18 @@ const PacienteMain = () => {
       component: (
         <PacienteLista
           pacientes={pacientes}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={permissions.pacientes.edit ? handleEdit : null}
+          onDelete={permissions.pacientes.edit ? handleDelete : null}
           onViewDetail={handleViewDetail}
-          onNewPatient={handleNewPatient}
+          onNewPatient={permissions.pacientes.create ? handleNewPatient : null}
           loading={loading}
           loadingDetails={loadingDetails}
+          showFinancialInfo={isAdmin}
         />
       )
     },
-    {
+    // Solo mostrar tab de Crear/Editar si tiene permisos
+    ...(permissions.pacientes.create || permissions.pacientes.edit ? [{
       label: editingData ? 'Editar' : 'Crear',
       icon: <PersonAdd />,
       component: (
@@ -195,9 +197,10 @@ const PacienteMain = () => {
           onSubmit={handleFormSubmit}
           onCancel={handleFormCancel}
           loading={loading}
+          showFinancialInfo={isAdmin}
         />
       )
-    }
+    }] : [])
   ];
 
   // Verificar permisos de acceso después de todos los hooks

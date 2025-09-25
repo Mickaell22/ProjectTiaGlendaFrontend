@@ -21,6 +21,7 @@ import {
   useTheme
 } from '@mui/material';
 import { Add, School } from '@mui/icons-material';
+import { useUserRole } from 'src/hooks/useUserRole';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 import PedagogoSelector from '../../components/shared/PedagogoSelector.jsx';
 import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
@@ -82,6 +83,7 @@ const menuProps = {
 
 const CrearSesionPedagogica = () => {
   const theme = useTheme();
+  const { isAdmin } = useUserRole();
   const [estudiantesDisponibles, setEstudiantesDisponibles] = useState([]);
   const [pedagogosDisponibles, setPedagogosDisponibles] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
@@ -235,7 +237,7 @@ const CrearSesionPedagogica = () => {
     if (!formData.numero_clases_programadas || formData.numero_clases_programadas < 1) {
       newErrors.numero_clases_programadas = 'Número de clases debe ser mayor a 0';
     }
-    if (formData.costo_total < 0) {
+    if (isAdmin && formData.costo_total < 0) {
       newErrors.costo_total = 'Costo total debe ser mayor o igual a 0';
     }
     if (!formData.capacidad_maxima || formData.capacidad_maxima < 1) {
@@ -270,8 +272,10 @@ const CrearSesionPedagogica = () => {
         hora_inicio: formData.hora_inicio,
         duracion_minutos: parseInt(formData.duracion_minutos),
         numero_clases_programadas: parseInt(formData.numero_clases_programadas),
-        costo_total: parseFloat(formData.costo_total),
-        costo_por_clase: Math.round((parseFloat(formData.costo_total) / parseInt(formData.numero_clases_programadas)) * 100) / 100,
+        ...(isAdmin && {
+          costo_total: parseFloat(formData.costo_total),
+          costo_por_clase: Math.round((parseFloat(formData.costo_total) / parseInt(formData.numero_clases_programadas)) * 100) / 100
+        }),
         nivel_academico: formData.nivel_academico,
         modalidad: formData.modalidad,
         capacidad_maxima: parseInt(formData.capacidad_maxima),
@@ -649,20 +653,22 @@ const CrearSesionPedagogica = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Costo Total"
-                    name="costo_total"
-                    value={formData.costo_total}
-                    onChange={handleChange}
-                    error={!!errors.costo_total}
-                    helperText={errors.costo_total}
-                    inputProps={{ min: 0, step: 0.01 }}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
+                {isAdmin && (
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Costo Total"
+                      name="costo_total"
+                      value={formData.costo_total}
+                      onChange={handleChange}
+                      error={!!errors.costo_total}
+                      helperText={errors.costo_total}
+                      inputProps={{ min: 0, step: 0.01 }}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                )}
 
                 <Grid item xs={12}>
                   <TextField

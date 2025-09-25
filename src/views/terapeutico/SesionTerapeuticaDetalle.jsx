@@ -15,6 +15,7 @@ import {
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
+import { useUserRole } from 'src/hooks/useUserRole';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 import { formatDateLocal } from 'src/utils/dateUtils';
 
@@ -71,6 +72,7 @@ const SesionTerapeuticaDetalle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isAdmin } = useUserRole();
   const theme = useTheme();
 
   const [tabValue, setTabValue] = useState(0);
@@ -437,20 +439,22 @@ const SesionTerapeuticaDetalle = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" color="primary" mb={2}>
-                  Información Financiera
-                </Typography>
-                <Box sx={{ '& > *': { mb: 1 } }}>
-                  <Typography><strong>Costo total:</strong> ${sesion.costo_total}</Typography>
-                  <Typography><strong>Costo por sesión:</strong> ${sesion.costo_por_sesion}</Typography>
-                  <Typography><strong>Meses de contrato:</strong> {sesion.meses_contrato}</Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
+          {isAdmin && (
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" color="primary" mb={2}>
+                    Información Financiera
+                  </Typography>
+                  <Box sx={{ '& > *': { mb: 1 } }}>
+                    <Typography><strong>Costo total:</strong> ${sesion.costo_total}</Typography>
+                    <Typography><strong>Costo por sesión:</strong> ${sesion.costo_por_sesion}</Typography>
+                    <Typography><strong>Meses de contrato:</strong> {sesion.meses_contrato}</Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
 
           {sesion.observaciones && (
             <Grid item xs={12}>
