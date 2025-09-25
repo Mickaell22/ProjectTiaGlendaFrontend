@@ -11,14 +11,23 @@ import {
   Divider,
   Card,
   CardContent,
-  useTheme
+  useTheme,
+  Chip,
+  IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  OutlinedInput
 } from '@mui/material';
 import {
   PersonAdd,
   Edit,
   LocalHospital,
   CalendarToday,
-  Assignment
+  Assignment,
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Star as StarIcon
 } from '@mui/icons-material';
 
 import PacienteService from '../../services/pacienteService.js';
@@ -82,12 +91,9 @@ const PacienteFormulario = ({
   const [formData, setFormData] = useState({
     persona_id: '',
     tutor_id: '',
-    especialidad_id: '',
+    especialidades: [], // Array de especialidades
     fecha_ingreso: getCurrentDateForInput(),
-    fecha_inicio_tratamiento: getCurrentDateForInput(),
-    fecha_fin_tratamiento: '',
     estado_tratamiento: 'activo',
-    observaciones_tratamiento: '',
     observaciones: ''
   });
   const [errors, setErrors] = useState({});
@@ -103,21 +109,28 @@ const PacienteFormulario = ({
   /* ---------- Effects ---------- */
   useEffect(() => {
     if (editingData) {
+      // Formatear especialidades del backend
+      const especialidadesList = editingData.especialidades || [];
+
       setFormData({
         persona_id: editingData.persona_id || '',
         tutor_id: editingData.tutor_id || '',
-        especialidad_id: editingData.especialidad_id || '',
+        especialidades: especialidadesList.map(esp => ({
+          id_especialidad: esp.id_especialidad,
+          es_principal: esp.es_principal || false,
+          prioridad: esp.prioridad || 'media',
+          fecha_inicio_tratamiento: esp.fecha_inicio_tratamiento
+            ? esp.fecha_inicio_tratamiento.split('T')[0]
+            : getCurrentDateForInput(),
+          fecha_fin_tratamiento: esp.fecha_fin_tratamiento
+            ? esp.fecha_fin_tratamiento.split('T')[0]
+            : '',
+          observaciones: esp.observaciones || ''
+        })),
         fecha_ingreso: editingData.fecha_ingreso
           ? editingData.fecha_ingreso.split('T')[0]
           : getCurrentDateForInput(),
-        fecha_inicio_tratamiento: editingData.fecha_inicio_tratamiento
-          ? editingData.fecha_inicio_tratamiento.split('T')[0]
-          : getCurrentDateForInput(),
-        fecha_fin_tratamiento: editingData.fecha_fin_tratamiento
-          ? editingData.fecha_fin_tratamiento.split('T')[0]
-          : '',
         estado_tratamiento: editingData.estado_tratamiento || 'activo',
-        observaciones_tratamiento: editingData.observaciones_tratamiento || '',
         observaciones: editingData.observaciones || ''
       });
 
@@ -145,17 +158,66 @@ const PacienteFormulario = ({
     setFormData({
       persona_id: '',
       tutor_id: '',
-      especialidad_id: '',
+      especialidades: [],
       fecha_ingreso: getCurrentDateForInput(),
-      fecha_inicio_tratamiento: getCurrentDateForInput(),
-      fecha_fin_tratamiento: '',
       estado_tratamiento: 'activo',
-      observaciones_tratamiento: '',
       observaciones: ''
     });
     setErrors({});
     setPersonaEncontrada(null);
     setTutorEncontrado(null);
+  };
+
+  // Handlers para especialidades múltiples
+  const agregarEspecialidad = () => {
+    const nuevaEspecialidad = {
+      id_especialidad: '',
+      es_principal: formData.especialidades.length === 0, // Primera especialidad es principal
+      prioridad: 'media',
+      fecha_inicio_tratamiento: getCurrentDateForInput(),
+      fecha_fin_tratamiento: '',
+      observaciones: ''
+    };
+
+    setFormData(prev => ({
+      ...prev,
+      especialidades: [...prev.especialidades, nuevaEspecialidad]
+    }));
+  };
+
+  const removerEspecialidad = (index) => {
+    const nuevasEspecialidades = formData.especialidades.filter((_, i) => i !== index);
+
+    // Si removemos la principal, hacer principal la primera disponible
+    if (formData.especialidades[index].es_principal && nuevasEspecialidades.length > 0) {
+      nuevasEspecialidades[0].es_principal = true;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      especialidades: nuevasEspecialidades
+    }));
+  };
+
+  const actualizarEspecialidad = (index, campo, valor) => {
+    const nuevasEspecialidades = [...formData.especialidades];
+    nuevasEspecialidades[index][campo] = valor;
+
+    // Si se marca como principal, quitar principal de las demás
+    if (campo === 'es_principal' && valor === true) {
+      nuevasEspecialidades.forEach((esp, i) => {
+        if (i !== index) esp.es_principal = false;
+      });
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      especialidades: nuevasEspecialidades
+    }));
+  };
+
+  const marcarComoPrincipal = (index) => {
+    actualizarEspecialidad(index, 'es_principal', true);
   };
 
   const handleChange = (e) => {
@@ -196,44 +258,73 @@ const PacienteFormulario = ({
   };
 
   const validateForm = () => {
-    const backendData = PacienteService.formatForBackend(formData);
-    const validation = PacienteService.validatePacienteData(backendData);
+    const errors = {};
 
     if (!formData.persona_id)
-      validation.errors.persona_id = 'Debe seleccionar una persona';
+      errors.persona_id = 'Debe seleccionar una persona';
     if (!formData.tutor_id)
-      validation.errors.tutor_id = 'Debe seleccionar un tutor';
-    if (!formData.especialidad_id)
-      validation.errors.especialidad_id = 'Debe seleccionar una especialidad';
+      errors.tutor_id = 'Debe seleccionar un tutor';
     if (!formData.fecha_ingreso)
-      validation.errors.fecha_ingreso = 'Debe especificar la fecha de ingreso';
-    if (!formData.fecha_inicio_tratamiento)
-      validation.errors.fecha_inicio_tratamiento =
-        'Debe especificar la fecha de inicio del tratamiento';
+      errors.fecha_ingreso = 'Debe especificar la fecha de ingreso';
 
-    setErrors(validation.errors);
-    return (
-      validation.isValid &&
-      !validation.errors.persona_id &&
-      !validation.errors.tutor_id &&
-      !validation.errors.especialidad_id
-    );
+    // Validar especialidades
+    if (formData.especialidades.length === 0) {
+      errors.especialidades = 'Debe agregar al menos una especialidad';
+    } else {
+      // Validar cada especialidad
+      let hasErrors = false;
+      formData.especialidades.forEach((esp, index) => {
+        if (!esp.id_especialidad) {
+          errors[`especialidad_${index}`] = 'Debe seleccionar una especialidad';
+          hasErrors = true;
+        }
+      });
+
+      // Verificar que hay al menos una especialidad principal
+      const tieneEspecialidadPrincipal = formData.especialidades.some(esp => esp.es_principal);
+      if (!tieneEspecialidadPrincipal && formData.especialidades.length > 0) {
+        errors.especialidades = 'Debe marcar al menos una especialidad como principal';
+        hasErrors = true;
+      }
+    }
+
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const buildPayload = (isEdit) => {
     const usuarioId = getUsuarioId();
+
+    // Para compatibilidad con el backend actual, usar la especialidad principal como especialidad_id
+    const especialidadPrincipal = formData.especialidades.find(esp => esp.es_principal);
+
     const payload = {
       persona_id: parseInt(formData.persona_id, 10),
       tutor_id: parseInt(formData.tutor_id, 10),
-      especialidad_id: parseInt(formData.especialidad_id, 10),
+      especialidad_id: especialidadPrincipal ? parseInt(especialidadPrincipal.id_especialidad, 10) : null,
       fecha_ingreso: formData.fecha_ingreso || null,
-      fecha_inicio_tratamiento: formData.fecha_inicio_tratamiento || null,
-      fecha_fin_tratamiento: formData.fecha_fin_tratamiento || null,
+      fecha_inicio_tratamiento: especialidadPrincipal?.fecha_inicio_tratamiento || null,
+      fecha_fin_tratamiento: especialidadPrincipal?.fecha_fin_tratamiento || null,
       estado_tratamiento: formData.estado_tratamiento || 'activo',
-      observaciones_tratamiento: formData.observaciones_tratamiento || '',
-      observaciones: formData.observaciones || ''
+      observaciones_tratamiento: especialidadPrincipal?.observaciones || '',
+      observaciones: formData.observaciones || '',
+
+      // Incluir todas las especialidades para el backend
+      especialidades: formData.especialidades.map(esp => ({
+        id_especialidad: parseInt(esp.id_especialidad, 10),
+        es_principal: esp.es_principal,
+        prioridad: esp.prioridad || 'media',
+        fecha_inicio_tratamiento: esp.fecha_inicio_tratamiento || null,
+        fecha_fin_tratamiento: esp.fecha_fin_tratamiento || null,
+        observaciones: esp.observaciones || ''
+      }))
     };
-    if (!isEdit && usuarioId) payload.created_by = usuarioId;
+
+    if (!isEdit && usuarioId) {
+      payload.created_by = usuarioId;
+      payload.usuario_creacion = usuarioId;
+    }
+
     return payload;
   };
 
@@ -258,9 +349,9 @@ const PacienteFormulario = ({
   const canSubmit =
     !!formData.persona_id &&
     !!formData.tutor_id &&
-    !!formData.especialidad_id &&
-    !!formData.fecha_ingreso &&
-    !!formData.fecha_inicio_tratamiento;
+    formData.especialidades.length > 0 &&
+    formData.especialidades.every(esp => esp.id_especialidad) &&
+    !!formData.fecha_ingreso;
 
   return (
     <Box>
@@ -359,30 +450,147 @@ const PacienteFormulario = ({
                 )}
               </Box>
 
-              {/* Especialidad */}
-              <Box sx={rowGridSX}>
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Especialidad Asignada <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
-                </Typography>
-                <TextField
-                  select
-                  fullWidth
-                  name="especialidad_id"
-                  value={formData.especialidad_id}
-                  onChange={handleChange}
-                  error={!!errors.especialidad_id}
-                  helperText={
-                    errors.especialidad_id || 'Selecciona la especialidad del plan'
-                  }
-                  sx={neutralInputSX}
-                >
-                  <MenuItem value="">Seleccione una especialidad</MenuItem>
-                  {especialidades.map((e) => (
-                    <MenuItem key={e.id} value={e.id}>
-                      {e.nombre} {e.area ? `— ${e.area}` : ''}
-                    </MenuItem>
-                  ))}
-                </TextField>
+              {/* Especialidades Múltiples */}
+              <Box>
+                <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                  <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                    Especialidades <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<AddIcon />}
+                    onClick={agregarEspecialidad}
+                  >
+                    Agregar Especialidad
+                  </Button>
+                </Box>
+
+                {formData.especialidades.length === 0 && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    No hay especialidades asignadas. Haz clic en "Agregar Especialidad" para añadir una.
+                  </Typography>
+                )}
+
+                {formData.especialidades.map((especialidad, index) => (
+                  <Card key={index} variant="outlined" sx={{ mb: 2 }}>
+                    <CardContent sx={{ pb: 2 }}>
+                      <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+                        <Typography variant="h6" color="primary">
+                          Especialidad {index + 1}
+                          {especialidad.es_principal && (
+                            <Chip
+                              icon={<StarIcon />}
+                              label="Principal"
+                              color="primary"
+                              size="small"
+                              sx={{ ml: 1 }}
+                            />
+                          )}
+                        </Typography>
+                        <Box>
+                          {!especialidad.es_principal && (
+                            <IconButton
+                              size="small"
+                              onClick={() => marcarComoPrincipal(index)}
+                              title="Marcar como principal"
+                            >
+                              <StarIcon />
+                            </IconButton>
+                          )}
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => removerEspecialidad(index)}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      </Box>
+
+                      <Grid container spacing={2}>
+                        {/* Especialidad Select */}
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            select
+                            fullWidth
+                            label="Especialidad"
+                            value={especialidad.id_especialidad}
+                            onChange={(e) => actualizarEspecialidad(index, 'id_especialidad', e.target.value)}
+                            error={!!errors[`especialidad_${index}`]}
+                            helperText={errors[`especialidad_${index}`] || 'Selecciona la especialidad'}
+                          >
+                            <MenuItem value="">Seleccione una especialidad</MenuItem>
+                            {especialidades.map((e) => (
+                              <MenuItem key={e.id} value={e.id}>
+                                {e.nombre} {e.area ? `— ${e.area}` : ''}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        </Grid>
+
+                        {/* Prioridad */}
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            select
+                            fullWidth
+                            label="Prioridad"
+                            value={especialidad.prioridad}
+                            onChange={(e) => actualizarEspecialidad(index, 'prioridad', e.target.value)}
+                          >
+                            <MenuItem value="baja">Baja</MenuItem>
+                            <MenuItem value="media">Media</MenuItem>
+                            <MenuItem value="alta">Alta</MenuItem>
+                            <MenuItem value="urgente">Urgente</MenuItem>
+                          </TextField>
+                        </Grid>
+
+                        {/* Fecha Inicio */}
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            fullWidth
+                            type="date"
+                            label="Fecha Inicio Tratamiento"
+                            InputLabelProps={{ shrink: true }}
+                            value={especialidad.fecha_inicio_tratamiento}
+                            onChange={(e) => actualizarEspecialidad(index, 'fecha_inicio_tratamiento', e.target.value)}
+                          />
+                        </Grid>
+
+                        {/* Fecha Fin */}
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            fullWidth
+                            type="date"
+                            label="Fecha Fin Tratamiento (opcional)"
+                            InputLabelProps={{ shrink: true }}
+                            value={especialidad.fecha_fin_tratamiento}
+                            onChange={(e) => actualizarEspecialidad(index, 'fecha_fin_tratamiento', e.target.value)}
+                          />
+                        </Grid>
+
+                        {/* Observaciones */}
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            multiline
+                            rows={2}
+                            label="Observaciones de la especialidad"
+                            value={especialidad.observaciones}
+                            onChange={(e) => actualizarEspecialidad(index, 'observaciones', e.target.value)}
+                            placeholder="Notas específicas de esta especialidad..."
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                ))}
+
+                {errors.especialidades && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                    {errors.especialidades}
+                  </Typography>
+                )}
               </Box>
 
               {/* Estado de Tratamiento */}

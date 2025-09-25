@@ -523,7 +523,7 @@ const PedagogicoCronogramas = () => {
                     </InputAdornment>
                   )
                 }}
-                sx={{ ...greenOutlineSX, minWidth: 260, flex: '1 1 380px' }}
+                sx={{ ...getGreenOutlineSX(theme), minWidth: 260, flex: '1 1 380px' }}
               />
 
               <FormControl size="small" sx={{ minWidth: 200 }}>
@@ -637,7 +637,7 @@ const PedagogicoCronogramas = () => {
                                     placeholder="Ingrese el tema de la clase"
                                     autoFocus
                                     fullWidth
-                                    sx={{ ...greenOutlineSX }}
+                                    sx={{ ...getGreenOutlineSX(theme) }}
                                     onKeyDown={(e) => {
                                       if (e.key === 'Enter') handleSaveTopicEdit();
                                       if (e.key === 'Escape') handleCancelEditTopic();

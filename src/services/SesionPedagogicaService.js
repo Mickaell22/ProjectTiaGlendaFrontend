@@ -11,15 +11,9 @@ class SesionPedagogicaService {
   async getSesiones() {
     try {
       
-      // Try authenticated endpoint first
-      try {
-        const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE);
-        return response.data;
-      } catch (authError) {
-        // Fallback to debug endpoint
-        const debugResponse = await ApiService.get('/api/sesiones-pedagogicas-debug');
-        return debugResponse.data;
-      }
+      // CORRECCIÓN: Solo usar endpoint autenticado, sin fallback a debug
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE);
+      return response.data;
       
     } catch (error) {
       throw error;
@@ -85,15 +79,9 @@ class SesionPedagogicaService {
   async getEstudiantesSesion(sesionId) {
     try {
       
-      // Try authenticated endpoint first
-      try {
-        const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.ESTUDIANTES(sesionId));
-        return response.data;
-      } catch (authError) {
-        // Fallback to debug endpoint
-        const debugResponse = await ApiService.get(`/api/sesiones-pedagogicas/${sesionId}/estudiantes-debug`);
-        return debugResponse.data;
-      }
+      // CORRECCIÓN: Solo usar endpoint autenticado
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.ESTUDIANTES(sesionId));
+      return response.data;
       
     } catch (error) {
       throw error;
@@ -138,16 +126,9 @@ class SesionPedagogicaService {
    */
   async getCronograma(sesionId) {
     try {
-      // Try authenticated endpoint first
-      try {
-        const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.CRONOGRAMA(sesionId));
-        return response.data;
-      } catch (authError) {
-        // Fallback to debug endpoint if authentication fails
-        const debugResponse = await ApiService.get(`/api/sesiones-pedagogicas/${sesionId}/cronograma-debug`);
-        return debugResponse.data;
-      }
-      
+      // CORRECCIÓN: Solo usar endpoint autenticado
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.CRONOGRAMA(sesionId));
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -273,18 +254,11 @@ class SesionPedagogicaService {
    */
   async getEstudiantesDisponibles() {
     try {
-      
-      // Try authenticated endpoint first
-      try {
-        const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.ESTUDIANTES_DISPONIBLES);
-        return response.data;
-      } catch (authError) {
-        // Fallback to debug endpoint for available patients
-        const debugResponse = await ApiService.get('/api/pacientes-disponibles-debug');
-        return debugResponse.data;
-      }
-      
+      // CORRECCIÓN: Usar endpoint correcto sin fallback a debug inexistente
+      const response = await ApiService.get('/api/sesiones-pedagogicas/estudiantes-disponibles');
+      return response.data;
     } catch (error) {
+      console.error('Error fetching available students:', error);
       throw error;
     }
   }
@@ -294,18 +268,11 @@ class SesionPedagogicaService {
    */
   async getPedagogosDisponibles() {
     try {
-      
-      // Try authenticated endpoint first
-      try {
-        const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.PEDAGOGOS_DISPONIBLES);
-        return response.data;
-      } catch (authError) {
-        // Fallback to personal endpoint (all staff)
-        const debugResponse = await ApiService.get('/api/personal');
-        return debugResponse.data;
-      }
-      
+      // CORRECCIÓN: Usar endpoint correcto sin fallback problemático
+      const response = await ApiService.get('/api/sesiones-pedagogicas/pedagogos-disponibles');
+      return response.data;
     } catch (error) {
+      console.error('Error fetching available pedagogues:', error);
       throw error;
     }
   }
@@ -505,21 +472,9 @@ class SesionPedagogicaService {
     try {
       
       // Try authenticated endpoint first
-      try {
-        const response = await ApiService.put(API_ENDPOINTS.SESIONES_PEDAGOGICAS.MARCAR_REALIZADA(claseId));
-        return response.data;
-      } catch (authError) {
-        const status = authError.response?.status;
-        
-        // Fallback to working debug endpoint for both auth failures (401) and missing endpoints (404)
-        if (status === 401 || status === 404 || !status) {
-          const debugResponse = await ApiService.put(`/api/cronograma-clases/${claseId}/marcar-realizada-working`);
-          return debugResponse.data;
-        } else {
-          // Re-throw error if it's not an auth or endpoint issue
-          throw authError;
-        }
-      }
+      // CORRECCIÓN: Solo usar endpoint autenticado, sin fallback problemático
+      const response = await ApiService.put(API_ENDPOINTS.SESIONES_PEDAGOGICAS.MARCAR_REALIZADA(claseId));
+      return response.data;
       
     } catch (error) {
       throw error;

@@ -23,7 +23,8 @@ import {
   FamilyRestroom,
   Assignment,
   Edit,
-  Description
+  Description,
+  Star as StarIcon
 } from '@mui/icons-material';
 
 // Helper para formatear fechas
@@ -125,16 +126,26 @@ const PacienteDetalles = ({
                     Información Personal
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
-                  
+
                   <Stack spacing={2}>
                     <Box>
                       <Typography variant="body2" color="text.secondary">Nombre Completo</Typography>
                       <Typography variant="body1" fontWeight="bold">{pacienteData.nombre_completo}</Typography>
                     </Box>
-                    
+
                     <Box>
                       <Typography variant="body2" color="text.secondary">Cédula de Identidad</Typography>
                       <Typography variant="body1" fontWeight="bold">{pacienteData.cedula}</Typography>
+                    </Box>
+
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">Estado del Tratamiento</Typography>
+                      <Chip
+                        label={pacienteData.estado_tratamiento || 'Sin estado'}
+                        color={getEstadoColor(pacienteData.estado_tratamiento)}
+                        size="small"
+                        sx={{ mt: 0.5 }}
+                      />
                     </Box>
 
                   </Stack>
@@ -178,36 +189,12 @@ const PacienteDetalles = ({
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
                     <LocalHospital sx={{ mr: 1 }} />
-                    Información del Tratamiento
+                    Resumen del Tratamiento
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
-                  
-                  <Grid container spacing={3}>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">Especialidad</Typography>
-                        <Chip 
-                          label={pacienteData.especialidad_nombre || 'Sin especialidad'}
-                          color={pacienteData.especialidad_nombre ? 'primary' : 'default'}
-                          size="small"
-                          sx={{ mt: 0.5 }}
-                        />
-                      </Box>
-                    </Grid>
-                    
-                    <Grid item xs={12} sm={6} md={3}>
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">Estado del Tratamiento</Typography>
-                        <Chip 
-                          label={pacienteData.estado_tratamiento || 'Sin estado'}
-                          color={getEstadoColor(pacienteData.estado_tratamiento)}
-                          size="small"
-                          sx={{ mt: 0.5 }}
-                        />
-                      </Box>
-                    </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} sm={4}>
                       <Box>
                         <Typography variant="body2" color="text.secondary">Fecha de Ingreso</Typography>
                         <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center" sx={{ mt: 0.5 }}>
@@ -217,26 +204,180 @@ const PacienteDetalles = ({
                       </Box>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid item xs={12} sm={4}>
                       <Box>
-                        <Typography variant="body2" color="text.secondary">Inicio Tratamiento</Typography>
-                        <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center" sx={{ mt: 0.5 }}>
-                          <CalendarToday sx={{ fontSize: 16, mr: 0.5 }} />
-                          {formatDateLocal(pacienteData.fecha_inicio_tratamiento)}
+                        <Typography variant="body2" color="text.secondary">Total Especialidades</Typography>
+                        <Typography variant="h4" color="primary" fontWeight="bold" sx={{ mt: 0.5 }}>
+                          {pacienteData.especialidades?.length || 0}
                         </Typography>
                       </Box>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={3}>
+                    <Grid item xs={12} sm={4}>
                       <Box>
-                        <Typography variant="body2" color="text.secondary">Fin Tratamiento</Typography>
-                        <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center" sx={{ mt: 0.5 }}>
-                          <CalendarToday sx={{ fontSize: 16, mr: 0.5 }} />
-                          {formatDateLocal(pacienteData.fecha_fin_tratamiento)}
+                        <Typography variant="body2" color="text.secondary">Especialidades Activas</Typography>
+                        <Typography variant="h4" color="success.main" fontWeight="bold" sx={{ mt: 0.5 }}>
+                          {pacienteData.especialidades?.filter(esp => esp.estado === 'activo').length || 0}
                         </Typography>
                       </Box>
                     </Grid>
                   </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Especialidades Detalladas */}
+            <Grid item xs={12}>
+              <Card elevation={1}>
+                <CardContent>
+                  <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
+                    <Assignment sx={{ mr: 1 }} />
+                    Especialidades Asignadas
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
+
+                  {!pacienteData.especialidades || pacienteData.especialidades.length === 0 ? (
+                    <Box textAlign="center" py={4}>
+                      <LocalHospital sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                      <Typography variant="h6" color="text.secondary" gutterBottom>
+                        Sin Especialidades Asignadas
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Este paciente no tiene especialidades médicas registradas aún.
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Grid container spacing={3}>
+                      {pacienteData.especialidades.map((especialidad, index) => (
+                        <Grid item xs={12} md={6} key={index}>
+                          <Card
+                            variant="outlined"
+                            sx={{
+                              height: '100%',
+                              border: especialidad.es_principal ? '2px solid' : '1px solid',
+                              borderColor: especialidad.es_principal ? 'primary.main' : 'divider',
+                              position: 'relative',
+                              '&:hover': {
+                                boxShadow: 2
+                              }
+                            }}
+                          >
+                            <CardContent>
+                              {/* Header con nombre y badge de principal */}
+                              <Box display="flex" alignItems="center" mb={2}>
+                                <LocalHospital color="primary" sx={{ mr: 1 }} />
+                                <Typography variant="h6" color="primary" sx={{ flex: 1, fontWeight: 'bold' }}>
+                                  {especialidad.especialidad_nombre || 'Especialidad sin nombre'}
+                                </Typography>
+                                {especialidad.es_principal && (
+                                  <Chip
+                                    icon={<StarIcon />}
+                                    label="PRINCIPAL"
+                                    color="primary"
+                                    size="small"
+                                    sx={{ fontWeight: 'bold' }}
+                                  />
+                                )}
+                              </Box>
+
+                              {/* Área de especialidad */}
+                              {especialidad.especialidad_area && (
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                  sx={{
+                                    mb: 2,
+                                    fontStyle: 'italic',
+                                    bgcolor: 'grey.50',
+                                    p: 1,
+                                    borderRadius: 1
+                                  }}
+                                >
+                                  {especialidad.especialidad_area}
+                                </Typography>
+                              )}
+
+                              {/* Información principal */}
+                              <Stack spacing={2}>
+                                {/* Estados y prioridad */}
+                                <Box>
+                                  <Grid container spacing={2}>
+                                    <Grid item xs={6}>
+                                      <Typography variant="caption" color="text.secondary" display="block">
+                                        ESTADO
+                                      </Typography>
+                                      <Chip
+                                        label={especialidad.estado || 'Sin estado'}
+                                        size="small"
+                                        color={especialidad.estado === 'activo' ? 'success' : 'default'}
+                                        sx={{ fontWeight: 'bold' }}
+                                      />
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                      <Typography variant="caption" color="text.secondary" display="block">
+                                        PRIORIDAD
+                                      </Typography>
+                                      <Chip
+                                        label={especialidad.prioridad || 'Media'}
+                                        size="small"
+                                        color={
+                                          especialidad.prioridad === 'urgente' ? 'error' :
+                                          especialidad.prioridad === 'alta' ? 'warning' :
+                                          especialidad.prioridad === 'baja' ? 'info' : 'default'
+                                        }
+                                        sx={{ fontWeight: 'bold' }}
+                                      />
+                                    </Grid>
+                                  </Grid>
+                                </Box>
+
+                                {/* Fechas importantes */}
+                                <Box>
+                                  <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                                    FECHAS DEL TRATAMIENTO
+                                  </Typography>
+                                  <Grid container spacing={1}>
+                                    <Grid item xs={6}>
+                                      <Typography variant="body2" color="text.secondary">Inicio:</Typography>
+                                      <Typography variant="body2" fontWeight="bold">
+                                        {formatDateLocal(especialidad.fecha_inicio_tratamiento)}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                      <Typography variant="body2" color="text.secondary">Fin:</Typography>
+                                      <Typography variant="body2" fontWeight="bold">
+                                        {formatDateLocal(especialidad.fecha_fin_tratamiento)}
+                                      </Typography>
+                                    </Grid>
+                                  </Grid>
+                                </Box>
+
+                                {/* Observaciones */}
+                                {especialidad.observaciones && (
+                                  <Box>
+                                    <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                                      OBSERVACIONES
+                                    </Typography>
+                                    <Typography variant="body2" sx={{
+                                      p: 1.5,
+                                      bgcolor: 'grey.50',
+                                      borderRadius: 1,
+                                      border: '1px solid',
+                                      borderColor: 'grey.200',
+                                      fontSize: '0.875rem',
+                                      lineHeight: 1.4
+                                    }}>
+                                      {especialidad.observaciones}
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </Stack>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
                 </CardContent>
               </Card>
             </Grid>

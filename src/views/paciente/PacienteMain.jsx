@@ -56,6 +56,7 @@ const PacienteMain = () => {
   // Tabs/UI
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   // Datos
   const [pacientes, setPacientes] = useState([]);
@@ -127,8 +128,17 @@ const PacienteMain = () => {
     setConfirmDialog({ open: false, id: null });
   };
 
-  const handleViewDetail = (item) => {
-    setDetailDialog({ open: true, data: item });
+  const handleViewDetail = async (item) => {
+    try {
+      setLoadingDetails(true);
+      // Obtener datos completos del paciente con especialidades
+      const pacienteCompleto = await PacienteService.getById(item.id);
+      setDetailDialog({ open: true, data: pacienteCompleto });
+    } catch (error) {
+      showError(error?.message || 'Error al obtener detalles del paciente');
+    } finally {
+      setLoadingDetails(false);
+    }
   };
 
   const handleViewDocuments = (paciente) => {
@@ -171,6 +181,7 @@ const PacienteMain = () => {
           onViewDetail={handleViewDetail}
           onNewPatient={handleNewPatient}
           loading={loading}
+          loadingDetails={loadingDetails}
         />
       )
     },

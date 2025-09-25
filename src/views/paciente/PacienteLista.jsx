@@ -34,6 +34,7 @@ import {
   LocalHospital,
   CalendarToday
 } from '@mui/icons-material';
+import { CircularProgress } from '@mui/material';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useNavigate } from 'react-router-dom';
 
@@ -184,7 +185,8 @@ const PacienteLista = ({
   onDelete,
   onViewDetail,
   onNewPatient,
-  loading = false
+  loading = false,
+  loadingDetails = false
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -213,8 +215,7 @@ const PacienteLista = ({
       !searchTerm ||
       normalize(p.nombre_completo).includes(normalize(searchTerm)) ||
       (p.cedula || '').includes(searchTerm) ||
-      normalize(p.nombre_tutor || '').includes(normalize(searchTerm)) ||
-      normalize(p.especialidad_nombre || '').includes(normalize(searchTerm));
+      normalize(p.nombre_tutor || '').includes(normalize(searchTerm));
 
     const estado = normalize(p.estado_tratamiento || '');
     const estadoOk =
@@ -287,7 +288,7 @@ const PacienteLista = ({
             size="small"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por nombre, cédula, tutor o especialidad..."
+            placeholder="Buscar por nombre, cédula o tutor..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -344,9 +345,7 @@ const PacienteLista = ({
                 <TableCell>Cédula</TableCell>
                 <TableCell>Tutor</TableCell>
                 <TableCell>Fecha Ingreso</TableCell>
-                <TableCell>Especialidad</TableCell>
-                {/* Estado eliminado */}
-                <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 260 /* +40 para el nuevo botón */ }}>
+                <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 260 }}>
                   Acciones
                 </TableCell>
               </TableRow>
@@ -354,8 +353,7 @@ const PacienteLista = ({
             <TableBody>
               {filteredPacientes.length === 0 ? (
                 <TableRow>
-                  {/* colSpan ajustado a 6 por eliminación de la columna Estado */}
-                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                     <Box>
                       <Search sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
                       <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -422,21 +420,21 @@ const PacienteLista = ({
                         </Box>
                       </TableCell>
 
-                      {/* Especialidad */}
-                      <TableCell>
-                        <Chip
-                          label={p.especialidad_nombre || 'Sin especialidad'}
-                          color={p.especialidad_nombre ? 'primary' : 'default'}
-                          size="small"
-                        />
-                      </TableCell>
-
                       {/* Acciones */}
                       <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 260 }}>
                         <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', flexWrap: 'nowrap' }}>
                           <Tooltip title="Ver Detalles">
-                            <IconButton color="info" onClick={() => onViewDetail(p)} size="small">
-                              <Visibility fontSize="small" />
+                            <IconButton
+                              color="info"
+                              onClick={() => onViewDetail(p)}
+                              size="small"
+                              disabled={loadingDetails}
+                            >
+                              {loadingDetails ? (
+                                <CircularProgress size={16} />
+                              ) : (
+                                <Visibility fontSize="small" />
+                              )}
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Editar">
