@@ -5,6 +5,7 @@ import { MedicalServices, Add } from '@mui/icons-material';
 
 // Servicios y hooks
 import EspecialidadService from '../../services/especialidadService.js';
+import CentroService from '../../services/centroService.js';
 import useSnackbar from '../../hooks/useSnackbar.js';
 import useAuth from '../../hooks/useAuth.js';
 
@@ -44,6 +45,7 @@ const EspecialidadMain = () => {
   const theme = useTheme();
   // Estados principales
   const [especialidades, setEspecialidades] = useState([]);
+  const [centros, setCentros] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -52,6 +54,7 @@ const EspecialidadMain = () => {
     nombre: '',
     descripcion: '',
     area: '',
+    id_centro: '',
     estado: 'activo',
   });
   const [editingId, setEditingId] = useState(null);
@@ -63,23 +66,47 @@ const EspecialidadMain = () => {
 
   // Hooks
   const { snackbar, showSuccess, showError, hideSnackbar } = useSnackbar();
-  const { requireAuth } = useAuth();
+  const { requireAuth, user } = useAuth();
 
   useEffect(() => {
-    if (requireAuth()) fetchEspecialidades();
+    if (requireAuth()) {
+      fetchData();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Carga
-  const fetchEspecialidades = async () => {
+  // Carga de datos usando Promise.all como en PersonalMain.jsx
+  const fetchData = async () => {
     try {
       setLoading(true);
+      // Obtener centro del usuario si existe
+      const userCentroId = user?.centro?.id;
+
+      const [especialidadesData, centrosData] = await Promise.all([
+        // Filtrar especialidades por centro del usuario si existe
+        userCentroId
+          ? EspecialidadService.getAll(userCentroId)
+          : EspecialidadService.getAll(),
+        CentroService.getAll()
+      ]);
+
+
+      setEspecialidades(especialidadesData);
+      setCentros(centrosData);
+    } catch (error) {
+      console.error('❌ Error cargando datos:', error);
+      showError(error?.message || 'Error al cargar datos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchEspecialidades = async () => {
+    try {
       const data = await EspecialidadService.getAll();
       setEspecialidades(data);
     } catch (error) {
       showError(error?.message || 'Error al cargar especialidades');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -94,8 +121,8 @@ const EspecialidadMain = () => {
     const backendData = EspecialidadService.formatForBackend(formData);
     const validation = EspecialidadService.validateEspecialidadData(backendData);
 
-    if (EspecialidadService.checkNombreExists(especialidades, formData.nombre, editingId)) {
-      validation.errors.nombre = 'Esta especialidad ya está registrada';
+    if (EspecialidadService.checkNombreExists(especialidades, formData.nombre, formData.id_centro, editingId)) {
+      validation.errors.nombre = 'Esta especialidad ya está registrada en este centro';
       validation.isValid = false;
     }
 
@@ -127,6 +154,7 @@ const EspecialidadMain = () => {
       nombre: '',
       descripcion: '',
       area: '',
+      id_centro: '',
       estado: 'activo',
     });
     setEditingId(null);
@@ -139,6 +167,7 @@ const EspecialidadMain = () => {
       nombre: item.nombre,
       descripcion: item.descripcion || '',
       area: item.area,
+      id_centro: item.id_centro || '',
       estado: item.estado, // ✅ se mantiene
     });
     setEditingId(item.id);
@@ -162,6 +191,13 @@ const EspecialidadMain = () => {
 
   const handleAddNew = () => {
     resetForm();
+    // Pre-seleccionar centro del usuario si existe
+    if (user?.centro?.id) {
+      setFormData(prev => ({
+        ...prev,
+        id_centro: user.centro.id
+      }));
+    }
     setActiveTab(1);
   };
 
@@ -178,6 +214,8 @@ const EspecialidadMain = () => {
       component: (
         <EspecialidadLista
           especialidades={especialidades}
+          centros={centros}
+          user={user}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onViewDetail={handleViewDetail}
@@ -193,6 +231,8 @@ const EspecialidadMain = () => {
           formData={formData}
           errors={errors}
           editingId={editingId}
+          centros={centros}
+          user={user}
           onChange={handleChange}
           onSubmit={handleSubmit}
           onCancel={handleCancel}

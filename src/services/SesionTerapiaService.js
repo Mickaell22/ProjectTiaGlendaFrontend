@@ -404,6 +404,33 @@ class SesionTerapiaService {
   }
 
   /**
+   * Get therapeutic specialties, optionally filtered by center
+   */
+  async getEspecialidades(centroId = null) {
+    try {
+      // Construir URL con filtro de centro si se proporciona
+      const url = centroId
+        ? `${API_ENDPOINTS.ESPECIALIDADES.BASE}?centro=${centroId}`
+        : API_ENDPOINTS.ESPECIALIDADES.BASE;
+
+      const response = await ApiService.get(url);
+      const allEspecialidades = response.data?.data || response.data || [];
+
+      // Filtrar especialidades terapéuticas
+      const terapeuticas = allEspecialidades.filter(esp =>
+        esp.area === 'Especialidad terapéutica' ||
+        esp.area === 'terapeutica' ||
+        esp.area?.toLowerCase().includes('terap')
+      );
+
+      return { data: terapeuticas };
+    } catch (error) {
+      console.error('Error fetching therapeutic specialties:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get all personal (staff)
    */
   async getPersonal() {

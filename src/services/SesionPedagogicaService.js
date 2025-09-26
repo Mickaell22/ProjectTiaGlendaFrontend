@@ -675,6 +675,33 @@ class SesionPedagogicaService {
   }
 
   /**
+   * Get pedagogical specialties, optionally filtered by center
+   */
+  async getEspecialidades(centroId = null) {
+    try {
+      // Construir URL con filtro de centro si se proporciona
+      const url = centroId
+        ? `${API_ENDPOINTS.ESPECIALIDADES.BASE}?centro=${centroId}`
+        : API_ENDPOINTS.ESPECIALIDADES.BASE;
+
+      const response = await ApiService.get(url);
+      const allEspecialidades = response.data?.data || response.data || [];
+
+      // Filtrar especialidades pedagógicas
+      const pedagogicas = allEspecialidades.filter(esp =>
+        esp.area === 'Especialidad pedagógica' ||
+        esp.area === 'pedagogica' ||
+        esp.area?.toLowerCase().includes('pedagog')
+      );
+
+      return { data: pedagogicas };
+    } catch (error) {
+      console.error('Error fetching pedagogical specialties:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get all personal (staff)
    */
   async getPersonal() {

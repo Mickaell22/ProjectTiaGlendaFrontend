@@ -24,6 +24,7 @@ import { Add, Psychology } from '@mui/icons-material';
 // import { useNavigate } from 'react-router-dom';
 // import { useAuth } from 'src/contexts/AuthContext';
 import { useUserRole } from 'src/hooks/useUserRole';
+import useAuth from '../../hooks/useAuth.js';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 import TerapeutaSelector from '../../components/shared/TerapeutaSelector.jsx';
 import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
@@ -86,6 +87,7 @@ const menuProps = {
 const CrearSesionTerapeutica = ({ onSessionCreated }) => {
   const theme = useTheme();
   const { isAdmin } = useUserRole();
+  const { user } = useAuth();
   const [pacientesDisponibles, setPacientesDisponibles] = useState([]);
   const [terapeutasDisponibles, setTerapeutasDisponibles] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
@@ -129,11 +131,14 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // Obtener centro del usuario para filtrar especialidades
+      const userCentroId = user?.centro?.id;
+
       // Use Promise.allSettled to handle partial failures gracefully
       const results = await Promise.allSettled([
         sesionTerapiaService.getPacientesDisponibles(),
         sesionTerapiaService.getTerapeutasDisponibles(),
-        sesionTerapiaService.getEspecialidades()
+        sesionTerapiaService.getEspecialidades(userCentroId)
       ]);
 
       // Process results with better error handling

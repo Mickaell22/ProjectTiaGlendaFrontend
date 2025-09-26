@@ -5,9 +5,12 @@ import ApiService, { extractData } from './apiService.js';
 import { API_ENDPOINTS } from '../config/api.js';
 
 export class EspecialidadService {
-  // Obtener todas las especialidades
-  static async getAll() {
-    const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.BASE);
+  // Obtener todas las especialidades, opcionalmente filtradas por centro
+  static async getAll(centroId = null) {
+    const url = centroId ?
+      `${API_ENDPOINTS.ESPECIALIDADES.BASE}?centro=${centroId}` :
+      API_ENDPOINTS.ESPECIALIDADES.BASE;
+    const response = await ApiService.get(url);
     return extractData(response);
   }
 
@@ -49,6 +52,10 @@ export class EspecialidadService {
       errors.area = 'Debe seleccionar un área';
     }
 
+    if (!data.id_centro && !data.centro_id) {
+      errors.centro = 'Debe seleccionar un centro';
+    }
+
     return {
       isValid: Object.keys(errors).length === 0,
       errors
@@ -60,6 +67,7 @@ export class EspecialidadService {
     return {
       nombre: frontendData.nombre?.trim(),
       area: frontendData.area,
+      id_centro: frontendData.id_centro || frontendData.centro_id,
       estado: frontendData.estado || 'activo'
     };
   }
@@ -71,7 +79,9 @@ export class EspecialidadService {
     const term = searchTerm.toLowerCase();
     return especialidades.filter(item =>
       item.nombre?.toLowerCase().includes(term) ||
-      item.area?.toLowerCase().includes(term)
+      item.area?.toLowerCase().includes(term) ||
+      item.centro_nombre?.toLowerCase().includes(term) ||
+      item.centro_codigo?.toLowerCase().includes(term)
     );
   }
 
@@ -79,6 +89,30 @@ export class EspecialidadService {
   static filterByArea(especialidades, area) {
     if (!area) return especialidades;
     return especialidades.filter(item => item.area === area);
+  }
+
+  // Filtrar por centro
+  static filterByCentro(especialidades, centroId) {
+    if (!centroId) return especialidades;
+    return especialidades.filter(item => item.id_centro === parseInt(centroId));
+  }
+
+  // Obtener especialidades por área y centro
+  static async getByArea(area, centroId = null) {
+    const url = centroId ?
+      `${API_ENDPOINTS.ESPECIALIDADES.BASE}/area/${area}?centro=${centroId}` :
+      `${API_ENDPOINTS.ESPECIALIDADES.BASE}/area/${area}`;
+    const response = await ApiService.get(url);
+    return extractData(response);
+  }
+
+  // Obtener especialidades activas (para combos)
+  static async getActivas(centroId = null) {
+    const url = centroId ?
+      `${API_ENDPOINTS.ESPECIALIDADES.BASE}/activas?centro=${centroId}` :
+      `${API_ENDPOINTS.ESPECIALIDADES.BASE}/activas`;
+    const response = await ApiService.get(url);
+    return extractData(response);
   }
 
   // Obtener áreas disponibles
@@ -159,10 +193,12 @@ export class EspecialidadService {
     return areaMap[area] || { label: area, color: 'default', icon: 'Work' };
   }
 
-  // Verificar si un nombre ya existe
-  static checkNombreExists(especialidades, nombre, excludeId = null) {
-    return especialidades.some(esp => 
-      esp.nombre?.toLowerCase() === nombre?.toLowerCase() && esp.id !== excludeId
+  // Verificar si un nombre ya existe en el mismo centro
+  static checkNombreExists(especialidades, nombre, centroId, excludeId = null) {
+    return especialidades.some(esp =>
+      esp.nombre?.toLowerCase() === nombre?.toLowerCase() &&
+      esp.id_centro === parseInt(centroId) &&
+      esp.id !== excludeId
     );
   }
 

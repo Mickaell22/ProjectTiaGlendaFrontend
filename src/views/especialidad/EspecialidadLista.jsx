@@ -51,6 +51,8 @@ const purpleOutlineSX = {
 
 const EspecialidadLista = ({
   especialidades = [],
+  centros = [],
+  user = null,
   onEdit,
   onDelete,
   onViewDetail,
@@ -62,7 +64,7 @@ const EspecialidadLista = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Datos filtrados (servicio)
+  // Datos filtrados (servicio) - Solo por búsqueda y área
   let filteredEspecialidades = EspecialidadService.filterEspecialidades(especialidades, searchTerm);
   filteredEspecialidades = EspecialidadService.filterByArea(filteredEspecialidades, filterArea);
 
@@ -175,6 +177,7 @@ const EspecialidadLista = ({
             </Select>
           </FormControl>
 
+
           {/* Nueva especialidad */}
           <Button
             variant="contained"
@@ -238,6 +241,7 @@ const EspecialidadLista = ({
                           icon={renderAreaIcon(areaInfo.icon)}
                         />
                       </TableCell>
+
 
                       {/* Estado */}
                       <TableCell>

@@ -18,7 +18,8 @@ import {
   Add,
   Edit,
   MedicalServices,
-  Work
+  Work,
+  Business
 } from '@mui/icons-material';
 
 // Servicios
@@ -51,17 +52,23 @@ const EspecialidadFormulario = ({
   formData,
   errors,
   editingId,
+  centros = [],
+  user = null,
   onChange,
   onSubmit,
   onCancel
 }) => {
   const theme = useTheme();
+
+  // Determinar si el campo centro debe estar deshabilitado (siempre para no-admins)
+  const isAdmin = user?.rol === 'Administrador';
+  const shouldDisableCentro = !isAdmin;
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit();
   };
 
-  const canSubmit = Boolean(formData?.nombre) && Boolean(formData?.area);
+  const canSubmit = Boolean(formData?.nombre) && Boolean(formData?.area) && Boolean(formData?.id_centro);
   const iconColor = { color: 'text.primary' };
 
   return (
@@ -165,6 +172,42 @@ const EspecialidadFormulario = ({
                 {EspecialidadService.getAreas().map((area) => (
                   <MenuItem key={area.value} value={area.value}>
                     {area.label}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Box>
+
+            {/* Centro */}
+            <Box sx={rowGridSX}>
+              <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                Centro <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                name="id_centro"
+                value={formData.id_centro || ''}
+                onChange={onChange}
+                disabled={shouldDisableCentro}
+                error={!!errors.id_centro}
+                helperText={
+                  shouldDisableCentro
+                    ? `Asignado automáticamente a tu centro: ${user?.centro?.nombre}`
+                    : errors.id_centro || 'Selecciona el centro donde se ofrecerá la especialidad'
+                }
+                sx={neutralInputSX}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Business sx={iconColor} />
+                    </InputAdornment>
+                  )
+                }}
+              >
+                <MenuItem value="">Seleccione un centro</MenuItem>
+                {centros.map((centro) => (
+                  <MenuItem key={centro.id} value={centro.id}>
+                    {centro.nombre}
                   </MenuItem>
                 ))}
               </TextField>

@@ -22,6 +22,7 @@ import {
 } from '@mui/material';
 import { Add, School } from '@mui/icons-material';
 import { useUserRole } from 'src/hooks/useUserRole';
+import useAuth from '../../hooks/useAuth.js';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 import PedagogoSelector from '../../components/shared/PedagogoSelector.jsx';
 import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
@@ -84,6 +85,7 @@ const menuProps = {
 const CrearSesionPedagogica = () => {
   const theme = useTheme();
   const { isAdmin } = useUserRole();
+  const { user } = useAuth();
   const [estudiantesDisponibles, setEstudiantesDisponibles] = useState([]);
   const [pedagogosDisponibles, setPedagogosDisponibles] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
@@ -141,11 +143,14 @@ const CrearSesionPedagogica = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // Obtener centro del usuario para filtrar especialidades
+      const userCentroId = user?.centro?.id;
+
       // Use Promise.allSettled to handle partial failures gracefully
       const results = await Promise.allSettled([
         sesionPedagogicaService.getEstudiantesDisponibles(),
         sesionPedagogicaService.getPedagogosDisponibles(),
-        sesionPedagogicaService.getEspecialidades()
+        sesionPedagogicaService.getEspecialidades(userCentroId)
       ]);
 
       // Process results with better error handling
