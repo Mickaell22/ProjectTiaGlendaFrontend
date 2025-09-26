@@ -103,6 +103,7 @@ const CrearSesionPedagogica = () => {
     modalidad: 'presencial',
     capacidad_maxima: 10,
     periodo_academico: '',
+    adaptacion_curricular: '',
     estado: 'planificada',
     observaciones: ''
   });
@@ -280,6 +281,7 @@ const CrearSesionPedagogica = () => {
         modalidad: formData.modalidad,
         capacidad_maxima: parseInt(formData.capacidad_maxima),
         periodo_academico: formData.periodo_academico?.trim() || null,
+        adaptacion_curricular: formData.adaptacion_curricular?.trim() || null,
         estado: formData.estado,
         observaciones: formData.observaciones?.trim() || null
       };
@@ -319,6 +321,7 @@ const CrearSesionPedagogica = () => {
       modalidad: 'presencial',
       capacidad_maxima: 10,
       periodo_academico: '',
+      adaptacion_curricular: '',
       estado: 'planificada',
       observaciones: ''
     });
@@ -650,6 +653,21 @@ const CrearSesionPedagogica = () => {
                     onChange={handleChange}
                     placeholder="Ej: 2025-A, Trimestre I, etc."
                     InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    label="Adaptación Curricular"
+                    name="adaptacion_curricular"
+                    value={formData.adaptacion_curricular}
+                    onChange={handleChange}
+                    placeholder="Describe las adaptaciones curriculares específicas para esta sesión (reducción de contenido, material manipulativo, tiempo extendido, etc.)"
+                    InputLabelProps={{ shrink: true }}
+                    helperText="Especifica las modificaciones al currículo estándar para atender necesidades educativas especiales"
                   />
                 </Grid>
 

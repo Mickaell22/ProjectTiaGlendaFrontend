@@ -13,6 +13,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
+import { useUserRole } from 'src/hooks/useUserRole';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 import { formatDateLocal } from 'src/utils/dateUtils';
 
@@ -42,6 +43,7 @@ const menuProps = { PaperProps: { sx: { maxHeight: 280 } } };
 
 const PedagogicoCronogramas = () => {
   const theme = useTheme();
+  const { isAdmin } = useUserRole();
   const [sesiones, setSesiones] = useState([]);
   const [cronogramas, setCronogramas] = useState([]);
   const [selectedSesion, setSelectedSesion] = useState('');
@@ -725,15 +727,17 @@ const PedagogicoCronogramas = () => {
                                       </IconButton>
                                     </Tooltip>
 
-                                    <Tooltip title="Reprogramar">
-                                      <IconButton
-                                        color="warning"
-                                        onClick={() => handleReprogramar(item)}
-                                        size="small"
-                                      >
-                                        <EditCalendar fontSize="small" />
-                                      </IconButton>
-                                    </Tooltip>
+                                    {isAdmin && (
+                                      <Tooltip title="Reprogramar">
+                                        <IconButton
+                                          color="warning"
+                                          onClick={() => handleReprogramar(item)}
+                                          size="small"
+                                        >
+                                          <EditCalendar fontSize="small" />
+                                        </IconButton>
+                                      </Tooltip>
+                                    )}
 
                                     <Tooltip title="Cancelar">
                                       <IconButton

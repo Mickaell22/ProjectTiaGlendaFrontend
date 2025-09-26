@@ -814,16 +814,26 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                 </Typography>
               </Grid>
 
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="primary">Información Financiera</Typography>
-                <Typography variant="body2">
-                  <strong>Costo Total:</strong> ${detailDialog.data.costo_total || 0}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Costo por Clase:</strong> ${detailDialog.data.costo_por_clase || 0}
-                </Typography>
-              </Grid>
+              {isAdmin && (
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" color="primary">Información Financiera</Typography>
+                  <Typography variant="body2">
+                    <strong>Costo Total:</strong> ${detailDialog.data.costo_total || 0}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Costo por Clase:</strong> ${detailDialog.data.costo_por_clase || 0}
+                  </Typography>
+                </Grid>
+              )}
 
+              {detailDialog.data.adaptacion_curricular && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Adaptación Curricular</Typography>
+                  <Box sx={{ p: 2, backgroundColor: '#e3f2fd', borderRadius: 1, border: '1px solid', borderColor: 'primary.main' }}>
+                    <Typography variant="body2">{detailDialog.data.adaptacion_curricular}</Typography>
+                  </Box>
+                </Grid>
+              )}
               {detailDialog.data.observaciones && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="primary">Observaciones</Typography>

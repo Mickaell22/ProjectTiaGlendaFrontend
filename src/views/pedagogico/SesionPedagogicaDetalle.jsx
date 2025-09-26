@@ -351,6 +351,17 @@ const SesionPedagogicaDetalle = () => {
             </Grid>
           </Grid>
 
+          {sesion.adaptacion_curricular && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
+                Adaptación Curricular
+              </Typography>
+              <Paper sx={{ p: 2, backgroundColor: '#e3f2fd', border: '1px solid', borderColor: 'primary.main' }}>
+                <Typography variant="body2">{sesion.adaptacion_curricular}</Typography>
+              </Paper>
+            </Box>
+          )}
+
           {sesion.observaciones && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
