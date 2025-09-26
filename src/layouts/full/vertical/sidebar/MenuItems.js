@@ -29,28 +29,15 @@ import {
   AccountBox
 } from '@mui/icons-material';
 import { ROUTES } from '../../../../config/routes';
+import { useAuth } from 'src/contexts/AuthContext';
 
 // Función simple para generar IDs únicos
 const uniqueId = () => Math.random().toString(36).substring(2, 15);
 
-// Función para obtener el rol del usuario
-const getUserRole = () => {
-  try {
-    const userData = localStorage.getItem('user_data');
-    if (userData) {
-      const user = JSON.parse(userData);
-      return (user.rol_nombre || user.rol || '').toLowerCase();
-    }
-
-    const token = localStorage.getItem('jwt_token');
-    if (token && token.split('.').length === 3) {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return (payload.rol || payload.rol_nombre || '').toLowerCase();
-    }
-  } catch (error) {
-    console.error('Error getting user role:', error);
-  }
-  return null;
+// Obtiene el rol desde el usuario del contexto
+const getUserRoleFromUser = (user) => {
+  if (!user) return null;
+  return (user.rol_nombre || user.rol || '').toLowerCase();
 };
 
 // Función para verificar permisos
@@ -79,9 +66,9 @@ const hasPermission = (module, userRole) => {
   }
 };
 
-// Función para generar menús basados en rol
-const getMenuItems = () => {
-  const userRole = getUserRole();
+// Función para generar menús basados en rol, recibe el usuario
+export const getMenuItems = (user) => {
+  const userRole = getUserRoleFromUser(user);
 
   const allMenuItems = [
     {
@@ -266,6 +253,4 @@ const getMenuItems = () => {
   return allMenuItems;
 };
 
-const Menuitems = getMenuItems();
-
-export default Menuitems;
+// Ya no exportamos el menú estático, sino la función
