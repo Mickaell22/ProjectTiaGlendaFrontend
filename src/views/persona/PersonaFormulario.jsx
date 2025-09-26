@@ -168,7 +168,18 @@ const PersonaFormulario = ({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    let filteredValue = value;
+
+    if (name === 'nombre' || name === 'apellido') {
+      // Solo letras y espacios
+      filteredValue = filteredValue.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '');
+    }
+    if (name === 'cedula') {
+      // Solo números
+      filteredValue = filteredValue.replace(/[^0-9]/g, '');
+    }
+
+    setFormData(prev => ({ ...prev, [name]: filteredValue }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
