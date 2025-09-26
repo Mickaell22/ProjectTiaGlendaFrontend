@@ -67,8 +67,12 @@ body {
 }
 
 /* Transiciones suaves */
-* {
+button, input, .MuiCard-root, .MuiPaper-root, .MuiChip-root {
   transition: all 0.2s ease-in-out;
+}
+
+.MuiTooltip-popper {
+  transition: none !important;
 }
 
 /* Estilos para elementos focuseados */
