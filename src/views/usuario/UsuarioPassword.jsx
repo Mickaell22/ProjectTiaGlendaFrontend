@@ -86,7 +86,9 @@ const UsuarioPassword = ({
       onPasswordChanged && onPasswordChanged();
       handleClose();
     } catch (error) {
-      showError(error.message);
+      console.log('Error cambio contraseña:', error);
+      const backendMsg = error?.response?.data?.message || error.message || 'Error al cambiar la contraseña';
+      showError(backendMsg);
     } finally {
       setLoading(false);
     }
@@ -103,7 +105,7 @@ const UsuarioPassword = ({
     <Dialog
       open={open}
       onClose={handleClose}
-      maxWidth="md"
+      maxWidth="sm"
       fullWidth
     >
       <DialogTitle>
@@ -122,77 +124,76 @@ const UsuarioPassword = ({
       </DialogTitle>
       
       <DialogContent>
-        <Grid container spacing={3} sx={{ mt: 1 }}>
+        <Grid container spacing={1} sx={{ mt: 1 }}>
           {/* Información de seguridad */}
           <Grid item xs={12}>
-            <Alert severity="info" sx={{ mb: 2 }}>
+            <Alert severity="info" sx={{ mb: 1 }}>
               <Typography variant="body2">
-                <strong>Política de contraseñas:</strong> La nueva contraseña debe tener al menos 8 caracteres, 
-                incluir letras mayúsculas, minúsculas, números y caracteres especiales.
+                <strong>Política de contraseñas:</strong> La nueva contraseña debe tener al menos 6 caracteres.
               </Typography>
             </Alert>
           </Grid>
 
-          {/* Campo de nueva contraseña */}
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              type={showNewPassword ? 'text' : 'password'}
-              label="Nueva Contraseña"
-              name="nueva_contrasenia"
-              value={passwordData.nueva_contrasenia}
-              onChange={handleChange}
-              error={!!errors.nueva_contrasenia}
-              helperText={errors.nueva_contrasenia}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Security color="primary" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      edge="end"
-                    >
-                      {showNewPassword ? <VisibilityOff /> : <VisibilityIcon />}
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-            />
-          </Grid>
-
-          {/* Campo de confirmar contraseña */}
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              type={showConfirmPassword ? 'text' : 'password'}
-              label="Confirmar Nueva Contraseña"
-              name="confirmar_contrasenia"
-              value={passwordData.confirmar_contrasenia}
-              onChange={handleChange}
-              error={!!errors.confirmar_contrasenia}
-              helperText={errors.confirmar_contrasenia}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Security color="primary" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      edge="end"
-                    >
-                      {showConfirmPassword ? <VisibilityOff /> : <VisibilityIcon />}
-                    </IconButton>
-                  </InputAdornment>
-                )
-              }}
-            />
+          {/* Campos de nueva contraseña y confirmar contraseña centrados */}
+          <Grid container spacing={2} justifyContent="center" alignItems="center">
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type={showNewPassword ? 'text' : 'password'}
+                label="Nueva Contraseña"
+                name="nueva_contrasenia"
+                value={passwordData.nueva_contrasenia}
+                onChange={handleChange}
+                error={!!errors.nueva_contrasenia}
+                helperText={errors.nueva_contrasenia}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Security color="primary" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        edge="end"
+                      >
+                        {showNewPassword ? <VisibilityOff /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                type={showConfirmPassword ? 'text' : 'password'}
+                label="Confirmar Nueva Contraseña"
+                name="confirmar_contrasenia"
+                value={passwordData.confirmar_contrasenia}
+                onChange={handleChange}
+                error={!!errors.confirmar_contrasenia}
+                helperText={errors.confirmar_contrasenia}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Security color="primary" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOff /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Grid>
           </Grid>
 
           {/* Indicador de fortaleza de contraseña */}
@@ -251,11 +252,7 @@ const UsuarioPassword = ({
                     </Typography>
                     <Grid container spacing={1}>
                       {[
-                        { check: passwordData.nueva_contrasenia.length >= 8, text: "Mínimo 8 caracteres" },
-                        { check: /[a-z]/.test(passwordData.nueva_contrasenia), text: "Letra minúscula" },
-                        { check: /[A-Z]/.test(passwordData.nueva_contrasenia), text: "Letra mayúscula" },
-                        { check: /\d/.test(passwordData.nueva_contrasenia), text: "Número" },
-                        { check: /[^A-Za-z0-9]/.test(passwordData.nueva_contrasenia), text: "Carácter especial" },
+                        { check: passwordData.nueva_contrasenia.length >= 6, text: "Mínimo 6 caracteres" },
                         { check: passwordData.nueva_contrasenia === passwordData.confirmar_contrasenia && passwordData.nueva_contrasenia !== '', text: "Contraseñas coinciden" }
                       ].map((item, index) => (
                         <Grid item xs={12} sm={6} key={index}>

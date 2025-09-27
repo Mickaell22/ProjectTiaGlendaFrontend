@@ -87,6 +87,10 @@ export class UsuarioService {
     } else if (data.nueva_contrasenia.length < 6) {
       errors.nueva_contrasenia = 'La nueva contraseña debe tener al menos 6 caracteres';
     }
+    // Validar que la nueva contraseña no sea igual a la actual
+    if (data.contrasenia_actual && data.nueva_contrasenia === data.contrasenia_actual) {
+      errors.nueva_contrasenia = 'La nueva contraseña no puede ser igual a la actual';
+    }
 
     if (!data.confirmar_contrasenia) {
       errors.confirmar_contrasenia = 'Debe confirmar la nueva contraseña';
@@ -391,35 +395,22 @@ export class UsuarioService {
   // Validar fortaleza de contraseña
   static validatePasswordStrength(password) {
     const criteria = {
-      length: password.length >= 8,
-      uppercase: /[A-Z]/.test(password),
-      lowercase: /[a-z]/.test(password),
-      numbers: /\d/.test(password),
-      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+      length: password.length >= 6
     };
 
-    const score = Object.values(criteria).filter(Boolean).length;
-    
-    let strength = 'Muy débil';
+    let strength = 'Débil';
     let color = 'error';
-    
-    if (score >= 4) {
-      strength = 'Fuerte';
+    if (criteria.length) {
+      strength = 'Aceptable';
       color = 'success';
-    } else if (score >= 3) {
-      strength = 'Media';
-      color = 'warning';
-    } else if (score >= 2) {
-      strength = 'Débil';
-      color = 'warning';
     }
 
     return {
       strength,
       color,
-      score,
+      score: criteria.length ? 1 : 0,
       criteria,
-      suggestions: this.getPasswordSuggestions(criteria)
+      suggestions: criteria.length ? [] : ['Usa al menos 6 caracteres']
     };
   }
 
