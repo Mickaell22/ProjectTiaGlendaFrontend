@@ -54,11 +54,13 @@ const PedagogicoMain = () => {
 
     // Tab Sesiones - Solo admins pueden ver la lista completa, pedagogos ven solo las suyas
     if (permissions.sesionesPedagogicas.view) {
+      // Calcular el índice del tab 'Crear'
+      const crearTabIndex = tabs.length + (permissions.sesionesPedagogicas.create ? 1 : 0);
       tabs.push({
         label: 'Sesiones',
         icon: <School />,
         component: <SesionesPedagogicas
-          onNavigateToCreate={isAdmin ? () => setValue(tabs.length) : undefined}
+          onNavigateToCreate={isAdmin && crearTabIndex !== -1 ? () => setValue(crearTabIndex) : undefined}
           readOnly={!isAdmin}
           userViewMode={isPedagogue}
         />
