@@ -163,9 +163,10 @@ const UsuarioLista = ({
 
           <Button
             variant="contained"
+            color="primary"
             startIcon={<PersonAdd />}
             onClick={onNewUser}
-            sx={{ height: 40, px: 2 }}
+            sx={{ height: 40, px: 2, bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
           >
             Nuevo Usuario
           </Button>
@@ -223,7 +224,7 @@ const UsuarioLista = ({
                         label={rolInfo.label}
                         color={rolInfo.color}
                         size="small"
-                        icon={
+                        icon={  
                           rolInfo.icon === 'AdminPanelSettings' ? <AdminPanelSettings /> :
                           rolInfo.icon === 'SupervisorAccount' ? <SupervisorAccount /> :
                           rolInfo.icon === 'Psychology' ? <Psychology /> :

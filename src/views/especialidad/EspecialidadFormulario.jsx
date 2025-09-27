@@ -181,6 +181,8 @@ const EspecialidadFormulario = ({
               startIcon={editingId ? <Edit /> : <Add />}
               size="large"
               disabled={!canSubmit}
+              sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
+              
             >
               {editingId ? 'Actualizar Especialidad' : 'Crear Especialidad'}
             </Button>

@@ -669,6 +669,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                 startIcon={<Add />}
                 disabled={loading}
                 size="large"
+                sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
               >
                 Crear Sesión
               </Button>

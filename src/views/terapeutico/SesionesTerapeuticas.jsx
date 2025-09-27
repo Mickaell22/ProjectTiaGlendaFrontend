@@ -392,7 +392,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                   navigate('/terapeutico/crear-sesion');
                 }
               }}
-              sx={{ height: 40, px: 2 }}
+              sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
             >
               Nueva Sesión
             </Button>
@@ -408,8 +408,8 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
             <Box sx={{ width: '100%', overflowX: 'auto' }}>
               <Paper variant="outlined" sx={{ borderRadius: 2 }}>
                 <Box sx={{ p: 2, bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', display: 'flex', alignItems: 'center' }}>
-                  <Event sx={{ mr: 1, color: 'success.main' }} />
-                  <Typography variant="h6" sx={{ color: 'success.main' }}>
+                  <Event sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h6" sx={{ color: 'primary.main' }}>
                     Vista de Horario Semanal
                   </Typography>
                   <Chip 
@@ -435,7 +435,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                   {/* Encabezado con días */}
                   <Box /> {/* Espacio para la columna de horas */}
                   {dias.map(dia => (
-                    <Box key={dia} sx={{ textAlign: 'center', p: 1, fontWeight: 'bold', color: 'success.main' }}>
+                    <Box key={dia} sx={{ textAlign: 'center', p: 1, fontWeight: 'bold', color: 'primary.main' }}>
                       {dia}
                     </Box>
                   ))}
@@ -443,7 +443,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                   {/* Filas de horarios */}
                   {horas.map(hora => (
                     <Fragment key={hora}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', p: 1, fontWeight: 'medium', color: 'text.secondary' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', p: 1, fontWeight: 'medium', color: 'primary.main' }}>
                         <AccessTime sx={{ fontSize: 16, mr: 0.5 }} />
                         {hora}
                       </Box>
@@ -467,10 +467,10 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                               sx={{
                                 p: 1.5,
                                 cursor: 'pointer',
-                                bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : 'success.light',
+                                bgcolor: theme.palette.mode === 'primary' ? 'primary.dark' : 'primary.light',
                                 border: '1px solid',
-                                borderColor: 'success.main',
-                                color: 'text.primary',
+                                borderColor: 'primary.main',
+                                color: 'primary.main',
                                 fontSize: '0.75rem',
                                 borderRadius: 1,
                                 '&:hover': {
@@ -500,7 +500,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                               <Typography
                                 variant="caption"
                                 sx={{
-                                  color: 'success.main',
+                                  color: 'text.primary',
                                   fontWeight: 'medium',
                                   display: 'block',
                                   mb: 0.3,
@@ -514,7 +514,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                               <Typography 
                                 variant="caption" 
                                 sx={{ 
-                                  color: 'text.secondary',
+                                  color: 'text.primary',
                                   display: 'block',
                                   mb: 0.3,
                                   fontSize: '0.65rem'
@@ -526,7 +526,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                               <Typography 
                                 variant="caption" 
                                 sx={{ 
-                                  color: 'text.secondary',
+                                  color: 'text.primary',
                                   display: 'block',
                                   fontSize: '0.6rem'
                                 }}
@@ -550,7 +550,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                                     sx={{
                                       width: 18,
                                       height: 18,
-                                      bgcolor: 'success.main',
+                                      bgcolor: 'primary.main',
                                       color: 'white',
                                       '&:hover': {
                                         bgcolor: 'success.dark'
@@ -638,7 +638,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                           {/* Terapeuta con avatar */}
                           <TableCell>
                             <Box display="flex" alignItems="center">
-                              <Avatar sx={{ mr: 2, bgcolor: '#7e57c2' }}>
+                              <Avatar sx={{ mr: 2, bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}>
                                 <Person />
                               </Avatar>
                               <Typography variant="body2">
@@ -655,7 +655,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                           {/* Horario */}
                           <TableCell>
                             <Box>
-                              <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'success.main' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'primary.main' }}>
                                 {item.hora_inicio || 'No definido'}
                                 {item.hora_fin && ` - ${item.hora_fin}`}
                               </Typography>

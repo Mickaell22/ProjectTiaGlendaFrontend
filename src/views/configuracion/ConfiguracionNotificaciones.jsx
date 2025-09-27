@@ -90,7 +90,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
       {/* Header mejorado */}
       <Card sx={{ 
         mb: 4, 
-        background: 'linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)', 
+        backgroundColor: 'primary.main', 
         color: 'white',
         boxShadow: '0 8px 32px rgba(156, 39, 176, 0.3)'
       }}>
@@ -528,7 +528,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
             startIcon={<Save />}
             size="large"
             sx={{ 
-              background: 'linear-gradient(45deg, #9c27b0, #ba68c8)',
+              backgroundColor: "primary.main",
               color: 'white',
               fontWeight: 'bold',
               px: 6,
@@ -536,7 +536,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
               borderRadius: 3,
               boxShadow: '0 4px 20px rgba(156, 39, 176, 0.3)',
               '&:hover': { 
-                background: 'linear-gradient(45deg, #7b1fa2, #9c27b0)',
+                backgroundColor: 'primary.dark',
                 boxShadow: '0 6px 25px rgba(156, 39, 176, 0.4)',
                 transform: 'translateY(-1px)'
               }

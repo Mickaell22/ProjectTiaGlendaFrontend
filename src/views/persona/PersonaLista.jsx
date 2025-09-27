@@ -162,12 +162,12 @@ const PersonaLista = ({
               flex: '1 1 380px'
             }}
           />
-
-<Button
+          <Button
             variant="contained"
+            color="primary"
             startIcon={<Add />}
             onClick={onNewPersona}
-            sx={{ height: 40, px: 2 }}
+            sx={{ height: 40, px: 2, bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
           >
             Nueva Persona
           </Button>

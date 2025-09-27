@@ -279,7 +279,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
           borderRadius: 4,
           mb: 4,
           backgroundColor: 'background.paper',
-        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
+        border: theme.palette.mode === 'primary' ? `1px solid ${theme.palette.divider}` : 'none',
           overflow: 'hidden',
           width: '100%',
           maxWidth: { xs: '100%', sm: 1000, md: 1200 },
@@ -371,6 +371,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
             
             <Button
               variant="contained"
+              color="success"
               startIcon={<PersonAdd />}
               onClick={() => {
                 if (onNavigateToCreate) {
@@ -379,7 +380,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                   navigate('/pedagogico/crear-sesion');
                 }
               }}
-              sx={{ height: 40, px: 2, bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
+              sx={{ height: 40, px: 2, bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
             >
               Nueva Sesión
             </Button>
@@ -454,15 +455,15 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                               sx={{ 
                                 p: 1.5, 
                                 cursor: 'pointer',
-                                bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : 'success.light',
+                                bgcolor: theme.palette.mode === 'primary' ? 'primary.dark' : 'primary.light',
                                 border: '1px solid',
-                                borderColor: 'success.main',
+                                borderColor: 'primary.main',
                                 color: 'text.primary',
                                 fontSize: '0.75rem',
                                 borderRadius: 1,
                                 '&:hover': {
-                                  bgcolor: theme.palette.mode === 'dark' ? 'success.main' : 'success.light',
-                                  borderColor: 'success.dark',
+                                  bgcolor: theme.palette.mode === 'primary' ? 'primary.light' : 'primary.dark',
+                                  borderColor: 'primary.dark',
                                   transform: 'translateY(-2px)',
                                   boxShadow: 2
                                 },
@@ -487,7 +488,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                               <Typography 
                                 variant="caption" 
                                 sx={{ 
-                                  color: 'success.main',
+                                  color: 'primary.main',
                                   fontWeight: 'medium',
                                   display: 'block',
                                   mb: 0.3,
@@ -537,7 +538,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                                     sx={{ 
                                       width: 18, 
                                       height: 18,
-                                      bgcolor: 'success.main',
+                                      bgcolor: 'primary.main',
                                       color: 'white',
                                       '&:hover': {
                                         bgcolor: 'success.dark'
@@ -601,7 +602,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                                   navigate('/pedagogico/crear-sesion');
                                 }
                               }}
-                              sx={{ mt: 2, bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
+                              sx={{ mt: 2, bgcolor: 'primary.main', '&:hover': { bgcolor: 'success.dark' } }}
                             >
                               Crear Primera Sesión
                             </Button>
@@ -622,7 +623,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
 
                           <TableCell>
                             <Box display="flex" alignItems="center">
-                              <Avatar sx={{ mr: 2, bgcolor: 'success.main' }}>
+                              <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
                                 <School />
                               </Avatar>
                               <Typography variant="body2">
@@ -639,7 +640,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
 
                           <TableCell>
                             <Box>
-                              <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'success.main' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 'medium', color: 'primary.main' }}>
                                 {item.hora_inicio || 'No definido'}
                                 {item.hora_fin && ` - ${item.hora_fin}`}
                               </Typography>
@@ -913,7 +914,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                 {estudiantesDisponibles.map((estudiante) => (
                   <MenuItem key={estudiante.id} value={estudiante.id}>
                     <Box display="flex" alignItems="center" width="100%">
-                      <Avatar sx={{ mr: 2, bgcolor: 'success.main', width: 32, height: 32 }}>
+                      <Avatar sx={{ mr: 2, bgcolor: 'primary.main', width: 32, height: 32 }}>
                         <Person fontSize="small" />
                       </Avatar>
                       <Box>

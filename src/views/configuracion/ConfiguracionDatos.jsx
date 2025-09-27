@@ -181,7 +181,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
           Configuraciones de Datos
           <Chip 
             label={`${espacioUsado.usado}MB / ${espacioUsado.total}MB`}
-            color={porcentajeUsado > 80 ? 'error' : porcentajeUsado > 60 ? 'warning' : 'success'}
+            color={porcentajeUsado > 80 ? 'error' : porcentajeUsado > 60 ? 'warning' : 'primary'}
             size="small"
             sx={{ ml: 2 }}
           />
@@ -206,7 +206,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
                 <LinearProgress 
                   variant="determinate" 
                   value={porcentajeUsado}
-                  color={porcentajeUsado > 80 ? 'error' : porcentajeUsado > 60 ? 'warning' : 'success'}
+                  color={porcentajeUsado > 80 ? 'error' : porcentajeUsado > 60 ? 'warning' : 'primary'}
                   sx={{ height: 10, borderRadius: 5, mt: 1 }}
                 />
               </Box>
