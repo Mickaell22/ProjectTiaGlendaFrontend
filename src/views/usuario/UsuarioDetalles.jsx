@@ -48,12 +48,22 @@ const UsuarioDetalles = ({
   onEdit, 
   onChangePassword 
 }) => {
+  // Depuración: mostrar datos en consola
   if (!userData) return null;
+  console.log('UsuarioDetalles userData:', userData);
+  let rolKey = userData.rol_nombre || userData.rol?.nombre || userData.rol?.id || userData.rol_id || userData.rol;
+  if (typeof rolKey === 'object' && rolKey !== null) {
+    rolKey = rolKey.nombre || rolKey.id || '';
+  }
+  if (typeof rolKey === 'string') {
+    rolKey = rolKey.trim().toLowerCase();
+  }
+  console.log('UsuarioDetalles rolKey:', rolKey);
 
   const estadoInfo = UsuarioService.getEstadoInfo(userData.estado);
   const contactInfo = UsuarioService.getContactInfo(userData);
   const securityInfo = UsuarioService.getSecurityInfo(userData);
-  const rolInfo = UsuarioService.getRolInfo(userData.rol_nombre || userData.rol);
+  const rolInfo = UsuarioService.getRolInfo(rolKey);
 
   const handleEdit = () => {
     onEdit(userData);
@@ -110,21 +120,13 @@ const UsuarioDetalles = ({
                       {UsuarioService.getFullName(userData)}
                     </Typography>
                     <Typography variant="h6" color="primary" gutterBottom>
-                      @{userData.nombre_usuario}
+                      @{userData.usuario}
                     </Typography>
                     <Box display="flex" alignItems="center" gap={2}>
                       <Chip 
                         label={rolInfo.label}
                         color={rolInfo.color}
-                        icon={rolInfo.icon === 'AdminPanelSettings' ? <AdminPanelSettings /> :
-                              rolInfo.icon === 'SupervisorAccount' ? <SupervisorAccount /> :
-                              rolInfo.icon === 'Psychology' ? <Psychology /> :
-                              rolInfo.icon === 'School' ? <School /> :
-                              <Person />}
                       />
-                      <Typography variant="body2" color="text.secondary">
-                        ID: {userData.id}
-                      </Typography>
                     </Box>
                   </Box>
                 </Box>
@@ -287,7 +289,7 @@ const UsuarioDetalles = ({
             </Card>
           </Grid>
 
-          {/* Información de Auditoría */}
+          {/* Información de Auditoría 
           <Grid item xs={12}>
             <Card elevation={1}>
               <CardContent>
@@ -346,7 +348,7 @@ const UsuarioDetalles = ({
                 </Grid>
               </CardContent>
             </Card>
-          </Grid>
+          </Grid>*/}
         </Grid>
       </DialogContent>
       

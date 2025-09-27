@@ -76,6 +76,9 @@ const PersonaLista = ({
     const apellido = p.apellido || p.apellidos || '';
     const telefono = p.telefono || '';
 
+    // Solo personas activas
+    if (p.estado && p.estado.toLowerCase() !== 'activo') return false;
+
     const search =
       !searchTerm ||
       normalize(nombre).includes(normalize(searchTerm)) ||
