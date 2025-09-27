@@ -140,7 +140,7 @@ const TherapistDashboardView = () => {
             mb: 4,
             borderRadius: 3,
             background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-            color: 'white'
+            color: theme.palette.getContrastText(theme.palette.primary.main)
           }}
         >
           <Typography variant="h3" fontWeight="bold" gutterBottom>

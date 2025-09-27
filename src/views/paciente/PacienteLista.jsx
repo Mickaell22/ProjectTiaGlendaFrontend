@@ -431,9 +431,10 @@ const PacienteLista = ({
           {onNewPatient && (
             <Button
               variant="contained"
+              color="primary"
               startIcon={<PersonAdd />}
               onClick={onNewPatient}
-              sx={{ height: 40, px: 2 }}
+              sx={{ height: 40, px: 2, bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
               disabled={loading}
             >
               Nuevo Paciente

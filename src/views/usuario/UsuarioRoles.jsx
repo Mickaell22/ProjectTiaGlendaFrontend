@@ -156,7 +156,7 @@ const UsuarioRoles = ({ usuarios = [] }) => {
         <Box
           sx={{
             background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-            color: 'white',
+            color: theme.palette.getContrastText(theme.palette.primary.main),
             p: 3,
             display: 'flex',
             alignItems: 'center',
@@ -178,7 +178,7 @@ const UsuarioRoles = ({ usuarios = [] }) => {
           <Chip
             label={`${Object.keys(rolesStats).length} roles`}
             color="default"
-            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+            sx={{ bgcolor: theme.palette.action.selected, color: theme.palette.getContrastText(theme.palette.action.selected) }}
             size="small"
           />
         </Box>
@@ -269,7 +269,7 @@ const UsuarioRoles = ({ usuarios = [] }) => {
           <Box
             sx={{
               background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-              color: 'white',
+              color: theme.palette.getContrastText(theme.palette.primary.main),
               p: 2
             }}
           >

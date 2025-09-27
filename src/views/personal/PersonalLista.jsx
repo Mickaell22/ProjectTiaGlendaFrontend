@@ -167,8 +167,8 @@ const PersonalLista = ({
             variant="contained"
             startIcon={<Add />}
             onClick={onAddNew}
-            sx={{ height: 40, px: 2 }}
-          >
+            sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
+              >
             Nuevo Personal
           </Button>
         </Box>
@@ -196,8 +196,7 @@ const PersonalLista = ({
                         <Avatar
                           sx={{
                             mr: 2,
-                            bgcolor: '#7e57c2' // Morado para el icono
-                          }}
+                            bgcolor: theme.palette.primary.main,}}
                         >
                           <Person />
                         </Avatar>

@@ -183,8 +183,8 @@ const EspecialidadLista = ({
             variant="contained"
             startIcon={<Add />}
             onClick={onAddNew}
-            sx={{ height: 40, px: 2 }}
-          >
+            sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
+              >
             Nueva Especialidad
           </Button>
         </Box>

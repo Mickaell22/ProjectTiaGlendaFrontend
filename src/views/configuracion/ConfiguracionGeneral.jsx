@@ -99,9 +99,10 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
     <Box sx={{ p: 3 }}>
       {/* Header mejorado */}
       <Card sx={{ 
+        borderRadius: 3,
         mb: 4, 
-        background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)', 
-        color: 'white',
+        backgroundColor: 'primary.main', 
+        color: 'White',
         boxShadow: '0 8px 32px rgba(25, 118, 210, 0.3)'
       }}>
         <CardContent sx={{ py: 3 }}>
@@ -395,13 +396,13 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                     <Typography variant="body2" fontWeight="bold" color="text.secondary" gutterBottom>
                       Vista Previa:
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography variant="body2" color="black">
                       • Fecha: <strong>{formData.formatoFecha}</strong>
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography variant="body2" color="black">
                       • Hora: <strong>{formData.formatoHora}</strong>
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography variant="body2" color="black">
                       • Moneda: <strong>{formData.moneda}</strong>
                     </Typography>
                   </Box>
@@ -420,7 +421,7 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
               startIcon={<Save />}
               size="large"
               sx={{ 
-                background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
+                backgroundColor: 'primary.main',
                 color: 'white',
                 fontWeight: 'bold',
                 px: 6,
@@ -428,7 +429,7 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                 borderRadius: 3,
                 boxShadow: '0 4px 20px rgba(25, 118, 210, 0.3)',
                 '&:hover': { 
-                  background: 'linear-gradient(45deg, #1565c0, #1e88e5)',
+                  backgroundColor: 'primary.dark',
                   boxShadow: '0 6px 25px rgba(25, 118, 210, 0.4)',
                   transform: 'translateY(-1px)'
                 }
@@ -446,13 +447,13 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
         <Grid item xs={12}>
           <Card sx={{ 
             background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)', 
-            border: '1px solid #90caf9',
+            border: 'primary.main',
             mt: 2
           }}>
             <CardContent sx={{ p: 3 }}>
               <Box display="flex" alignItems="center" mb={2}>
                 <Schedule sx={{ mr: 2, color: '#1976d2' }} />
-                <Typography variant="h6" color="#1565c0" fontWeight="bold">
+                <Typography variant="h6" color="primary.main" fontWeight="bold">
                   Información de Horarios
                 </Typography>
               </Box>
@@ -469,10 +470,10 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                   </Box>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                  <Typography variant="body2" color="primary.main" gutterBottom>
                     <strong>📋 Aplica para:</strong>
                   </Typography>
-                  <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }}>
+                  <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }} color="black">
                     <li>Sesiones terapéuticas</li>
                     <li>Clases pedagógicas</li>
                     <li>Disponibilidad del personal</li>

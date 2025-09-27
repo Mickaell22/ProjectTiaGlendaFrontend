@@ -158,7 +158,7 @@ const ConfiguracionMain = () => {
             elevation={4}
             sx={{
               borderRadius: 3,
-              backgroundColor: 'background.paper',
+              backgroundColor: theme.palette.background.paper,
               mb: 4,
               overflow: 'hidden',
               border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '4px solid transparent',

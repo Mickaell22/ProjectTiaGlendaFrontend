@@ -451,6 +451,7 @@ const PersonaFormulario = ({
                 startIcon={isEditing ? <Edit /> : <Add />}
                 size="large"
                 disabled={loading || !formData.nombre || !formData.apellido || !formData.cedula}
+                sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
               >
                 {isEditing ? 'Actualizar Persona' : 'Registrar Persona'}
               </Button>

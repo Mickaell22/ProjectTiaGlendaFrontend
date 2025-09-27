@@ -104,7 +104,7 @@ const PedagogicoHoy = () => {
         <Box
           sx={{
             background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-            color: 'white',
+            color: theme.palette.getContrastText(theme.palette.primary.main),
             p: 3,
             display: 'flex',
             alignItems: 'center',

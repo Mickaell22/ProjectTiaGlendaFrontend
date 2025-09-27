@@ -456,6 +456,7 @@ const TutorFormulario = ({
                 startIcon={isEditing ? <Edit /> : <PersonAdd />}
                 size="large"
                 disabled={loading || !formData.id_persona || !formData.parentesco}
+                sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
               >
                 {isEditing ? 'Actualizar Tutor' : 'Crear Tutor'}
               </Button>

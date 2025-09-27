@@ -159,7 +159,7 @@ const TerapeuticoMain = () => {
             mb: 4,
             overflow: 'hidden',
             border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '4px solid transparent',
-            backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, #E91E63, #9C27B0, #673AB7, #3F51B5)`,
+            backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main}, ${theme.palette.warning.main}, ${theme.palette.success.main})`,
             backgroundOrigin: 'border-box',
             backgroundClip: 'padding-box, border-box',
             animation: theme.palette.mode === 'dark' ? 'none' : 'rainbow 5s linear infinite',
