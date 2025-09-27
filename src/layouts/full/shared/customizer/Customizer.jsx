@@ -125,6 +125,25 @@ const Customizer = () => {
                 Oscuro
               </Typography>
             </Box>
+            <Box
+              onClick={() => handleModeChange('black')}
+              sx={{
+                width: 60,
+                height: 40,
+                borderRadius: 1,
+                border: customizer.activeMode === 'black' ? 2 : 1,
+                borderColor: customizer.activeMode === 'black' ? 'primary.main' : 'grey.300',
+                cursor: 'pointer',
+                background: 'linear-gradient(to bottom, #000000 50%, #222222 50%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Typography variant="caption" color="white">
+                Black
+              </Typography>
+            </Box>
           </Stack>
         </Box>
 

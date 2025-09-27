@@ -388,8 +388,6 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
               onClick={() => {
                 if (onNavigateToCreate) {
                   onNavigateToCreate();
-                } else {
-                  navigate('/terapeutico/crear-sesion');
                 }
               }}
               sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
@@ -400,7 +398,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
 
           {/* Contenido principal - Vista lista o horario */}
           {loading ? (
-            <Box display="flex" justifyContent="center" p={4}>
+            <Box display="flex" justifyContent="center" p={4}>d
               <Typography>Cargando sesiones...</Typography>
             </Box>
           ) : viewMode === 'schedule' ? (

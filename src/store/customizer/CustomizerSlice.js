@@ -2,7 +2,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  activeMode: 'light', // light | dark
+  activeMode: 'light', // light | dark | black
   activeTheme: 'BLUE_THEME', // BLUE_THEME, GREEN_THEME, PURPLE_THEME, RED_THEME, ORANGE_THEME, TEAL_THEME
   sidebarCollapse: false,
   isMobileSidebar: false,

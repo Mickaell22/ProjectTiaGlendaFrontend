@@ -1,3 +1,9 @@
+function a11yProps(index) {
+  return {
+    id: `terapeutico-tab-${index}`,
+    'aria-controls': `terapeutico-tabpanel-${index}`,
+  };
+}
 // src/views/terapeutico/TerapeuticoMain.jsx
 import React, { useState } from 'react';
 import {
@@ -21,7 +27,6 @@ function TabPanel({ children, value, index, ...other }) {
       hidden={value !== index}
       id={`terapeutico-tabpanel-${index}`}
       aria-labelledby={`terapeutico-tab-${index}`}
-      {...other}
     >
       {value === index && (
         <Box sx={{ py: 3 }}>
@@ -32,96 +37,47 @@ function TabPanel({ children, value, index, ...other }) {
   );
 }
 
-function a11yProps(index) {
-  return {
-    id: `terapeutico-tab-${index}`,
-    'aria-controls': `terapeutico-tabpanel-${index}`,
-  };
+function getAllTabs({ permissions, isAdmin, isTherapist, refreshSesiones, handleSessionCreated, setValue }) {
+  const tabs = [];
+  // Tab Sesiones
+  tabs.push({ label: 'Sesiones', icon: <Psychology />, component: null });
+  // Tab Crear
+  if (permissions.sesionesTerapeuticas.create) {
+    tabs.push({ label: 'Crear', icon: <Add />, component: <CrearSesionTerapeutica onSessionCreated={handleSessionCreated} /> });
+  }
+  if (permissions.sesionesTerapeuticas.viewCronograma) {
+    tabs.push({ label: 'Cronogramas', icon: <CalendarMonth />, component: <TerapeuticoCronogramas readOnly={!permissions.sesionesTerapeuticas.editCronograma} userViewMode={isTherapist} /> });
+  }
+  if (permissions.sesionesTerapeuticas.viewAsistencia) {
+    tabs.push({ label: 'Asistencia', icon: <Assignment />, component: <TerapeuticoAsistencia canRegister={permissions.sesionesTerapeuticas.registerAsistencia} canEdit={isAdmin} userViewMode={isTherapist} /> });
+  }
+  // Asignar el callback correcto al tab 'Sesiones'
+  const crearTabIndex = tabs.findIndex(tab => tab.label === 'Crear');
+  tabs[0].component = <SesionesTerapeuticas
+    onNavigateToCreate={isAdmin && crearTabIndex !== -1 ? () => setValue(crearTabIndex) : undefined}
+    refreshTrigger={refreshSesiones}
+    readOnly={!isAdmin}
+    userViewMode={isTherapist}
+  />;
+  return tabs;
 }
 
-const TerapeuticoMain = () => {
-  const theme = useTheme();
-  const { isAdmin, isTherapist, permissions, loading } = useUserRole();
-  const [value, setValue] = useState(0);
-  const [refreshSesiones, setRefreshSesiones] = useState(0);
+      const TerapeuticoMain = () => {
+        const theme = useTheme();
+        const { isAdmin, isTherapist, permissions, loading } = useUserRole();
+        const [value, setValue] = useState(0);
+        const [refreshSesiones, setRefreshSesiones] = useState(0);
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
+        const handleChange = (event, newValue) => {
+          setValue(newValue);
+        };
 
-  const handleSessionCreated = () => {
-    // Refrescar la lista de sesiones
-    setRefreshSesiones(prev => prev + 1);
-    // Cambiar al tab de sesiones para mostrar la nueva sesión
-    setValue(0);
-  };
+        const handleSessionCreated = () => {
+          setRefreshSesiones(prev => prev + 1);
+          setValue(0);
+        };
 
-  // Configurar tabs según permisos del usuario
-  const getAllTabs = () => {
-    const tabs = [];
-
-    // Tab Sesiones - Solo admins pueden ver la lista completa, terapeutas ven solo las suyas
-    if (permissions.sesionesTerapeuticas.view) {
-      tabs.push({
-        label: 'Sesiones',
-        icon: <Psychology />,
-        component: <SesionesTerapeuticas
-          onNavigateToCreate={isAdmin ? () => setValue(tabs.length) : undefined}
-          refreshTrigger={refreshSesiones}
-          readOnly={!isAdmin}
-          userViewMode={isTherapist}
-        />
-      });
-    }
-
-    // Tab Crear - Solo admins
-    if (permissions.sesionesTerapeuticas.create) {
-      tabs.push({
-        label: 'Crear',
-        icon: <Add />,
-        component: <CrearSesionTerapeutica onSessionCreated={handleSessionCreated} />
-      });
-    }
-
-    // Tab Cronogramas - Admins y terapeutas (terapeutas solo consulta)
-    if (permissions.sesionesTerapeuticas.viewCronograma) {
-      tabs.push({
-        label: 'Cronogramas',
-        icon: <CalendarMonth />,
-        component: <TerapeuticoCronogramas
-          readOnly={!permissions.sesionesTerapeuticas.editCronograma}
-          userViewMode={isTherapist}
-        />
-      });
-    }
-
-    // Tab Asistencia - Admins y terapeutas
-    if (permissions.sesionesTerapeuticas.viewAsistencia) {
-      tabs.push({
-        label: 'Asistencia',
-        icon: <Assignment />,
-        component: <TerapeuticoAsistencia
-          canRegister={permissions.sesionesTerapeuticas.registerAsistencia}
-          canEdit={isAdmin}
-          userViewMode={isTherapist}
-        />
-      });
-    }
-
-    // Tab Hoy - Todos los usuarios autorizados (OCULTO TEMPORALMENTE)
-    // if (permissions.sesionesTerapeuticas.view) {
-    //   tabs.push({
-    //     label: 'Hoy',
-    //     icon: <Today />,
-    //     component: <TerapeuticoHoy userViewMode={isTherapist} />
-    //   });
-    // }
-
-
-    return tabs;
-  };
-
-  const tabs = getAllTabs();
+        const tabs = getAllTabs({ permissions, isAdmin, isTherapist, refreshSesiones, handleSessionCreated, setValue });
 
   // Mostrar loading mientras se determina el rol
   if (loading) {
