@@ -3,9 +3,12 @@ import { createTheme } from '@mui/material/styles';
 import { DefaultColors, DarkColors } from './DefaultColors';
 
 const ThemeSettings = (customizer) => {
+  // Black mode palette
+  const isBlack = customizer && customizer.activeMode === 'black';
+
   const theme = createTheme({
     palette: {
-      mode: customizer.activeMode,
+      mode: isBlack ? 'dark' : customizer.activeMode,
       primary: {
         main: customizer.activeMode === 'dark' ?
                (customizer.activeTheme === 'BLUE_THEME' ? DarkColors.primary.main :
@@ -112,8 +115,8 @@ const ThemeSettings = (customizer) => {
       action: customizer.activeMode === 'dark' ? DarkColors.action : DefaultColors.action,
       divider: customizer.activeMode === 'dark' ? DarkColors.divider : DefaultColors.divider,
       background: {
-        default: customizer.activeMode === 'dark' ? '#2A3547' : '#fafbfb',
-        paper: customizer.activeMode === 'dark' ? '#2A3547' : '#ffffff',
+  default: isBlack ? '#000000' : (customizer.activeMode === 'dark' ? '#2A3547' : '#fafbfb'),
+  paper: isBlack ? '#111111' : (customizer.activeMode === 'dark' ? '#2A3547' : '#ffffff'),
       },
     },
     typography: {
@@ -215,41 +218,52 @@ const ThemeSettings = (customizer) => {
           root: {
             textTransform: 'none',
             borderRadius: '7px',
+            color: isBlack ? '#fff' : undefined,
           },
           containedPrimary: {
-            backgroundColor: customizer.activeMode === 'dark' ? '#5D87FF' : undefined,
-            color: '#ffffff',
+            backgroundColor: isBlack ? '#D32F2F' : (customizer.activeMode === 'dark' ? '#5D87FF' : undefined),
+            color: isBlack ? '#fff' : '#ffffff',
             '&:hover': {
-              backgroundColor: customizer.activeMode === 'dark'
+              backgroundColor: isBlack ? '#b71c1c' : (customizer.activeMode === 'dark'
                 ? 'rgba(93, 135, 255, 0.8)'
-                : 'rgba(93, 135, 255, 0.9)',
+                : 'rgba(93, 135, 255, 0.9)'),
             },
             '&:disabled': {
-              backgroundColor: customizer.activeMode === 'dark'
+              backgroundColor: isBlack ? '#333F55' : (customizer.activeMode === 'dark'
                 ? 'rgba(93, 135, 255, 0.3)'
-                : 'rgba(0, 0, 0, 0.12)',
-              color: customizer.activeMode === 'dark'
+                : 'rgba(0, 0, 0, 0.12)'),
+              color: isBlack ? '#B0BAC9' : (customizer.activeMode === 'dark'
                 ? 'rgba(255, 255, 255, 0.3)'
-                : 'rgba(0, 0, 0, 0.26)',
+                : 'rgba(0, 0, 0, 0.26)'),
             },
           },
           containedSecondary: {
-            backgroundColor: customizer.activeMode === 'dark' ? '#49BEFF' : undefined,
-            color: '#ffffff',
+            backgroundColor: isBlack ? '#333F55' : (customizer.activeMode === 'dark' ? '#49BEFF' : undefined),
+            color: isBlack ? '#fff' : '#ffffff',
             '&:hover': {
-              backgroundColor: customizer.activeMode === 'dark'
+              backgroundColor: isBlack ? '#222' : (customizer.activeMode === 'dark'
                 ? 'rgba(73, 190, 255, 0.8)'
-                : 'rgba(73, 190, 255, 0.9)',
+                : 'rgba(73, 190, 255, 0.9)'),
+            },
+            '&:disabled': {
+              backgroundColor: isBlack ? '#333F55' : (customizer.activeMode === 'dark'
+                ? 'rgba(73, 190, 255, 0.3)'
+                : 'rgba(0, 0, 0, 0.12)'),
+              color: isBlack ? '#B0BAC9' : (customizer.activeMode === 'dark'
+                ? 'rgba(255, 255, 255, 0.3)'
+                : 'rgba(0, 0, 0, 0.26)'),
             },
           },
           outlined: {
-            borderColor: customizer.activeMode === 'dark' ? '#465670' : '#e5eaef',
-            color: customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547',
+            color: isBlack ? '#fff' : undefined,
+            borderColor: isBlack ? '#333F55' : undefined,
             '&:hover': {
-              borderColor: customizer.activeMode === 'dark' ? '#7C8FAC' : '#DFE5EF',
-              backgroundColor: customizer.activeMode === 'dark'
-                ? 'rgba(115, 143, 172, 0.08)'
-                : 'rgba(223, 229, 239, 0.08)',
+              backgroundColor: isBlack ? '#222' : undefined,
+              borderColor: isBlack ? '#fff' : undefined,
+            },
+            '&:disabled': {
+              color: isBlack ? '#B0BAC9' : undefined,
+              borderColor: isBlack ? '#333F55' : undefined,
             },
           },
         },
@@ -257,13 +271,13 @@ const ThemeSettings = (customizer) => {
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: '7px',
-            padding: '0',
-            boxShadow: customizer.activeMode === 'dark'
+            boxShadow: isBlack ? '0px 4px 20px 0px rgba(0,0,0,0.7), 0px 1px 10px 0px rgba(0,0,0,0.4)' : (customizer.activeMode === 'dark'
               ? '0px 4px 20px 0px rgba(0, 0, 0, 0.4), 0px 1px 10px 0px rgba(0, 0, 0, 0.2)'
-              : '0px 7px 30px 0px rgba(90, 114, 123, 0.11)',
-            backgroundColor: customizer.activeMode === 'dark' ? '#333F55' : '#ffffff',
-            border: customizer.activeMode === 'dark' ? '1px solid #465670' : 'none',
+              : '0px 7px 30px 0px rgba(90, 114, 123, 0.11)'),
+            backgroundColor: isBlack ? '#111' : (customizer.activeMode === 'dark' ? '#333F55' : '#ffffff'),
+            color: isBlack ? '#EAEFF4' : (customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547'),
+            border: isBlack ? '1px solid #333F55' : (customizer.activeMode === 'dark' ? '1px solid #465670' : 'none'),
+            borderColor: isBlack ? '#333F55' : undefined,
           },
         },
       },
@@ -288,13 +302,75 @@ const ThemeSettings = (customizer) => {
       MuiTableCell: {
         styleOverrides: {
           root: {
-            borderBottom: `1px solid ${customizer.activeMode === 'dark' ? '#333F55' : '#e5eaef'}`,
+            color: isBlack ? '#EAEFF4' : (customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547'),
+            borderColor: isBlack ? '#333F55' : (customizer.activeMode === 'dark' ? '#465670' : '#e5eaef'),
+          },
+          head: {
+            color: isBlack ? '#fff' : (customizer.activeMode === 'dark' ? '#fff' : '#2A3547'),
+            borderColor: isBlack ? '#333F55' : (customizer.activeMode === 'dark' ? '#465670' : '#e5eaef'),
+            fontWeight: 600,
+          },
+          footer: {
+            color: isBlack ? '#EAEFF4' : (customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547'),
+          },
+        },
+      },
+      MuiTableBody: {
+        styleOverrides: {
+          root: {
+            color: isBlack ? '#EAEFF4' : undefined,
+          },
+        },
+      },
+      MuiTablePagination: {
+        styleOverrides: {
+          root: {
+            color: isBlack ? '#EAEFF4' : undefined,
+          },
+          selectIcon: {
+            color: isBlack ? '#EAEFF4' : undefined,
+          },
+          toolbar: {
+            color: isBlack ? '#EAEFF4' : undefined,
+          },
+          input: {
+            color: isBlack ? '#EAEFF4' : undefined,
+          },
+        },
+      },
+      MuiTypography: {
+        styleOverrides: {
+          root: {
+            color: isBlack ? '#EAEFF4' : undefined,
+          },
+          h1: { color: isBlack ? '#fff' : undefined },
+          h2: { color: isBlack ? '#fff' : undefined },
+          h3: { color: isBlack ? '#fff' : undefined },
+          h4: { color: isBlack ? '#fff' : undefined },
+          h5: { color: isBlack ? '#fff' : undefined },
+          h6: { color: isBlack ? '#fff' : undefined },
+          subtitle1: { color: isBlack ? '#B0BAC9' : undefined },
+          subtitle2: { color: isBlack ? '#B0BAC9' : undefined },
+          body1: { color: isBlack ? '#EAEFF4' : undefined },
+          body2: { color: isBlack ? '#B0BAC9' : undefined },
+          caption: { color: isBlack ? '#B0BAC9' : undefined },
+          overline: { color: isBlack ? '#B0BAC9' : undefined },
+        },
+      },
+      MuiListItemText: {
+        styleOverrides: {
+          primary: {
+            color: isBlack ? '#B0BAC9' : undefined,
+          },
+          secondary: {
+            color: isBlack ? '#B0BAC9' : undefined,
           },
         },
       },
       MuiTableRow: {
         styleOverrides: {
           root: {
+            color: isBlack ? '#EAEFF4' : undefined,
             '&:last-child td': {
               borderBottom: 0,
             },
@@ -495,40 +571,31 @@ const ThemeSettings = (customizer) => {
       MuiPaper: {
         styleOverrides: {
           root: {
-            backgroundColor: customizer.activeMode === 'dark' ? '#333F55' : '#ffffff',
-            color: customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547',
+            backgroundColor: isBlack ? '#111' : (customizer.activeMode === 'dark' ? '#333F55' : '#ffffff'),
+            color: isBlack ? '#EAEFF4' : (customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547'),
             backgroundImage: 'none',
-          },
-          elevation1: {
-            boxShadow: customizer.activeMode === 'dark'
-              ? '0px 1px 3px rgba(0, 0, 0, 0.2), 0px 1px 1px rgba(0, 0, 0, 0.14), 0px 2px 1px rgba(0, 0, 0, 0.12)'
-              : '0px 1px 2px rgba(90, 114, 123, 0.11)',
-          },
-          elevation2: {
-            boxShadow: customizer.activeMode === 'dark'
-              ? '0px 2px 4px rgba(0, 0, 0, 0.2), 0px 1px 1px rgba(0, 0, 0, 0.14), 0px 3px 1px rgba(0, 0, 0, 0.12)'
-              : '0px 2px 4px rgba(90, 114, 123, 0.11)',
+            borderColor: isBlack ? '#333F55' : undefined,
           },
         },
       },
       MuiAppBar: {
         styleOverrides: {
           root: {
-            backgroundColor: customizer.activeMode === 'dark' ? '#333F55' : '#ffffff',
-            color: customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547',
-            borderBottom: customizer.activeMode === 'dark' ? '1px solid #465670' : '1px solid #e5eaef',
-            boxShadow: customizer.activeMode === 'dark'
+            backgroundColor: isBlack ? '#111' : (customizer.activeMode === 'dark' ? '#333F55' : '#ffffff'),
+            color: isBlack ? '#fff' : (customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547'),
+            borderBottom: isBlack ? '1px solid #222' : (customizer.activeMode === 'dark' ? '1px solid #465670' : '1px solid #e5eaef'),
+            boxShadow: isBlack ? '0px 1px 8px rgba(0,0,0,0.7)' : (customizer.activeMode === 'dark'
               ? '0px 1px 8px rgba(0, 0, 0, 0.2)'
-              : '0px 1px 8px rgba(90, 114, 123, 0.11)',
+              : '0px 1px 8px rgba(90, 114, 123, 0.11)'),
           },
         },
       },
       MuiDrawer: {
         styleOverrides: {
           paper: {
-            backgroundColor: customizer.activeMode === 'dark' ? '#2A3547' : '#ffffff',
-            color: customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547',
-            borderRight: customizer.activeMode === 'dark' ? '1px solid #465670' : '1px solid #e5eaef',
+            backgroundColor: isBlack ? '#111' : (customizer.activeMode === 'dark' ? '#2A3547' : '#ffffff'),
+            color: isBlack ? '#fff' : (customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547'),
+            borderRight: isBlack ? '1px solid #222' : (customizer.activeMode === 'dark' ? '1px solid #465670' : '1px solid #e5eaef'),
           },
         },
       },
@@ -557,16 +624,6 @@ const ThemeSettings = (customizer) => {
           },
         },
       },
-      MuiListItemText: {
-        styleOverrides: {
-          primary: {
-            color: customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547',
-          },
-          secondary: {
-            color: customizer.activeMode === 'dark' ? '#7C8FAC' : '#5A6A85',
-          },
-        },
-      },
       MuiTooltip: {
         styleOverrides: {
           tooltip: {
@@ -579,30 +636,31 @@ const ThemeSettings = (customizer) => {
       MuiDialog: {
         styleOverrides: {
           paper: {
-            backgroundColor: customizer.activeMode === 'dark' ? '#333F55' : '#ffffff',
-            color: customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547',
+            backgroundColor: isBlack ? '#111' : (customizer.activeMode === 'dark' ? '#333F55' : '#ffffff'),
+            color: isBlack ? '#EAEFF4' : (customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547'),
+            borderColor: isBlack ? '#333F55' : undefined,
           },
         },
       },
       MuiDialogTitle: {
         styleOverrides: {
           root: {
-            color: customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547',
-            borderBottom: `1px solid ${customizer.activeMode === 'dark' ? '#465670' : '#e5eaef'}`,
+            color: isBlack ? '#fff' : (customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547'),
+            borderBottom: isBlack ? '1px solid #333F55' : `1px solid ${customizer.activeMode === 'dark' ? '#465670' : '#e5eaef'}`,
           },
         },
       },
       MuiDialogContent: {
         styleOverrides: {
           root: {
-            color: customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547',
+            color: isBlack ? '#EAEFF4' : (customizer.activeMode === 'dark' ? '#EAEFF4' : '#2A3547'),
           },
         },
       },
       MuiDialogActions: {
         styleOverrides: {
           root: {
-            borderTop: `1px solid ${customizer.activeMode === 'dark' ? '#465670' : '#e5eaef'}`,
+            borderTop: isBlack ? '1px solid #333F55' : `1px solid ${customizer.activeMode === 'dark' ? '#465670' : '#e5eaef'}`,
           },
         },
       },
@@ -648,6 +706,24 @@ const ThemeSettings = (customizer) => {
               : 'rgba(83, 155, 255, 0.1)',
             color: customizer.activeMode === 'dark' ? '#539BFF' : '#1682d4',
             border: `1px solid ${customizer.activeMode === 'dark' ? '#539BFF' : '#539BFF'}`,
+          },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            color: isBlack ? '#fff' : undefined,
+            backgroundColor: isBlack ? '#333F55' : undefined,
+          },
+          label: {
+            color: isBlack ? '#fff' : undefined,
+          },
+        },
+      },
+      MuiBox: {
+        styleOverrides: {
+          root: {
+            color: isBlack ? '#EAEFF4' : undefined,
           },
         },
       },
