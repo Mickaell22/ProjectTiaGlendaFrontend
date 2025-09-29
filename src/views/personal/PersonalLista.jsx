@@ -76,7 +76,7 @@ const PersonalLista = ({
         border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
         overflow: 'hidden',
         width: '100%',
-        maxWidth: { xs: '100%', sm: 800, md: 900 },
+        maxWidth: { xs: '100%', sm: 800, md: 1000 },
         mx: 'auto'
       }}
     >
