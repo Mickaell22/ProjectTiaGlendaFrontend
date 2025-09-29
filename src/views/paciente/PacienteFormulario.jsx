@@ -32,6 +32,7 @@ import {
 
 import PacienteService from '../../services/pacienteService.js';
 import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
+import TutorSelector from '../../components/shared/TutorSelector.jsx';
 import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
@@ -435,8 +436,8 @@ const PacienteFormulario = ({
                 <Typography variant="body1" mb={1}>
                   Tutor (Responsable): <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
-                <PersonaGeneralSelector
-                  selectedPersona={tutorEncontrado}
+                <TutorSelector
+                  selectedTutor={tutorEncontrado}
                   onSelect={(tutor) => {
                     setTutorEncontrado(tutor);
                     setFormData(p => ({ ...p, tutor_id: tutor.id }));

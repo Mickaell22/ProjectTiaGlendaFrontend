@@ -1,6 +1,6 @@
 // src/services/SesionTerapiaService.js
 import { ApiService } from './apiService';
-import { API_ENDPOINTS } from '../config/api';
+import { API_ENDPOINTS, API_CONFIG } from '../config/api';
 
 class SesionTerapiaService {
   // ==================== CRUD OPERATIONS ====================
@@ -437,6 +437,79 @@ class SesionTerapiaService {
     try {
       const response = await ApiService.get(API_ENDPOINTS.PERSONAL.BASE);
       return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // ==================== PUBLIC LINKS MANAGEMENT ====================
+
+  /**
+   * Generate public link for a therapy session
+   */
+  async generatePublicLink(sessionId, linkData) {
+    try {
+      const response = await ApiService.post(
+        API_ENDPOINTS.SESIONES_TERAPIA.GENERAR_ENLACE_PUBLICO(sessionId),
+        linkData
+      );
+      // Extract the actual data from the response
+      return response.data?.data || response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Get all public links for a therapy session
+   */
+  async getPublicLinks(sessionId) {
+    try {
+      const response = await ApiService.get(
+        API_ENDPOINTS.SESIONES_TERAPIA.ENLACES_PUBLICOS(sessionId)
+      );
+      // Extract the actual data from the response
+      return response.data?.data || response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Invalidate a public link (requires authentication)
+   */
+  async invalidatePublicLink(token) {
+    try {
+      const response = await ApiService.delete(
+        API_ENDPOINTS.SESIONES_TERAPIA.INVALIDAR_ENLACE_PUBLICO(token)
+      );
+      // Extract the actual data from the response
+      return response.data?.data || response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * View public session information (no authentication required)
+   */
+  async viewPublicSession(token) {
+    try {
+      // Use API configuration for backend URL
+      const fullUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.SESIONES_TERAPIA.SESION_PUBLICA(token)}`;
+      const response = await fetch(fullUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al obtener información de la sesión');
+      }
+
+      return await response.json();
     } catch (error) {
       throw error;
     }

@@ -27,6 +27,7 @@ import DocumentosPersonal from 'src/components/Personal/DocumentosPersonal';
 import ConfiguracionMain from 'src/views/configuracion/ConfiguracionMain';
 import MiPerfil from 'src/views/perfil/MiPerfil';
 import { ReportesPage } from 'src/views/reportes';
+import PublicSessionView from 'src/views/public/PublicSessionView';
 
 
 
@@ -196,6 +197,13 @@ const Router = [
       { path: ROUTES.AUTH.REGISTER, element: <Register /> },
       { path: '/auth/404', element: () => <ComingSoon title="Error 404" description="Esta página no existe" module="Error" progress={100} /> },
       { path: '*', element: <Navigate to={ROUTES.AUTH.LOGIN} /> },
+    ],
+  },
+  {
+    path: '/sesion-publica/:token',
+    element: <BlankLayout />,
+    children: [
+      { path: '', element: <PublicSessionView /> },
     ],
   },
 ];

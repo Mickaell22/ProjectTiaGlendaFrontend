@@ -97,14 +97,19 @@ export const API_ENDPOINTS = {
     ESTADISTICAS: '/api/sesiones-terapia/estadisticas',
     PACIENTES_DISPONIBLES: '/api/sesiones-terapia/pacientes-disponibles',
     TERAPEUTAS_DISPONIBLES: '/api/sesiones-terapia/terapeutas-disponibles',
-    REGISTRAR_ASISTENCIA: (cronogramaId, pacienteId) => 
+    REGISTRAR_ASISTENCIA: (cronogramaId, pacienteId) =>
       `/api/sesiones-terapia/cronograma/${cronogramaId}/pacientes/${pacienteId}/asistencia`,
-    ASISTENCIAS_CRONOGRAMA: (cronogramaId) => 
+    ASISTENCIAS_CRONOGRAMA: (cronogramaId) =>
       `/api/sesiones-terapia/cronograma/${cronogramaId}/asistencia`,
-    ASISTENCIAS_PACIENTE: (pacienteId) => 
+    ASISTENCIAS_PACIENTE: (pacienteId) =>
       `/api/sesiones-terapia/asistencias/paciente/${pacienteId}`,
-    ESTADISTICAS_ASISTENCIA: (id) => 
+    ESTADISTICAS_ASISTENCIA: (id) =>
       `/api/sesiones-terapia/${id}/estadisticas-asistencia`,
+    // Public link endpoints
+    GENERAR_ENLACE_PUBLICO: (id) => `/api/sesiones-terapia/${id}/generar-enlace-publico`,
+    ENLACES_PUBLICOS: (id) => `/api/sesiones-terapia/${id}/enlaces-publicos`,
+    INVALIDAR_ENLACE_PUBLICO: (token) => `/api/sesiones-terapia/enlace-publico/${token}/invalidar`,
+    SESION_PUBLICA: (token) => `/api/sesion-publica/${token}`,
   },
 
   // Sesiones Pedagógicas
