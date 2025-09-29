@@ -315,7 +315,7 @@ const PacienteLista = ({
         overflow: 'hidden',
         width: '100%',
         border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
-        maxWidth: { xs: '100%', sm: 800, md: 900 },
+        maxWidth: { xs: '100%', sm: 800, md: 1000 },
         mx: 'auto'
       }}
     >
@@ -376,8 +376,9 @@ const PacienteLista = ({
             }}
             sx={{
               ...purpleOutlineSX,
-              minWidth: 260,
-              flex: '1 1 380px'
+              width: 340,
+              minWidth: 0,
+              flex: '0 0 auto'
             }}
           />
 
@@ -444,7 +445,7 @@ const PacienteLista = ({
 
         {/* Tabla con scroll horizontal y ancho mínimo para que quepan las acciones */}
         <Box sx={{ width: '100%', overflowX: 'auto' }}>
-          <Table sx={{ minWidth: 980 }}>
+          <Table sx={{ Width: "100%" }}>
             <TableHead>
               <TableRow>
                 <TableCell>Paciente</TableCell>

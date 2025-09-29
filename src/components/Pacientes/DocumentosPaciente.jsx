@@ -326,7 +326,11 @@ const DocumentosPaciente = () => {
                 sx={{
                   borderRadius: 3,
                   textTransform: 'none',
-                  fontWeight: 'bold'
+                  fontWeight: 'bold',
+                  backgroundColor: theme.palette.primary.main,
+                '&:hover': {
+                backgroundColor: theme.palette.primary.dark,
+               }
                 }}
               >
                 Subir
@@ -372,9 +376,7 @@ const DocumentosPaciente = () => {
         {/* Cabecera de la lista */}
         <Box
           sx={{
-            background: theme.palette.mode === 'dark'
-              ? 'linear-gradient(135deg, #8e24aa 0%, #7b1fa2 100%)'
-              : 'linear-gradient(135deg, #673ab7 0%, #5e35b1 100%)',
+            background: theme.palette.primary.main,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -382,7 +384,7 @@ const DocumentosPaciente = () => {
             justifyContent: 'space-between'
           }}
         >
-          <Typography variant="h6" fontWeight="bold">
+          <Typography variant="h6" fontWeight="bold" >
             📋 Documentos ({documentos.length})
           </Typography>
         </Box>
@@ -410,7 +412,11 @@ const DocumentosPaciente = () => {
                 variant="contained"
                 startIcon={<Upload />}
                 onClick={() => setShowUploadForm(true)}
-                sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 'bold' }}
+                sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 'bold' ,backgroundColor: theme.palette.primary.main,
+                '&:hover': {
+                backgroundColor: theme.palette.primary.dark,
+               }
+            }}
               >
                 Subir Primer Documento
               </Button>
@@ -527,7 +533,7 @@ const DocumentosPaciente = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   select
-                  fullWidth
+                  sx={{ width: 270 }} 
                   label="Tipo de Documento"
                   value={uploadData.tipo_documento}
                   onChange={(e) => setUploadData(prev => ({ ...prev, tipo_documento: e.target.value }))}
@@ -556,11 +562,11 @@ const DocumentosPaciente = () => {
 
               <Grid item xs={12}>
                 <TextField
-                  fullWidth
+                  sx={{ width: 300}} 
                   multiline
-                  rows={2}
-                  label="Descripción"
-                  placeholder="Descripción opcional del documento"
+                  rows={3}
+                  label="Descripción del documento (opcional)"
+                  placeholder=""
                   value={uploadData.descripcion}
                   onChange={(e) => setUploadData(prev => ({ ...prev, descripcion: e.target.value }))}
                   disabled={uploading}
@@ -590,7 +596,12 @@ const DocumentosPaciente = () => {
               variant="contained"
               disabled={uploading || !uploadData.archivo}
               startIcon={uploading ? <CircularProgress size={20} /> : <Upload />}
-              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, backgroundColor: theme.palette.primary.main,
+              '&:hover': {
+             backgroundColor: theme.palette.primary.dark, // 👈 color al pasar el mouse
+               }
+                  }}
+              
             >
               {uploading ? 'Subiendo...' : 'Subir Documento'}
             </Button>

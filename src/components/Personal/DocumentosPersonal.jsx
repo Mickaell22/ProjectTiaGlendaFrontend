@@ -331,8 +331,12 @@ const DocumentosPersonal = () => {
                 sx={{
                   borderRadius: 3,
                   textTransform: 'none',
-                  fontWeight: 'bold'
-                }}
+                  fontWeight: 'bold',
+                  backgroundColor: theme.palette.primary.main,
+              '&:hover': {
+             backgroundColor: theme.palette.primary.dark, 
+               }
+                  }}
               >
                 Subir
               </Button>
@@ -375,7 +379,7 @@ const DocumentosPersonal = () => {
         {/* Cabecera de la lista */}
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #673ab7 0%, #5e35b1 100%)',
+            backgroundColor: theme.palette.primary.main,
             color: 'white',
             p: 3,
             display: 'flex',
@@ -411,7 +415,11 @@ const DocumentosPersonal = () => {
                 variant="contained"
                 startIcon={<Upload />}
                 onClick={() => setShowUploadForm(true)}
-                sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 'bold' }}
+                sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 'bold', backgroundColor: theme.palette.primary.main,
+              '&:hover': {
+             backgroundColor: theme.palette.primary.dark, // 👈 color al pasar el mouse
+               }
+                  }}
               >
                 Subir Primer Documento
               </Button>
@@ -501,9 +509,12 @@ const DocumentosPersonal = () => {
       </Card>
 
       {/* Dialog de Subir Documento */}
-      <Dialog open={showUploadForm} onClose={() => setShowUploadForm(false)} maxWidth="md" fullWidth>
+      <Dialog open={showUploadForm} 
+      onClose={() => setShowUploadForm(false)} fullWidth
+      maxWidth={false} 
+      sx={{ '& .MuiDialog-paper': { width: '950px', maxWidth: '1050px' } }}>
         <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
+          <Box display="flex" alignItems="center" gap={1} color={theme.palette.primary.main}>
             <Upload />
             Subir Nuevo Documento
           </Box>
@@ -514,7 +525,7 @@ const DocumentosPersonal = () => {
               <Grid item xs={12}>
                 <TextField
                   type="file"
-                  fullWidth
+                  sx={{ width: 350 }}
                   label="Archivo de Documento"
                   InputLabelProps={{ shrink: true }}
                   inputProps={{ accept: '.pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif,.webp' }}
@@ -528,7 +539,7 @@ const DocumentosPersonal = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   select
-                  fullWidth
+                  sx={{ width: 270 }}
                   label="Tipo de Documento"
                   value={uploadData.tipo_documento}
                   onChange={(e) => setUploadData(prev => ({ ...prev, tipo_documento: e.target.value }))}
@@ -546,7 +557,7 @@ const DocumentosPersonal = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   type="date"
-                  fullWidth
+                  sx={{ width: 250 }}
                   label="Fecha de Vencimiento"
                   InputLabelProps={{ shrink: true }}
                   value={uploadData.fecha_vencimiento}
@@ -557,11 +568,11 @@ const DocumentosPersonal = () => {
 
               <Grid item xs={12}>
                 <TextField
-                  fullWidth
+                  sx={{ width: 350 }}
                   multiline
-                  rows={2}
-                  label="Descripción"
-                  placeholder="Descripción opcional del documento"
+                  rows={3}
+                  label="Descripción del documento (opcional)"
+                  placeholder="" 
                   value={uploadData.descripcion}
                   onChange={(e) => setUploadData(prev => ({ ...prev, descripcion: e.target.value }))}
                   disabled={uploading}
@@ -591,7 +602,11 @@ const DocumentosPersonal = () => {
               variant="contained"
               disabled={uploading || !uploadData.archivo}
               startIcon={uploading ? <CircularProgress size={20} /> : <Upload />}
-              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2 }}
+              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, backgroundColor: theme.palette.primary.main,
+              '&:hover': {
+             backgroundColor: theme.palette.primary.dark, // 👈 color al pasar el mouse
+               }
+                  }}
             >
               {uploading ? 'Subiendo...' : 'Subir Documento'}
             </Button>
