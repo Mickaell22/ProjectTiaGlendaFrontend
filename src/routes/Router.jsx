@@ -28,6 +28,7 @@ import ConfiguracionMain from 'src/views/configuracion/ConfiguracionMain';
 import MiPerfil from 'src/views/perfil/MiPerfil';
 import { ReportesPage } from 'src/views/reportes';
 import PublicSessionView from 'src/views/public/PublicSessionView';
+import PublicPedagogicalSessionView from 'src/views/public/PublicPedagogicalSessionView';
 
 
 
@@ -204,6 +205,13 @@ const Router = [
     element: <BlankLayout />,
     children: [
       { path: '', element: <PublicSessionView /> },
+    ],
+  },
+  {
+    path: '/sesion-pedagogica-publica/:token',
+    element: <BlankLayout />,
+    children: [
+      { path: '', element: <PublicPedagogicalSessionView /> },
     ],
   },
 ];

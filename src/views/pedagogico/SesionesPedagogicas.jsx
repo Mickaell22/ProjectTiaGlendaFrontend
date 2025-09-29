@@ -11,7 +11,7 @@ import {
 import {
   Delete, Search, Visibility, Person,
   Schedule, PersonAdd, ViewList, CalendarViewWeek,
-  AccessTime, Event, School
+  AccessTime, Event, School, Share, Link, ContentCopy
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -41,6 +41,13 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
   const [newEstudianteId, setNewEstudianteId] = useState('');
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState('list');
+  const [shareDialog, setShareDialog] = useState({ open: false, sessionId: null });
+  const [publicLinks, setPublicLinks] = useState([]);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [newLinkData, setNewLinkData] = useState({
+    description: 'Enlace para padres',
+    duration_hours: 168 // 7 días por defecto
+  });
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -187,6 +194,109 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
         message: errorMessage, 
         severity: 'error' 
       });
+    }
+  };
+
+  // Funciones para manejo de enlaces públicos
+  const handleOpenShareDialog = async (sessionId) => {
+    setShareDialog({ open: true, sessionId });
+    setShareLoading(true);
+    try {
+      const response = await sesionPedagogicaService.getPublicLinks(sessionId);
+      const enlaces = response?.enlaces || [];
+      setPublicLinks(enlaces);
+    } catch (error) {
+      console.error('Error fetching public links:', error);
+      setSnackbar({
+        open: true,
+        message: 'Error al cargar enlaces públicos',
+        severity: 'error'
+      });
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const handleGeneratePublicLink = async () => {
+    if (!shareDialog.sessionId) return;
+
+    setShareLoading(true);
+    try {
+      await sesionPedagogicaService.generatePublicLink(shareDialog.sessionId, newLinkData);
+
+      setSnackbar({
+        open: true,
+        message: 'Enlace público generado exitosamente',
+        severity: 'success'
+      });
+
+      // Refresh the links list
+      await handleOpenShareDialog(shareDialog.sessionId);
+
+      // Reset form
+      setNewLinkData({
+        description: 'Enlace para padres',
+        duration_hours: 168
+      });
+
+    } catch (error) {
+      console.error('Error generating public link:', error);
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || 'Error al generar enlace público',
+        severity: 'error'
+      });
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const handleCopyLink = (token) => {
+    const baseUrl = window.location.origin;
+    const publicUrl = `${baseUrl}/sesion-pedagogica-publica/${token}`;
+
+    navigator.clipboard.writeText(publicUrl).then(() => {
+      setSnackbar({
+        open: true,
+        message: 'Enlace copiado al portapapeles',
+        severity: 'success'
+      });
+    }).catch(() => {
+      setSnackbar({
+        open: true,
+        message: 'Error al copiar enlace',
+        severity: 'error'
+      });
+    });
+  };
+
+  const handleInvalidateLink = async (token) => {
+    if (!window.confirm('¿Estás seguro de que deseas invalidar este enlace?')) {
+      return;
+    }
+
+    setShareLoading(true);
+    try {
+      await sesionPedagogicaService.invalidatePublicLink(token);
+
+      setSnackbar({
+        open: true,
+        message: 'Enlace invalidado exitosamente',
+        severity: 'success'
+      });
+
+      // Refresh the links list
+      await handleOpenShareDialog(shareDialog.sessionId);
+
+    } catch (error) {
+      console.error('Error invalidating link:', error);
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || 'Error al invalidar enlace',
+        severity: 'error'
+      });
+    } finally {
+      setShareLoading(false);
     }
   };
 
@@ -847,7 +957,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             variant="outlined"
             startIcon={<PersonAdd />}
             onClick={() => {
@@ -859,6 +969,19 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
             color="success"
           >
             Agregar Estudiante
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<Share />}
+            onClick={() => {
+              if (detailDialog.data?.id) {
+                handleOpenShareDialog(detailDialog.data.id);
+              }
+            }}
+            disabled={!detailDialog.data?.id}
+            color="primary"
+          >
+            Compartir Enlace
           </Button>
           <Button
             variant="outlined"
@@ -955,6 +1078,162 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
             sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
           >
             Agregar Estudiante
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Share Public Links Dialog */}
+      <Dialog
+        open={shareDialog.open}
+        onClose={() => {
+          setShareDialog({ open: false, sessionId: null });
+          setPublicLinks([]);
+          setNewLinkData({ description: 'Enlace para padres', duration_hours: 168 });
+        }}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <Share sx={{ mr: 2, color: 'primary.main' }} />
+            Compartir Enlace Público
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            {/* Form to generate new link */}
+            <Paper sx={{ p: 3, mb: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50' }}>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+                Generar Nuevo Enlace
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={8}>
+                  <TextField
+                    fullWidth
+                    label="Descripción"
+                    value={newLinkData.description}
+                    onChange={(e) => setNewLinkData({ ...newLinkData, description: e.target.value })}
+                    sx={{ ...purpleOutlineSX }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth sx={{ ...purpleOutlineSX }}>
+                    <InputLabel>Duración</InputLabel>
+                    <Select
+                      value={newLinkData.duration_hours}
+                      onChange={(e) => setNewLinkData({ ...newLinkData, duration_hours: e.target.value })}
+                      label="Duración"
+                    >
+                      <MenuItem value={24}>1 día</MenuItem>
+                      <MenuItem value={72}>3 días</MenuItem>
+                      <MenuItem value={168}>1 semana</MenuItem>
+                      <MenuItem value={336}>2 semanas</MenuItem>
+                      <MenuItem value={720}>1 mes</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  variant="contained"
+                  startIcon={<Link />}
+                  onClick={handleGeneratePublicLink}
+                  disabled={shareLoading || !newLinkData.description.trim()}
+                >
+                  Generar Enlace
+                </Button>
+              </Box>
+            </Paper>
+
+            {/* Existing links list */}
+            <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
+              Enlaces Activos ({publicLinks.length})
+            </Typography>
+
+            {shareLoading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <Typography>Cargando enlaces...</Typography>
+              </Box>
+            ) : publicLinks.length === 0 ? (
+              <Alert severity="info">
+                No hay enlaces públicos activos para esta sesión.
+              </Alert>
+            ) : (
+              <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                {publicLinks.map((link, index) => (
+                  <Paper key={index} sx={{ p: 2, mb: 2, borderLeft: `4px solid ${link.estado === 'vigente' ? theme.palette.success.main : theme.palette.warning.main}` }}>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="body1" fontWeight="medium">
+                          {link.descripcion}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Creado: {new Date(link.fecha_creacion).toLocaleDateString()}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Expira: {new Date(link.fecha_expiracion).toLocaleDateString()}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <Chip
+                          label={link.estado}
+                          color={link.estado === 'vigente' ? 'success' : 'warning'}
+                          size="small"
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <Box display="flex" gap={1}>
+                          <Tooltip title="Copiar enlace">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleCopyLink(link.token)}
+                              color="primary"
+                            >
+                              <ContentCopy fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Invalidar enlace">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleInvalidateLink(link.token)}
+                              color="error"
+                              disabled={link.estado === 'expirado'}
+                            >
+                              <Delete fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                ))}
+              </Box>
+            )}
+
+            <Alert severity="info" sx={{ mt: 2 }}>
+              <Typography variant="body2">
+                <strong>Información importante:</strong>
+                <br />
+                • Los enlaces públicos permiten a los padres ver el progreso de las sesiones pedagógicas sin necesidad de iniciar sesión.
+                <br />
+                • Los enlaces expiran automáticamente después del tiempo seleccionado.
+                <br />
+                • Puedes invalidar manualmente cualquier enlace activo.
+                <br />
+                • La información mostrada es limitada y no incluye datos sensibles.
+              </Typography>
+            </Alert>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setShareDialog({ open: false, sessionId: null });
+              setPublicLinks([]);
+              setNewLinkData({ description: 'Enlace para padres', duration_hours: 168 });
+            }}
+          >
+            Cerrar
           </Button>
         </DialogActions>
       </Dialog>

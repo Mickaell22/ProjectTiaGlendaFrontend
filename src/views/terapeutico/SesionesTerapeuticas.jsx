@@ -508,7 +508,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
 
           {/* Contenido principal - Vista lista o horario */}
           {loading ? (
-            <Box display="flex" justifyContent="center" p={4}>d
+            <Box display="flex" justifyContent="center" p={4}>
               <Typography>Cargando sesiones...</Typography>
             </Box>
           ) : viewMode === 'schedule' ? (

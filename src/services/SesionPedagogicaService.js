@@ -714,6 +714,71 @@ class SesionPedagogicaService {
     }
   }
 
+  // ==================== PUBLIC LINKS OPERATIONS ====================
+
+  /**
+   * Generate a public link for a pedagogical session
+   */
+  async generatePublicLink(sesionId, linkData) {
+    try {
+      const response = await ApiService.post(
+        `/api/sesiones-pedagogicas/${sesionId}/generar-enlace-publico`,
+        linkData
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error generating public link for session ${sesionId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get public links for a pedagogical session
+   */
+  async getPublicLinks(sesionId) {
+    try {
+      const response = await ApiService.get(
+        `/api/sesiones-pedagogicas/${sesionId}/enlaces-publicos`
+      );
+      // Extract the actual data from the response
+      return response.data?.data || response.data;
+    } catch (error) {
+      console.error(`Error fetching public links for session ${sesionId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Invalidate a public link
+   */
+  async invalidatePublicLink(token) {
+    try {
+      const response = await ApiService.put(
+        `/api/sesiones-pedagogicas/invalidar-enlace-publico/${token}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error invalidating public link ${token}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * View public session information (no authentication required)
+   */
+  async viewPublicSession(token) {
+    try {
+      const response = await ApiService.get(
+        `/api/sesion-pedagogica-publica/${token}`,
+        { skipAuth: true }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error viewing public session with token ${token}:`, error);
+      throw error;
+    }
+  }
+
   /**
    * Handle API errors and return user-friendly messages
    */
