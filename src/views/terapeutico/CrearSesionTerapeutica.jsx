@@ -93,6 +93,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
   const [especialidades, setEspecialidades] = useState([]);
   const [formData, setFormData] = useState({
     titulo: '',
+    objetivo_general: '',
     terapeuta_id: '',
     especialidad_id: '',
     fecha_inicio: '',
@@ -100,9 +101,10 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
     dias_semana: [],
     hora_inicio: '',
     duracion_minutos: 45,
-    numero_sesiones_contratadas: 1,
+    numero_sesiones_contratadas: 20,
     costo_total: 0,
-    meses_contrato: 1,
+    meses_contrato: 3,
+    tipo_sesion: 'individual',
     estado: 'planificada',
     observaciones: '',
     paciente_id: ''
@@ -273,7 +275,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
     try {
       const sessionData = {
         titulo: formData.titulo.trim(),
-        objetivo_general: formData.objetivo_general?.trim() || 'Objetivo general de la sesión terapéutica',
+        objetivo_general: formData.objetivo_general?.trim() || '',
         terapeuta_id: parseInt(formData.terapeuta_id),
         especialidad_id: parseInt(formData.especialidad_id),
         fecha_inicio: formData.fecha_inicio,
@@ -283,13 +285,12 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
         duracion_minutos: parseInt(formData.duracion_minutos),
         numero_sesiones_contratadas: parseInt(formData.numero_sesiones_contratadas),
         ...(isAdmin && {
-          costo_total: parseFloat(formData.costo_total),
-          costo_sesion: Math.round((parseFloat(formData.costo_total) / parseInt(formData.numero_sesiones_contratadas)) * 100) / 100,
+          costo_total: parseFloat(formData.costo_total)
         }),
         meses_contrato: formData.meses_contrato ? parseInt(formData.meses_contrato) : null,
         estado: formData.estado,
         observaciones: formData.observaciones?.trim() || null,
-        tipo_sesion: formData.tipo_sesion || 'individual'
+        tipo_sesion: formData.tipo_sesion
       };
 
       if (formData.paciente_id) {
@@ -327,6 +328,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
   const resetForm = () => {
     setFormData({
       titulo: '',
+      objetivo_general: '',
       terapeuta_id: '',
       especialidad_id: '',
       fecha_inicio: '',
@@ -334,9 +336,10 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
       dias_semana: [],
       hora_inicio: '',
       duracion_minutos: 45,
-      numero_sesiones_contratadas: 1,
+      numero_sesiones_contratadas: 20,
       costo_total: 0,
-      meses_contrato: 1,
+      meses_contrato: 3,
+      tipo_sesion: 'individual',
       estado: 'planificada',
       observaciones: '',
       paciente_id: ''
@@ -382,6 +385,22 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                     error={!!errors.titulo}
                     helperText={errors.titulo}
                     placeholder="Ej: Terapia física para rehabilitación"
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    label="Objetivo General"
+                    name="objetivo_general"
+                    value={formData.objetivo_general}
+                    onChange={handleChange}
+                    error={!!errors.objetivo_general}
+                    helperText={errors.objetivo_general || 'Describe el objetivo principal de esta sesión terapéutica'}
+                    placeholder="Ej: Mejorar la movilidad y fuerza muscular del paciente mediante ejercicios específicos"
                     InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
@@ -439,6 +458,26 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                       )}
                     </Select>
                     {errors.especialidad_id && <FormHelperText>{errors.especialidad_id}</FormHelperText>}
+                  </FormControl>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <FormControl fullWidth error={!!errors.tipo_sesion}>
+                    <InputLabel shrink>Tipo de Sesión</InputLabel>
+                    <Select
+                      sx={selectStableSX}
+                      name="tipo_sesion"
+                      value={formData.tipo_sesion}
+                      onChange={handleChange}
+                      label="Tipo de Sesión"
+                      displayEmpty
+                      MenuProps={menuProps}
+                    >
+                      <MenuItem value="individual">Individual</MenuItem>
+                      <MenuItem value="grupal">Grupal</MenuItem>
+                      <MenuItem value="familiar">Familiar</MenuItem>
+                    </Select>
+                    {errors.tipo_sesion && <FormHelperText>{errors.tipo_sesion}</FormHelperText>}
                   </FormControl>
                 </Grid>
 

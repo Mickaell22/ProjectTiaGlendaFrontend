@@ -400,6 +400,7 @@ const SesionTerapeuticaDetalle = () => {
                 <Box sx={{ '& > *': { mb: 1 } }}>
                   <Typography><strong>Código:</strong> {sesion.codigo_sesion}</Typography>
                   <Typography><strong>Título:</strong> {sesion.titulo}</Typography>
+                  <Typography><strong>Tipo:</strong> {sesion.tipo_sesion || 'Individual'}</Typography>
                   <Typography><strong>Estado:</strong> {sesion.estado}</Typography>
                   <Typography><strong>Duración:</strong> {sesion.duracion_minutos} minutos</Typography>
                   <Typography><strong>Creada:</strong> {formatDate(sesion.fecha_creacion)}</Typography>
@@ -423,6 +424,21 @@ const SesionTerapeuticaDetalle = () => {
               </CardContent>
             </Card>
           </Grid>
+
+          {sesion.objetivo_general && (
+            <Grid item xs={12}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" color="primary" mb={2}>
+                    Objetivo General
+                  </Typography>
+                  <Box sx={{ p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
+                    <Typography variant="body2">{sesion.objetivo_general}</Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
 
           <Grid item xs={12} md={6}>
             <Card>

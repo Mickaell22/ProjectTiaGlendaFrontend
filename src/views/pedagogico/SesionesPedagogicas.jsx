@@ -898,7 +898,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
               <Grid item xs={12} md={6}>
                 <Typography variant="subtitle2" color="primary">Estudiantes</Typography>
                 <Typography variant="body2">
-                  <strong>Total Estudiantes:</strong> {detailDialog.data.total_estudiantes || 
+                  <strong>Total Estudiantes:</strong> {detailDialog.data.total_estudiantes ||
                     detailDialog.data.estadisticas?.total_estudiantes || 'No especificado'}
                 </Typography>
                 <Typography variant="body2">
@@ -915,10 +915,21 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
               <Grid item xs={12} md={6}>
                 <Typography variant="subtitle2" color="primary">Información Académica</Typography>
                 <Typography variant="body2">
-                  <strong>Clases Programadas:</strong> {detailDialog.data.numero_clases_programadas || 'No especificado'}
+                  <strong>Clases Programadas:</strong> {detailDialog.data.numero_clases_programadas ||
+                    detailDialog.data.clases_programadas || 'No especificado'}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Modalidad:</strong> {detailDialog.data.modalidad || 'Presencial'}
+                  <strong>Clases Realizadas:</strong> {detailDialog.data.clases_realizadas || 0}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Progreso:</strong> {
+                    detailDialog.data.clases_programadas > 0
+                      ? Math.round((detailDialog.data.clases_realizadas / detailDialog.data.clases_programadas) * 100)
+                      : 0
+                  }%
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Modalidad:</strong> {detailDialog.data.modalidad || 'presencial'}
                 </Typography>
                 <Typography variant="body2">
                   <strong>Período Académico:</strong> {detailDialog.data.periodo_academico || 'No especificado'}
