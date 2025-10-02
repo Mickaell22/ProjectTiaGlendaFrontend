@@ -81,12 +81,13 @@ const ResumeDialog = ({
           motivo: especialidad.motivo_pausa_esp
         };
       }
-    } else if (paciente.estado === 'pausado') {
+    } else if (paciente.fecha_inicio_pausa) {
+      // Verificar si tiene pausa activa por campo fecha_inicio_pausa
       return {
         tipo: 'general',
-        fechaInicio: paciente.fecha_inicio_pausa_general,
-        fechaFin: paciente.fecha_fin_pausa_general,
-        motivo: paciente.motivo_pausa_general
+        fechaInicio: paciente.fecha_inicio_pausa,
+        fechaFin: paciente.fecha_fin_pausa,
+        motivo: paciente.motivo_pausa
       };
     }
     return null;

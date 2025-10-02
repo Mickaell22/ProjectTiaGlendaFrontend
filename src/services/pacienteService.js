@@ -74,6 +74,26 @@ export class PacienteService {
     return extractData(response);
   }
 
+  // ==================== CONTROL DE PAUSAS AVANZADO ====================
+
+  // Obtener estado completo de pausas de un paciente
+  static async getEstadoPausas(pacienteId) {
+    const response = await ApiService.get(API_ENDPOINTS.PAUSAS.ESTADO_PAUSAS(pacienteId));
+    return extractData(response);
+  }
+
+  // Verificar si paciente tiene pausa activa
+  static async verificarPausaActiva(pacienteId) {
+    const response = await ApiService.get(API_ENDPOINTS.PAUSAS.PAUSA_ACTIVA(pacienteId));
+    return extractData(response);
+  }
+
+  // Obtener historial completo de pausas
+  static async getHistorialPausas(pacienteId) {
+    const response = await ApiService.get(API_ENDPOINTS.PAUSAS.HISTORIAL(pacienteId));
+    return extractData(response);
+  }
+
   // Validar datos de paciente
   static validatePacienteData(data) {
     const errors = {};

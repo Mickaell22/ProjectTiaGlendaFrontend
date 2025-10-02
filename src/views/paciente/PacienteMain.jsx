@@ -145,6 +145,10 @@ const PacienteMain = () => {
     navigate(`/pacientes/${paciente.id}/documentos`);
   };
 
+  const handleViewHistorialPausas = (paciente) => {
+    navigate(`/gestion/pacientes/${paciente.id}/historial-pausas`);
+  };
+
   /* ===== Formulario ===== */
   const handleFormSubmit = async (payload, isEditing) => {
     try {
@@ -322,6 +326,7 @@ const PacienteMain = () => {
           pacienteData={detailDialog.data}
           onEdit={handleEdit}
           onViewDocuments={handleViewDocuments}
+          onViewHistorialPausas={handleViewHistorialPausas}
         />
 
         <ConfirmDialog

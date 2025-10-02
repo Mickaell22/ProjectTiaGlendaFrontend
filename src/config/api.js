@@ -78,6 +78,31 @@ export const API_ENDPOINTS = {
     DOCUMENTOS: (id) => `/api/pacientes/${id}/documentos`,
   },
 
+  // Sistema de Pausas de Pacientes
+  PAUSAS: {
+    // Pausas basicas
+    PAUSAR_GENERAL: (id) => `/api/pacientes/${id}/pausar`,
+    REACTIVAR_GENERAL: (id) => `/api/pacientes/${id}/reactivar`,
+    PAUSAR_ESPECIALIDAD: (pacienteId, especialidadId) =>
+      `/api/pacientes/${pacienteId}/especialidades-multiples/${especialidadId}/pausar`,
+    REACTIVAR_ESPECIALIDAD: (pacienteId, especialidadId) =>
+      `/api/pacientes/${pacienteId}/especialidades-multiples/${especialidadId}/reactivar`,
+    LISTA_PAUSADOS: '/api/pacientes/pausados',
+
+    // Control de pausas avanzado
+    ESTADO_PAUSAS: (id) => `/api/pacientes/${id}/pausas`,
+    PAUSA_ACTIVA: (id) => `/api/pacientes/${id}/pausa-activa`,
+    HISTORIAL: (id) => `/api/pacientes/${id}/historial-pausas`,
+  },
+
+  // Control de Pausas - Sistema
+  CONTROL_PAUSAS: {
+    VENCIDAS: '/api/control-pausas/vencidas',
+    PROXIMAS_VENCER: '/api/control-pausas/proximas-vencer',
+    PROCESAR_AUTOMATICAS: '/api/control-pausas/procesar-automaticas',
+    ESTADISTICAS: '/api/control-pausas/estadisticas',
+  },
+
   // Tutores
   TUTORES: {
     BASE: '/api/tutores',

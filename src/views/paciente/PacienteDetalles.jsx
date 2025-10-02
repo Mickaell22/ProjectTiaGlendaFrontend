@@ -24,7 +24,8 @@ import {
   Assignment,
   Edit,
   Description,
-  Star as StarIcon
+  Star as StarIcon,
+  History
 } from '@mui/icons-material';
 
 // Helper para formatear fechas
@@ -38,12 +39,13 @@ function formatDateLocal(dateString) {
   }
 }
 
-const PacienteDetalles = ({ 
-  open, 
-  onClose, 
-  pacienteData, 
+const PacienteDetalles = ({
+  open,
+  onClose,
+  pacienteData,
   onEdit,
-  onViewDocuments
+  onViewDocuments,
+  onViewHistorialPausas
 }) => {
   if (!pacienteData) return null;
 
@@ -55,6 +57,13 @@ const PacienteDetalles = ({
   const handleViewDocuments = () => {
     onViewDocuments(pacienteData);
     onClose();
+  };
+
+  const handleViewHistorialPausas = () => {
+    if (onViewHistorialPausas) {
+      onViewHistorialPausas(pacienteData);
+      onClose();
+    }
   };
 
   const getEstadoColor = (estado) => {
@@ -445,7 +454,15 @@ const PacienteDetalles = ({
           <Button onClick={onClose} variant="outlined">
             Cerrar
           </Button>
-          <Button 
+          <Button
+            onClick={handleViewHistorialPausas}
+            variant="outlined"
+            color="secondary"
+            startIcon={<History />}
+          >
+            Historial Pausas
+          </Button>
+          <Button
             onClick={handleViewDocuments}
             variant="outlined"
             color="info"
@@ -453,7 +470,7 @@ const PacienteDetalles = ({
           >
             Ver Documentos
           </Button>
-          <Button 
+          <Button
             onClick={handleEdit}
             variant="contained"
             startIcon={<Edit />}

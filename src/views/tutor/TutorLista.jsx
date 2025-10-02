@@ -29,7 +29,8 @@ import {
   Person,
   FamilyRestroom,
   Phone,
-  Email
+  Email,
+  WhatsApp
 } from '@mui/icons-material';
 
 const purpleOutlineSX = {
@@ -53,6 +54,29 @@ const TutorLista = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Verificar si el usuario es administrador
+  const isAdmin = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        return user.rol === 'Administrador';
+      }
+    } catch (e) {
+      console.error('Error checking admin role:', e);
+    }
+    return false;
+  };
+
+  // Función para abrir WhatsApp
+  const handleWhatsApp = (telefono) => {
+    if (!telefono) return;
+    // Limpiar el número de teléfono (quitar espacios, guiones, etc.)
+    const cleanNumber = telefono.replace(/\D/g, '');
+    // Abrir WhatsApp en nueva pestaña
+    window.open(`https://wa.me/${cleanNumber}`, '_blank');
+  };
 
   // Filtrar tutores
   const filteredTutores = tutores.filter((t) =>
@@ -254,6 +278,18 @@ const TutorLista = ({
                                 <Visibility fontSize="small" />
                               </IconButton>
                             </Tooltip>
+                            {isAdmin() && (t.telefono || t.telefono_empresa) && (
+                              <Tooltip title="Enviar mensaje WhatsApp">
+                                <IconButton
+                                  color="success"
+                                  onClick={() => handleWhatsApp(t.telefono || t.telefono_empresa)}
+                                  size="small"
+                                  sx={{ color: '#25D366' }}
+                                >
+                                  <WhatsApp fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
                             {onEdit && (
                               <Tooltip title="Editar">
                                 <IconButton color="primary" onClick={() => onEdit(t)} size="small">

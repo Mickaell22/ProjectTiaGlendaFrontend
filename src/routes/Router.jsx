@@ -29,6 +29,8 @@ import MiPerfil from 'src/views/perfil/MiPerfil';
 import { ReportesPage } from 'src/views/reportes';
 import PublicSessionView from 'src/views/public/PublicSessionView';
 import PublicPedagogicalSessionView from 'src/views/public/PublicPedagogicalSessionView';
+import HistorialPausasView from 'src/views/paciente/HistorialPausasView';
+import DashboardPausasView from 'src/views/DashboardPausasView';
 
 
 
@@ -158,7 +160,9 @@ const Router = [
       { path: '/pacientes/:pacienteId/documentos', element: <DocumentosPaciente /> },
       { path: '/personal/:personalId/documentos', element: <DocumentosPersonal /> },
 
-
+      // Control de Pausas
+      { path: '/gestion/pacientes/:id/historial-pausas', element: <HistorialPausasView /> },
+      { path: '/gestion/pausas/dashboard', element: <DashboardPausasView /> },
 
       // Módulo Terapéutico
       { path: `${ROUTES.TERAPEUTICO.BASE}/*`, element: <TerapeuticoMain /> },

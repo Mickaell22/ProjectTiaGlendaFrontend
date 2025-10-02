@@ -13,7 +13,9 @@ import {
   CardContent,
   Avatar,
   Divider,
-  Stack
+  Stack,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import {
   Visibility,
@@ -24,20 +26,44 @@ import {
   Work,
   Home,
   Edit,
-  ContactEmergency
+  ContactEmergency,
+  WhatsApp
 } from '@mui/icons-material';
 
-const TutorDetalles = ({ 
-  open, 
-  onClose, 
-  tutorData, 
-  onEdit 
+const TutorDetalles = ({
+  open,
+  onClose,
+  tutorData,
+  onEdit
 }) => {
   if (!tutorData) return null;
 
   const handleEdit = () => {
     onEdit(tutorData);
     onClose();
+  };
+
+  // Verificar si el usuario es administrador
+  const isAdmin = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        return user.rol === 'Administrador';
+      }
+    } catch (e) {
+      console.error('Error checking admin role:', e);
+    }
+    return false;
+  };
+
+  // Función para abrir WhatsApp
+  const handleWhatsApp = (telefono) => {
+    if (!telefono) return;
+    // Limpiar el número de teléfono (quitar espacios, guiones, etc.)
+    const cleanNumber = telefono.replace(/\D/g, '');
+    // Abrir WhatsApp en nueva pestaña
+    window.open(`https://wa.me/${cleanNumber}`, '_blank');
   };
 
   const getEstadoColor = (estado) => {
@@ -151,10 +177,23 @@ const TutorDetalles = ({
                     {tutorData.telefono && (
                       <Box>
                         <Typography variant="body2" color="text.secondary">Teléfono Personal</Typography>
-                        <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center">
-                          <Phone sx={{ fontSize: 16, mr: 0.5 }} />
-                          {tutorData.telefono}
-                        </Typography>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center">
+                            <Phone sx={{ fontSize: 16, mr: 0.5 }} />
+                            {tutorData.telefono}
+                          </Typography>
+                          {isAdmin() && (
+                            <Tooltip title="Enviar mensaje WhatsApp">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleWhatsApp(tutorData.telefono)}
+                                sx={{ color: '#25D366' }}
+                              >
+                                <WhatsApp fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
                       </Box>
                     )}
 
@@ -186,10 +225,23 @@ const TutorDetalles = ({
                     {tutorData.telefono_empresa ? (
                       <Box>
                         <Typography variant="body2" color="text.secondary">Teléfono de Empresa</Typography>
-                        <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center" color="error.main">
-                          <Phone sx={{ fontSize: 16, mr: 0.5 }} />
-                          {tutorData.telefono_empresa}
-                        </Typography>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center" color="error.main">
+                            <Phone sx={{ fontSize: 16, mr: 0.5 }} />
+                            {tutorData.telefono_empresa}
+                          </Typography>
+                          {isAdmin() && (
+                            <Tooltip title="Enviar mensaje WhatsApp">
+                              <IconButton
+                                size="small"
+                                onClick={() => handleWhatsApp(tutorData.telefono_empresa)}
+                                sx={{ color: '#25D366' }}
+                              >
+                                <WhatsApp fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
                       </Box>
                     ) : (
                       <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>

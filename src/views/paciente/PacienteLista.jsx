@@ -41,6 +41,7 @@ import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useNavigate } from 'react-router-dom';
 import PauseDialog from '../../components/Pacientes/PauseDialog';
 import ResumeDialog from '../../components/Pacientes/ResumeDialog';
+import EstadoPausaBadge from '../../components/Pacientes/EstadoPausaBadge';
 import PacienteService from '../../services/pacienteService';
 
 /* ---------------- Helpers ---------------- */
@@ -452,6 +453,7 @@ const PacienteLista = ({
                 <TableCell>Cédula</TableCell>
                 <TableCell>Tutor</TableCell>
                 <TableCell>Estado</TableCell>
+                <TableCell>Pausa</TableCell>
                 <TableCell>Fecha Ingreso</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 320 }}>
                   Acciones
@@ -521,28 +523,21 @@ const PacienteLista = ({
                       {/* Estado */}
                       <TableCell>
                         {(() => {
-                          const pauseStatus = PacienteService.isPacientePausado(p);
-                          if (pauseStatus.pausado) {
-                            return (
-                              <Chip
-                                label={pauseStatus.tipo === 'general' ? 'Pausado General' : `${pauseStatus.especialidades_pausadas} Esp. Pausadas`}
-                                color="error"
-                                size="small"
-                                variant="outlined"
-                              />
-                            );
-                          } else {
-                            const estadoInfo = PacienteService.getEstadoInfo(p?.estado);
-                            return (
-                              <Chip
-                                label={estadoInfo?.label || 'Sin estado'}
-                                color={estadoInfo?.color || 'default'}
-                                size="small"
-                                variant="outlined"
-                              />
-                            );
-                          }
+                          const estadoInfo = PacienteService.getEstadoInfo(p?.estado);
+                          return (
+                            <Chip
+                              label={estadoInfo?.label || 'Sin estado'}
+                              color={estadoInfo?.color || 'default'}
+                              size="small"
+                              variant="outlined"
+                            />
+                          );
                         })()}
+                      </TableCell>
+
+                      {/* Estado de Pausa */}
+                      <TableCell>
+                        <EstadoPausaBadge pacienteId={p.id} />
                       </TableCell>
 
                       {/* Fecha Ingreso */}
