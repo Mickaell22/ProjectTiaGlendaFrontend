@@ -27,13 +27,13 @@ import {
   Star as StarIcon,
   History
 } from '@mui/icons-material';
+import { parseLocalDate, formatDateLocal as formatDateUtil } from '../../utils/dateUtils';
 
-// Helper para formatear fechas
+// Helper para formatear fechas usando parseLocalDate para evitar timezone issues
 function formatDateLocal(dateString) {
   if (!dateString) return '—';
   try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES');
+    return formatDateUtil(dateString);
   } catch {
     return '—';
   }

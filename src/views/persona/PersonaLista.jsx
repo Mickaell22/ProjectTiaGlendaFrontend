@@ -31,6 +31,7 @@ import {
   Phone,
   CalendarToday
 } from '@mui/icons-material';
+import { parseLocalDate } from '../../utils/dateUtils';
 
 /* ---------------- Helpers ---------------- */
 const purpleOutlineSX = {
@@ -48,8 +49,8 @@ function normalize(s = '') {
 function calcularEdad(fechaNacimiento) {
   if (!fechaNacimiento) return '—';
   const hoy = new Date();
-  const nac = new Date(fechaNacimiento);
-  if (isNaN(nac.getTime())) return '—';
+  const nac = parseLocalDate(fechaNacimiento);
+  if (!nac || isNaN(nac.getTime())) return '—';
   let edad = hoy.getFullYear() - nac.getFullYear();
   const m = hoy.getMonth() - nac.getMonth();
   if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;

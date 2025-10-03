@@ -189,12 +189,12 @@ const DocumentosPaciente = () => {
       const url = window.URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
-      link.download = documento.nombre_original;
+      link.download = formatFileName(documento);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      setSnackbar({ open: true, message: `Documento "${documento.nombre_original}" descargado`, severity: 'success' });
+      setSnackbar({ open: true, message: `Documento "${formatFileName(documento)}" descargado`, severity: 'success' });
     } catch (error) {
       console.error('Error al descargar documento:', error);
       setSnackbar({ open: true, message: 'Error al descargar documento', severity: 'error' });
@@ -202,7 +202,7 @@ const DocumentosPaciente = () => {
   };
 
   const handleDelete = async (documento) => {
-    if (!window.confirm(`¿Está seguro de eliminar el documento "${documento.nombre_original}"? Esta acción no se puede deshacer.`)) {
+    if (!window.confirm(`¿Está seguro de eliminar el documento "${formatFileName(documento)}"? Esta acción no se puede deshacer.`)) {
       return;
     }
     try {
@@ -262,6 +262,42 @@ const DocumentosPaciente = () => {
   const getTipoDocumentoLabel = (tipo) => {
     const tipoObj = tiposDocumento.find(t => t.value === tipo);
     return tipoObj ? tipoObj.label : tipo;
+  };
+
+  // Helper para mostrar nombre de archivo limpio
+  const formatFileName = (documento) => {
+    // Prioridad: nombre_original > nombre_archivo limpio
+    if (documento.nombre_original && documento.nombre_original !== documento.nombre_archivo) {
+      return documento.nombre_original;
+    }
+
+    // Si solo tiene nombre_archivo, intentar limpiarlo
+    if (documento.nombre_archivo) {
+      const fileName = documento.nombre_archivo;
+
+      // Patrón 1: UUID completo con guiones (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx_nombrearchivo.ext)
+      let match = fileName.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_(.+)$/i);
+      if (match) {
+        return match[1];
+      }
+
+      // Patrón 2: UUID sin guiones (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_nombrearchivo.ext)
+      match = fileName.match(/^[0-9a-f]{32}_(.+)$/i);
+      if (match) {
+        return match[1];
+      }
+
+      // Patrón 3: Cualquier cadena hexadecimal larga seguida de guion bajo
+      match = fileName.match(/^[0-9a-f]+_(.+)$/i);
+      if (match && match[1]) {
+        return match[1];
+      }
+
+      // Si no coincide con ningún patrón, devolver el nombre completo
+      return fileName;
+    }
+
+    return 'Documento sin nombre';
   };
 
   if (loading) {
@@ -454,7 +490,7 @@ const DocumentosPaciente = () => {
                       </Box>
 
                       <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ wordBreak: 'break-word' }}>
-                        {documento.nombre_original}
+                        {formatFileName(documento)}
                       </Typography>
 
                       {documento.descripcion && (

@@ -16,9 +16,6 @@ import {
   Divider,
   Stack,
   CircularProgress,
-  TextField,
-  FormControlLabel,
-  Checkbox,
   IconButton,
   Tooltip,
   Menu,
@@ -36,9 +33,8 @@ import {
   Edit,
   Description,
   CloudDownload,
-  Upload,
   Delete,
-  EditNote
+  MoreVert
 } from '@mui/icons-material';
 
 // Servicios
@@ -67,25 +63,9 @@ const PersonalDetalles = ({
   const [loadingDocumentos, setLoadingDocumentos] = useState(false);
 
   // Estados para gestión de documentos
-  const [editingDoc, setEditingDoc] = useState(null);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showReuploadDialog, setShowReuploadDialog] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-
-  // Estados para edición
-  const [editForm, setEditForm] = useState({
-    descripcion: '',
-    es_confidencial: false
-  });
-
-  // Estados para resubida
-  const [reuploadForm, setReuploadForm] = useState({
-    archivo: null,
-    descripcion: '',
-    es_confidencial: false
-  });
 
   // Cargar documentos cuando se abre el diálogo
   useEffect(() => {
@@ -128,27 +108,6 @@ const PersonalDetalles = ({
     setSelectedDoc(null);
   };
 
-  const handleEditDocument = () => {
-    setEditingDoc(selectedDoc);
-    setEditForm({
-      descripcion: selectedDoc.descripcion || '',
-      es_confidencial: selectedDoc.es_confidencial || false
-    });
-    setShowEditDialog(true);
-    handleMenuClose();
-  };
-
-  const handleReuploadDocument = () => {
-    setEditingDoc(selectedDoc);
-    setReuploadForm({
-      archivo: null,
-      descripcion: selectedDoc.descripcion || '',
-      es_confidencial: selectedDoc.es_confidencial || false
-    });
-    setShowReuploadDialog(true);
-    handleMenuClose();
-  };
-
   const handleDeleteDocument = async () => {
     if (!selectedDoc) return;
 
@@ -166,59 +125,24 @@ const PersonalDetalles = ({
 
   const handleDownloadDocument = async (documento) => {
     try {
-      const response = await ApiService.get(`/api/personal/${data.id}/documentos/${documento.id}/download`, {
-        responseType: 'blob'
-      });
+      const response = await ApiService.get(
+        `/api/documentos-personal/${documento.id}/descargar`,
+        { responseType: 'blob' }
+      );
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', documento.nombre_original || documento.nombre_archivo);
+      link.download = documento.nombre_original || documento.nombre_archivo;
       document.body.appendChild(link);
       link.click();
-      link.remove();
+      document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+
+      setSnackbar({ open: true, message: `Documento "${documento.nombre_original || documento.nombre_archivo}" descargado`, severity: 'success' });
     } catch (error) {
+      console.error('Error downloading document:', error);
       setSnackbar({ open: true, message: 'Error al descargar documento', severity: 'error' });
-    }
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    if (!editingDoc) return;
-
-    try {
-      await ApiService.put(`/api/personal/${data.id}/documentos/${editingDoc.id}`, editForm);
-      setSnackbar({ open: true, message: 'Documento actualizado exitosamente', severity: 'success' });
-      setShowEditDialog(false);
-      setEditingDoc(null);
-      loadDocumentos();
-    } catch (error) {
-      setSnackbar({ open: true, message: 'Error al actualizar documento', severity: 'error' });
-    }
-  };
-
-  const handleReuploadSubmit = async (e) => {
-    e.preventDefault();
-    if (!editingDoc || !reuploadForm.archivo) return;
-
-    try {
-      const formData = new FormData();
-      formData.append('archivo', reuploadForm.archivo);
-      formData.append('descripcion', reuploadForm.descripcion);
-      formData.append('es_confidencial', reuploadForm.es_confidencial);
-
-      await ApiService.put(`/api/personal/${data.id}/documentos/${editingDoc.id}/archivo`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
-      setSnackbar({ open: true, message: 'Documento resubido exitosamente', severity: 'success' });
-      setShowReuploadDialog(false);
-      setEditingDoc(null);
-      setReuploadForm({ archivo: null, descripcion: '', es_confidencial: false });
-      loadDocumentos();
-    } catch (error) {
-      setSnackbar({ open: true, message: 'Error al resubir documento', severity: 'error' });
     }
   };
 
@@ -495,12 +419,12 @@ const PersonalDetalles = ({
                                   <CloudDownload />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Opciones">
+                              <Tooltip title="Más opciones">
                                 <IconButton
                                   size="small"
                                   onClick={(e) => handleMenuOpen(e, documento)}
                                 >
-                                  <EditNote />
+                                  <MoreVert />
                                 </IconButton>
                               </Tooltip>
                             </Box>
@@ -546,18 +470,6 @@ const PersonalDetalles = ({
           sx: { minWidth: 160 }
         }}
       >
-        <MenuItem onClick={handleEditDocument}>
-          <ListItemIcon>
-            <EditNote fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Editar información</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleReuploadDocument}>
-          <ListItemIcon>
-            <Upload fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Resubir archivo</ListItemText>
-        </MenuItem>
         <MenuItem onClick={handleDeleteDocument} sx={{ color: 'error.main' }}>
           <ListItemIcon>
             <Delete fontSize="small" sx={{ color: 'error.main' }} />
@@ -565,113 +477,6 @@ const PersonalDetalles = ({
           <ListItemText>Eliminar</ListItemText>
         </MenuItem>
       </Menu>
-
-      {/* Diálogo para editar información del documento */}
-      <Dialog open={showEditDialog} onClose={() => setShowEditDialog(false)} maxWidth="sm" fullWidth>
-        <form onSubmit={handleEditSubmit}>
-          <DialogTitle sx={{ bgcolor: 'primary.main', color: 'white' }}>
-            <Box display="flex" alignItems="center">
-              <EditNote sx={{ mr: 1 }} />
-              Editar Información del Documento
-            </Box>
-          </DialogTitle>
-          <DialogContent sx={{ mt: 2 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Descripción"
-                  multiline
-                  rows={3}
-                  value={editForm.descripcion}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, descripcion: e.target.value }))}
-                  helperText="Descripción opcional del documento"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={editForm.es_confidencial}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, es_confidencial: e.target.checked }))}
-                    />
-                  }
-                  label="Documento confidencial"
-                />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={() => setShowEditDialog(false)} variant="outlined">
-              Cancelar
-            </Button>
-            <Button type="submit" variant="contained">
-              Guardar Cambios
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
-
-      {/* Diálogo para resubir documento */}
-      <Dialog open={showReuploadDialog} onClose={() => setShowReuploadDialog(false)} maxWidth="sm" fullWidth>
-        <form onSubmit={handleReuploadSubmit}>
-          <DialogTitle sx={{ bgcolor: 'warning.main', color: 'white' }}>
-            <Box display="flex" alignItems="center">
-              <Upload sx={{ mr: 1 }} />
-              Resubir Documento
-            </Box>
-          </DialogTitle>
-          <DialogContent sx={{ mt: 2 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  type="file"
-                  fullWidth
-                  label="Nuevo Archivo"
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{ accept: '.pdf,.doc,.docx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.gif,.webp' }}
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    setReuploadForm(prev => ({ ...prev, archivo: file }));
-                  }}
-                  required
-                  helperText="Selecciona el nuevo archivo para reemplazar el actual"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Descripción"
-                  multiline
-                  rows={3}
-                  value={reuploadForm.descripcion}
-                  onChange={(e) => setReuploadForm(prev => ({ ...prev, descripcion: e.target.value }))}
-                  helperText="Descripción del documento"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={reuploadForm.es_confidencial}
-                      onChange={(e) => setReuploadForm(prev => ({ ...prev, es_confidencial: e.target.checked }))}
-                    />
-                  }
-                  label="Documento confidencial"
-                />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={() => setShowReuploadDialog(false)} variant="outlined">
-              Cancelar
-            </Button>
-            <Button type="submit" variant="contained" color="warning">
-              Resubir Archivo
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
 
       {/* Snackbar para notificaciones */}
       {snackbar.open && (

@@ -25,31 +25,34 @@ import {
   Badge,
   Edit
 } from '@mui/icons-material';
+import { parseLocalDate, formatDateLocal as formatDateUtil } from '../../utils/dateUtils';
 
-// Helper para formatear fechas
+// Helper para formatear fechas usando parseLocalDate para evitar timezone issues
 function formatDateLocal(dateString) {
   if (!dateString) return '—';
   try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES');
+    return formatDateUtil(dateString);
   } catch {
     return '—';
   }
 }
 
-// Helper para calcular edad
+// Helper para calcular edad usando parseLocalDate
 function calcularEdad(fechaNacimiento) {
   if (!fechaNacimiento) return '—';
   try {
     const hoy = new Date();
-    const nacimiento = new Date(fechaNacimiento);
+    const nacimiento = parseLocalDate(fechaNacimiento);
+
+    if (!nacimiento || isNaN(nacimiento.getTime())) return '—';
+
     let edad = hoy.getFullYear() - nacimiento.getFullYear();
     const mes = hoy.getMonth() - nacimiento.getMonth();
-    
+
     if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
       edad--;
     }
-    
+
     return `${edad} años`;
   } catch {
     return '—';

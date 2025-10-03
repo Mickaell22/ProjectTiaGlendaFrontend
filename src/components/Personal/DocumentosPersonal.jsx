@@ -269,6 +269,42 @@ const DocumentosPersonal = () => {
     return tipoObj ? tipoObj.label : tipo;
   };
 
+  // Helper para mostrar nombre de archivo limpio
+  const formatFileName = (documento) => {
+    // Prioridad: nombre_original > nombre_archivo limpio
+    if (documento.nombre_original && documento.nombre_original !== documento.nombre_archivo) {
+      return documento.nombre_original;
+    }
+
+    // Si solo tiene nombre_archivo, intentar limpiarlo
+    if (documento.nombre_archivo) {
+      const fileName = documento.nombre_archivo;
+
+      // Patrón 1: UUID completo con guiones (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx_nombrearchivo.ext)
+      let match = fileName.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}_(.+)$/i);
+      if (match) {
+        return match[1];
+      }
+
+      // Patrón 2: UUID sin guiones (xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_nombrearchivo.ext)
+      match = fileName.match(/^[0-9a-f]{32}_(.+)$/i);
+      if (match) {
+        return match[1];
+      }
+
+      // Patrón 3: Cualquier cadena hexadecimal larga seguida de guion bajo
+      match = fileName.match(/^[0-9a-f]+_(.+)$/i);
+      if (match && match[1]) {
+        return match[1];
+      }
+
+      // Si no coincide con ningún patrón, devolver el nombre completo
+      return fileName;
+    }
+
+    return 'Documento sin nombre';
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
@@ -457,7 +493,7 @@ const DocumentosPersonal = () => {
                       </Box>
 
                       <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ wordBreak: 'break-word' }}>
-                        {documento.nombre_original}
+                        {formatFileName(documento)}
                       </Typography>
 
                       {documento.descripcion && (

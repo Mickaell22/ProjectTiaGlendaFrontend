@@ -95,7 +95,8 @@ const PacienteFormulario = ({
     especialidades: [], // Array de especialidades
     fecha_ingreso: getCurrentDateForInput(),
     estado_tratamiento: 'activo',
-    observaciones: ''
+    observaciones: '',
+    observaciones_tratamiento: ''
   });
   const [errors, setErrors] = useState({});
   const [personaEncontrada, setPersonaEncontrada] = useState(null);
@@ -162,7 +163,8 @@ const PacienteFormulario = ({
       especialidades: [],
       fecha_ingreso: getCurrentDateForInput(),
       estado_tratamiento: 'activo',
-      observaciones: ''
+      observaciones: '',
+      observaciones_tratamiento: ''
     });
     setErrors({});
     setPersonaEncontrada(null);
@@ -636,7 +638,7 @@ const PacienteFormulario = ({
                 alignItems="center"
               >
                 <CalendarToday sx={{ mr: 1 }} />
-                Fechas del Tratamiento
+                Fecha de Ingreso
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
@@ -657,48 +659,6 @@ const PacienteFormulario = ({
                   helperText={
                     errors.fecha_ingreso ||
                     'Fecha en que el paciente ingresó al centro'
-                  }
-                  sx={neutralInputSX}
-                />
-              </Box>
-
-              {/* Inicio Tratamiento */}
-              <Box sx={rowGridSX}>
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Inicio Tratamiento <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
-                </Typography>
-                <TextField
-                  fullWidth
-                  type="date"
-                  name="fecha_inicio_tratamiento"
-                  InputLabelProps={{ shrink: true }}
-                  value={formData.fecha_inicio_tratamiento}
-                  onChange={handleChange}
-                  error={!!errors.fecha_inicio_tratamiento}
-                  helperText={
-                    errors.fecha_inicio_tratamiento ||
-                    'Fecha de inicio del tratamiento'
-                  }
-                  sx={neutralInputSX}
-                />
-              </Box>
-
-              {/* Fin Tratamiento */}
-              <Box sx={rowGridSX}>
-                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                  Fin Tratamiento
-                </Typography>
-                <TextField
-                  fullWidth
-                  type="date"
-                  name="fecha_fin_tratamiento"
-                  InputLabelProps={{ shrink: true }}
-                  value={formData.fecha_fin_tratamiento}
-                  onChange={handleChange}
-                  error={!!errors.fecha_fin_tratamiento}
-                  helperText={
-                    errors.fecha_fin_tratamiento ||
-                    'Fecha estimada de finalización (opcional)'
                   }
                   sx={neutralInputSX}
                 />

@@ -43,6 +43,7 @@ import PauseDialog from '../../components/Pacientes/PauseDialog';
 import ResumeDialog from '../../components/Pacientes/ResumeDialog';
 import EstadoPausaBadge from '../../components/Pacientes/EstadoPausaBadge';
 import PacienteService from '../../services/pacienteService';
+import { parseLocalDate, formatDateLocal as formatDateUtil } from '../../utils/dateUtils';
 
 /* ---------------- Helpers ---------------- */
 const purpleOutlineSX = {
@@ -60,8 +61,7 @@ function normalize(s = '') {
 function formatDateLocal(dateString) {
   if (!dateString) return '—';
   try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES');
+    return formatDateUtil(dateString);
   } catch {
     return '—';
   }
@@ -452,7 +452,6 @@ const PacienteLista = ({
                 <TableCell>Paciente</TableCell>
                 <TableCell>Cédula</TableCell>
                 <TableCell>Tutor</TableCell>
-                <TableCell>Estado</TableCell>
                 <TableCell>Pausa</TableCell>
                 <TableCell>Fecha Ingreso</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap', minWidth: 320 }}>
@@ -463,7 +462,7 @@ const PacienteLista = ({
             <TableBody>
               {filteredPacientes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                     <Box>
                       <Search sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
                       <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -518,21 +517,6 @@ const PacienteLista = ({
                         <Typography variant="body2" color="text.primary">
                           {p.nombre_tutor || 'Sin tutor'}
                         </Typography>
-                      </TableCell>
-
-                      {/* Estado */}
-                      <TableCell>
-                        {(() => {
-                          const estadoInfo = PacienteService.getEstadoInfo(p?.estado);
-                          return (
-                            <Chip
-                              label={estadoInfo?.label || 'Sin estado'}
-                              color={estadoInfo?.color || 'default'}
-                              size="small"
-                              variant="outlined"
-                            />
-                          );
-                        })()}
                       </TableCell>
 
                       {/* Estado de Pausa */}
