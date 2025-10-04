@@ -121,12 +121,16 @@ async function exportPacientePDF(paciente) {
     doc.text(value || '—', x, y + 14);
   };
 
+  // Obtener especialidad principal
+  const especialidadPrincipal = paciente?.especialidades?.find(e => e.es_principal);
+  const nombreEspecialidad = especialidadPrincipal?.especialidad_nombre || paciente?.especialidad_nombre || '---';
+
   field('Nombre completo', paciente?.nombre_completo, leftColX, cursorY);
   field('Cédula', paciente?.cedula, rightColX, cursorY);
 
   cursorY += 38;
   field('Tutor', paciente?.nombre_tutor, leftColX, cursorY);
-  field('Especialidad', paciente?.especialidad_nombre, rightColX, cursorY);
+  field('Especialidad', nombreEspecialidad, rightColX, cursorY);
 
   cursorY += 38;
   field('Fecha de ingreso', formatDateLocal(paciente?.fecha_ingreso), leftColX, cursorY);
@@ -136,19 +140,27 @@ async function exportPacientePDF(paciente) {
 
   // Sección adicionales con tabla (autoTable)
   const adicionales = [
-    ['ID', String(paciente?.id ?? '—')],
-    ['Teléfono', paciente?.telefono ?? '—'],
-    ['Correo', paciente?.correo ?? '—'],
-    ['Dirección', paciente?.direccion ?? '—'],
+    ['Teléfono paciente', paciente?.telefono ?? '—'],
+    ['Correo paciente', paciente?.correo ?? '—'],
+    ['Dirección paciente', paciente?.direccion ?? '—'],
     ['Fecha nacimiento', formatDateLocal(paciente?.fecha_nacimiento)],
     ['Diagnóstico', paciente?.diagnostico ?? '—'],
     ['Observaciones', paciente?.observaciones ?? '—'],
   ].filter(([_, v]) => v && v !== '—'); // omitimos filas totalmente vacías
 
+  // Sección datos del tutor
+  const datosTutor = [
+    ['Cédula tutor', paciente?.cedula_tutor ?? '—'],
+    ['Teléfono tutor', paciente?.telefono_tutor ?? '—'],
+    ['Correo tutor', paciente?.correo_tutor ?? '—'],
+    ['Parentesco', paciente?.parentesco ?? '—'],
+    ['Dirección tutor', paciente?.direccion_tutor ?? '—'],
+  ].filter(([_, v]) => v && v !== '—');
+
   if (adicionales.length) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(12);
-    doc.text('Datos adicionales', marginX, cursorY);
+    doc.text('Datos del Paciente', marginX, cursorY);
     cursorY += 10;
 
     autoTable(doc, {
@@ -162,6 +174,53 @@ async function exportPacientePDF(paciente) {
         0: { cellWidth: 180 },
         1: { cellWidth: 595 - marginX * 2 - 180 }
       }
+    });
+    cursorY = doc.lastAutoTable.finalY + 20;
+  }
+
+  // Tabla de datos del tutor
+  if (datosTutor.length) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Datos del Tutor', marginX, cursorY);
+    cursorY += 10;
+
+    autoTable(doc, {
+      startY: cursorY + 8,
+      margin: { left: marginX, right: marginX },
+      head: [['Campo', 'Valor']],
+      body: datosTutor,
+      styles: { font: 'helvetica', fontSize: 10, cellPadding: 6, overflow: 'linebreak' },
+      headStyles: { fillColor: [103, 58, 183] },
+      columnStyles: {
+        0: { cellWidth: 180 },
+        1: { cellWidth: 595 - marginX * 2 - 180 }
+      }
+    });
+    cursorY = doc.lastAutoTable.finalY + 20;
+  }
+
+  // Agregar especialidades si existen
+  if (paciente?.especialidades && paciente.especialidades.length > 0) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Especialidades', marginX, cursorY);
+    cursorY += 10;
+
+    const especialidadesData = paciente.especialidades.map(esp => [
+      esp.especialidad_nombre || '—',
+      esp.es_principal ? 'Si' : 'No',
+      esp.estado || '—',
+      formatDateLocal(esp.fecha_inicio_tratamiento)
+    ]);
+
+    autoTable(doc, {
+      startY: cursorY + 8,
+      margin: { left: marginX, right: marginX },
+      head: [['Especialidad', 'Principal', 'Estado', 'Inicio']],
+      body: especialidadesData,
+      styles: { font: 'helvetica', fontSize: 10, cellPadding: 6 },
+      headStyles: { fillColor: [103, 58, 183] }
     });
   }
 
@@ -222,7 +281,9 @@ const PacienteLista = ({
 
   const handleExportPdf = async (paciente) => {
     try {
-      await exportPacientePDF(paciente);
+      // Cargar datos completos del paciente antes de generar el PDF
+      const pacienteCompleto = await PacienteService.getById(paciente.id);
+      await exportPacientePDF(pacienteCompleto);
     } catch (err) {
       // En producción podrías usar tu Snackbar aquí
       console.error('Error generando PDF del paciente:', err);

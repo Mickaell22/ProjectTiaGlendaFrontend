@@ -39,6 +39,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
   const [addStudentDialog, setAddStudentDialog] = useState({ open: false, sessionId: null });
   const [estudiantesDisponibles, setEstudiantesDisponibles] = useState([]);
   const [newEstudianteId, setNewEstudianteId] = useState('');
+  const [searchStudentTerm, setSearchStudentTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState('list');
   const [shareDialog, setShareDialog] = useState({ open: false, sessionId: null });
@@ -335,6 +336,15 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
       s.codigo_sesion?.toLowerCase().includes(term)
     );
     return matchesSearch;
+  });
+
+  // Filtrar estudiantes disponibles para el diálogo
+  const filteredEstudiantesDisponibles = estudiantesDisponibles.filter(e => {
+    if (!searchStudentTerm) return true;
+    const term = searchStudentTerm.toLowerCase();
+    const nombreCompleto = (e.nombre_completo || `${e.nombre} ${e.apellido}`).toLowerCase();
+    const cedula = (e.cedula || '').toLowerCase();
+    return nombreCompleto.includes(term) || cedula.includes(term);
   });
 
   // Función para generar horarios de la semana
@@ -1016,6 +1026,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
         onClose={() => {
           setAddStudentDialog({ open: false, sessionId: null });
           setNewEstudianteId('');
+          setSearchStudentTerm('');
         }}
         maxWidth="sm"
         fullWidth
@@ -1028,55 +1039,80 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel shrink>Seleccionar Estudiante</InputLabel>
-              <Select
-                sx={{...purpleOutlineSX}}
-                value={newEstudianteId}
-                onChange={(e) => setNewEstudianteId(e.target.value)}
-                label="Seleccionar Estudiante"
-                displayEmpty
-                renderValue={(val) => {
-                  if (!val) return 'Seleccione un estudiante disponible';
-                  const estudiante = estudiantesDisponibles.find(e => String(e.id) === String(val));
-                  return estudiante 
-                    ? `${estudiante.nombre_completo || `${estudiante.nombre} ${estudiante.apellido}`} - ${estudiante.cedula}`
-                    : 'Seleccione un estudiante disponible';
-                }}
-              >
-                <MenuItem value="">Seleccione un estudiante disponible</MenuItem>
-                {estudiantesDisponibles.map((estudiante) => (
-                  <MenuItem key={estudiante.id} value={estudiante.id}>
-                    <Box display="flex" alignItems="center" width="100%">
-                      <Avatar sx={{ mr: 2, bgcolor: 'primary.main', width: 32, height: 32 }}>
-                        <Person fontSize="small" />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body2" fontWeight="medium">
-                          {estudiante.nombre_completo || `${estudiante.nombre} ${estudiante.apellido}`}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Cédula: {estudiante.cedula}
-                        </Typography>
+            <TextField
+              fullWidth
+              placeholder="Buscar estudiante por nombre o cédula..."
+              value={searchStudentTerm}
+              onChange={(e) => setSearchStudentTerm(e.target.value)}
+              sx={{ ...purpleOutlineSX, mb: 2 }}
+              InputProps={{
+                startAdornment: (
+                  <Search sx={{ mr: 1, color: 'text.secondary' }} />
+                )
+              }}
+            />
+
+            {estudiantesDisponibles.length === 0 ? (
+              <Alert severity="info">
+                No hay estudiantes disponibles para agregar.
+              </Alert>
+            ) : (
+              <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
+                {filteredEstudiantesDisponibles.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
+                    No se encontraron estudiantes con "{searchStudentTerm}"
+                  </Typography>
+                ) : (
+                  filteredEstudiantesDisponibles.map((estudiante) => (
+                    <Box
+                      key={estudiante.id}
+                      onClick={() => setNewEstudianteId(estudiante.id)}
+                      sx={{
+                        p: 2,
+                        mb: 1,
+                        borderRadius: 2,
+                        cursor: 'pointer',
+                        border: '1px solid',
+                        borderColor: newEstudianteId === estudiante.id ? 'primary.main' : 'divider',
+                        backgroundColor: newEstudianteId === estudiante.id
+                          ? theme.palette.mode === 'dark' ? 'primary.dark' : 'primary.light'
+                          : theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        '&:hover': {
+                          backgroundColor: theme.palette.mode === 'dark' ? 'grey.700' : 'grey.100',
+                          borderColor: 'primary.main'
+                        },
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <Box display="flex" alignItems="center">
+                        <Avatar sx={{ mr: 2, bgcolor: 'primary.main', width: 40, height: 40 }}>
+                          <Person />
+                        </Avatar>
+                        <Box flex={1}>
+                          <Typography variant="body1" fontWeight="medium">
+                            {estudiante.nombre_completo || `${estudiante.nombre} ${estudiante.apellido}`}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Cédula: {estudiante.cedula || 'N/A'}
+                          </Typography>
+                        </Box>
+                        {newEstudianteId === estudiante.id && (
+                          <Chip label="Seleccionado" color="primary" size="small" />
+                        )}
                       </Box>
                     </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            
-            {estudiantesDisponibles.length === 0 && (
-              <Alert severity="info" sx={{ mt: 2 }}>
-                No hay estudiantes disponibles para agregar. Todos los estudiantes activos ya pueden estar asignados a sesiones.
-              </Alert>
+                  ))
+                )}
+              </Box>
             )}
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             onClick={() => {
               setAddStudentDialog({ open: false, sessionId: null });
               setNewEstudianteId('');
+              setSearchStudentTerm('');
             }}
           >
             Cancelar

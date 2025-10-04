@@ -39,6 +39,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
   const [addPatientDialog, setAddPatientDialog] = useState({ open: false, sessionId: null });
   const [pacientesDisponibles, setPacientesDisponibles] = useState([]);
   const [newPatientId, setNewPatientId] = useState('');
+  const [searchPatientTerm, setSearchPatientTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'schedule'
   const [shareDialog, setShareDialog] = useState({ open: false, sessionId: null });
@@ -347,6 +348,15 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
       s.codigo_sesion?.toLowerCase().includes(term) // ok si sigue existiendo en datos aunque ya no se muestre
     );
     return matchesSearch;
+  });
+
+  // Filtrar pacientes disponibles para el diálogo
+  const filteredPacientesDisponibles = pacientesDisponibles.filter(p => {
+    if (!searchPatientTerm) return true;
+    const term = searchPatientTerm.toLowerCase();
+    const nombreCompleto = (p.nombre_completo || `${p.nombre} ${p.apellido}`).toLowerCase();
+    const cedula = (p.cedula || '').toLowerCase();
+    return nombreCompleto.includes(term) || cedula.includes(term);
   });
 
   // Función para generar horarios de la semana (después de filteredSesiones)
@@ -998,6 +1008,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
         onClose={() => {
           setAddPatientDialog({ open: false, sessionId: null });
           setNewPatientId('');
+          setSearchPatientTerm('');
         }}
         maxWidth="sm"
         fullWidth
@@ -1010,73 +1021,80 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
-            <FormControl fullWidth>
-              <InputLabel shrink>Seleccionar Paciente</InputLabel>
-              <Select
-                sx={{...purpleOutlineSX}}
-                value={newPatientId}
-                onChange={(e) => setNewPatientId(e.target.value)}
-                label="Seleccionar Paciente"
-                displayEmpty
-                renderValue={(val) => {
-                  if (!val) return 'Seleccione un paciente disponible';
-                  const paciente = pacientesDisponibles.find(p => String(p.id) === String(val));
-                  return paciente 
-                    ? `${paciente.nombre_completo || `${paciente.nombre} ${paciente.apellido}`} - ${paciente.cedula}`
-                    : 'Seleccione un paciente disponible';
-                }}
-              >
-                <MenuItem value="">Seleccione un paciente disponible</MenuItem>
-                {pacientesDisponibles.map((paciente) => (
-                  <MenuItem key={paciente.id} value={paciente.id}>
-                    <Box display="flex" alignItems="center" width="100%">
-                      <Avatar sx={{ mr: 2, bgcolor: '#7e57c2', width: 32, height: 32 }}>
-                        <Person fontSize="small" />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body2" fontWeight="medium">
-                          {paciente.nombre_completo || `${paciente.nombre} ${paciente.apellido}`}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Cédula: {paciente.cedula}
-                        </Typography>
+            <TextField
+              fullWidth
+              placeholder="Buscar paciente por nombre o cédula..."
+              value={searchPatientTerm}
+              onChange={(e) => setSearchPatientTerm(e.target.value)}
+              sx={{ ...purpleOutlineSX, mb: 2 }}
+              InputProps={{
+                startAdornment: (
+                  <Search sx={{ mr: 1, color: 'text.secondary' }} />
+                )
+              }}
+            />
+
+            {pacientesDisponibles.length === 0 ? (
+              <Alert severity="info">
+                No hay pacientes disponibles para agregar.
+              </Alert>
+            ) : (
+              <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
+                {filteredPacientesDisponibles.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
+                    No se encontraron pacientes con "{searchPatientTerm}"
+                  </Typography>
+                ) : (
+                  filteredPacientesDisponibles.map((paciente) => (
+                    <Box
+                      key={paciente.id}
+                      onClick={() => setNewPatientId(paciente.id)}
+                      sx={{
+                        p: 2,
+                        mb: 1,
+                        borderRadius: 2,
+                        cursor: 'pointer',
+                        border: '1px solid',
+                        borderColor: newPatientId === paciente.id ? 'primary.main' : 'divider',
+                        backgroundColor: newPatientId === paciente.id
+                          ? theme.palette.mode === 'dark' ? 'primary.dark' : 'primary.light'
+                          : theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        '&:hover': {
+                          backgroundColor: theme.palette.mode === 'dark' ? 'grey.700' : 'grey.100',
+                          borderColor: 'primary.main'
+                        },
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <Box display="flex" alignItems="center">
+                        <Avatar sx={{ mr: 2, bgcolor: 'primary.main', width: 40, height: 40 }}>
+                          <Person />
+                        </Avatar>
+                        <Box flex={1}>
+                          <Typography variant="body1" fontWeight="medium">
+                            {paciente.nombre_completo || `${paciente.nombre} ${paciente.apellido}`}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Cédula: {paciente.cedula || 'N/A'}
+                          </Typography>
+                        </Box>
+                        {newPatientId === paciente.id && (
+                          <Chip label="Seleccionado" color="primary" size="small" />
+                        )}
                       </Box>
                     </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            
-            {pacientesDisponibles.length === 0 && (
-              <Alert severity="info" sx={{ mt: 2 }}>
-                No hay pacientes disponibles para agregar. Todos los pacientes activos ya pueden estar asignados a sesiones.
-                <br />
-                <small>Si este mensaje persiste, revise la consola del navegador (F12) para más detalles.</small>
-              </Alert>
+                  ))
+                )}
+              </Box>
             )}
-            
-            {/* Debug info - remove in production */}
-            <Box sx={{ mt: 2, p: 1, backgroundColor: theme.palette.mode === 'dark' ? 'grey.700' : 'grey.100', fontSize: '0.75rem', borderRadius: 1 }}>
-              <Typography variant="caption" display="block">
-                <strong>Debug Info:</strong>
-              </Typography>
-              <Typography variant="caption" display="block">
-                Session ID: {addPatientDialog.sessionId || 'No ID'}
-              </Typography>
-              <Typography variant="caption" display="block">
-                Available Patients: {pacientesDisponibles.length}
-              </Typography>
-              <Typography variant="caption" display="block">
-                Selected Patient ID: {newPatientId || 'None'}
-              </Typography>
-            </Box>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             onClick={() => {
               setAddPatientDialog({ open: false, sessionId: null });
               setNewPatientId('');
+              setSearchPatientTerm('');
             }}
           >
             Cancelar
