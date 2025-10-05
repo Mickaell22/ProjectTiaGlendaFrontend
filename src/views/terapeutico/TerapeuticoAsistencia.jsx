@@ -466,29 +466,6 @@ const TerapeuticoAsistencia = () => {
               </FormControl>
             </Grid>
           </Grid>
-
-          {selectedSesion && selectedCronograma && getSesionInfo(selectedSesion) && getCronogramaInfo(selectedCronograma) && (
-            <Paper sx={{ mt: 3, p: 2, backgroundColor: 'background.paper' }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={3}>
-                  <Typography variant="subtitle2">Sesión:</Typography>
-                  <Typography variant="body2">{getSesionInfo(selectedSesion).titulo}</Typography>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Typography variant="subtitle2">Fecha:</Typography>
-                  <Typography variant="body2">{formatDate(getCronogramaInfo(selectedCronograma).fecha_programada)}</Typography>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Typography variant="subtitle2">Hora:</Typography>
-                  <Typography variant="body2">{formatTime(getCronogramaInfo(selectedCronograma).hora_programada)}</Typography>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Typography variant="subtitle2">Terapeuta:</Typography>
-                  <Typography variant="body2">{getSesionInfo(selectedSesion).terapeuta_nombre}</Typography>
-                </Grid>
-              </Grid>
-            </Paper>
-          )}
         </CardContent>
       </Card>
 
