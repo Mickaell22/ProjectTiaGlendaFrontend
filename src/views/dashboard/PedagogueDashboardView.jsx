@@ -5,7 +5,8 @@ import {
 } from '@mui/material';
 import {
   School, MenuBook, AccessTime, TrendingUp, CalendarToday,
-  CheckCircle, Person, Assignment, Class, Settings, Refresh
+  CheckCircle, Person, Assignment, Class, Settings, Refresh,
+  SpaceBar
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -114,7 +115,7 @@ const PedagogueDashboardView = () => {
 
   return (
     <PageContainer title="Mi Panel Pedagógico" description="Dashboard del pedagogo">
-      <Box>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
         {/* Welcome Header */}
         <Paper
           elevation={4}
@@ -123,7 +124,13 @@ const PedagogueDashboardView = () => {
             mb: 4,
             borderRadius: 3,
             background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-            color: 'white'
+            color: 'white',
+            maxWidth: 900,
+            width: '100%',
+            textAlign: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
           }}
         >
           <Typography variant="h3" fontWeight="bold" gutterBottom>
@@ -155,118 +162,134 @@ const PedagogueDashboardView = () => {
         </Paper>
 
         {/* Main Statistics */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} md={3}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'primary.main', width: 56, height: 56 }}>
-                  <Person fontSize="large" />
-                </Avatar>
-                <Typography variant="h4" fontWeight="bold" color="primary.main">
-                  {dashboardData.mis_estudiantes?.total || 0}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Mis Estudiantes
-                </Typography>
-                <Typography variant="caption" color="success.main">
-                  {dashboardData.mis_estudiantes?.graduados || 0} graduados
-                </Typography>
-                <LinearProgress
-                  variant="determinate"
-                  value={dashboardData.mis_estudiantes?.total > 0 ? ((dashboardData.mis_estudiantes?.graduados || 0) / dashboardData.mis_estudiantes?.total) * 100 : 0}
-                  color="primary"
-                  sx={{ mt: 1, borderRadius: 1 }}
-                />
+  <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: '1000', justifyContent: 'center' }}>
+          <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+            <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
+                  <Avatar sx={{ mb: 2, bgcolor: 'primary.main', width: 56, height: 56 }}>
+                <Person fontSize="large" sx={{ mx: 1, my: 1 }} />
+                  </Avatar>
+                  <Typography
+                    variant="h4"
+                    fontWeight="bold"
+                    sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}
+                  >
+                    {dashboardData.mis_estudiantes?.total || 0}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Mis Estudiantes
+                  </Typography>
+                  <Typography variant="caption" color="primary.main">
+                    {dashboardData.mis_estudiantes?.graduados || 0} graduados
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={dashboardData.mis_estudiantes?.total > 0 ? ((dashboardData.mis_estudiantes?.graduados || 0) / dashboardData.mis_estudiantes?.total) * 100 : 0}
+                    color="primary"
+                    sx={{ mt: 1, borderRadius: 1, width: '100%' }}
+                  />
+                </Box>
               </CardContent>
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'success.main', width: 56, height: 56 }}>
-                  <Class fontSize="large" />
-                </Avatar>
-                <Typography variant="h4" fontWeight="bold" color="success.main">
-                  {dashboardData.clases?.hoy || 0}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Clases Hoy
-                </Typography>
-                <Typography variant="caption" color="primary.main">
-                  {dashboardData.clases?.esta_semana || 0} esta semana
-                </Typography>
-                <LinearProgress
-                  variant="determinate"
-                  value={80}
-                  color="success"
-                  sx={{ mt: 1, borderRadius: 1 }}
-                />
+          <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+            <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
+                  <Avatar sx={{ mb: 2, bgcolor: 'primary.main', width: 56, height: 56 }}>
+                <Class fontSize="large" sx={{ mx: 1, my: 1 }} />
+                  </Avatar>
+                  <Typography variant="h4" fontWeight="bold" sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}>
+                    {dashboardData.clases?.hoy || 0}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Clases Hoy
+                  </Typography>
+                  <Typography variant="caption" color="primary.main">
+                    {dashboardData.clases?.esta_semana || 0} esta semana
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={80}
+                    color="primary"
+                    sx={{ mt: 1, borderRadius: 1, width: '100%' }}
+                  />
+                </Box>
               </CardContent>
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'warning.main', width: 56, height: 56 }}>
-                  <School fontSize="large" />
-                </Avatar>
-                <Typography variant="h4" fontWeight="bold" color="warning.main">
-                  {dashboardData.estadisticas?.asistencia_promedio || 0}%
-                </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Asistencia Promedio
-                </Typography>
-                <LinearProgress
-                  variant="determinate"
-                  value={dashboardData.estadisticas?.asistencia_promedio || 0}
-                  color="warning"
-                  sx={{ mt: 1, borderRadius: 1 }}
-                />
+          <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+            <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
+                  <Avatar sx={{ mb: 2, bgcolor: 'primary.main', width: 56, height: 56 }}>
+                <School fontSize="large" sx={{ mx: 1, my: 1 }} />
+                  </Avatar>
+                  
+                  <Typography variant="h4" fontWeight="bold" sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}>
+                    {dashboardData.estadisticas?.asistencia_promedio || 0}%
+                  </Typography>
+                  
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Asistencia Promedio
+                  </Typography>
+                  <Box my={1} />
+                  <LinearProgress
+                    variant="determinate"
+                    value={dashboardData.estadisticas?.asistencia_promedio || 0}
+                    color="primary"
+                    sx={{ mt: 1, borderRadius: 1, width: '100%' }}
+                  />
+                </Box>
               </CardContent>
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={3}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent sx={{ textAlign: 'center', p: 3 }}>
-                <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'info.main', width: 56, height: 56 }}>
-                  <MenuBook fontSize="large" />
-                </Avatar>
-                <Typography variant="h4" fontWeight="bold" color="info.main">
-                  {dashboardData.mis_estudiantes?.activos || 0}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Estudiantes Activos
-                </Typography>
-                <Typography variant="caption" color="warning.main">
-                  {dashboardData.estadisticas?.evaluaciones_pendientes || 0} evaluaciones pendientes
-                </Typography>
-                <LinearProgress
-                  variant="determinate"
-                  value={90}
-                  color="info"
-                  sx={{ mt: 1, borderRadius: 1 }}
-                />
+          <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+            <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
+                  <Avatar sx={{ mb: 2, bgcolor: 'primary.main', width: 56, height: 56 }}>
+                <MenuBook fontSize="large" sx={{ mx: 1, my: 1 }} />
+                  </Avatar>
+                  <box my={1} />
+                  <Typography variant="h4" fontWeight="bold" sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}>
+                    {dashboardData.mis_estudiantes?.activos || 0}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Estudiantes Activos
+                  </Typography>
+                  <Typography variant="caption" color="warning.main">
+                    {dashboardData.estadisticas?.evaluaciones_pendientes || 0} Eval. pendientes
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={90}
+                    color="primary"
+                    sx={{ mt: 1, borderRadius: 1, width: '100%' }}
+                  />
+                </Box>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
         {/* Today's Schedule */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={3} sx={{ mb: 4, maxWidth: 900, mx: 'auto', justifyContent: 'center' }}>
           <Grid item xs={12}>
-            <Card>
+            <Paper elevation={3} sx={{ borderRadius: 3, p: 3, width: '100%', maxWidth: 900, mx: 'auto' }}>
               <CardContent>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                <Typography variant="h6" fontWeight="bold" gutterBottom align="center">
                   Mi Horario de Clases Hoy
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
 
                 <List sx={{ p: 0 }}>
                   {(dashboardData.horario_hoy || []).map((clase, index) => (
-                    <ListItem key={index} sx={{ px: 0, py: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                    <ListItem key={index} sx={{ px: 0, py: 1, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center' }}>
                       <Box sx={{ mr: 2 }}>
                         <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
                           <AccessTime fontSize="small" />
@@ -274,7 +297,7 @@ const PedagogueDashboardView = () => {
                       </Box>
                       <ListItemText
                         primary={
-                          <Box display="flex" justifyContent="space-between" alignItems="center">
+                          <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
                             <Typography variant="body1" fontWeight="medium">
                               {clase.materia || 'Clase Pedagógica'}
                             </Typography>
@@ -287,7 +310,7 @@ const PedagogueDashboardView = () => {
                           </Box>
                         }
                         secondary={
-                          <Box>
+                          <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
                             <Typography variant="body2" color="text.secondary">
                               {clase.total_estudiantes || 0} estudiantes • {clase.aula || 'Aula'}
                             </Typography>
@@ -315,7 +338,7 @@ const PedagogueDashboardView = () => {
                   </Box>
                 )}
               </CardContent>
-            </Card>
+            </Paper>
           </Grid>
         </Grid>
       </Box>
