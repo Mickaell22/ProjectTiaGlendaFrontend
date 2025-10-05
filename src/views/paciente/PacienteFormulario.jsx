@@ -732,10 +732,16 @@ const PacienteFormulario = ({
               <Button
                 variant="contained"
                 type="submit"
-                color="primary"
                 startIcon={isEditing ? <Edit /> : <PersonAdd />}
                 size="large"
                 disabled={loading || !canSubmit}
+                sx={{
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                }}
               >
                 {isEditing ? 'Actualizar Paciente' : 'Registrar Paciente'}
               </Button>

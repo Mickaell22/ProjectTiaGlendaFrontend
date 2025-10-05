@@ -354,7 +354,7 @@ const CrearSesionPedagogica = () => {
           <Box component="form" onSubmit={handleSubmit}>
             {/* ===== Información General (vertical) ===== */}
             <Box sx={sectionBoxSX}>
-              <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+              <Typography variant="overline" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                 Información General
               </Typography>
               <Divider sx={{ mb: 2 }} />
@@ -719,6 +719,13 @@ const CrearSesionPedagogica = () => {
                 startIcon={<Add />}
                 disabled={loading}
                 size="large"
+                sx={{
+                  backgroundColor: theme => theme.palette.primary.main,
+                  color: theme => theme.palette.primary.contrastText,
+                  '&:hover': {
+                    backgroundColor: theme => theme.palette.primary.dark
+                  }
+                }}
               >
                 Crear Sesión
               </Button>

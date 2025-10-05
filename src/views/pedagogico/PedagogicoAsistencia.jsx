@@ -310,7 +310,7 @@ const PedagogicoAsistencia = () => {
   });
 
   return (
-    <Container maxWidth="xl" sx={{ py: 0 }}>
+    <Container maxWidth="xl" sx={{ py: 4 }}>
 
       {/* Card de selección (header degradado estilo listar) */}
       <Card
@@ -414,28 +414,7 @@ const PedagogicoAsistencia = () => {
             </Grid>
           </Grid>
 
-          {selectedSesion && selectedCronograma && getSesionInfo(selectedSesion) && getCronogramaInfo(selectedCronograma) && (
-            <Paper sx={{ mt: 3, p: 2, backgroundColor: 'success.light' }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={3}>
-                  <Typography variant="subtitle2">Sesión:</Typography>
-                  <Typography variant="body2">{getSesionInfo(selectedSesion).titulo || getSesionInfo(selectedSesion).nombre_clase}</Typography>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Typography variant="subtitle2">Fecha:</Typography>
-                  <Typography variant="body2">{formatDate(getCronogramaInfo(selectedCronograma).fecha_programada)}</Typography>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Typography variant="subtitle2">Hora:</Typography>
-                  <Typography variant="body2">{formatTime(getCronogramaInfo(selectedCronograma).hora_inicio)} - {formatTime(getCronogramaInfo(selectedCronograma).hora_fin)}</Typography>
-                </Grid>
-                <Grid item xs={12} md={3}>
-                  <Typography variant="subtitle2">Pedagogo:</Typography>
-                  <Typography variant="body2">{getSesionInfo(selectedSesion).pedagogo?.nombre || getSesionInfo(selectedSesion).pedagogo_nombre}</Typography>
-                </Grid>
-              </Grid>
-            </Paper>
-          )}
+          
         </CardContent>
       </Card>
 
@@ -555,7 +534,7 @@ const PedagogicoAsistencia = () => {
                           <TableRow key={estudianteId}>
                             <TableCell>
                               <Box display="flex" alignItems="center">
-                                <Avatar sx={{ mr: 2, bgcolor: 'success.main' }}>
+                                <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
                                   <School />
                                 </Avatar>
                                 <Box>
@@ -703,134 +682,128 @@ const PedagogicoAsistencia = () => {
         </DialogTitle>
         <DialogContent>
           {asistenciaDialog.data && (
-            <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" color="primary" mb={2}>
-                  Estudiante: {asistenciaDialog.data.estudiante?.estudiante?.nombre || asistenciaDialog.data.estudiante_nombre}
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={formData.asistio}
-                      onChange={(e) => setFormData(prev => ({ ...prev, asistio: e.target.checked }))}
-                      sx={{ 
-                        '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
-                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
-                      }}
+            <Box>
+              <Grid container spacing={3} sx={{ mt: 1 }}>
+                <Grid item xs={12}>
+                  <Box display="flex" flexDirection="column" alignItems="flex-start" mb={2}>
+                    <Typography variant="subtitle2" color="primary" mb={1}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                        Estudiante: {asistenciaDialog.data.estudiante?.estudiante?.nombre || asistenciaDialog.data.estudiante_nombre}
+                      </span>
+                    </Typography>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.asistio}
+                          onChange={(e) => setFormData(prev => ({ ...prev, asistio: e.target.checked }))}
+                          sx={{ 
+                            '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
+                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
+                          }}
+                        />
+                      }
+                      label={<span style={{ fontWeight: 500, fontSize: '0.85rem' }}>Asistió a la clase</span>}
+                      sx={{ mt: 1 }}
                     />
-                  }
-                  label="Asistió a la clase"
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Minutos de tardanza"
-                  value={formData.llegada_tardanza_minutos}
-                  onChange={(e) => setFormData(prev => ({ ...prev, llegada_tardanza_minutos: e.target.value }))}
-                  inputProps={{ min: 0 }}
-                  disabled={!formData.asistio}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Calificación de evaluación (1-10)"
-                  value={formData.calificacion_evaluacion}
-                  onChange={(e) => setFormData(prev => ({ ...prev, calificacion_evaluacion: e.target.value }))}
-                  inputProps={{ min: 1, max: 10 }}
-                  disabled={!formData.asistio}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={formData.tareas_entregadas}
-                      onChange={(e) => setFormData(prev => ({ ...prev, tareas_entregadas: e.target.checked }))}
-                      disabled={!formData.asistio}
-                      sx={{ 
-                        '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
-                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
-                      }}
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.tareas_entregadas}
+                          onChange={(e) => setFormData(prev => ({ ...prev, tareas_entregadas: e.target.checked }))}
+                          disabled={!formData.asistio}
+                          sx={{ 
+                            '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
+                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
+                          }}
+                        />
+                      }
+                      label="Tareas entregadas"
                     />
-                  }
-                  label="Tareas entregadas"
-                />
+                  </Box>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Minutos de tardanza"
+                    value={formData.llegada_tardanza_minutos}
+                    onChange={(e) => setFormData(prev => ({ ...prev, llegada_tardanza_minutos: e.target.value }))}
+                    inputProps={{ min: 0 }}
+                    disabled={!formData.asistio}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    sx={{ minWidth: 220 }}
+                    type="number"
+                    label="Calificación de evaluación (1-10)"
+                    value={formData.calificacion_evaluacion}
+                    onChange={(e) => setFormData(prev => ({ ...prev, calificacion_evaluacion: e.target.value }))}
+                    inputProps={{ min: 1, max: 10 }}
+                    disabled={!formData.asistio}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    sx={{ minWidth: 220 }}
+                    multiline
+                    rows={2}
+                    label="Observaciones del Educador"
+                    value={formData.observaciones_educador}
+                    onChange={(e) => setFormData(prev => ({ ...prev, observaciones_educador: e.target.value }))}
+                    placeholder="Observaciones sobre la asistencia..."
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    sx={{ minWidth: 220 }}
+                    multiline
+                    rows={2}
+                    label="Participación en clase"
+                    value={formData.participacion_clase}
+                    onChange={(e) => setFormData(prev => ({ ...prev, participacion_clase: e.target.value }))}
+                    placeholder="Descripción de la participación del estudiante en clase..."
+                    disabled={!formData.asistio}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    sx={{ minWidth: 220 }}
+                    multiline
+                    rows={2}
+                    label="Objetivos trabajados en clase"
+                    value={formData.objetivos_trabajados}
+                    onChange={(e) => setFormData(prev => ({ ...prev, objetivos_trabajados: e.target.value }))}
+                    placeholder="Descripción de los objetivos específicos trabajados durante la clase..."
+                    disabled={!formData.asistio}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    sx={{ minWidth: 220 }}
+                    multiline
+                    rows={2}
+                    label="Notas de comportamiento"
+                    value={formData.notas_comportamiento}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notas_comportamiento: e.target.value }))}
+                    placeholder="Observaciones sobre el comportamiento del estudiante..."
+                    disabled={!formData.asistio}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    sx={{ minWidth: 220 }}
+                    multiline
+                    rows={3}
+                    label="Observaciones de evaluación"
+                    value={formData.observaciones_evaluacion}
+                    onChange={(e) => setFormData(prev => ({ ...prev, observaciones_evaluacion: e.target.value }))}
+                    placeholder="Observaciones sobre la evaluación y desempeño académico..."
+                    disabled={!formData.asistio}
+                  />
+                </Grid>
               </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  label="Observaciones del Educador"
-                  value={formData.observaciones_educador}
-                  onChange={(e) => setFormData(prev => ({ ...prev, observaciones_educador: e.target.value }))}
-                  placeholder="Observaciones sobre la asistencia..."
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  label="Participación en clase"
-                  value={formData.participacion_clase}
-                  onChange={(e) => setFormData(prev => ({ ...prev, participacion_clase: e.target.value }))}
-                  placeholder="Descripción de la participación del estudiante en clase..."
-                  disabled={!formData.asistio}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  label="Objetivos trabajados en clase"
-                  value={formData.objetivos_trabajados}
-                  onChange={(e) => setFormData(prev => ({ ...prev, objetivos_trabajados: e.target.value }))}
-                  placeholder="Descripción de los objetivos específicos trabajados durante la clase..."
-                  disabled={!formData.asistio}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  label="Notas de comportamiento"
-                  value={formData.notas_comportamiento}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notas_comportamiento: e.target.value }))}
-                  placeholder="Observaciones sobre el comportamiento del estudiante..."
-                  disabled={!formData.asistio}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Observaciones de evaluación"
-                  value={formData.observaciones_evaluacion}
-                  onChange={(e) => setFormData(prev => ({ ...prev, observaciones_evaluacion: e.target.value }))}
-                  placeholder="Observaciones sobre la evaluación y desempeño académico..."
-                  disabled={!formData.asistio}
-                />
-              </Grid>
-            </Grid>
+            </Box>
           )}
         </DialogContent>
         <DialogActions>

@@ -399,10 +399,16 @@ const PersonalFormulario = ({
               <Button
                 variant="contained"
                 type="submit"
-                color="primary"
                 startIcon={editingId ? <Edit /> : <Add />}
                 size="large"
                 disabled={!canSubmit}
+                sx={(theme) => ({
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                })}
               >
                 {editingId ? 'Actualizar Personal' : 'Crear Personal'}
               </Button>

@@ -21,7 +21,7 @@ import { formatDateLocal } from 'src/utils/dateUtils';
 const getGreenOutlineSX = (theme) => ({
   '& .MuiOutlinedInput-root': {
     '& fieldset': { borderColor: theme.palette.success.main },
-    '&:hover fieldset': { borderColor: theme.palette.success.main },
+    '&:hover fieldset': { borderColor: theme.palette.success.dark },
     '&.Mui-focused fieldset': { borderColor: theme.palette.success.main, borderWidth: 2 }
   }
 });
@@ -420,7 +420,14 @@ const PedagogicoCronogramas = () => {
                   <Grid item xs={6}>
                     <Button
                       variant="outlined"
-                      sx={{ borderColor: 'success.main', color: 'success.main', '&:hover': { borderColor: 'success.dark', bgcolor: theme.palette.mode === 'dark' ? 'success.dark' : 'success.light' } }}
+                      sx={{
+                        borderColor: 'success.main',
+                        color: 'success.main',
+                        '&:hover': {
+                          borderColor: 'success.dark',
+                          backgroundColor: theme.palette.mode === 'dark' ? theme.palette.success.dark : theme.palette.success.light
+                        }
+                      }}
                       startIcon={<Refresh />}
                       onClick={() => regenerarCronograma(selectedSesion)}
                       disabled={loading}
@@ -435,24 +442,7 @@ const PedagogicoCronogramas = () => {
             )}
           </Grid>
 
-          {selectedSesion && getSesionInfo(selectedSesion) && (
-            <Paper sx={{ mt: 3, p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'success.dark' : 'success.light' }}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2">Título:</Typography>
-                  <Typography variant="body2">{getSesionInfo(selectedSesion).titulo || getSesionInfo(selectedSesion).nombre_clase}</Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2">Pedagogo:</Typography>
-                  <Typography variant="body2">{getSesionInfo(selectedSesion).pedagogo?.nombre || getSesionInfo(selectedSesion).pedagogo_nombre}</Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <Typography variant="subtitle2">Especialidad:</Typography>
-                  <Typography variant="body2">{getSesionInfo(selectedSesion).especialidad?.nombre || getSesionInfo(selectedSesion).especialidad_nombre}</Typography>
-                </Grid>
-              </Grid>
-            </Paper>
-          )}
+          
         </CardContent>
       </Card>
 
@@ -525,7 +515,7 @@ const PedagogicoCronogramas = () => {
                     </InputAdornment>
                   )
                 }}
-                sx={{ ...getGreenOutlineSX(theme), minWidth: 260, flex: '1 1 380px' }}
+                sx={{ ...getGreenOutlineSX(theme), minWidth: 260, flex: '1 1 380px' , }}
               />
 
               <FormControl size="small" sx={{ minWidth: 200 }}>
@@ -592,11 +582,12 @@ const PedagogicoCronogramas = () => {
                                 }
                               } : {}),
                               '&:hover': {
-                                backgroundColor: item.estado === 'realizada' || item.estado === 'completada' 
-                                  ? 'success.100' 
-                                  : item.estado === 'cancelada' 
-                                  ? 'error.100' 
-                                  : 'grey.50'
+                                backgroundColor:
+                                  item.estado === 'realizada' || item.estado === 'completada'
+                                    ? 'success.100'
+                                    : item.estado === 'cancelada'
+                                      ? 'error.100'
+                                      : (theme.palette.mode === 'primary' ? 'transparent' : theme.palette.action.hover)
                               }
                             }}
                           >
@@ -1105,7 +1096,7 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
               Fecha programada: {formatDateLocal(data?.fecha_programada)} a las {data?.hora_inicio}
             </Typography>
             <Typography variant="body2" color="error" mb={2}>
-              ⚠️ Esta acción marcará la clase como cancelada y no se podrá deshacer.
+              ⚠️  Esta acción marcará la clase como cancelada y no se podrá deshacer.
             </Typography>
           </Grid>
 
@@ -1118,6 +1109,12 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
               placeholder="Explique el motivo de la cancelación..."
+              sx={{
+                minWidth: 350,
+                maxWidth: 900,
+                width: '100%',
+                alignSelf: 'center'
+              }}
             />
           </Grid>
         </Grid>
@@ -1191,6 +1188,10 @@ const RealizadaDialogPedagogico = ({ open, data, onClose, onConfirm, loading }) 
               onChange={(e) => setObservaciones(e.target.value)}
               placeholder="Escriba aquí cualquier observación sobre el desarrollo de la clase, participación de los estudiantes, objetivos alcanzados, actividades realizadas, etc. (Opcional)"
               sx={{
+                minWidth: 350,
+                maxWidth: 800,
+                width: '100%',
+                alignSelf: 'center',
                 '& .MuiOutlinedInput-root': {
                   '& fieldset': { borderColor: 'success.main' },
                   '&:hover fieldset': { borderColor: 'success.main' },
