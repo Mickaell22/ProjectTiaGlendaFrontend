@@ -64,10 +64,9 @@ const PedagogicoAsistencia = () => {
     observaciones_educador: '',
     participacion_clase: '',
     objetivos_trabajados: '',
-    tareas_entregadas: false,
-    notas_comportamiento: '',
-    calificacion_evaluacion: 5,
-    observaciones_evaluacion: ''
+    actividades_completadas: false,
+    tareas_asignadas: '',
+    calificacion_evaluacion: null
   });
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -194,10 +193,9 @@ const PedagogicoAsistencia = () => {
       observaciones_educador: '',
       participacion_clase: '',
       objetivos_trabajados: '',
-      tareas_entregadas: false,
-      notas_comportamiento: '',
-      calificacion_evaluacion: 5,
-      observaciones_evaluacion: ''
+      actividades_completadas: false,
+      tareas_asignadas: '',
+      calificacion_evaluacion: null
     });
     
     // Handle both old estudiante structure and new asistencia structure
@@ -217,10 +215,9 @@ const PedagogicoAsistencia = () => {
       observaciones_educador: asistencia.observaciones_educador || '',
       participacion_clase: asistencia.participacion_clase || '',
       objetivos_trabajados: asistencia.objetivos_trabajados || '',
-      tareas_entregadas: asistencia.tareas_entregadas || false,
-      notas_comportamiento: asistencia.notas_comportamiento || '',
-      calificacion_evaluacion: asistencia.calificacion_evaluacion || asistencia.calificacion_clase || 5,
-      observaciones_evaluacion: asistencia.observaciones_evaluacion || ''
+      actividades_completadas: asistencia.actividades_completadas || false,
+      tareas_asignadas: asistencia.tareas_asignadas || '',
+      calificacion_evaluacion: asistencia.calificacion_clase || null
     });
     setAsistenciaDialog({
       open: true,
@@ -249,16 +246,15 @@ const PedagogicoAsistencia = () => {
       }
 
       const asistenciaData = {
-        // Campos que espera el backend
+        // Campos que espera el backend (alineados con asistencia_clases)
         asistio: formData.asistio,
         llegada_tardanza_minutos: parseInt(formData.llegada_tardanza_minutos) || 0,
         observaciones_educador: formData.observaciones_educador?.trim() || null,
-        participacion_clase: formData.participacion_clase?.trim() || null,
         objetivos_trabajados: formData.objetivos_trabajados?.trim() || null,
-        tareas_entregadas: formData.tareas_entregadas || false,
-        notas_comportamiento: formData.notas_comportamiento?.trim() || null,
-        calificacion_evaluacion: parseInt(formData.calificacion_evaluacion) || 5,
-        observaciones_evaluacion: formData.observaciones_evaluacion?.trim() || null
+        participacion_clase: formData.participacion_clase?.trim() || null,
+        actividades_completadas: formData.actividades_completadas || false,
+        tareas_asignadas: formData.tareas_asignadas?.trim() || null,
+        calificacion_clase: parseInt(formData.calificacion_evaluacion) || null
       };
 
 
@@ -523,7 +519,6 @@ const PedagogicoAsistencia = () => {
                         <TableCell>Tardanza</TableCell>
                         <TableCell>Calificación</TableCell>
                         <TableCell>Observaciones</TableCell>
-                        <TableCell>Fecha Registro</TableCell>
                         <TableCell>Acciones</TableCell>
                       </TableRow>
                     </TableHead>
@@ -583,15 +578,6 @@ const PedagogicoAsistencia = () => {
                               <Typography variant="body2" noWrap title={asistencia?.observaciones_educador || '-'}>
                                 {asistencia?.observaciones_educador || '-'}
                               </Typography>
-                            </TableCell>
-                            <TableCell>
-                              {asistencia?.fecha_registro ? (
-                                <Typography variant="caption">
-                                  {formatDate(asistencia.fecha_registro)}
-                                </Typography>
-                              ) : (
-                                <Typography variant="caption" color="text.secondary">-</Typography>
-                              )}
                             </TableCell>
                             <TableCell>
                               <Box sx={{ display: 'flex', gap: 0.5 }}>
@@ -696,7 +682,7 @@ const PedagogicoAsistencia = () => {
                         <Switch
                           checked={formData.asistio}
                           onChange={(e) => setFormData(prev => ({ ...prev, asistio: e.target.checked }))}
-                          sx={{ 
+                          sx={{
                             '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
                             '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
                           }}
@@ -704,20 +690,6 @@ const PedagogicoAsistencia = () => {
                       }
                       label={<span style={{ fontWeight: 500, fontSize: '0.85rem' }}>Asistió a la clase</span>}
                       sx={{ mt: 1 }}
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={formData.tareas_entregadas}
-                          onChange={(e) => setFormData(prev => ({ ...prev, tareas_entregadas: e.target.checked }))}
-                          disabled={!formData.asistio}
-                          sx={{ 
-                            '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
-                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
-                          }}
-                        />
-                      }
-                      label="Tareas entregadas"
                     />
                   </Box>
                 </Grid>
@@ -733,15 +705,21 @@ const PedagogicoAsistencia = () => {
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField
-                    sx={{ minWidth: 220 }}
-                    type="number"
-                    label="Calificación de evaluación (1-10)"
-                    value={formData.calificacion_evaluacion}
-                    onChange={(e) => setFormData(prev => ({ ...prev, calificacion_evaluacion: e.target.value }))}
-                    inputProps={{ min: 1, max: 10 }}
-                    disabled={!formData.asistio}
-                  />
+                  <FormControl fullWidth>
+                    <InputLabel>Participación en clase</InputLabel>
+                    <Select
+                      value={formData.participacion_clase}
+                      onChange={(e) => setFormData(prev => ({ ...prev, participacion_clase: e.target.value }))}
+                      disabled={!formData.asistio}
+                      label="Participación en clase"
+                    >
+                      <MenuItem value="">Sin especificar</MenuItem>
+                      <MenuItem value="excelente">Excelente</MenuItem>
+                      <MenuItem value="buena">Buena</MenuItem>
+                      <MenuItem value="regular">Regular</MenuItem>
+                      <MenuItem value="deficiente">Deficiente</MenuItem>
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
@@ -752,18 +730,6 @@ const PedagogicoAsistencia = () => {
                     value={formData.observaciones_educador}
                     onChange={(e) => setFormData(prev => ({ ...prev, observaciones_educador: e.target.value }))}
                     placeholder="Observaciones sobre la asistencia..."
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    sx={{ minWidth: 220 }}
-                    multiline
-                    rows={2}
-                    label="Participación en clase"
-                    value={formData.participacion_clase}
-                    onChange={(e) => setFormData(prev => ({ ...prev, participacion_clase: e.target.value }))}
-                    placeholder="Descripción de la participación del estudiante en clase..."
-                    disabled={!formData.asistio}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -783,23 +749,38 @@ const PedagogicoAsistencia = () => {
                     sx={{ minWidth: 220 }}
                     multiline
                     rows={2}
-                    label="Notas de comportamiento"
-                    value={formData.notas_comportamiento}
-                    onChange={(e) => setFormData(prev => ({ ...prev, notas_comportamiento: e.target.value }))}
-                    placeholder="Observaciones sobre el comportamiento del estudiante..."
+                    label="Tareas asignadas"
+                    value={formData.tareas_asignadas}
+                    onChange={(e) => setFormData(prev => ({ ...prev, tareas_asignadas: e.target.value }))}
+                    placeholder="Tareas o ejercicios asignados para casa..."
                     disabled={!formData.asistio}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    sx={{ minWidth: 220 }}
-                    multiline
-                    rows={3}
-                    label="Observaciones de evaluación"
-                    value={formData.observaciones_evaluacion}
-                    onChange={(e) => setFormData(prev => ({ ...prev, observaciones_evaluacion: e.target.value }))}
-                    placeholder="Observaciones sobre la evaluación y desempeño académico..."
+                    fullWidth
+                    type="number"
+                    label="Calificación de clase (1-10)"
+                    value={formData.calificacion_evaluacion}
+                    onChange={(e) => setFormData(prev => ({ ...prev, calificacion_evaluacion: e.target.value }))}
+                    inputProps={{ min: 1, max: 10 }}
                     disabled={!formData.asistio}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={formData.actividades_completadas}
+                        onChange={(e) => setFormData(prev => ({ ...prev, actividades_completadas: e.target.checked }))}
+                        sx={{
+                          '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
+                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
+                        }}
+                        disabled={!formData.asistio}
+                      />
+                    }
+                    label="Actividades completadas"
                   />
                 </Grid>
               </Grid>
@@ -844,26 +825,44 @@ const PedagogicoAsistencia = () => {
 
               <Grid item xs={12} md={6}>
                 <Typography variant="subtitle2" color="primary">Información de Asistencia</Typography>
-                <Typography variant="body2" display="flex" alignItems="center">
-                  <strong>Estado:</strong>
+                <Box display="flex" alignItems="center">
+                  <Typography variant="body2" component="span"><strong>Estado:</strong></Typography>
                   <Chip
                     label={detailDialog.data.asistio ? 'Asistió' : 'No Asistió'}
                     color={detailDialog.data.asistio ? 'success' : 'error'}
                     size="small"
                     sx={{ ml: 1 }}
                   />
-                </Typography>
+                </Box>
                 {detailDialog.data.llegada_tardanza_minutos > 0 && (
                   <Typography variant="body2"><strong>Tardanza:</strong> {detailDialog.data.llegada_tardanza_minutos} minutos</Typography>
                 )}
-                <Typography variant="body2"><strong>Fecha de Registro:</strong> {formatDate(detailDialog.data.fecha_registro)}</Typography>
               </Grid>
 
-              {detailDialog.data.calificacion_clase && (
+              {(detailDialog.data.calificacion_clase !== null && detailDialog.data.calificacion_clase !== undefined) && (
                 <Grid item xs={12} md={6}>
                   <Typography variant="subtitle2" color="primary">Evaluación Académica</Typography>
                   <Typography variant="body2"><strong>Calificación:</strong> {detailDialog.data.calificacion_clase}/10</Typography>
-                  <Typography variant="body2"><strong>Comportamiento:</strong> {detailDialog.data.evaluacion_comportamiento}</Typography>
+                </Grid>
+              )}
+
+              {detailDialog.data.participacion_clase && (
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" color="primary">Participación en Clase</Typography>
+                  <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
+                    {detailDialog.data.participacion_clase}
+                  </Typography>
+                </Grid>
+              )}
+
+              {detailDialog.data.actividades_completadas !== null && detailDialog.data.actividades_completadas !== undefined && (
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" color="primary">Actividades Completadas</Typography>
+                  <Chip
+                    label={detailDialog.data.actividades_completadas ? 'Sí' : 'No'}
+                    color={detailDialog.data.actividades_completadas ? 'success' : 'default'}
+                    size="small"
+                  />
                 </Grid>
               )}
 
@@ -876,20 +875,11 @@ const PedagogicoAsistencia = () => {
                 </Grid>
               )}
 
-              {detailDialog.data.notas_progreso_academico && (
+              {detailDialog.data.objetivos_trabajados && (
                 <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="primary">Notas de Progreso Académico</Typography>
+                  <Typography variant="subtitle2" color="primary">Objetivos Trabajados</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'success.light', border: '1px solid', borderColor: 'success.main' }}>
-                    <Typography variant="body2">{detailDialog.data.notas_progreso_academico}</Typography>
-                  </Paper>
-                </Grid>
-              )}
-
-              {detailDialog.data.actividades_completadas && (
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="primary">Actividades Completadas</Typography>
-                  <Paper sx={{ p: 2, backgroundColor: 'info.50', border: '1px solid', borderColor: 'info.200' }}>
-                    <Typography variant="body2">{detailDialog.data.actividades_completadas}</Typography>
+                    <Typography variant="body2">{detailDialog.data.objetivos_trabajados}</Typography>
                   </Paper>
                 </Grid>
               )}
@@ -897,7 +887,7 @@ const PedagogicoAsistencia = () => {
               {detailDialog.data.tareas_asignadas && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="primary">Tareas Asignadas</Typography>
-                  <Paper sx={{ p: 2, backgroundColor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
+                  <Paper sx={{ p: 2, backgroundColor: 'warning.light', border: '1px solid', borderColor: 'warning.main' }}>
                     <Typography variant="body2">{detailDialog.data.tareas_asignadas}</Typography>
                   </Paper>
                 </Grid>
