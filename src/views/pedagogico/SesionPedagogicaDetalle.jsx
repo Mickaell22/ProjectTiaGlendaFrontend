@@ -305,7 +305,7 @@ const SesionPedagogicaDetalle = () => {
         <CardContent sx={{ p: 3 }}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                 Información General
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -331,7 +331,7 @@ const SesionPedagogicaDetalle = () => {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                 Detalles Técnicos
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -353,10 +353,10 @@ const SesionPedagogicaDetalle = () => {
 
           {sesion.adaptacion_curricular && (
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                 Adaptación Curricular
               </Typography>
-              <Paper sx={{ p: 2, backgroundColor: '#e3f2fd', border: '1px solid', borderColor: 'primary.main' }}>
+              <Paper sx={{ p: 2, backgroundColor: 'transparent', border: '1px solid', borderColor: 'primary.main' }}>
                 <Typography variant="body2">{sesion.adaptacion_curricular}</Typography>
               </Paper>
             </Box>
@@ -364,10 +364,10 @@ const SesionPedagogicaDetalle = () => {
 
           {sesion.observaciones && (
             <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: 'success.main' }}>
+              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
                 Observaciones
               </Typography>
-              <Paper sx={{ p: 2, backgroundColor: '#e8f5e8', border: '1px solid', borderColor: 'success.main' }}>
+              <Paper sx={{ p: 2, backgroundColor: 'transparent', border: '1px solid', borderColor: 'primary.main' }}>
                 <Typography variant="body2">{sesion.observaciones}</Typography>
               </Paper>
             </Box>
@@ -383,8 +383,8 @@ const SesionPedagogicaDetalle = () => {
           variant="scrollable"
           scrollButtons="auto"
           sx={{
-            '& .MuiTabs-indicator': { backgroundColor: 'success.main' },
-            '& .MuiTab-root.Mui-selected': { color: 'success.main' }
+            '& .MuiTabs-indicator': { backgroundColor: 'primary.main' },
+            '& .MuiTab-root.Mui-selected': { color: 'primary.main' }
           }}
         >
           <Tab
@@ -415,14 +415,14 @@ const SesionPedagogicaDetalle = () => {
         <Card elevation={3}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6" sx={{ color: 'success.main' }}>
+              <Typography variant="h6" sx={{ color: 'primary.main' }}>
                 Estudiantes Inscritos ({estudiantes.length})
               </Typography>
               <Button
                 variant="contained"
                 startIcon={<Add />}
                 onClick={handleOpenAddStudentDialog}
-                sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: '#388e3c' } }}
+                sx={{ bgcolor: 'primary.main', '&:hover': { backgroundColor: "primary.dark" } }}
               >
                 Agregar Estudiante
               </Button>
@@ -448,7 +448,7 @@ const SesionPedagogicaDetalle = () => {
                       }
                     >
                       <ListItemAvatar>
-                        <Avatar sx={{ bgcolor: 'success.main' }}>
+                        <Avatar sx={{ bgcolor: 'primary.main' }}>
                           <Person />
                         </Avatar>
                       </ListItemAvatar>
@@ -470,7 +470,7 @@ const SesionPedagogicaDetalle = () => {
       <TabPanel value={tabValue} index={1}>
         <Card elevation={3}>
           <CardContent>
-            <Typography variant="h6" sx={{ color: 'success.main' }} gutterBottom>
+            <Typography variant="h6" sx={{ color: 'primary.main' }} gutterBottom>
               Cronograma de Clases ({cronograma.length})
             </Typography>
 
@@ -529,7 +529,7 @@ const SesionPedagogicaDetalle = () => {
           <Grid item xs={12} md={6}>
             <Card elevation={3}>
               <CardContent>
-                <Typography variant="h6" sx={{ color: 'success.main' }} gutterBottom>
+                <Typography variant="h6" sx={{ color: 'primary.main' }} gutterBottom>
                   Estadísticas de la Sesión
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -570,7 +570,7 @@ const SesionPedagogicaDetalle = () => {
           <Grid item xs={12} md={6}>
             <Card elevation={3}>
               <CardContent>
-                <Typography variant="h6" sx={{ color: 'success.main' }} gutterBottom>
+                <Typography variant="h6" sx={{ color: 'primary.main' }} gutterBottom>
                   Información Adicional
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -620,7 +620,10 @@ const SesionPedagogicaDetalle = () => {
               value={selectedStudent}
               onChange={(e) => setSelectedStudent(e.target.value)}
               label="Seleccionar Estudiante"
-              sx={greenOutlineSX}
+              sx={{
+                ...greenOutlineSX,
+                color: 'text.primary',
+              }}
             >
               {estudiantesDisponibles.map((estudiante) => (
                 <MenuItem key={estudiante.id} value={estudiante.id}>
@@ -638,7 +641,7 @@ const SesionPedagogicaDetalle = () => {
             onClick={handleAddStudent}
             variant="contained"
             disabled={!selectedStudent}
-            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: '#388e3c' } }}
+            sx={{ bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}
           >
             Agregar
           </Button>

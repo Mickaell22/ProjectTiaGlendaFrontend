@@ -11,7 +11,8 @@ import {
 import {
   ArrowBack, Person, Schedule, Group, Assignment, CalendarMonth,
   CheckCircle, Cancel, Edit, Add, Refresh, AccessTime,
-  EventAvailable, EventBusy, Psychology, Today, Delete, PersonRemove
+  EventAvailable, EventBusy, Psychology, Today, Delete, PersonRemove,
+  Close
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -604,7 +605,13 @@ const SesionTerapeuticaDetalle = () => {
               }}
               variant="contained"
               size="small"
-              sx={{ bgcolor: 'rgba(255,255,255,0.2)' }}
+              sx={{
+                backgroundColor: theme.palette.primary.main,
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.dark
+                },
+                color: theme.palette.primary.contrastText
+              }}
             >
               Agregar Paciente
             </Button>
@@ -619,7 +626,7 @@ const SesionTerapeuticaDetalle = () => {
                 return (
                   <ListItem key={pacienteId} divider>
                     <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: '#7e57c2' }}>
+                      <Avatar sx={{ backgroundColor: theme.palette.primary.main }}>
                         <Person />
                       </Avatar>
                     </ListItemAvatar>
@@ -758,7 +765,17 @@ const SesionTerapeuticaDetalle = () => {
           <Button onClick={() => setAddPatientDialog({ open: false })}>
             Cancelar
           </Button>
-          <Button onClick={handleAddPatient} variant="contained">
+          <Button 
+            onClick={handleAddPatient} 
+            variant="contained"
+            sx={{
+              backgroundColor: theme.palette.primary.main,
+              '&:hover': {
+                backgroundColor: theme.palette.primary.dark
+              },
+              color: theme.palette.primary.contrastText
+            }}
+            >
             Agregar
           </Button>
         </DialogActions>
@@ -870,9 +887,18 @@ const AttendanceForm = ({ cronogramaData, pacientes, onSubmit }) => {
         onChange={(e) => setAttendanceData(prev => ({ ...prev, notas_progreso: e.target.value }))}
         sx={{ mb: 2 }}
       />
-
       <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
-        <Button variant="contained" onClick={handleSubmit}>
+        <Button
+        variant="contained"
+          onClick={handleSubmit}
+          sx={{
+            backgroundColor: theme.palette.primary.main,
+            '&:hover': {
+              backgroundColor: theme.palette.primary.dark
+            },
+            color: theme.palette.primary.contrastText
+          }}
+        >
           Registrar Asistencia
         </Button>
       </Box>

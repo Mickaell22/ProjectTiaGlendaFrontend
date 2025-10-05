@@ -324,6 +324,13 @@ const TutorDetalles = ({
             onClick={handleEdit}
             variant="contained"
             startIcon={<Edit />}
+            sx={(theme) => ({
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
+              '&:hover': {
+                backgroundColor: theme.palette.primary.dark,
+              },
+            })}
           >
             Editar Tutor
           </Button>

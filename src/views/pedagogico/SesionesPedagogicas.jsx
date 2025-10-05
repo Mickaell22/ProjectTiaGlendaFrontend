@@ -1076,9 +1076,9 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                         borderColor: newEstudianteId === estudiante.id ? 'primary.main' : 'divider',
                         backgroundColor: newEstudianteId === estudiante.id
                           ? theme.palette.mode === 'dark' ? 'primary.dark' : 'primary.light'
-                          : theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                          : theme.palette.mode === 'dark' ? 'transparent' : 'grey.50',
                         '&:hover': {
-                          backgroundColor: theme.palette.mode === 'dark' ? 'grey.700' : 'grey.100',
+                          backgroundColor: theme.palette.mode === 'dark' ? 'primary.light' : 'grey.100',
                           borderColor: 'primary.main'
                         },
                         transition: 'all 0.2s'
@@ -1122,7 +1122,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
             variant="contained"
             disabled={!newEstudianteId}
             startIcon={<PersonAdd />}
-            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
+            sx={{ bgcolor: 'primary.main', '&:hover': { backgroundColor: 'primary.dark' } }}
           >
             Agregar Estudiante
           </Button>
@@ -1149,7 +1149,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
         <DialogContent>
           <Box sx={{ mt: 2 }}>
             {/* Form to generate new link */}
-            <Paper sx={{ p: 3, mb: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50' }}>
+            <Paper sx={{ p: 3, mb: 3, bgcolor: theme.palette.mode === 'dark' ? 'transparent' : 'grey.50' }}>
               <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>
                 Generar Nuevo Enlace
               </Typography>

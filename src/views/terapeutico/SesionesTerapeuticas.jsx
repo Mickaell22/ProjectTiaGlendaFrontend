@@ -1058,9 +1058,9 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                         borderColor: newPatientId === paciente.id ? 'primary.main' : 'divider',
                         backgroundColor: newPatientId === paciente.id
                           ? theme.palette.mode === 'dark' ? 'primary.dark' : 'primary.light'
-                          : theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                          : theme.palette.mode === 'transparent' ? 'transparent' : 'background.paper',
                         '&:hover': {
-                          backgroundColor: theme.palette.mode === 'dark' ? 'grey.700' : 'grey.100',
+                          backgroundColor: theme.palette.mode === 'transparent' ? 'transparent' : 'background.paper',
                           borderColor: 'primary.main'
                         },
                         transition: 'all 0.2s'
@@ -1104,6 +1104,14 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
             variant="contained"
             disabled={!newPatientId}
             startIcon={<PersonAdd />}
+            sx={{
+              backgroundColor: theme.palette.primary.main,
+              '&:hover': {
+                backgroundColor: theme.palette.primary.dark
+              },
+              color: theme.palette.primary.contrastText
+            }}
+
           >
             Agregar Paciente
           </Button>

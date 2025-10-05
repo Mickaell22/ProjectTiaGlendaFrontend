@@ -333,7 +333,7 @@ const UsuarioFormulario = ({
           }}
         >
           <Box>
-            <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
+            <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center" >
               <LocalHospital sx={{ mr: 1 }} />
               {isEditing ? 'Editar Usuario' : 'Registrar Usuario'}
             </Typography>
@@ -498,10 +498,16 @@ const UsuarioFormulario = ({
               <Button
                 variant="contained"
                 type="submit"
-                color="primary"
                 startIcon={isEditing ? <Edit /> : <PersonAdd />}
                 size="large"
                 disabled={loading || !personaOk || !rolOk || !centroOk || !userOk || !passOk}
+                sx={{
+                  backgroundColor: theme.palette.primary.main,
+                  color: theme.palette.primary.contrastText,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark,
+                  },
+                }}
               >
                 {isEditing ? 'Actualizar Usuario' : 'Registrar Usuario'}
               </Button>

@@ -607,7 +607,7 @@ const TerapeuticoAsistencia = () => {
                           <TableRow key={pacienteId}>
                             <TableCell>
                               <Box display="flex" alignItems="center">
-                                <Avatar sx={{ mr: 2, bgcolor: '#7e57c2' }}>
+                                <Avatar sx={{ mr: 2, color: 'primary.contrastText', bgcolor: 'primary.main' }}>
                                   <Person />
                                 </Avatar>
                                 <Box>
@@ -676,7 +676,17 @@ const TerapeuticoAsistencia = () => {
                                   </>
                                 ) : (
                                   <Tooltip title="Registrar asistencia">
-                                    <IconButton color="success" size="small" onClick={() => handleRegistrarAsistencia(paciente)}>
+                                    <IconButton
+                                      size="small"
+                                      onClick={() => handleRegistrarAsistencia(paciente)}
+                                      sx={{
+                                        backgroundColor: theme.palette.primary.main,
+                                        '&:hover': {
+                                          backgroundColor: theme.palette.primary.dark
+                                        },
+                                        color: theme.palette.primary.contrastText
+                                      }}
+                                    >
                                       <Add fontSize="small" />
                                     </IconButton>
                                   </Tooltip>
@@ -833,7 +843,17 @@ const TerapeuticoAsistencia = () => {
           <Button onClick={() => setAsistenciaDialog({ open: false, data: null, isEdit: false })}>
             Cancelar
           </Button>
-          <Button variant="contained" onClick={handleSubmitAsistencia}>
+          <Button
+            variant="contained"
+            onClick={handleSubmitAsistencia}
+            sx={{
+              backgroundColor: theme.palette.primary.main,
+              '&:hover': {
+                backgroundColor: theme.palette.primary.dark
+              },
+              color: theme.palette.primary.contrastText
+            }}
+          >
             {asistenciaDialog.isEdit ? 'Actualizar' : 'Registrar'}
           </Button>
         </DialogActions>
