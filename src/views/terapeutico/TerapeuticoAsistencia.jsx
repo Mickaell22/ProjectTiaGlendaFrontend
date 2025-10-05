@@ -668,7 +668,7 @@ const TerapeuticoAsistencia = () => {
                                         <Visibility fontSize="small" />
                                       </IconButton>
                                     </Tooltip>
-                                    <Tooltip title="Editar asistencia">
+                                    <Tooltip title="Editar asistencia"> 
                                       <IconButton color="primary" size="small" onClick={() => handleEditarAsistencia(asistencia)}>
                                         <Edit fontSize="small" />
                                       </IconButton>
@@ -754,89 +754,93 @@ const TerapeuticoAsistencia = () => {
         </DialogTitle>
         <DialogContent>
           {asistenciaDialog.data && (
-            <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" color="primary" mb={2}>
-                  Paciente: {asistenciaDialog.data.paciente?.paciente_nombre || asistenciaDialog.data.paciente_nombre}
-                </Typography>
+            <Box>
+              <Typography variant="subtitle2" color="primary" mb={1} sx={{ fontSize: '1rem' }}>
+                Paciente: {asistenciaDialog.data.paciente?.paciente_nombre || asistenciaDialog.data.paciente_nombre}
+              </Typography>
+              <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                <Grid item xs={12} md={6}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={formData.asistio}
+                        onChange={(e) => setFormData(prev => ({ ...prev, asistio: e.target.checked }))}
+                        color="success"
+                      />
+                    }
+                    label={<span style={{ fontWeight: 500, fontSize: '0.95rem' }}>Asistió a la sesión</span>}
+                    sx={{ width: 220 }} // Edita el ancho aquí
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Minutos de tardanza"
+                    value={formData.llegada_tardanza_minutos}
+                    onChange={(e) => setFormData(prev => ({ ...prev, llegada_tardanza_minutos: e.target.value }))}
+                    inputProps={{ min: 0 }}
+                    disabled={!formData.asistio}
+                    sx={{ width: 180 }} // Edita el ancho aquí
+                  />
+                </Grid>
               </Grid>
-
-              <Grid item xs={12} md={6}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={formData.asistio}
-                      onChange={(e) => setFormData(prev => ({ ...prev, asistio: e.target.checked }))}
-                      color="success"
-                    />
-                  }
-                  label="Asistió a la sesión"
-                />
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                {/* Segunda fila: 2 x 2 */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    label="Observaciones del Terapeuta"
+                    value={formData.observaciones_terapeuta}
+                    onChange={(e) => setFormData(prev => ({ ...prev, observaciones_terapeuta: e.target.value }))}
+                    placeholder="Observaciones sobre la asistencia..."
+                    sx={{ width: 260 }} // Edita el ancho aquí
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    label="Progreso Observado"
+                    value={formData.progreso_observado}
+                    onChange={(e) => setFormData(prev => ({ ...prev, progreso_observado: e.target.value }))}
+                    placeholder="Notas sobre el progreso del paciente en esta sesión..."
+                    disabled={!formData.asistio}
+                    sx={{ width: 260 }} // Edita el ancho aquí
+                  />
+                </Grid>
+                {/* Tercera fila: 2 x 2 */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    label="Tareas Asignadas"
+                    value={formData.tareas_asignadas}
+                    onChange={(e) => setFormData(prev => ({ ...prev, tareas_asignadas: e.target.value }))}
+                    placeholder="Tareas o ejercicios asignados para casa..."
+                    disabled={!formData.asistio}
+                    sx={{ width: 260 }} // Edita el ancho aquí
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    label="Objetivos Trabajados"
+                    value={formData.objetivos_trabajados}
+                    onChange={(e) => setFormData(prev => ({ ...prev, objetivos_trabajados: e.target.value }))}
+                    placeholder="Objetivos para las próximas sesiones..."
+                    disabled={!formData.asistio}
+                    sx={{ width: 260 }} // Edita el ancho aquí
+                  />
+                </Grid>
               </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Minutos de tardanza"
-                  value={formData.llegada_tardanza_minutos}
-                  onChange={(e) => setFormData(prev => ({ ...prev, llegada_tardanza_minutos: e.target.value }))}
-                  inputProps={{ min: 0 }}
-                  disabled={!formData.asistio}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  label="Observaciones del Terapeuta"
-                  value={formData.observaciones_terapeuta}
-                  onChange={(e) => setFormData(prev => ({ ...prev, observaciones_terapeuta: e.target.value }))}
-                  placeholder="Observaciones sobre la asistencia..."
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Progreso Observado"
-                  value={formData.progreso_observado}
-                  onChange={(e) => setFormData(prev => ({ ...prev, progreso_observado: e.target.value }))}
-                  placeholder="Notas sobre el progreso del paciente en esta sesión..."
-                  disabled={!formData.asistio}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  label="Tareas Asignadas"
-                  value={formData.tareas_asignadas}
-                  onChange={(e) => setFormData(prev => ({ ...prev, tareas_asignadas: e.target.value }))}
-                  placeholder="Tareas o ejercicios asignados para casa..."
-                  disabled={!formData.asistio}
-                />
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  label="Objetivos Trabajados"
-                  value={formData.objetivos_trabajados}
-                  onChange={(e) => setFormData(prev => ({ ...prev, objetivos_trabajados: e.target.value }))}
-                  placeholder="Objetivos para las próximas sesiones..."
-                  disabled={!formData.asistio}
-                />
-              </Grid>
-            </Grid>
+            </Box>
           )}
         </DialogContent>
         <DialogActions>
