@@ -402,7 +402,7 @@ const DocumentosPaciente = () => {
           borderRadius: 4,
           mb: 4,
           background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(145deg, #2e2e2e 0%, #3e3e3e 100%)'
+            ? 'theme.palette.primary.main'
             : 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
           border: '1px solid',
           borderColor: 'divider',

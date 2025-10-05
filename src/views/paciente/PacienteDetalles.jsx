@@ -411,7 +411,7 @@ const PacienteDetalles = ({
                             </Typography>
                             <Typography variant="body1" sx={{ 
                               p: 2, 
-                              bgcolor: 'grey.50', 
+                              bgcolor: 'transparent', 
                               borderRadius: 1,
                               border: '1px solid',
                               borderColor: 'grey.200'
@@ -430,7 +430,7 @@ const PacienteDetalles = ({
                             </Typography>
                             <Typography variant="body1" sx={{ 
                               p: 2, 
-                              bgcolor: 'grey.50', 
+                              bgcolor: 'trasparent', 
                               borderRadius: 1,
                               border: '1px solid',
                               borderColor: 'grey.200'
@@ -474,6 +474,7 @@ const PacienteDetalles = ({
             onClick={handleEdit}
             variant="contained"
             startIcon={<Edit />}
+            sx={{ bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}
           >
             Editar Paciente
           </Button>
