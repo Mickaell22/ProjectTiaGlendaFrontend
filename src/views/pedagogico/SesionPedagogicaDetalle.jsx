@@ -6,12 +6,12 @@ import {
   Table, TableBody, TableCell, TableHead, TableRow, Typography, Alert,
   Chip, Avatar, List, ListItem, ListItemText, ListItemAvatar, Tooltip,
   TextField, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel,
- useTheme
+ useTheme, InputAdornment
 } from '@mui/material';
 import {
   ArrowBack, Person, Schedule, Group, Assignment, CalendarMonth,
   CheckCircle, Cancel, Edit, Add, Refresh, AccessTime,
-  EventAvailable, EventBusy, School, Today, Delete, PersonRemove
+  EventAvailable, EventBusy, School, Today, Delete, PersonRemove, Search, PersonAdd
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -92,6 +92,14 @@ const SesionPedagogicaDetalle = () => {
   const [addStudentDialog, setAddStudentDialog] = useState({ open: false });
   const [estudiantesDisponibles, setEstudiantesDisponibles] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState('');
+  const [searchStudentTerm, setSearchStudentTerm] = useState('');
+  const [estudiantesRetirados, setEstudiantesRetirados] = useState([]);
+  const [showRetirados, setShowRetirados] = useState(false);
+  const [reincorporarDialog, setReincorporarDialog] = useState({
+    open: false,
+    pacienteId: null,
+    estudianteNombre: ''
+  });
 
   useEffect(() => {
     if (id) {
@@ -110,7 +118,9 @@ const SesionPedagogicaDetalle = () => {
 
       setSesion(sesionRes.data || sesionRes);
       setCronograma(cronogramaRes.data?.data || cronogramaRes.data || []);
-      setEstudiantes(estudiantesRes.data?.data || estudiantesRes.data || []);
+      const estudiantesData = estudiantesRes.data?.data || estudiantesRes.data || [];
+      console.log('Estudiantes recibidos:', estudiantesData);
+      setEstudiantes(estudiantesData);
 
     } catch (error) {
       const errorMessage = sesionPedagogicaService.handleError(error);
@@ -122,15 +132,26 @@ const SesionPedagogicaDetalle = () => {
 
   const fetchEstudiantesDisponibles = async () => {
     try {
-      const response = await sesionPedagogicaService.getEstudiantesDisponibles();
-      const disponibles = response.data || response || [];
+      const response = await sesionPedagogicaService.getPacientesDisponibles();
 
-      // Filtrar estudiantes que ya están en la sesión
-      const estudiantesEnSesion = estudiantes.map(e => e.estudiante_id || e.id);
-      const filtrados = disponibles.filter(e => !estudiantesEnSesion.includes(e.id));
+      let estudiantesData = [];
+      if (response?.data) {
+        estudiantesData = Array.isArray(response.data) ? response.data : response.data.data || [];
+      } else if (Array.isArray(response)) {
+        estudiantesData = response;
+      }
 
-      setEstudiantesDisponibles(filtrados);
+      setEstudiantesDisponibles(estudiantesData);
+
+      if (estudiantesData.length === 0) {
+        setSnackbar({
+          open: true,
+          message: 'No hay estudiantes disponibles para agregar a esta sesión',
+          severity: 'warning'
+        });
+      }
     } catch (error) {
+      console.error('Error fetching available students:', error);
       setSnackbar({
         open: true,
         message: 'Error al cargar estudiantes disponibles: ' + (error.message || 'Error desconocido'),
@@ -141,25 +162,62 @@ const SesionPedagogicaDetalle = () => {
   };
 
   const handleAddStudent = async () => {
-    if (!selectedStudent) return;
+    if (!selectedStudent) {
+      setSnackbar({
+        open: true,
+        message: 'Por favor seleccione un estudiante',
+        severity: 'warning'
+      });
+      return;
+    }
+
+    if (!id) {
+      setSnackbar({
+        open: true,
+        message: 'Error: ID de sesión no encontrado',
+        severity: 'error'
+      });
+      return;
+    }
+
+    const selectedStudentInfo = estudiantesDisponibles.find(e => String(e.id) === String(selectedStudent));
 
     try {
-      await sesionPedagogicaService.addEstudianteToSesion(id, selectedStudent);
-      setSnackbar({ open: true, message: 'Estudiante agregado exitosamente', severity: 'success' });
+      const studentData = {
+        paciente_id: parseInt(selectedStudent),
+        fecha_incorporacion: new Date().toISOString().split('T')[0]
+      };
+
+      await sesionPedagogicaService.addEstudianteToSesion(id, studentData);
+
+      setSnackbar({
+        open: true,
+        message: `Estudiante ${selectedStudentInfo?.nombre_completo || 'seleccionado'} agregado correctamente`,
+        severity: 'success'
+      });
+
+      await fetchSesionData();
       setAddStudentDialog({ open: false });
       setSelectedStudent('');
-      fetchSesionData(); // Refresh data
+      setSearchStudentTerm('');
+
     } catch (error) {
+      console.error('Error adding student:', error);
+
       let errorMessage = 'Error al agregar estudiante a la sesión';
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.status === 400) {
         errorMessage = 'Error de validación. Verifique los datos del estudiante.';
       } else if (error.response?.status === 404) {
         errorMessage = 'Sesión o estudiante no encontrado';
+      } else if (error.response?.status === 405) {
+        errorMessage = 'Método no permitido. Verifique la configuración del servidor.';
       } else if (error.response?.status === 409) {
         errorMessage = 'El estudiante ya está inscrito en esta sesión';
       }
+
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     }
   };
@@ -180,6 +238,49 @@ const SesionPedagogicaDetalle = () => {
   const handleOpenAddStudentDialog = () => {
     fetchEstudiantesDisponibles();
     setAddStudentDialog({ open: true });
+  };
+
+  const fetchEstudiantesRetirados = async () => {
+    try {
+      const response = await sesionPedagogicaService.getEstudiantesRetirados(id);
+      const retiradosData = response.data?.data || response.data || [];
+      setEstudiantesRetirados(retiradosData);
+    } catch (error) {
+      console.error('Error fetching retired students:', error);
+    }
+  };
+
+  const handleOpenReincorporarDialog = (pacienteId, estudianteNombre) => {
+    setReincorporarDialog({
+      open: true,
+      pacienteId,
+      estudianteNombre
+    });
+  };
+
+  const handleConfirmReincorporar = async () => {
+    try {
+      await sesionPedagogicaService.reincorporarEstudiante(id, reincorporarDialog.pacienteId);
+      setSnackbar({
+        open: true,
+        message: `${reincorporarDialog.estudianteNombre} ha sido reincorporado a la sesión`,
+        severity: 'success'
+      });
+      await fetchSesionData();
+      await fetchEstudiantesRetirados();
+      setReincorporarDialog({ open: false, pacienteId: null, estudianteNombre: '' });
+    } catch (error) {
+      const errorMessage = sesionPedagogicaService.handleError(error);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      setReincorporarDialog({ open: false, pacienteId: null, estudianteNombre: '' });
+    }
+  };
+
+  const handleToggleRetirados = async () => {
+    if (!showRetirados) {
+      await fetchEstudiantesRetirados();
+    }
+    setShowRetirados(!showRetirados);
   };
 
   const formatDate = (dateString) => formatDateLocal(dateString);
@@ -434,32 +535,72 @@ const SesionPedagogicaDetalle = () => {
               </Alert>
             ) : (
               <List>
-                {estudiantes.map((estudiante, index) => (
-                  <React.Fragment key={estudiante.estudiante_id || estudiante.id || index}>
-                    <ListItem
-                      secondaryAction={
-                        <IconButton
-                          edge="end"
-                          color="error"
-                          onClick={() => handleRemoveStudent(estudiante.estudiante_id || estudiante.id)}
-                        >
-                          <PersonRemove />
-                        </IconButton>
-                      }
-                    >
-                      <ListItemAvatar>
-                        <Avatar sx={{ bgcolor: 'primary.main' }}>
-                          <Person />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={estudiante.estudiante_nombre || estudiante.nombre_completo}
-                        secondary={`Cédula: ${estudiante.estudiante_cedula || estudiante.cedula || 'No especificada'}`}
-                      />
-                    </ListItem>
-                    {index < estudiantes.length - 1 && <Divider component="li" />}
-                  </React.Fragment>
-                ))}
+                {estudiantes.map((estudiante, index) => {
+                  const estudianteNombre = estudiante.estudiante?.nombre ||
+                    estudiante.estudiante_nombre ||
+                    estudiante.nombre_completo ||
+                    estudiante.nombre_paciente ||
+                    `${estudiante.nombre || estudiante.nombres || ''} ${estudiante.apellido || estudiante.apellidos || ''}`.trim() ||
+                    'Sin nombre';
+                  const estudianteCedula = estudiante.estudiante?.cedula || estudiante.estudiante_cedula || estudiante.cedula || estudiante.numero_documento || 'No especificada';
+                  const pacienteId = estudiante.estudiante?.id || estudiante.paciente_id || estudiante.estudiante_id || estudiante.id;
+                  const isRetirado = estudiante.estado === 'retirado';
+
+                  return (
+                    <React.Fragment key={estudiante.estudiante_id || estudiante.id || index}>
+                      <ListItem
+                        sx={{
+                          opacity: isRetirado ? 0.6 : 1,
+                          backgroundColor: isRetirado ? 'action.hover' : 'transparent'
+                        }}
+                        secondaryAction={
+                          isRetirado ? (
+                            <Tooltip title="Reincorporar estudiante">
+                              <IconButton
+                                edge="end"
+                                color="success"
+                                onClick={() => handleOpenReincorporarDialog(pacienteId, estudianteNombre)}
+                              >
+                                <PersonAdd />
+                              </IconButton>
+                            </Tooltip>
+                          ) : (
+                            <IconButton
+                              edge="end"
+                              color="error"
+                              onClick={() => handleRemoveStudent(pacienteId)}
+                            >
+                              <PersonRemove />
+                            </IconButton>
+                          )
+                        }
+                      >
+                        <ListItemAvatar>
+                          <Avatar sx={{ bgcolor: isRetirado ? 'warning.main' : 'primary.main' }}>
+                            <Person />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={estudianteNombre}
+                          secondary={
+                            <>
+                              {`Cédula: ${estudianteCedula}`}
+                              {isRetirado && (
+                                <Chip
+                                  label="Retirado"
+                                  size="small"
+                                  color="warning"
+                                  sx={{ ml: 1, height: 20 }}
+                                />
+                              )}
+                            </>
+                          }
+                        />
+                      </ListItem>
+                      {index < estudiantes.length - 1 && <Divider component="li" />}
+                    </React.Fragment>
+                  );
+                })}
               </List>
             )}
           </CardContent>
@@ -605,45 +746,176 @@ const SesionPedagogicaDetalle = () => {
         </Grid>
       </TabPanel>
 
-      {/* Dialog: Agregar Estudiante */}
+      {/* Dialog: Agregar Estudiante - Diseño mejorado */}
       <Dialog
         open={addStudentDialog.open}
-        onClose={() => setAddStudentDialog({ open: false })}
+        onClose={() => {
+          setAddStudentDialog({ open: false });
+          setSelectedStudent('');
+          setSearchStudentTerm('');
+        }}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Agregar Estudiante a la Sesión</DialogTitle>
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <PersonAdd sx={{ mr: 2, color: 'success.main' }} />
+            Agregar Estudiante a la Sesión
+          </Box>
+        </DialogTitle>
         <DialogContent>
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel>Seleccionar Estudiante</InputLabel>
-            <Select
-              value={selectedStudent}
-              onChange={(e) => setSelectedStudent(e.target.value)}
-              label="Seleccionar Estudiante"
-              sx={{
-                ...greenOutlineSX,
-                color: 'text.primary',
+          <Box sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              placeholder="Buscar estudiante por nombre o cédula..."
+              value={searchStudentTerm}
+              onChange={(e) => setSearchStudentTerm(e.target.value)}
+              sx={{ ...greenOutlineSX, mb: 2 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search sx={{ color: 'text.secondary' }} />
+                  </InputAdornment>
+                )
               }}
-            >
-              {estudiantesDisponibles.map((estudiante) => (
-                <MenuItem key={estudiante.id} value={estudiante.id}>
-                  {estudiante.nombres} {estudiante.apellidos}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+            />
+
+            {estudiantesDisponibles.length === 0 ? (
+              <Alert severity="info">
+                No hay estudiantes disponibles para agregar.
+              </Alert>
+            ) : (
+              <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
+                {estudiantesDisponibles
+                  .filter(e => {
+                    if (!searchStudentTerm) return true;
+                    const term = searchStudentTerm.toLowerCase();
+                    const nombreCompleto = (
+                      e.nombre_completo ||
+                      e.nombre_paciente ||
+                      `${e.nombre || e.nombres || ''} ${e.apellido || e.apellidos || ''}`
+                    ).toLowerCase();
+                    const cedula = (e.cedula || e.numero_documento || '').toLowerCase();
+                    return nombreCompleto.includes(term) || cedula.includes(term);
+                  })
+                  .length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
+                    No se encontraron estudiantes con "{searchStudentTerm}"
+                  </Typography>
+                ) : (
+                  estudiantesDisponibles
+                    .filter(e => {
+                      if (!searchStudentTerm) return true;
+                      const term = searchStudentTerm.toLowerCase();
+                      const nombreCompleto = (
+                        e.nombre_completo ||
+                        e.nombre_paciente ||
+                        `${e.nombre || e.nombres || ''} ${e.apellido || e.apellidos || ''}`
+                      ).toLowerCase();
+                      const cedula = (e.cedula || e.numero_documento || '').toLowerCase();
+                      return nombreCompleto.includes(term) || cedula.includes(term);
+                    })
+                    .map((estudiante) => (
+                      <Box
+                        key={estudiante.id}
+                        onClick={() => setSelectedStudent(estudiante.id)}
+                        sx={{
+                          p: 2,
+                          mb: 1,
+                          borderRadius: 2,
+                          cursor: 'pointer',
+                          border: '1px solid',
+                          borderColor: selectedStudent === estudiante.id ? 'success.main' : 'divider',
+                          backgroundColor: selectedStudent === estudiante.id
+                            ? theme.palette.mode === 'dark' ? 'success.dark' : 'success.light'
+                            : 'background.paper',
+                          '&:hover': {
+                            backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                            borderColor: 'success.main'
+                          },
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <Box display="flex" alignItems="center">
+                          <Avatar sx={{ mr: 2, bgcolor: 'success.main', width: 40, height: 40 }}>
+                            <Person />
+                          </Avatar>
+                          <Box flex={1}>
+                            <Typography variant="body1" fontWeight="medium">
+                              {estudiante.nombre_completo ||
+                               estudiante.nombre_paciente ||
+                               `${estudiante.nombre || estudiante.nombres || ''} ${estudiante.apellido || estudiante.apellidos || ''}`.trim() ||
+                               'Sin nombre'}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Cédula: {estudiante.cedula || estudiante.numero_documento || 'No especificada'}
+                            </Typography>
+                          </Box>
+                          {selectedStudent === estudiante.id && (
+                            <Chip label="Seleccionado" color="success" size="small" />
+                          )}
+                        </Box>
+                      </Box>
+                    ))
+                )}
+              </Box>
+            )}
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAddStudentDialog({ open: false })}>
+          <Button
+            onClick={() => {
+              setAddStudentDialog({ open: false });
+              setSelectedStudent('');
+              setSearchStudentTerm('');
+            }}
+          >
             Cancelar
           </Button>
           <Button
             onClick={handleAddStudent}
             variant="contained"
             disabled={!selectedStudent}
-            sx={{ bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}
+            startIcon={<PersonAdd />}
+            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
           >
-            Agregar
+            Agregar Estudiante
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog: Reincorporar Estudiante */}
+      <Dialog
+        open={reincorporarDialog.open}
+        onClose={() => setReincorporarDialog({ open: false, pacienteId: null, estudianteNombre: '' })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <PersonAdd sx={{ mr: 2, color: 'success.main' }} />
+            Reincorporar Estudiante
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ py: 2 }}>
+            ¿Está seguro de que desea reincorporar a <strong>{reincorporarDialog.estudianteNombre}</strong> a esta sesión?
+          </Typography>
+          <Alert severity="info" sx={{ mt: 2 }}>
+            El estudiante volverá a estar activo en la sesión y podrá registrar asistencias.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReincorporarDialog({ open: false, pacienteId: null, estudianteNombre: '' })}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmReincorporar}
+            variant="contained"
+            color="success"
+            startIcon={<PersonAdd />}
+          >
+            Reincorporar
           </Button>
         </DialogActions>
       </Dialog>

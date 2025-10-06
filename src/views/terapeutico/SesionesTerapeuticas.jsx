@@ -858,108 +858,321 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
         </CardContent>
       </Card>
 
-      {/* Dialog de detalles (sin cambios solicitados, se mantiene completo) */}
+      {/* Dialog de detalles - Diseño mejorado */}
       <Dialog
         open={detailDialog.open}
         onClose={() => setDetailDialog({ open: false, data: null })}
         maxWidth="lg"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: theme.shadows[10]
+          }
+        }}
       >
-        <DialogTitle>
-          <Box display="flex" alignItems="center">
-            <Schedule sx={{ mr: 2 }} />
-            Detalles de la Sesión Terapéutica
+        {/* Header con gradiente */}
+        <Box
+          sx={{
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+            color: 'white',
+            p: 3
+          }}
+        >
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Box display="flex" alignItems="center">
+              <Avatar
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  width: 48,
+                  height: 48,
+                  mr: 2
+                }}
+              >
+                <Schedule />
+              </Avatar>
+              <Box>
+                <Typography variant="h5" fontWeight="bold">
+                  {detailDialog.data?.titulo || 'Sesión Terapéutica'}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+                  {detailDialog.data?.codigo_sesion}
+                </Typography>
+              </Box>
+            </Box>
+            <Chip
+              label={detailDialog.data?.estado || 'Activo'}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '0.875rem',
+                height: 32
+              }}
+            />
           </Box>
-        </DialogTitle>
-        <DialogContent>
+        </Box>
+
+        <DialogContent sx={{ p: 0 }}>
           {detailDialog.data && (
-            <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="primary">Información General</Typography>
-                <Typography variant="body2">
-                  <strong>Código:</strong> {detailDialog.data.codigo_sesion}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Título:</strong> {detailDialog.data.titulo}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Estado:</strong> {detailDialog.data.estado}
-                </Typography>
-              </Grid>
+            <Box>
+              {/* Sección: Información Principal */}
+              <Box sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50' }}>
+                <Grid container spacing={3}>
+                  {/* Terapeuta */}
+                  <Grid item xs={12} md={6}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2,
+                        border: `1px solid ${theme.palette.divider}`,
+                        height: '100%'
+                      }}
+                    >
+                      <Box display="flex" alignItems="center" mb={2}>
+                        <Avatar sx={{ bgcolor: 'primary.main', mr: 1.5, width: 32, height: 32 }}>
+                          <Person sx={{ fontSize: 18 }} />
+                        </Avatar>
+                        <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                          Terapeuta
+                        </Typography>
+                      </Box>
+                      <Typography variant="h6" sx={{ mb: 1 }}>
+                        {detailDialog.data.terapeuta_nombre}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {detailDialog.data.especialidad_nombre}
+                      </Typography>
+                      {detailDialog.data.especialidad_area && (
+                        <Chip
+                          label={detailDialog.data.especialidad_area}
+                          size="small"
+                          sx={{ mt: 1 }}
+                        />
+                      )}
+                    </Paper>
+                  </Grid>
 
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="primary">Terapeuta y Especialidad</Typography>
-                <Typography variant="body2">
-                  <strong>Terapeuta:</strong> {detailDialog.data.terapeuta_nombre}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Especialidad:</strong> {detailDialog.data.especialidad_nombre}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Área:</strong> {detailDialog.data.especialidad_area}
-                </Typography>
-              </Grid>
+                  {/* Pacientes */}
+                  <Grid item xs={12} md={6}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2,
+                        border: `1px solid ${theme.palette.divider}`,
+                        height: '100%'
+                      }}
+                    >
+                      <Box display="flex" alignItems="center" mb={2}>
+                        <Avatar sx={{ bgcolor: 'success.main', mr: 1.5, width: 32, height: 32 }}>
+                          <Group sx={{ fontSize: 18 }} />
+                        </Avatar>
+                        <Typography variant="subtitle1" fontWeight="bold" color="success.main">
+                          Pacientes
+                        </Typography>
+                      </Box>
+                      <Box display="flex" alignItems="center" gap={1} mb={1}>
+                        <Typography variant="h6">
+                          {detailDialog.data.total_pacientes || detailDialog.data.estadisticas?.total_pacientes || '0'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {detailDialog.data.tipo_sesion || 'Individual'}
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        {renderPacientes(detailDialog.data)}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </Box>
 
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="primary">Programación</Typography>
-                <Typography variant="body2">
-                  <strong>Período:</strong> {detailDialog.data.fecha_inicio} - {detailDialog.data.fecha_fin}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Días:</strong> {detailDialog.data.dias_semana?.join(', ')}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Horario:</strong> {detailDialog.data.hora_inicio}
-                  {detailDialog.data.hora_fin && ` - ${detailDialog.data.hora_fin}`}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Duración:</strong> {detailDialog.data.duracion_minutos || 45} minutos
-                </Typography>
-              </Grid>
+              <Divider />
 
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="primary">Pacientes Asignados</Typography>
-                <Typography variant="body2">
-                  <strong>Total Pacientes:</strong> {detailDialog.data.total_pacientes || detailDialog.data.estadisticas?.total_pacientes || 'No especificado'}
+              {/* Sección: Programación */}
+              <Box sx={{ p: 3 }}>
+                <Typography variant="h6" fontWeight="bold" mb={2} display="flex" alignItems="center">
+                  <ScheduleIcon sx={{ mr: 1, color: 'primary.main' }} />
+                  Programación
                 </Typography>
-                <Typography variant="body2">
-                  <strong>Pacientes:</strong> {renderPacientes(detailDialog.data)}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Tipo de Sesión:</strong> {detailDialog.data.tipo_sesion || 'Individual'}
-                </Typography>
-              </Grid>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Fecha Inicio
+                      </Typography>
+                      <Typography variant="body1" fontWeight="bold" sx={{ mt: 0.5 }}>
+                        {detailDialog.data.fecha_inicio}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Fecha Fin
+                      </Typography>
+                      <Typography variant="body1" fontWeight="bold" sx={{ mt: 0.5 }}>
+                        {detailDialog.data.fecha_fin}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Horario
+                      </Typography>
+                      <Typography variant="body1" fontWeight="bold" sx={{ mt: 0.5 }}>
+                        {detailDialog.data.hora_inicio}
+                        {detailDialog.data.hora_fin && ` - ${detailDialog.data.hora_fin}`}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Duración
+                      </Typography>
+                      <Typography variant="body1" fontWeight="bold" sx={{ mt: 0.5 }}>
+                        {detailDialog.data.duracion_minutos || 45} min
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                        Días de la semana
+                      </Typography>
+                      <Box display="flex" gap={1} flexWrap="wrap">
+                        {detailDialog.data.dias_semana?.map(dia => (
+                          <Chip
+                            key={dia}
+                            label={dia}
+                            color="primary"
+                            variant="outlined"
+                            size="small"
+                          />
+                        ))}
+                      </Box>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
 
+              {/* Sección: Información Financiera (solo Admin) */}
               {isAdmin && (
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" color="primary">Información Financiera</Typography>
-                  <Typography variant="body2">
-                    <strong>Sesiones Contratadas:</strong> {detailDialog.data.numero_sesiones_contratadas}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Costo Total:</strong> ${detailDialog.data.costo_total}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Costo por Sesión:</strong> ${detailDialog.data.costo_por_sesion}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Meses de Contrato:</strong> {detailDialog.data.meses_contrato}
-                  </Typography>
-                </Grid>
+                <>
+                  <Divider />
+                  <Box sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50' }}>
+                    <Typography variant="h6" fontWeight="bold" mb={2}>
+                      Información Financiera
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6} sm={3}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="h5" color="primary.main" fontWeight="bold">
+                            {detailDialog.data.numero_sesiones_contratadas || 0}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Sesiones Contratadas
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="h5" color="success.main" fontWeight="bold">
+                            ${detailDialog.data.costo_total || 0}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Costo Total
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="h5" color="info.main" fontWeight="bold">
+                            ${detailDialog.data.costo_por_sesion || 0}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Costo por Sesión
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="h5" color="warning.main" fontWeight="bold">
+                            {detailDialog.data.meses_contrato || 0}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Meses de Contrato
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </>
               )}
 
+              {/* Sección: Observaciones */}
               {detailDialog.data.observaciones && (
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="primary">Observaciones</Typography>
-                  <Box sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 1 }}>
-                    <Typography variant="body2">{detailDialog.data.observaciones}</Typography>
+                <>
+                  <Divider />
+                  <Box sx={{ p: 3 }}>
+                    <Typography variant="h6" fontWeight="bold" mb={2}>
+                      Observaciones
+                    </Typography>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2,
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        border: `1px solid ${theme.palette.divider}`
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                        {detailDialog.data.observaciones}
+                      </Typography>
+                    </Paper>
                   </Box>
-                </Grid>
+                </>
               )}
-            </Grid>
+            </Box>
           )}
         </DialogContent>
-        <DialogActions>
+
+        <Divider />
+
+        <DialogActions sx={{ p: 2.5, gap: 1, bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50' }}>
           <Button
             variant="outlined"
             startIcon={<PersonAdd />}
@@ -970,6 +1183,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
             }}
             disabled={!detailDialog.data?.id}
             color="success"
+            sx={{ borderRadius: 2 }}
           >
             Agregar Paciente
           </Button>
@@ -983,20 +1197,26 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
             }}
             disabled={!detailDialog.data?.id}
             color="primary"
+            sx={{ borderRadius: 2 }}
           >
             Compartir Enlace
           </Button>
+          <Box flex={1} />
           <Button
-            variant="outlined"
+            variant="contained"
             onClick={() => {
               setDetailDialog({ open: false, data: null });
               navigate(`/terapeutico/sesion/${detailDialog.data?.id}`);
             }}
             disabled={!detailDialog.data?.id}
+            sx={{ borderRadius: 2 }}
           >
             Ver Detalle Completo
           </Button>
-          <Button onClick={() => setDetailDialog({ open: false, data: null })}>
+          <Button
+            onClick={() => setDetailDialog({ open: false, data: null })}
+            sx={{ borderRadius: 2 }}
+          >
             Cerrar
           </Button>
         </DialogActions>

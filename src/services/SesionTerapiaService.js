@@ -123,6 +123,36 @@ class SesionTerapiaService {
     }
   }
 
+  /**
+   * Get retired patients from therapy session
+   */
+  async getPacientesRetirados(sesionId) {
+    try {
+      const response = await ApiService.get(
+        API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES_RETIRADOS(sesionId)
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching retired patients from session ${sesionId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reincorporate a retired patient to therapy session
+   */
+  async reincorporarPaciente(sesionId, pacienteId) {
+    try {
+      const response = await ApiService.put(
+        API_ENDPOINTS.SESIONES_TERAPIA.REINCORPORAR_PACIENTE(sesionId, pacienteId)
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error reincorporating patient ${pacienteId} to session ${sesionId}:`, error);
+      throw error;
+    }
+  }
+
   // ==================== CRONOGRAMA OPERATIONS ====================
 
   /**

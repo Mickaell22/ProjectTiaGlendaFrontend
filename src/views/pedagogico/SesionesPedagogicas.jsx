@@ -103,28 +103,29 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
 
   const fetchAvailableStudents = async () => {
     try {
-      const response = await sesionPedagogicaService.getEstudiantesDisponibles();
+      const response = await sesionPedagogicaService.getPacientesDisponibles();
       let estudiantesData = [];
       if (response?.data) {
         estudiantesData = Array.isArray(response.data) ? response.data : response.data.data || [];
       } else if (Array.isArray(response)) {
         estudiantesData = response;
       }
-      
+
       setEstudiantesDisponibles(estudiantesData);
-      
+
       if (estudiantesData.length === 0) {
-        setSnackbar({ 
-          open: true, 
-          message: 'No hay estudiantes disponibles para agregar', 
-          severity: 'warning' 
+        setSnackbar({
+          open: true,
+          message: 'No hay estudiantes disponibles para agregar',
+          severity: 'warning'
         });
       }
     } catch (error) {
-      setSnackbar({ 
-        open: true, 
-        message: 'Error al cargar estudiantes disponibles', 
-        severity: 'error' 
+      console.error('Error fetching available students:', error);
+      setSnackbar({
+        open: true,
+        message: 'Error al cargar estudiantes disponibles',
+        severity: 'error'
       });
       setEstudiantesDisponibles([]);
     }
@@ -155,15 +156,13 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
     }
     
     const selectedStudent = estudiantesDisponibles.find(e => String(e.id) === String(newEstudianteId));
-    
+
     try {
       const studentData = {
         paciente_id: parseInt(newEstudianteId),
-        fecha_incorporacion: new Date().toISOString().split('T')[0],
-        nivel_actual: 'basico',
-        observaciones_estudiante: 'Estudiante agregado desde la interfaz'
+        fecha_incorporacion: new Date().toISOString().split('T')[0]
       };
-      
+
       await sesionPedagogicaService.addEstudianteToSesion(addStudentDialog.sessionId, studentData);
       
       setSnackbar({ 
@@ -342,8 +341,12 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
   const filteredEstudiantesDisponibles = estudiantesDisponibles.filter(e => {
     if (!searchStudentTerm) return true;
     const term = searchStudentTerm.toLowerCase();
-    const nombreCompleto = (e.nombre_completo || `${e.nombre} ${e.apellido}`).toLowerCase();
-    const cedula = (e.cedula || '').toLowerCase();
+    const nombreCompleto = (
+      e.nombre_completo ||
+      e.nombre_paciente ||
+      `${e.nombre || e.nombres || ''} ${e.apellido || e.apellidos || ''}`
+    ).toLowerCase();
+    const cedula = (e.cedula || e.numero_documento || '').toLowerCase();
     return nombreCompleto.includes(term) || cedula.includes(term);
   });
 
@@ -844,140 +847,389 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
         </CardContent>
       </Card>
 
-      {/* Dialog de detalles */}
+      {/* Dialog de detalles - Diseño mejorado */}
       <Dialog
         open={detailDialog.open}
         onClose={() => setDetailDialog({ open: false, data: null })}
         maxWidth="lg"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: theme.shadows[10]
+          }
+        }}
       >
-        <DialogTitle>
-          <Box display="flex" alignItems="center">
-            <School sx={{ mr: 2 }} />
-            Detalles de la Sesión Pedagógica
+        {/* Header con gradiente */}
+        <Box
+          sx={{
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+            color: 'white',
+            p: 3
+          }}
+        >
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Box display="flex" alignItems="center">
+              <Avatar
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  width: 48,
+                  height: 48,
+                  mr: 2
+                }}
+              >
+                <School />
+              </Avatar>
+              <Box>
+                <Typography variant="h5" fontWeight="bold">
+                  {detailDialog.data?.titulo || 'Sesión Pedagógica'}
+                </Typography>
+                <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+                  {detailDialog.data?.codigo_sesion || 'Sin código'}
+                </Typography>
+              </Box>
+            </Box>
+            <Chip
+              label={detailDialog.data?.estado || 'Activo'}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '0.875rem',
+                height: 32
+              }}
+            />
           </Box>
-        </DialogTitle>
-        <DialogContent>
+        </Box>
+
+        <DialogContent sx={{ p: 0 }}>
           {detailDialog.data && (
-            <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="primary">Información General</Typography>
-                <Typography variant="body2">
-                  <strong>Código:</strong> {detailDialog.data.codigo_sesion || 'No asignado'}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Título:</strong> {detailDialog.data.titulo}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Estado:</strong> {detailDialog.data.estado}
-                </Typography>
-              </Grid>
+            <Box>
+              {/* Sección: Información Principal */}
+              <Box sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50' }}>
+                <Grid container spacing={3}>
+                  {/* Pedagogo */}
+                  <Grid item xs={12} md={6}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2,
+                        border: `1px solid ${theme.palette.divider}`,
+                        height: '100%'
+                      }}
+                    >
+                      <Box display="flex" alignItems="center" mb={2}>
+                        <Avatar sx={{ bgcolor: 'primary.main', mr: 1.5, width: 32, height: 32 }}>
+                          <School sx={{ fontSize: 18 }} />
+                        </Avatar>
+                        <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                          Pedagogo
+                        </Typography>
+                      </Box>
+                      <Typography variant="h6" sx={{ mb: 1 }}>
+                        {detailDialog.data.pedagogo?.nombre || detailDialog.data.pedagogo_nombre}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {detailDialog.data.especialidad?.nombre || detailDialog.data.especialidad_nombre}
+                      </Typography>
+                      {(detailDialog.data.especialidad?.area || detailDialog.data.especialidad_area) && (
+                        <Chip
+                          label={detailDialog.data.especialidad?.area || detailDialog.data.especialidad_area}
+                          size="small"
+                          sx={{ mt: 1 }}
+                        />
+                      )}
+                    </Paper>
+                  </Grid>
 
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="primary">Pedagogo y Especialidad</Typography>
-                <Typography variant="body2">
-                  <strong>Pedagogo:</strong> {detailDialog.data.pedagogo?.nombre || detailDialog.data.pedagogo_nombre}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Especialidad:</strong> {detailDialog.data.especialidad?.nombre || detailDialog.data.especialidad_nombre}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Área:</strong> {detailDialog.data.especialidad?.area || detailDialog.data.especialidad_area}
-                </Typography>
-              </Grid>
+                  {/* Estudiantes */}
+                  <Grid item xs={12} md={6}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2,
+                        border: `1px solid ${theme.palette.divider}`,
+                        height: '100%'
+                      }}
+                    >
+                      <Box display="flex" alignItems="center" mb={2}>
+                        <Avatar sx={{ bgcolor: 'success.main', mr: 1.5, width: 32, height: 32 }}>
+                          <Person sx={{ fontSize: 18 }} />
+                        </Avatar>
+                        <Typography variant="subtitle1" fontWeight="bold" color="success.main">
+                          Estudiantes
+                        </Typography>
+                      </Box>
+                      <Box display="flex" alignItems="center" gap={1} mb={1}>
+                        <Typography variant="h6">
+                          {detailDialog.data.total_estudiantes || detailDialog.data.estadisticas?.total_estudiantes || '0'}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {detailDialog.data.nivel_academico || 'No especificado'}
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        {renderEstudiantes(detailDialog.data)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                        Capacidad máxima: {detailDialog.data.capacidad_maxima || 'No especificado'}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </Box>
 
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="primary">Programación</Typography>
-                <Typography variant="body2">
-                  <strong>Período:</strong> {detailDialog.data.fecha_inicio} - {detailDialog.data.fecha_fin}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Días:</strong> {Array.isArray(detailDialog.data.dias_semana) ? 
-                    detailDialog.data.dias_semana.join(', ') : 
-                    (detailDialog.data.dias_semana?.split(',').join(', ') || 'No definido')}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Horario:</strong> {detailDialog.data.hora_inicio}
-                  {detailDialog.data.hora_fin && ` - ${detailDialog.data.hora_fin}`}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Duración:</strong> {detailDialog.data.duracion_minutos || 60} minutos
-                </Typography>
-              </Grid>
+              <Divider />
 
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="primary">Estudiantes</Typography>
-                <Typography variant="body2">
-                  <strong>Total Estudiantes:</strong> {detailDialog.data.total_estudiantes ||
-                    detailDialog.data.estadisticas?.total_estudiantes || 'No especificado'}
+              {/* Sección: Programación */}
+              <Box sx={{ p: 3 }}>
+                <Typography variant="h6" fontWeight="bold" mb={2} display="flex" alignItems="center">
+                  <Schedule sx={{ mr: 1, color: 'primary.main' }} />
+                  Programación
                 </Typography>
-                <Typography variant="body2">
-                  <strong>Estudiantes:</strong> {renderEstudiantes(detailDialog.data)}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Nivel Académico:</strong> {detailDialog.data.nivel_academico || 'No especificado'}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Capacidad Máxima:</strong> {detailDialog.data.capacidad_maxima || 'No especificado'}
-                </Typography>
-              </Grid>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Fecha Inicio
+                      </Typography>
+                      <Typography variant="body1" fontWeight="bold" sx={{ mt: 0.5 }}>
+                        {detailDialog.data.fecha_inicio}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Fecha Fin
+                      </Typography>
+                      <Typography variant="body1" fontWeight="bold" sx={{ mt: 0.5 }}>
+                        {detailDialog.data.fecha_fin}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Horario
+                      </Typography>
+                      <Typography variant="body1" fontWeight="bold" sx={{ mt: 0.5 }}>
+                        {detailDialog.data.hora_inicio}
+                        {detailDialog.data.hora_fin && ` - ${detailDialog.data.hora_fin}`}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Duración
+                      </Typography>
+                      <Typography variant="body1" fontWeight="bold" sx={{ mt: 0.5 }}>
+                        {detailDialog.data.duracion_minutos || 60} min
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                        Días de la semana
+                      </Typography>
+                      <Box display="flex" gap={1} flexWrap="wrap">
+                        {(Array.isArray(detailDialog.data.dias_semana)
+                          ? detailDialog.data.dias_semana
+                          : detailDialog.data.dias_semana?.split(',').map(d => d.trim()) || []
+                        ).map(dia => (
+                          <Chip
+                            key={dia}
+                            label={dia}
+                            color="primary"
+                            variant="outlined"
+                            size="small"
+                          />
+                        ))}
+                      </Box>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
 
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" color="primary">Información Académica</Typography>
-                <Typography variant="body2">
-                  <strong>Clases Programadas:</strong> {detailDialog.data.numero_clases_programadas ||
-                    detailDialog.data.clases_programadas || 'No especificado'}
+              {/* Sección: Información Académica */}
+              <Divider />
+              <Box sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50' }}>
+                <Typography variant="h6" fontWeight="bold" mb={2}>
+                  Información Académica
                 </Typography>
-                <Typography variant="body2">
-                  <strong>Clases Realizadas:</strong> {detailDialog.data.clases_realizadas || 0}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Progreso:</strong> {
-                    detailDialog.data.clases_programadas > 0
-                      ? Math.round((detailDialog.data.clases_realizadas / detailDialog.data.clases_programadas) * 100)
-                      : 0
-                  }%
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Modalidad:</strong> {detailDialog.data.modalidad || 'presencial'}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Período Académico:</strong> {detailDialog.data.periodo_academico || 'No especificado'}
-                </Typography>
-              </Grid>
+                <Grid container spacing={2}>
+                  <Grid item xs={6} sm={3}>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="h5" color="primary.main" fontWeight="bold">
+                        {detailDialog.data.numero_clases_programadas || detailDialog.data.clases_programadas || 0}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Clases Programadas
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="h5" color="success.main" fontWeight="bold">
+                        {detailDialog.data.clases_realizadas || 0}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Clases Realizadas
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="h5" color="info.main" fontWeight="bold">
+                        {detailDialog.data.clases_programadas > 0
+                          ? Math.round((detailDialog.data.clases_realizadas / detailDialog.data.clases_programadas) * 100)
+                          : 0}%
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Progreso
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="h5" color="warning.main" fontWeight="bold">
+                        {detailDialog.data.modalidad || 'Presencial'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Modalidad
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="body2" color="text.secondary" textAlign="center">
+                      <strong>Período Académico:</strong> {detailDialog.data.periodo_academico || 'No especificado'}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
 
+              {/* Sección: Información Financiera (solo Admin) */}
               {isAdmin && (
-                <Grid item xs={12} md={6}>
-                  <Typography variant="subtitle2" color="primary">Información Financiera</Typography>
-                  <Typography variant="body2">
-                    <strong>Costo Total:</strong> ${detailDialog.data.costo_total || 0}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Costo por Clase:</strong> ${detailDialog.data.costo_por_clase || 0}
-                  </Typography>
-                </Grid>
+                <>
+                  <Divider />
+                  <Box sx={{ p: 3 }}>
+                    <Typography variant="h6" fontWeight="bold" mb={2}>
+                      Información Financiera
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="h5" color="success.main" fontWeight="bold">
+                            ${detailDialog.data.costo_total || 0}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Costo Total
+                          </Typography>
+                        </Box>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Box sx={{ textAlign: 'center' }}>
+                          <Typography variant="h5" color="info.main" fontWeight="bold">
+                            ${detailDialog.data.costo_por_clase || 0}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Costo por Clase
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </>
               )}
 
+              {/* Sección: Adaptación Curricular */}
               {detailDialog.data.adaptacion_curricular && (
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="primary">Adaptación Curricular</Typography>
-                  <Box sx={{ p: 2, backgroundColor: '#e3f2fd', borderRadius: 1, border: '1px solid', borderColor: 'primary.main' }}>
-                    <Typography variant="body2">{detailDialog.data.adaptacion_curricular}</Typography>
+                <>
+                  <Divider />
+                  <Box sx={{ p: 3 }}>
+                    <Typography variant="h6" fontWeight="bold" mb={2}>
+                      Adaptación Curricular
+                    </Typography>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2,
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        border: `1px solid ${theme.palette.divider}`
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                        {detailDialog.data.adaptacion_curricular}
+                      </Typography>
+                    </Paper>
                   </Box>
-                </Grid>
+                </>
               )}
+
+              {/* Sección: Observaciones */}
               {detailDialog.data.observaciones && (
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="primary">Observaciones</Typography>
-                  <Box sx={{ p: 2, backgroundColor: 'background.paper', borderRadius: 1 }}>
-                    <Typography variant="body2">{detailDialog.data.observaciones}</Typography>
+                <>
+                  <Divider />
+                  <Box sx={{ p: 3 }}>
+                    <Typography variant="h6" fontWeight="bold" mb={2}>
+                      Observaciones
+                    </Typography>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 2,
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        border: `1px solid ${theme.palette.divider}`
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                        {detailDialog.data.observaciones}
+                      </Typography>
+                    </Paper>
                   </Box>
-                </Grid>
+                </>
               )}
-            </Grid>
+            </Box>
           )}
         </DialogContent>
-        <DialogActions>
+
+        <Divider />
+
+        <DialogActions sx={{ p: 2.5, gap: 1, bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50' }}>
           <Button
             variant="outlined"
             startIcon={<PersonAdd />}
@@ -988,6 +1240,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
             }}
             disabled={!detailDialog.data?.id}
             color="success"
+            sx={{ borderRadius: 2 }}
           >
             Agregar Estudiante
           </Button>
@@ -1001,20 +1254,26 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
             }}
             disabled={!detailDialog.data?.id}
             color="primary"
+            sx={{ borderRadius: 2 }}
           >
             Compartir Enlace
           </Button>
+          <Box flex={1} />
           <Button
-            variant="outlined"
+            variant="contained"
             onClick={() => {
               setDetailDialog({ open: false, data: null });
               navigate(`/pedagogico/sesion/${detailDialog.data?.id}`);
             }}
             disabled={!detailDialog.data?.id}
+            sx={{ borderRadius: 2 }}
           >
             Ver Detalle Completo
           </Button>
-          <Button onClick={() => setDetailDialog({ open: false, data: null })}>
+          <Button
+            onClick={() => setDetailDialog({ open: false, data: null })}
+            sx={{ borderRadius: 2 }}
+          >
             Cerrar
           </Button>
         </DialogActions>
@@ -1090,10 +1349,13 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                         </Avatar>
                         <Box flex={1}>
                           <Typography variant="body1" fontWeight="medium">
-                            {estudiante.nombre_completo || `${estudiante.nombre} ${estudiante.apellido}`}
+                            {estudiante.nombre_completo ||
+                             estudiante.nombre_paciente ||
+                             `${estudiante.nombre || estudiante.nombres || ''} ${estudiante.apellido || estudiante.apellidos || ''}`.trim() ||
+                             'Sin nombre'}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            Cédula: {estudiante.cedula || 'N/A'}
+                            Cédula: {estudiante.cedula || estudiante.numero_documento || 'No especificada'}
                           </Typography>
                         </Box>
                         {newEstudianteId === estudiante.id && (

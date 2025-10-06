@@ -6,13 +6,13 @@ import {
   Table, TableBody, TableCell, TableHead, TableRow, Typography, Alert,
   Chip, Avatar, List, ListItem, ListItemText, ListItemAvatar, Tooltip,
   TextField, FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel,
- useTheme
+ useTheme, InputAdornment
 } from '@mui/material';
 import {
   ArrowBack, Person, Schedule, Group, Assignment, CalendarMonth,
   CheckCircle, Cancel, Edit, Add, Refresh, AccessTime,
   EventAvailable, EventBusy, Psychology, Today, Delete, PersonRemove,
-  Close
+  Close, Search, PersonAdd
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -94,6 +94,14 @@ const SesionTerapeuticaDetalle = () => {
   const [addPatientDialog, setAddPatientDialog] = useState({ open: false });
   const [pacientesDisponibles, setPacientesDisponibles] = useState([]);
   const [newPatientId, setNewPatientId] = useState('');
+  const [searchPatientTerm, setSearchPatientTerm] = useState('');
+  const [pacientesRetirados, setPacientesRetirados] = useState([]);
+  const [showRetirados, setShowRetirados] = useState(false);
+  const [reincorporarDialog, setReincorporarDialog] = useState({
+    open: false,
+    pacienteId: null,
+    pacienteNombre: ''
+  });
 
   useEffect(() => {
     if (id) {
@@ -113,7 +121,9 @@ const SesionTerapeuticaDetalle = () => {
 
       setSesion(sessionRes.data);
       setCronograma(cronogramaRes.data || []);
-      setPacientes(pacientesRes.data || []);
+      const pacientesData = pacientesRes.data || [];
+      console.log('Pacientes recibidos:', pacientesData);
+      setPacientes(pacientesData);
       setAsistencias(asistenciasRes.data || []);
     } catch (err) {
       const errorMessage = sesionTerapiaService.handleError(err);
@@ -298,6 +308,49 @@ const SesionTerapeuticaDetalle = () => {
       });
       setPacientesDisponibles([]);
     }
+  };
+
+  const fetchPacientesRetirados = async () => {
+    try {
+      const response = await sesionTerapiaService.getPacientesRetirados(id);
+      const retiradosData = response.data?.data || response.data || [];
+      setPacientesRetirados(retiradosData);
+    } catch (error) {
+      console.error('Error fetching retired patients:', error);
+    }
+  };
+
+  const handleOpenReincorporarDialog = (pacienteId, pacienteNombre) => {
+    setReincorporarDialog({
+      open: true,
+      pacienteId,
+      pacienteNombre
+    });
+  };
+
+  const handleConfirmReincorporar = async () => {
+    try {
+      await sesionTerapiaService.reincorporarPaciente(id, reincorporarDialog.pacienteId);
+      setSnackbar({
+        open: true,
+        message: `${reincorporarDialog.pacienteNombre} ha sido reincorporado a la sesión`,
+        severity: 'success'
+      });
+      await fetchSessionData();
+      await fetchPacientesRetirados();
+      setReincorporarDialog({ open: false, pacienteId: null, pacienteNombre: '' });
+    } catch (error) {
+      const errorMessage = sesionTerapiaService.handleError(error);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      setReincorporarDialog({ open: false, pacienteId: null, pacienteNombre: '' });
+    }
+  };
+
+  const handleToggleRetirados = async () => {
+    if (!showRetirados) {
+      await fetchPacientesRetirados();
+    }
+    setShowRetirados(!showRetirados);
   };
 
   if (!sesion) {
@@ -620,35 +673,70 @@ const SesionTerapeuticaDetalle = () => {
           <CardContent sx={{ p: { xs: 2, md: 3 } }}>
             <List>
               {pacientes.map((paciente) => {
-                const pacienteId = paciente.id || paciente.paciente_id;
-                const pacienteNombre = paciente.paciente_nombre || paciente.nombre_completo;
-                
+                const pacienteId = paciente.paciente?.id || paciente.paciente_id || paciente.id;
+                const pacienteNombre = paciente.paciente?.nombre || paciente.paciente_nombre || paciente.nombre_completo || `${paciente.nombre || ''} ${paciente.apellido || ''}`.trim() || 'Sin nombre';
+                const pacienteCedula = paciente.paciente?.cedula || paciente.paciente_cedula || paciente.cedula || 'No especificada';
+                const isRetirado = paciente.estado === 'retirado';
+
                 return (
-                  <ListItem key={pacienteId} divider>
+                  <ListItem
+                    key={pacienteId}
+                    divider
+                    sx={{
+                      opacity: isRetirado ? 0.6 : 1,
+                      backgroundColor: isRetirado ? 'action.hover' : 'transparent'
+                    }}
+                  >
                     <ListItemAvatar>
-                      <Avatar sx={{ backgroundColor: theme.palette.primary.main }}>
+                      <Avatar sx={{ backgroundColor: isRetirado ? theme.palette.warning.main : theme.palette.primary.main }}>
                         <Person />
                       </Avatar>
                     </ListItemAvatar>
                     <ListItemText
                       primary={pacienteNombre}
-                      secondary={`Cédula: ${paciente.paciente_cedula || paciente.cedula} • Incorporado: ${formatDateLocal(paciente.fecha_incorporacion)}`}
+                      secondary={
+                        <>
+                          {`Cédula: ${pacienteCedula} • Incorporado: ${formatDateLocal(paciente.fecha_incorporacion || paciente.fecha_inscripcion)}`}
+                          {isRetirado && (
+                            <Chip
+                              label="Retirado"
+                              size="small"
+                              color="warning"
+                              sx={{ ml: 1, height: 20 }}
+                            />
+                          )}
+                        </>
+                      }
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Chip
-                        label={paciente.estado}
-                        color={paciente.estado === 'activo' ? 'success' : 'default'}
-                        size="small"
-                      />
-                      <Tooltip title="Remover paciente de la sesión">
-                        <IconButton
+                      {!isRetirado && (
+                        <Chip
+                          label={paciente.estado}
+                          color="success"
                           size="small"
-                          color="error"
-                          onClick={() => handleRemovePatient(pacienteId, pacienteNombre)}
-                        >
-                          <PersonRemove fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                        />
+                      )}
+                      {isRetirado ? (
+                        <Tooltip title="Reincorporar paciente a la sesión">
+                          <IconButton
+                            size="small"
+                            color="success"
+                            onClick={() => handleOpenReincorporarDialog(pacienteId, pacienteNombre)}
+                          >
+                            <PersonAdd fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      ) : (
+                        <Tooltip title="Remover paciente de la sesión">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleRemovePatient(pacienteId, pacienteNombre)}
+                          >
+                            <PersonRemove fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </Box>
                   </ListItem>
                 );
@@ -728,46 +816,126 @@ const SesionTerapeuticaDetalle = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add Patient Dialog */}
+      {/* Add Patient Dialog - Diseño mejorado */}
       <Dialog
         open={addPatientDialog.open}
-        onClose={() => setAddPatientDialog({ open: false })}
+        onClose={() => {
+          setAddPatientDialog({ open: false });
+          setNewPatientId('');
+          setSearchPatientTerm('');
+        }}
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle>Agregar Paciente a la Sesión</DialogTitle>
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <PersonAdd sx={{ mr: 2, color: 'success.main' }} />
+            Agregar Paciente a la Sesión
+          </Box>
+        </DialogTitle>
         <DialogContent>
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel shrink>Seleccionar Paciente</InputLabel>
-            <Select
-              sx={{ ...selectStableSX, ...purpleOutlineSX }}
-              value={newPatientId}
-              onChange={(e) => setNewPatientId(e.target.value)}
-              label="Seleccionar Paciente"
-              displayEmpty
-              MenuProps={menuProps}
-              renderValue={(val) => {
-                if (!val) return 'Seleccione un paciente';
-                const p = pacientesDisponibles.find(x => String(x.id) === String(val));
-                return p ? `${p.nombre_completo} - ${p.cedula}` : 'Seleccione un paciente';
+          <Box sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              placeholder="Buscar paciente por nombre o cédula..."
+              value={searchPatientTerm}
+              onChange={(e) => setSearchPatientTerm(e.target.value)}
+              sx={{ ...purpleOutlineSX, mb: 2 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search sx={{ color: 'text.secondary' }} />
+                  </InputAdornment>
+                )
               }}
-            >
-              <MenuItem value="">Seleccione un paciente</MenuItem>
-              {pacientesDisponibles.map((paciente) => (
-                <MenuItem key={paciente.id} value={paciente.id}>
-                  {paciente.nombre_completo} - {paciente.cedula}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+            />
+
+            {pacientesDisponibles.length === 0 ? (
+              <Alert severity="info">
+                No hay pacientes disponibles para agregar.
+              </Alert>
+            ) : (
+              <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
+                {pacientesDisponibles
+                  .filter(p => {
+                    if (!searchPatientTerm) return true;
+                    const term = searchPatientTerm.toLowerCase();
+                    const nombreCompleto = (p.nombre_completo || `${p.nombre} ${p.apellido}`).toLowerCase();
+                    const cedula = (p.cedula || '').toLowerCase();
+                    return nombreCompleto.includes(term) || cedula.includes(term);
+                  })
+                  .length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
+                    No se encontraron pacientes con "{searchPatientTerm}"
+                  </Typography>
+                ) : (
+                  pacientesDisponibles
+                    .filter(p => {
+                      if (!searchPatientTerm) return true;
+                      const term = searchPatientTerm.toLowerCase();
+                      const nombreCompleto = (p.nombre_completo || `${p.nombre} ${p.apellido}`).toLowerCase();
+                      const cedula = (p.cedula || '').toLowerCase();
+                      return nombreCompleto.includes(term) || cedula.includes(term);
+                    })
+                    .map((paciente) => (
+                      <Box
+                        key={paciente.id}
+                        onClick={() => setNewPatientId(paciente.id)}
+                        sx={{
+                          p: 2,
+                          mb: 1,
+                          borderRadius: 2,
+                          cursor: 'pointer',
+                          border: '1px solid',
+                          borderColor: newPatientId === paciente.id ? 'primary.main' : 'divider',
+                          backgroundColor: newPatientId === paciente.id
+                            ? theme.palette.mode === 'dark' ? 'primary.dark' : 'primary.light'
+                            : 'background.paper',
+                          '&:hover': {
+                            backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                            borderColor: 'primary.main'
+                          },
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <Box display="flex" alignItems="center">
+                          <Avatar sx={{ mr: 2, bgcolor: 'primary.main', width: 40, height: 40 }}>
+                            <Person />
+                          </Avatar>
+                          <Box flex={1}>
+                            <Typography variant="body1" fontWeight="medium">
+                              {paciente.nombre_completo || `${paciente.nombre} ${paciente.apellido}`}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Cédula: {paciente.cedula || 'N/A'}
+                            </Typography>
+                          </Box>
+                          {newPatientId === paciente.id && (
+                            <Chip label="Seleccionado" color="primary" size="small" />
+                          )}
+                        </Box>
+                      </Box>
+                    ))
+                )}
+              </Box>
+            )}
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setAddPatientDialog({ open: false })}>
+          <Button
+            onClick={() => {
+              setAddPatientDialog({ open: false });
+              setNewPatientId('');
+              setSearchPatientTerm('');
+            }}
+          >
             Cancelar
           </Button>
-          <Button 
-            onClick={handleAddPatient} 
+          <Button
+            onClick={handleAddPatient}
             variant="contained"
+            disabled={!newPatientId}
+            startIcon={<PersonAdd />}
             sx={{
               backgroundColor: theme.palette.primary.main,
               '&:hover': {
@@ -775,8 +943,44 @@ const SesionTerapeuticaDetalle = () => {
               },
               color: theme.palette.primary.contrastText
             }}
-            >
-            Agregar
+          >
+            Agregar Paciente
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog: Reincorporar Paciente */}
+      <Dialog
+        open={reincorporarDialog.open}
+        onClose={() => setReincorporarDialog({ open: false, pacienteId: null, pacienteNombre: '' })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <PersonAdd sx={{ mr: 2, color: 'success.main' }} />
+            Reincorporar Paciente
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ py: 2 }}>
+            ¿Está seguro de que desea reincorporar a <strong>{reincorporarDialog.pacienteNombre}</strong> a esta sesión?
+          </Typography>
+          <Alert severity="info" sx={{ mt: 2 }}>
+            El paciente volverá a estar activo en la sesión y podrá registrar asistencias.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReincorporarDialog({ open: false, pacienteId: null, pacienteNombre: '' })}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleConfirmReincorporar}
+            variant="contained"
+            color="success"
+            startIcon={<PersonAdd />}
+          >
+            Reincorporar
           </Button>
         </DialogActions>
       </Dialog>

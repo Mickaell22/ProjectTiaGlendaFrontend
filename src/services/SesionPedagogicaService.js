@@ -94,7 +94,7 @@ class SesionPedagogicaService {
   async addEstudianteToSesion(sesionId, estudianteData) {
     try {
       const response = await ApiService.post(
-        API_ENDPOINTS.SESIONES_PEDAGOGICAS.ESTUDIANTES(sesionId),
+        API_ENDPOINTS.SESIONES_PEDAGOGICAS.AGREGAR_ESTUDIANTE(sesionId),
         estudianteData
       );
       return response.data;
@@ -110,11 +110,41 @@ class SesionPedagogicaService {
   async removeEstudianteFromSesion(sesionId, pacienteId) {
     try {
       const response = await ApiService.delete(
-        `${API_ENDPOINTS.SESIONES_PEDAGOGICAS.ESTUDIANTES(sesionId)}/${pacienteId}`
+        API_ENDPOINTS.SESIONES_PEDAGOGICAS.REMOVER_ESTUDIANTE(sesionId, pacienteId)
       );
       return response.data;
     } catch (error) {
       console.error(`Error removing student ${pacienteId} from session ${sesionId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get retired students from pedagogical session
+   */
+  async getEstudiantesRetirados(sesionId) {
+    try {
+      const response = await ApiService.get(
+        API_ENDPOINTS.SESIONES_PEDAGOGICAS.ESTUDIANTES_RETIRADOS(sesionId)
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching retired students from session ${sesionId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reincorporate a retired student to pedagogical session
+   */
+  async reincorporarEstudiante(sesionId, pacienteId) {
+    try {
+      const response = await ApiService.put(
+        API_ENDPOINTS.SESIONES_PEDAGOGICAS.REINCORPORAR_ESTUDIANTE(sesionId, pacienteId)
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error reincorporating student ${pacienteId} to session ${sesionId}:`, error);
       throw error;
     }
   }
@@ -259,6 +289,20 @@ class SesionPedagogicaService {
       return response.data;
     } catch (error) {
       console.error('Error fetching available students:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get available patients (students) for pedagogical sessions
+   * Uses the same endpoint as therapy sessions for consistency
+   */
+  async getPacientesDisponibles() {
+    try {
+      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES_DISPONIBLES);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching available patients:', error);
       throw error;
     }
   }
