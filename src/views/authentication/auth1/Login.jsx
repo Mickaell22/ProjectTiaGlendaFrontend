@@ -15,6 +15,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import PageContainer from 'src/components/container/PageContainer';
 import useAuth from 'src/hooks/useAuth';
+import { useConfig } from 'src/contexts/ConfigContext';
 import ApiService from 'src/services/apiService';
 import { API_ENDPOINTS } from 'src/config/api';
 
@@ -30,6 +31,7 @@ const Login = () => {
   const location = useLocation();
   const [errorMsg, setErrorMsg] = useState('');
   const { login, isAuthenticated } = useAuth();
+  const { initConfig } = useConfig();
 
   // Si ya está autenticado, redirigir al dashboard o la página original
   React.useEffect(() => {
@@ -58,6 +60,8 @@ const Login = () => {
         if (data.status === 'success' && data.data?.token) {
           const loginSuccess = login(data.data.token, data.data.user, data);
           if (loginSuccess) {
+            // Inicializar configuracion despues del login exitoso
+            initConfig();
             const from = location.state?.from?.pathname || '/dashboard';
             navigate(from, { replace: true });
           } else {

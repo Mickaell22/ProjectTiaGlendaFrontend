@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import Router from './routes/Router';
 import { ThemeSettings } from './theme';
 import { AuthProvider } from './contexts/AuthContext';
+import { ConfigProvider } from './contexts/ConfigContext';
 import InactivityWrapper from './components/InactivityWrapper';
 
 function App() {
@@ -16,9 +17,11 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <InactivityWrapper>
-          {routing}
-        </InactivityWrapper>
+        <ConfigProvider>
+          <InactivityWrapper>
+            {routing}
+          </InactivityWrapper>
+        </ConfigProvider>
       </AuthProvider>
     </ThemeProvider>
   );

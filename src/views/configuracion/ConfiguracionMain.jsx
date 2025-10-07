@@ -9,6 +9,7 @@ import {
 // Servicios y hooks
 import useSnackbar from '../../hooks/useSnackbar.js';
 import useAuth from '../../hooks/useAuth.js';
+import { useConfig } from '../../contexts/ConfigContext';
 import ConfiguracionService from '../../services/configuracionService.js';
 
 // Componentes compartidos
@@ -57,6 +58,7 @@ const ConfiguracionMain = () => {
   // Hooks personalizados
   const { snackbar, showSuccess, showError, hideSnackbar } = useSnackbar();
   const { requireAuth } = useAuth();
+  const { refreshConfig } = useConfig();
 
   useEffect(() => {
     if (requireAuth()) {
@@ -112,6 +114,12 @@ const ConfiguracionMain = () => {
           [categoria]: { ...configuraciones[categoria], ...nuevaConfig }
         };
         setConfiguraciones(configActualizada);
+
+        // Si es configuración general, refrescar el contexto global
+        if (categoria === 'general') {
+          await refreshConfig();
+        }
+
         showSuccess(result.message || 'Configuración guardada correctamente');
       } else {
         showError(result.message || 'Error al guardar configuración');

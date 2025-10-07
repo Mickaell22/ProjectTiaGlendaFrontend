@@ -18,9 +18,7 @@ import {
 import {
   Save,
   Business,
-  Language,
-  Schedule,
-  PhotoCamera
+  Schedule
 } from '@mui/icons-material';
 
 const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
@@ -40,42 +38,6 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
     descripcion: '',
     ...configuracion
   });
-
-
-  const formatosFecha = [
-    { value: 'DD/MM/YYYY', label: 'DD/MM/YYYY (31/12/2024)' },
-    { value: 'MM/DD/YYYY', label: 'MM/DD/YYYY (12/31/2024)' },
-    { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD (2024-12-31)' },
-    { value: 'DD-MM-YYYY', label: 'DD-MM-YYYY (31-12-2024)' }
-  ];
-
-  const idiomas = [
-    { value: 'es', label: 'Español' },
-    { value: 'en', label: 'English' },
-    { value: 'pt', label: 'Português' }
-  ];
-
-  const zonasHorarias = [
-    { value: 'America/Guayaquil', label: 'Ecuador (UTC-5)' },
-    { value: 'America/Lima', label: 'Perú (UTC-5)' },
-    { value: 'America/Mexico_City', label: 'México (UTC-6)' },
-    { value: 'America/Bogota', label: 'Colombia (UTC-5)' },
-    { value: 'America/Argentina/Buenos_Aires', label: 'Argentina (UTC-3)' },
-    { value: 'America/Santiago', label: 'Chile (UTC-3)' }
-  ];
-
-  const formatosHora = [
-    { value: '24h', label: '24 horas (14:30)' },
-    { value: '12h', label: '12 horas (2:30 PM)' }
-  ];
-
-  const monedas = [
-    { value: 'USD', label: 'Dólares (USD)' },
-    { value: 'EUR', label: 'Euros (€)' },
-    { value: 'PEN', label: 'Soles Peruanos (S/)' },
-    { value: 'MXN', label: 'Pesos Mexicanos ($)' },
-    { value: 'COP', label: 'Pesos Colombianos ($)' }
-  ];
 
   useEffect(() => {
     setFormData(prev => ({ ...prev, ...configuracion }));
@@ -98,12 +60,12 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
   return (
     <Box sx={{ p: 3 }}>
       {/* Header mejorado */}
-      <Card sx={{ 
+      <Card sx={{
         borderRadius: 3,
-        mb: 4, 
-        backgroundColor: 'primary.main', 
-        color: 'White',
-        boxShadow: '0 8px 32px rgba(25, 118, 210, 0.3)'
+        mb: 4,
+        backgroundColor: 'primary.main',
+        color: 'white',
+        boxShadow: 3
       }}>
         <CardContent sx={{ py: 3 }}>
           <Box display="flex" alignItems="center" justifyContent="center" textAlign="center">
@@ -134,13 +96,13 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
       <Grid container spacing={4}>
 
         {/* Información del Centro */}
-        <Grid item xs={12} lg={8}>
-          <Card sx={{ 
+        <Grid item xs={12}>
+          <Card sx={{
             height: 'fit-content',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            boxShadow: 2,
             transition: 'all 0.3s ease',
-            '&:hover': { 
-              boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+            '&:hover': {
+              boxShadow: 4,
               transform: 'translateY(-2px)'
             }
           }}>
@@ -263,174 +225,22 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
           </Card>
         </Grid>
 
-        {/* Configuraciones Regionales */}
-        <Grid item xs={12} lg={4}>
-          <Card sx={{ 
-            height: 'fit-content',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-            transition: 'all 0.3s ease',
-            '&:hover': { 
-              boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
-              transform: 'translateY(-2px)'
-            }
-          }}>
-            <CardContent sx={{ p: 3 }}>
-              <Box display="flex" alignItems="center" mb={3}>
-                <Box sx={{ 
-                  p: 1.5, 
-                  borderRadius: '12px', 
-                  background: 'linear-gradient(45deg, #4caf50, #81c784)',
-                  mr: 2
-                }}>
-                  <Language sx={{ color: 'white', fontSize: 24 }} />
-                </Box>
-                <Box>
-                  <Typography variant="h6" fontWeight="bold" color="primary">
-                    Configuración Regional
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Formatos y localización
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Formato de Fecha"
-                    name="formatoFecha"
-                    value={formData.formatoFecha}
-                    onChange={handleChange}
-                    variant="outlined"
-                  >
-                    {formatosFecha.map((formato) => (
-                      <MenuItem key={formato.value} value={formato.value}>
-                        {formato.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Formato de Hora"
-                    name="formatoHora"
-                    value={formData.formatoHora}
-                    onChange={handleChange}
-                    variant="outlined"
-                  >
-                    {formatosHora.map((formato) => (
-                      <MenuItem key={formato.value} value={formato.value}>
-                        {formato.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Idioma del Sistema"
-                    name="idioma"
-                    value={formData.idioma}
-                    onChange={handleChange}
-                    variant="outlined"
-                  >
-                    {idiomas.map((idioma) => (
-                      <MenuItem key={idioma.value} value={idioma.value}>
-                        {idioma.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Zona Horaria"
-                    name="zonaHoraria"
-                    value={formData.zonaHoraria}
-                    onChange={handleChange}
-                    variant="outlined"
-                  >
-                    {zonasHorarias.map((zona) => (
-                      <MenuItem key={zona.value} value={zona.value}>
-                        {zona.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Moneda"
-                    name="moneda"
-                    value={formData.moneda}
-                    onChange={handleChange}
-                    variant="outlined"
-                  >
-                    {monedas.map((moneda) => (
-                      <MenuItem key={moneda.value} value={moneda.value}>
-                        {moneda.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                {/* Preview de configuración */}
-                <Grid item xs={12}>
-                  <Box sx={{ 
-                    p: 2, 
-                    backgroundColor: '#f8f9fa', 
-                    borderRadius: 2, 
-                    border: '1px solid #e9ecef' 
-                  }}>
-                    <Typography variant="body2" fontWeight="bold" color="text.secondary" gutterBottom>
-                      Vista Previa:
-                    </Typography>
-                    <Typography variant="body2" color="black">
-                      • Fecha: <strong>{formData.formatoFecha}</strong>
-                    </Typography>
-                    <Typography variant="body2" color="black">
-                      • Hora: <strong>{formData.formatoHora}</strong>
-                    </Typography>
-                    <Typography variant="body2" color="black">
-                      • Moneda: <strong>{formData.moneda}</strong>
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-
         {/* Botón centrado y espacioso */}
         <Grid item xs={12}>
           <Box sx={{ textAlign: 'center', mt: 4 }}>
-            <Button 
-              variant="contained" 
-              onClick={handleSubmit} 
+            <Button
+              variant="contained"
+              onClick={handleSubmit}
               startIcon={<Save />}
               size="large"
-              sx={{ 
-                backgroundColor: 'primary.main',
-                color: 'white',
+              sx={{
                 fontWeight: 'bold',
                 px: 6,
                 py: 1.5,
                 borderRadius: 3,
-                boxShadow: '0 4px 20px rgba(25, 118, 210, 0.3)',
-                '&:hover': { 
-                  backgroundColor: 'primary.dark',
-                  boxShadow: '0 6px 25px rgba(25, 118, 210, 0.4)',
+                boxShadow: 3,
+                '&:hover': {
+                  boxShadow: 4,
                   transform: 'translateY(-1px)'
                 }
               }}
@@ -445,19 +255,21 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
 
         {/* Panel informativo mejorado */}
         <Grid item xs={12}>
-          <Card sx={{ 
-            background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)', 
-            border: 'primary.main',
+          <Card sx={{
+            backgroundColor: 'primary.light',
+            borderColor: 'primary.main',
+            borderWidth: 1,
+            borderStyle: 'solid',
             mt: 2
           }}>
             <CardContent sx={{ p: 3 }}>
               <Box display="flex" alignItems="center" mb={2}>
-                <Schedule sx={{ mr: 2, color: '#1976d2' }} />
+                <Schedule sx={{ mr: 2, color: 'primary.main' }} />
                 <Typography variant="h6" color="primary.main" fontWeight="bold">
                   Información de Horarios
                 </Typography>
               </Box>
-              
+
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <Box sx={{ textAlign: 'center', p: 2 }}>
@@ -471,13 +283,11 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <Typography variant="body2" color="primary.main" gutterBottom>
-                    <strong>📋 Aplica para:</strong>
+                    <strong>Aplica para:</strong>
                   </Typography>
-                  <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }} color="black">
+                  <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }} color="text.primary">
                     <li>Sesiones terapéuticas</li>
                     <li>Clases pedagógicas</li>
-                    <li>Disponibilidad del personal</li>
-                    <li>Reportes y estadísticas</li>
                   </Typography>
                 </Grid>
               </Grid>

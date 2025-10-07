@@ -23,6 +23,7 @@ import {
 import { Add, School } from '@mui/icons-material';
 import { useUserRole } from 'src/hooks/useUserRole';
 import useAuth from '../../hooks/useAuth.js';
+import { useConfig } from '../../contexts/ConfigContext';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 import PedagogoSelector from '../../components/shared/PedagogoSelector.jsx';
 import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
@@ -86,6 +87,7 @@ const CrearSesionPedagogica = () => {
   const theme = useTheme();
   const { isAdmin } = useUserRole();
   const { user } = useAuth();
+  const { config } = useConfig();
   const [estudiantesDisponibles, setEstudiantesDisponibles] = useState([]);
   const [pedagogosDisponibles, setPedagogosDisponibles] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
@@ -233,11 +235,13 @@ const CrearSesionPedagogica = () => {
     if (!formData.hora_inicio) {
       newErrors.hora_inicio = 'Hora de inicio requerida';
     } else {
-      // Validar horario laboral (7 AM - 5 PM)
+      // Validar horario laboral usando configuracion
+      const [horaInicio] = (config.horarioInicio || '08:00').split(':').map(Number);
+      const [horaFin] = (config.horarioFin || '17:00').split(':').map(Number);
       const [hora, minuto] = formData.hora_inicio.split(':').map(Number);
       const horaDecimal = hora + minuto / 60;
-      if (horaDecimal < 7 || horaDecimal > 17) {
-        newErrors.hora_inicio = 'La hora debe estar entre 7:00 AM y 5:00 PM';
+      if (horaDecimal < horaInicio || horaDecimal > horaFin) {
+        newErrors.hora_inicio = `La hora debe estar entre ${config.horarioInicio} y ${config.horarioFin}`;
       }
     }
     if (!formData.numero_clases_programadas || formData.numero_clases_programadas < 1) {
@@ -544,26 +548,30 @@ const CrearSesionPedagogica = () => {
                       <MenuItem value="">
                         <em>Seleccionar horario</em>
                       </MenuItem>
-                      {/* Horario laboral de 7 AM a 5 PM */}
-                      {Array.from({ length: 21 }, (_, i) => {
-                        const hour = Math.floor(7 + i / 2); // 7, 7, 8, 8, 9...
-                        const minute = (i % 2) * 30; // 0, 30, 0, 30...
-                        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-                        const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-                        const finalDisplay = `${displayHour}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
-                        
-                        // Solo mostrar hasta 5:00 PM
-                        if (hour > 17 || (hour === 17 && minute > 0)) return null;
-                        
-                        return (
-                          <MenuItem key={`time-${i}-${timeString}`} value={timeString}>
-                            {finalDisplay}
-                          </MenuItem>
-                        );
-                      }).filter(Boolean)}
+                      {(() => {
+                        const [startHour] = (config.horarioInicio || '08:00').split(':').map(Number);
+                        const [endHour] = (config.horarioFin || '17:00').split(':').map(Number);
+                        const totalSlots = (endHour - startHour) * 2 + 1;
+
+                        return Array.from({ length: totalSlots }, (_, i) => {
+                          const hour = Math.floor(startHour + i / 2);
+                          const minute = (i % 2) * 30;
+                          const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                          const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+                          const finalDisplay = `${displayHour}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
+
+                          if (hour > endHour || (hour === endHour && minute > 0)) return null;
+
+                          return (
+                            <MenuItem key={`time-${i}-${timeString}`} value={timeString}>
+                              {finalDisplay}
+                            </MenuItem>
+                          );
+                        }).filter(Boolean);
+                      })()}
                     </Select>
                     <FormHelperText>
-                      {errors.hora_inicio || 'Horario laboral: 7:00 AM - 5:00 PM'}
+                      {errors.hora_inicio || `Horario laboral: ${config.horarioInicio || '08:00'} - ${config.horarioFin || '17:00'}`}
                     </FormHelperText>
                   </FormControl>
                 </Grid>
