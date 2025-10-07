@@ -12,7 +12,7 @@ import {
   ArrowBack, Person, Schedule, Group, Assignment, CalendarMonth,
   CheckCircle, Cancel, Edit, Add, Refresh, AccessTime,
   EventAvailable, EventBusy, Psychology, Today, Delete, PersonRemove,
-  Close, Search, PersonAdd
+  Close, Search, PersonAdd, Visibility
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -82,6 +82,8 @@ const SesionTerapeuticaDetalle = () => {
   const [pacientes, setPacientes] = useState([]);
   const [asistencias, setAsistencias] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingAsistencias, setLoadingAsistencias] = useState(false);
+  const [asistenciasLoaded, setAsistenciasLoaded] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   // Dialogs state
@@ -91,6 +93,7 @@ const SesionTerapeuticaDetalle = () => {
     pacienteId: null,
     data: null
   });
+  const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
   const [addPatientDialog, setAddPatientDialog] = useState({ open: false });
   const [pacientesDisponibles, setPacientesDisponibles] = useState([]);
   const [newPatientId, setNewPatientId] = useState('');
@@ -112,24 +115,36 @@ const SesionTerapeuticaDetalle = () => {
   const fetchSessionData = async () => {
     setLoading(true);
     try {
-      const [sessionRes, cronogramaRes, pacientesRes, asistenciasRes] = await Promise.all([
+      const [sessionRes, cronogramaRes, pacientesRes] = await Promise.all([
         sesionTerapiaService.getSesionById(id),
         sesionTerapiaService.getCronograma(id),
-        sesionTerapiaService.getPacientesSesion(id),
-        sesionTerapiaService.getAsistenciasSession(id)
+        sesionTerapiaService.getPacientesSesion(id)
       ]);
 
       setSesion(sessionRes.data);
       setCronograma(cronogramaRes.data || []);
       const pacientesData = pacientesRes.data || [];
-      console.log('Pacientes recibidos:', pacientesData);
       setPacientes(pacientesData);
-      setAsistencias(asistenciasRes.data || []);
     } catch (err) {
       const errorMessage = sesionTerapiaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAsistencias = async () => {
+    if (asistenciasLoaded) return;
+
+    setLoadingAsistencias(true);
+    try {
+      const asistenciasRes = await sesionTerapiaService.getAsistenciasSession(id);
+      setAsistencias(asistenciasRes.data || []);
+      setAsistenciasLoaded(true);
+    } catch (err) {
+      setAsistencias([]);
+    } finally {
+      setLoadingAsistencias(false);
     }
   };
 
@@ -149,6 +164,14 @@ const SesionTerapeuticaDetalle = () => {
     if (sesionCronograma.estado_actual === 'vencida') return <EventBusy />;
     if (sesionCronograma.estado_actual === 'hoy') return <Today />;
     return <Schedule />;
+  };
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+    // Si cambió a la pestaña de asistencias (índice 3) y aún no se han cargado
+    if (newValue === 3 && !asistenciasLoaded) {
+      fetchAsistencias();
+    }
   };
 
   const formatDate = (dateString) => {
@@ -419,7 +442,7 @@ const SesionTerapeuticaDetalle = () => {
         <CardContent sx={{ p: { xs: 2, md: 3 } }}>
           <Tabs
             value={tabValue}
-            onChange={(e, newValue) => setTabValue(newValue)}
+            onChange={handleTabChange}
             aria-label="Pestañas de detalle de sesión"
             variant="scrollable"
             scrollButtons="auto"
@@ -445,65 +468,166 @@ const SesionTerapeuticaDetalle = () => {
       {/* ===== Tab Panels ===== */}
       <TabPanel value={tabValue} index={0}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" color="primary" mb={2}>
+          <Grid item xs={12}>
+            <Card elevation={4} sx={{ borderRadius: 3 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" color="primary" mb={3} fontWeight="bold">
                   Información General
                 </Typography>
-                <Box sx={{ '& > *': { mb: 1 } }}>
-                  <Typography><strong>Código:</strong> {sesion.codigo_sesion}</Typography>
-                  <Typography><strong>Título:</strong> {sesion.titulo}</Typography>
-                  <Typography><strong>Tipo:</strong> {sesion.tipo_sesion || 'Individual'}</Typography>
-                  <Typography><strong>Estado:</strong> {sesion.estado}</Typography>
-                  <Typography><strong>Duración:</strong> {sesion.duracion_minutos} minutos</Typography>
-                  <Typography><strong>Creada:</strong> {formatDate(sesion.fecha_creacion)}</Typography>
-                </Box>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Código de Sesión
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {sesion.codigo_sesion}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Título
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {sesion.titulo}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Tipo de Sesión
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {sesion.tipo_sesion || 'Individual'}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Estado
+                      </Typography>
+                      <Chip
+                        label={sesion.estado}
+                        color={sesion.estado === 'activo' ? 'success' : 'default'}
+                        size="small"
+                      />
+                    </Box>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Duración
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {sesion.duracion_minutos} minutos
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Fecha de Creación
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {formatDate(sesion.fecha_creacion)}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
               </CardContent>
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" color="primary" mb={2}>
+          <Grid item xs={12}>
+            <Card elevation={4} sx={{ borderRadius: 3 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" color="primary" mb={3} fontWeight="bold">
                   Programación
                 </Typography>
-                <Box sx={{ '& > *': { mb: 1 } }}>
-                  <Typography><strong>Período:</strong> {formatDate(sesion.fecha_inicio)} - {formatDate(sesion.fecha_fin)}</Typography>
-                  <Typography><strong>Días:</strong> {sesion.dias_semana?.join(', ')}</Typography>
-                  <Typography><strong>Hora:</strong> {sesion.hora_inicio}</Typography>
-                  <Typography><strong>Sesiones contratadas:</strong> {sesion.numero_sesiones_contratadas}</Typography>
-                </Box>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Período
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {formatDate(sesion.fecha_inicio)} - {formatDate(sesion.fecha_fin)}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Días de la Semana
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                        {sesion.dias_semana?.map((dia, idx) => (
+                          <Chip key={idx} label={dia} size="small" color="primary" variant="outlined" />
+                        ))}
+                      </Box>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Hora de Inicio
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {sesion.hora_inicio}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Sesiones Contratadas
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {sesion.numero_sesiones_contratadas}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
               </CardContent>
             </Card>
           </Grid>
 
           {sesion.objetivo_general && (
             <Grid item xs={12}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" color="primary" mb={2}>
+              <Card elevation={4} sx={{ borderRadius: 3 }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" color="primary" mb={2} fontWeight="bold">
                     Objetivo General
                   </Typography>
-                  <Box sx={{ p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
-                    <Typography variant="body2">{sesion.objetivo_general}</Typography>
-                  </Box>
+                  <Paper sx={{ p: 2.5, backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 2 }}>
+                    <Typography variant="body1">{sesion.objetivo_general}</Typography>
+                  </Paper>
                 </CardContent>
               </Card>
             </Grid>
           )}
 
-          <Grid item xs={12} md={6}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" color="primary" mb={2}>
+          <Grid item xs={12} md={isAdmin ? 6 : 12}>
+            <Card elevation={4} sx={{ borderRadius: 3 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" color="primary" mb={3} fontWeight="bold">
                   Terapeuta y Especialidad
                 </Typography>
-                <Box sx={{ '& > *': { mb: 1 } }}>
-                  <Typography><strong>Terapeuta:</strong> {sesion.terapeuta?.nombre}</Typography>
-                  <Typography><strong>Especialidad:</strong> {sesion.especialidad?.nombre}</Typography>
-                  <Typography><strong>Área:</strong> {sesion.especialidad?.area}</Typography>
+                <Box sx={{ mb: 2.5 }}>
+                  <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                    Terapeuta
+                  </Typography>
+                  <Typography variant="body1" fontWeight="medium">
+                    {sesion.terapeuta?.nombre}
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 2.5 }}>
+                  <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                    Especialidad
+                  </Typography>
+                  <Typography variant="body1" fontWeight="medium">
+                    {sesion.especialidad?.nombre}
+                  </Typography>
+                </Box>
+                <Box sx={{ mb: 0 }}>
+                  <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                    Área
+                  </Typography>
+                  <Typography variant="body1" fontWeight="medium">
+                    {sesion.especialidad?.area}
+                  </Typography>
                 </Box>
               </CardContent>
             </Card>
@@ -511,15 +635,34 @@ const SesionTerapeuticaDetalle = () => {
 
           {isAdmin && (
             <Grid item xs={12} md={6}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" color="primary" mb={2}>
+              <Card elevation={4} sx={{ borderRadius: 3 }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" color="primary" mb={3} fontWeight="bold">
                     Información Financiera
                   </Typography>
-                  <Box sx={{ '& > *': { mb: 1 } }}>
-                    <Typography><strong>Costo total:</strong> ${sesion.costo_total}</Typography>
-                    <Typography><strong>Costo por sesión:</strong> ${sesion.costo_por_sesion}</Typography>
-                    <Typography><strong>Meses de contrato:</strong> {sesion.meses_contrato}</Typography>
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                      Costo Total
+                    </Typography>
+                    <Typography variant="body1" fontWeight="medium" color="success.main">
+                      ${sesion.costo_total}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ mb: 2.5 }}>
+                    <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                      Costo por Sesión
+                    </Typography>
+                    <Typography variant="body1" fontWeight="medium">
+                      ${sesion.costo_por_sesion}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ mb: 0 }}>
+                    <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                      Meses de Contrato
+                    </Typography>
+                    <Typography variant="body1" fontWeight="medium">
+                      {sesion.meses_contrato}
+                    </Typography>
                   </Box>
                 </CardContent>
               </Card>
@@ -528,14 +671,14 @@ const SesionTerapeuticaDetalle = () => {
 
           {sesion.observaciones && (
             <Grid item xs={12}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" color="primary" mb={2}>
+              <Card elevation={4} sx={{ borderRadius: 3 }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" color="primary" mb={2} fontWeight="bold">
                     Observaciones
                   </Typography>
-                  <Box sx={{ p: 2, backgroundColor: 'grey.50', borderRadius: 1 }}>
-                    <Typography variant="body2">{sesion.observaciones}</Typography>
-                  </Box>
+                  <Paper sx={{ p: 2.5, backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 2 }}>
+                    <Typography variant="body1">{sesion.observaciones}</Typography>
+                  </Paper>
                 </CardContent>
               </Card>
             </Grid>
@@ -583,7 +726,6 @@ const SesionTerapeuticaDetalle = () => {
                     <TableCell>Hora</TableCell>
                     <TableCell>Estado</TableCell>
                     <TableCell>Observaciones</TableCell>
-                    <TableCell>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -606,22 +748,6 @@ const SesionTerapeuticaDetalle = () => {
                           item.observaciones_asistencias ||
                           item.notas_progreso_sesion ||
                           '-'}
-                      </TableCell>
-                      <TableCell>
-                        <Tooltip title="Registrar asistencia">
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() => setAttendanceDialog({
-                              open: true,
-                              cronogramaId: item.id,
-                              pacienteId: null,
-                              data: item
-                            })}
-                          >
-                            <Assignment />
-                          </IconButton>
-                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -762,39 +888,93 @@ const SesionTerapeuticaDetalle = () => {
           </Box>
 
           <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-            <Box sx={{ width: '100%', overflowX: 'auto' }}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Fecha</TableCell>
-                    <TableCell>Paciente</TableCell>
-                    <TableCell>Asistió</TableCell>
-                    <TableCell>Tardanza</TableCell>
-                    <TableCell>Notas</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {asistencias.map((asistencia) => (
-                    <TableRow key={`${asistencia.cronograma_sesion_id}_${asistencia.paciente_id}`}>
-                      <TableCell>{formatDate(asistencia.fecha_programada)}</TableCell>
-                      <TableCell>{asistencia.paciente_nombre}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={asistencia.asistio ? 'Sí' : 'No'}
-                          color={asistencia.asistio ? 'success' : 'error'}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {asistencia.llegada_tardanza_minutos > 0 ?
-                          `${asistencia.llegada_tardanza_minutos} min` : '-'}
-                      </TableCell>
-                      <TableCell>{asistencia.notas_progreso || '-'}</TableCell>
+            {loadingAsistencias ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Cargando asistencias...
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ width: '100%', overflowX: 'auto' }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Fecha</TableCell>
+                      <TableCell>Paciente</TableCell>
+                      <TableCell>Asistió</TableCell>
+                      <TableCell>Tardanza</TableCell>
+                      <TableCell>Observaciones</TableCell>
+                      <TableCell>Acciones</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
+                  </TableHead>
+                  <TableBody>
+                    {asistencias.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center">
+                          <Typography variant="body2" color="text.secondary" py={3}>
+                            No hay registros de asistencia disponibles
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      asistencias.map((asistencia, index) => (
+                        <TableRow key={`${asistencia.cronograma_sesion_id}_${asistencia.paciente_id}_${index}`}>
+                          <TableCell>{formatDate(asistencia.fecha_programada)}</TableCell>
+                          <TableCell>
+                            <Box display="flex" alignItems="center">
+                              <Avatar sx={{ mr: 2, bgcolor: 'primary.main', width: 32, height: 32 }}>
+                                <Person fontSize="small" />
+                              </Avatar>
+                              <Box>
+                                <Typography variant="body2" fontWeight="medium">
+                                  {asistencia.paciente_nombre}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {asistencia.paciente_cedula || 'N/A'}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={asistencia.asistio ? 'Asistió' : 'No Asistió'}
+                              color={asistencia.asistio ? 'success' : 'error'}
+                              size="small"
+                              icon={asistencia.asistio ? <CheckCircle /> : <Cancel />}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {asistencia.llegada_tardanza_minutos > 0 ? (
+                              <Typography variant="body2" color="warning.main">
+                                {asistencia.llegada_tardanza_minutos} min
+                              </Typography>
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">-</Typography>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" noWrap title={asistencia.observaciones_terapeuta || asistencia.notas_progreso || '-'}>
+                              {asistencia.observaciones_terapeuta || asistencia.notas_progreso || '-'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Tooltip title="Ver más detalles">
+                              <IconButton
+                                size="small"
+                                color="info"
+                                onClick={() => setDetailDialog({ open: true, data: asistencia })}
+                              >
+                                <Visibility fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </Box>
+            )}
           </CardContent>
         </Card>
       </TabPanel>
@@ -982,6 +1162,108 @@ const SesionTerapeuticaDetalle = () => {
           >
             Reincorporar
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog de detalles de asistencia */}
+      <Dialog
+        open={detailDialog.open}
+        onClose={() => setDetailDialog({ open: false, data: null })}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <Assignment sx={{ mr: 2, color: 'primary.main' }} />
+            Detalles de Asistencia
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {detailDialog.data && (
+            <Grid container spacing={3} sx={{ mt: 1 }}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="primary" mb={1}>Información del Paciente</Typography>
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="body2"><strong>Nombre:</strong> {detailDialog.data.paciente_nombre}</Typography>
+                </Box>
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="body2"><strong>Cédula:</strong> {detailDialog.data.paciente_cedula || 'N/A'}</Typography>
+                </Box>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="primary" mb={1}>Información de Asistencia</Typography>
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="body2" display="flex" alignItems="center">
+                    <strong>Estado:</strong>
+                    <Chip
+                      label={detailDialog.data.asistio ? 'Asistió' : 'No Asistió'}
+                      color={detailDialog.data.asistio ? 'success' : 'error'}
+                      size="small"
+                      sx={{ ml: 1 }}
+                      icon={detailDialog.data.asistio ? <CheckCircle /> : <Cancel />}
+                    />
+                  </Typography>
+                </Box>
+                {detailDialog.data.llegada_tardanza_minutos > 0 && (
+                  <Box sx={{ mb: 1 }}>
+                    <Typography variant="body2"><strong>Tardanza:</strong> {detailDialog.data.llegada_tardanza_minutos} minutos</Typography>
+                  </Box>
+                )}
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="body2"><strong>Fecha:</strong> {formatDate(detailDialog.data.fecha_programada)}</Typography>
+                </Box>
+              </Grid>
+
+              {detailDialog.data.observaciones_terapeuta && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary" mb={1}>Observaciones del Terapeuta</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 2 }}>
+                    <Typography variant="body2">{detailDialog.data.observaciones_terapeuta}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {detailDialog.data.progreso_observado && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary" mb={1}>Progreso Observado</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'success.dark' : 'success.50', border: '1px solid', borderColor: 'success.200', borderRadius: 2 }}>
+                    <Typography variant="body2">{detailDialog.data.progreso_observado}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {detailDialog.data.tareas_asignadas && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary" mb={1}>Tareas Asignadas</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'info.dark' : 'info.50', border: '1px solid', borderColor: 'info.200', borderRadius: 2 }}>
+                    <Typography variant="body2">{detailDialog.data.tareas_asignadas}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {detailDialog.data.objetivos_trabajados && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary" mb={1}>Objetivos Trabajados</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'warning.dark' : 'warning.50', border: '1px solid', borderColor: 'warning.200', borderRadius: 2 }}>
+                    <Typography variant="body2">{detailDialog.data.objetivos_trabajados}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {detailDialog.data.notas_progreso && !detailDialog.data.progreso_observado && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary" mb={1}>Notas de Progreso</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 2 }}>
+                    <Typography variant="body2">{detailDialog.data.notas_progreso}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetailDialog({ open: false, data: null })}>Cerrar</Button>
         </DialogActions>
       </Dialog>
 

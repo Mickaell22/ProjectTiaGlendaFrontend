@@ -11,7 +11,8 @@ import {
 import {
   ArrowBack, Person, Schedule, Group, Assignment, CalendarMonth,
   CheckCircle, Cancel, Edit, Add, Refresh, AccessTime,
-  EventAvailable, EventBusy, School, Today, Delete, PersonRemove, Search, PersonAdd
+  EventAvailable, EventBusy, School, Today, Delete, PersonRemove, Search, PersonAdd,
+  Visibility, Info
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -79,6 +80,8 @@ const SesionPedagogicaDetalle = () => {
   const [estudiantes, setEstudiantes] = useState([]);
   const [asistencias, setAsistencias] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingAsistencias, setLoadingAsistencias] = useState(false);
+  const [asistenciasLoaded, setAsistenciasLoaded] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   // Dialogs state
@@ -88,7 +91,7 @@ const SesionPedagogicaDetalle = () => {
     estudianteId: null,
     data: null
   });
-
+  const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
   const [addStudentDialog, setAddStudentDialog] = useState({ open: false });
   const [estudiantesDisponibles, setEstudiantesDisponibles] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState('');
@@ -110,6 +113,7 @@ const SesionPedagogicaDetalle = () => {
   const fetchSesionData = async () => {
     setLoading(true);
     try {
+      // Cargar datos principales
       const [sesionRes, cronogramaRes, estudiantesRes] = await Promise.all([
         sesionPedagogicaService.getSesionById(id),
         sesionPedagogicaService.getCronograma(id),
@@ -119,7 +123,6 @@ const SesionPedagogicaDetalle = () => {
       setSesion(sesionRes.data || sesionRes);
       setCronograma(cronogramaRes.data?.data || cronogramaRes.data || []);
       const estudiantesData = estudiantesRes.data?.data || estudiantesRes.data || [];
-      console.log('Estudiantes recibidos:', estudiantesData);
       setEstudiantes(estudiantesData);
 
     } catch (error) {
@@ -127,6 +130,33 @@ const SesionPedagogicaDetalle = () => {
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAsistencias = async () => {
+    if (asistenciasLoaded || cronograma.length === 0) return;
+
+    setLoadingAsistencias(true);
+    try {
+      // Obtener asistencias de todos los cronogramas
+      const asistenciasPromises = cronograma.map(async (cronogramaItem) => {
+        try {
+          const asistenciaRes = await sesionPedagogicaService.getControlAsistencia(cronogramaItem.id);
+          const asistenciaData = asistenciaRes.data?.estudiantes || asistenciaRes.data || [];
+          return asistenciaData;
+        } catch (err) {
+          return [];
+        }
+      });
+
+      const asistenciasResults = await Promise.all(asistenciasPromises);
+      const todasAsistencias = asistenciasResults.flat();
+      setAsistencias(todasAsistencias);
+      setAsistenciasLoaded(true);
+    } catch (asistenciasError) {
+      setAsistencias([]);
+    } finally {
+      setLoadingAsistencias(false);
     }
   };
 
@@ -283,6 +313,14 @@ const SesionPedagogicaDetalle = () => {
     setShowRetirados(!showRetirados);
   };
 
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+    // Si cambió a la pestaña de asistencias (índice 3) y aún no se han cargado
+    if (newValue === 3 && !asistenciasLoaded) {
+      fetchAsistencias();
+    }
+  };
+
   const formatDate = (dateString) => formatDateLocal(dateString);
 
   const formatTime = (timeString) => {
@@ -402,117 +440,181 @@ const SesionPedagogicaDetalle = () => {
           </Box>
         </Box>
 
-        {/* ===== Información básica de la sesión ===== */}
-        <CardContent sx={{ p: 3 }}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                Información General
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography variant="body2">
-                  <strong>Pedagogo:</strong> {sesion.pedagogo_nombre || 'No asignado'}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Modalidad:</strong> {sesion.modalidad || 'Presencial'}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Período Académico:</strong> {sesion.periodo_academico || 'No especificado'}
-                </Typography>
-                <Typography variant="body2" component="div">
-                  <strong>Estado:</strong>
-                  <Chip
-                    label={sesion.estado || 'Programada'}
-                    color={getStatusColor(sesion.estado)}
-                    size="small"
-                    sx={{ ml: 1 }}
-                  />
-                </Typography>
-              </Box>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                Detalles Técnicos
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography variant="body2">
-                  <strong>Clases Totales:</strong> {sesion.numero_clases_programadas || 0}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Clases Completadas:</strong> {cronograma.filter(c => c.estado === 'completada' || c.estado === 'realizada').length}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Estudiantes Inscritos:</strong> {estudiantes.length}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Fecha de Creación:</strong> {sesion.fecha_creacion ? formatDate(sesion.fecha_creacion) : 'No especificada'}
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-
-          {sesion.adaptacion_curricular && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                Adaptación Curricular
-              </Typography>
-              <Paper sx={{ p: 2, backgroundColor: 'transparent', border: '1px solid', borderColor: 'primary.main' }}>
-                <Typography variant="body2">{sesion.adaptacion_curricular}</Typography>
-              </Paper>
-            </Box>
-          )}
-
-          {sesion.observaciones && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom sx={{ color: 'primary.main' }}>
-                Observaciones
-              </Typography>
-              <Paper sx={{ p: 2, backgroundColor: 'transparent', border: '1px solid', borderColor: 'primary.main' }}>
-                <Typography variant="body2">{sesion.observaciones}</Typography>
-              </Paper>
-            </Box>
-          )}
+        {/* Tabs (mantengo lógica, solo estética del contenedor) */}
+        <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+          <Tabs
+            value={tabValue}
+            onChange={handleTabChange}
+            aria-label="Pestañas de detalle de sesión"
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              '& .MuiTabs-flexContainer': { gap: 1 },
+              '& .MuiTab-root': {
+                minHeight: 56,
+                textTransform: 'none',
+                fontWeight: 500,
+                '&.Mui-selected': { fontWeight: 600 }
+              },
+              '& .MuiTabs-indicator': { height: 3, borderRadius: '3px 3px 0 0' }
+            }}
+          >
+            <Tab icon={<Info />} label="Información" {...a11yProps(0)} />
+            <Tab icon={<Group />} label="Estudiantes" {...a11yProps(1)} />
+            <Tab icon={<CalendarMonth />} label="Cronograma" {...a11yProps(2)} />
+            <Tab icon={<Assignment />} label="Asistencias" {...a11yProps(3)} />
+            <Tab icon={<Assignment />} label="Resumen" {...a11yProps(4)} />
+          </Tabs>
         </CardContent>
       </Card>
 
-      {/* ===== Tabs Navigation ===== */}
-      <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden', mb: 3 }}>
-        <Tabs
-          value={tabValue}
-          onChange={(e, newValue) => setTabValue(newValue)}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{
-            '& .MuiTabs-indicator': { backgroundColor: 'primary.main' },
-            '& .MuiTab-root.Mui-selected': { color: 'primary.main' }
-          }}
-        >
-          <Tab
-            label="Estudiantes"
-            icon={<Group />}
-            iconPosition="start"
-            {...a11yProps(0)}
-          />
-          <Tab
-            label="Cronograma"
-            icon={<CalendarMonth />}
-            iconPosition="start"
-            {...a11yProps(1)}
-          />
-          <Tab
-            label="Resumen"
-            icon={<Assignment />}
-            iconPosition="start"
-            {...a11yProps(2)}
-          />
-        </Tabs>
-      </Paper>
-
       {/* ===== Tab Panels ===== */}
 
-      {/* Tab 1: Estudiantes */}
+      {/* Tab 0: Información */}
       <TabPanel value={tabValue} index={0}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card elevation={4} sx={{ borderRadius: 3 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" color="primary" mb={3} fontWeight="bold">
+                  Información General
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Pedagogo Responsable
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {sesion.pedagogo_nombre || 'No asignado'}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Modalidad
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {sesion.modalidad || 'Presencial'}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Período Académico
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {sesion.periodo_academico || 'No especificado'}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Estado
+                      </Typography>
+                      <Chip
+                        label={sesion.estado || 'Programada'}
+                        color={getStatusColor(sesion.estado)}
+                        size="small"
+                      />
+                    </Box>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Clases Programadas
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {sesion.numero_clases_programadas || 0}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Fecha de Creación
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {sesion.fecha_creacion ? formatDate(sesion.fecha_creacion) : 'No especificada'}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card elevation={4} sx={{ borderRadius: 3 }}>
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h6" color="primary" mb={3} fontWeight="bold">
+                  Estadísticas
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={4}>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Clases Totales
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {sesion.numero_clases_programadas || 0}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Clases Completadas
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium" color="success.main">
+                        {cronograma.filter(c => c.estado === 'completada' || c.estado === 'realizada').length}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Box sx={{ mb: 2.5 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
+                        Estudiantes Inscritos
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {estudiantes.length}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {sesion.adaptacion_curricular && (
+            <Grid item xs={12}>
+              <Card elevation={4} sx={{ borderRadius: 3 }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" color="primary" mb={2} fontWeight="bold">
+                    Adaptación Curricular
+                  </Typography>
+                  <Paper sx={{ p: 2.5, backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 2 }}>
+                    <Typography variant="body1">{sesion.adaptacion_curricular}</Typography>
+                  </Paper>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+
+          {sesion.observaciones && (
+            <Grid item xs={12}>
+              <Card elevation={4} sx={{ borderRadius: 3 }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography variant="h6" color="primary" mb={2} fontWeight="bold">
+                    Observaciones
+                  </Typography>
+                  <Paper sx={{ p: 2.5, backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 2 }}>
+                    <Typography variant="body1">{sesion.observaciones}</Typography>
+                  </Paper>
+                </CardContent>
+              </Card>
+            </Grid>
+          )}
+        </Grid>
+      </TabPanel>
+
+      {/* Tab 1: Estudiantes */}
+      <TabPanel value={tabValue} index={1}>
         <Card elevation={3}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -608,7 +710,7 @@ const SesionPedagogicaDetalle = () => {
       </TabPanel>
 
       {/* Tab 2: Cronograma */}
-      <TabPanel value={tabValue} index={1}>
+      <TabPanel value={tabValue} index={2}>
         <Card elevation={3}>
           <CardContent>
             <Typography variant="h6" sx={{ color: 'primary.main' }} gutterBottom>
@@ -664,8 +766,116 @@ const SesionPedagogicaDetalle = () => {
         </Card>
       </TabPanel>
 
-      {/* Tab 3: Resumen */}
-      <TabPanel value={tabValue} index={2}>
+      {/* Tab 3: Asistencias */}
+      <TabPanel value={tabValue} index={3}>
+        <Card
+          elevation={8}
+          sx={{ borderRadius: 4, overflow: 'hidden' }}
+        >
+          <Box
+            sx={{
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+              color: 'white',
+              p: 2.5
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold">Registro de Asistencias</Typography>
+          </Box>
+
+          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+            {loadingAsistencias ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Cargando asistencias...
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{ width: '100%', overflowX: 'auto' }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Fecha</TableCell>
+                      <TableCell>Estudiante</TableCell>
+                      <TableCell>Asistió</TableCell>
+                      <TableCell>Tardanza</TableCell>
+                      <TableCell>Observaciones</TableCell>
+                      <TableCell>Acciones</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {asistencias.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center">
+                          <Typography variant="body2" color="text.secondary" py={3}>
+                            No hay registros de asistencia disponibles
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      asistencias.map((asistencia, index) => (
+                        <TableRow key={`${asistencia.cronograma_clase_id || asistencia.cronograma_id}_${asistencia.estudiante_id || asistencia.paciente_id}_${index}`}>
+                          <TableCell>{formatDate(asistencia.fecha_programada)}</TableCell>
+                          <TableCell>
+                            <Box display="flex" alignItems="center">
+                              <Avatar sx={{ mr: 2, bgcolor: 'primary.main', width: 32, height: 32 }}>
+                                <Person fontSize="small" />
+                              </Avatar>
+                              <Box>
+                                <Typography variant="body2" fontWeight="medium">
+                                  {asistencia.estudiante_nombre}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {asistencia.estudiante_cedula || 'N/A'}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={asistencia.asistio ? 'Asistió' : 'No Asistió'}
+                              color={asistencia.asistio ? 'success' : 'error'}
+                              size="small"
+                              icon={asistencia.asistio ? <CheckCircle /> : <Cancel />}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {asistencia.llegada_tardanza_minutos > 0 ? (
+                              <Typography variant="body2" color="warning.main">
+                                {asistencia.llegada_tardanza_minutos} min
+                              </Typography>
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">-</Typography>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" noWrap title={asistencia.observaciones_educador || asistencia.participacion_clase || '-'}>
+                              {asistencia.observaciones_educador || asistencia.participacion_clase || '-'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Tooltip title="Ver más detalles">
+                              <IconButton
+                                size="small"
+                                color="info"
+                                onClick={() => setDetailDialog({ open: true, data: asistencia })}
+                              >
+                                <Visibility fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      </TabPanel>
+
+      {/* Tab 4: Resumen */}
+      <TabPanel value={tabValue} index={4}>
         <Grid container spacing={3}>
           <Grid item xs={12} md={6}>
             <Card elevation={3}>
@@ -917,6 +1127,105 @@ const SesionPedagogicaDetalle = () => {
           >
             Reincorporar
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog de detalles de asistencia */}
+      <Dialog
+        open={detailDialog.open}
+        onClose={() => setDetailDialog({ open: false, data: null })}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <Assignment sx={{ mr: 2 }} />
+            Detalles de Asistencia de Clase
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {detailDialog.data && (
+            <Grid container spacing={3} sx={{ mt: 1 }}>
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="primary">Información del Estudiante</Typography>
+                <Typography variant="body2"><strong>Nombre:</strong> {detailDialog.data.estudiante_nombre}</Typography>
+                <Typography variant="body2"><strong>Cédula:</strong> {detailDialog.data.estudiante_cedula || 'N/A'}</Typography>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Typography variant="subtitle2" color="primary">Información de Asistencia</Typography>
+                <Box display="flex" alignItems="center">
+                  <Typography variant="body2" component="span"><strong>Estado:</strong></Typography>
+                  <Chip
+                    label={detailDialog.data.asistio ? 'Asistió' : 'No Asistió'}
+                    color={detailDialog.data.asistio ? 'success' : 'error'}
+                    size="small"
+                    sx={{ ml: 1 }}
+                  />
+                </Box>
+                {detailDialog.data.llegada_tardanza_minutos > 0 && (
+                  <Typography variant="body2"><strong>Tardanza:</strong> {detailDialog.data.llegada_tardanza_minutos} minutos</Typography>
+                )}
+              </Grid>
+
+              {(detailDialog.data.calificacion_clase !== null && detailDialog.data.calificacion_clase !== undefined) && (
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" color="primary">Evaluación Académica</Typography>
+                  <Typography variant="body2"><strong>Calificación:</strong> {detailDialog.data.calificacion_clase}/10</Typography>
+                </Grid>
+              )}
+
+              {detailDialog.data.participacion_clase && (
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" color="primary">Participación en Clase</Typography>
+                  <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
+                    {detailDialog.data.participacion_clase}
+                  </Typography>
+                </Grid>
+              )}
+
+              {detailDialog.data.actividades_completadas !== null && detailDialog.data.actividades_completadas !== undefined && (
+                <Grid item xs={12} md={6}>
+                  <Typography variant="subtitle2" color="primary">Actividades Completadas</Typography>
+                  <Chip
+                    label={detailDialog.data.actividades_completadas ? 'Sí' : 'No'}
+                    color={detailDialog.data.actividades_completadas ? 'success' : 'default'}
+                    size="small"
+                  />
+                </Grid>
+              )}
+
+              {detailDialog.data.observaciones_educador && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Observaciones del Educador</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: 'background.paper' }}>
+                    <Typography variant="body2">{detailDialog.data.observaciones_educador}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {detailDialog.data.objetivos_trabajados && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Objetivos Trabajados</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: 'success.light', border: '1px solid', borderColor: 'success.main' }}>
+                    <Typography variant="body2">{detailDialog.data.objetivos_trabajados}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
+              {detailDialog.data.tareas_asignadas && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="primary">Tareas Asignadas</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: 'warning.light', border: '1px solid', borderColor: 'warning.main' }}>
+                    <Typography variant="body2">{detailDialog.data.tareas_asignadas}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDetailDialog({ open: false, data: null })}>Cerrar</Button>
         </DialogActions>
       </Dialog>
 
