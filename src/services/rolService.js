@@ -42,13 +42,32 @@ export class RolService {
       cliente: { label: 'Cliente', color: 'default', icon: 'Person', name: 'cliente' }
     };
 
-    // Buscar por ID primero, luego por nombre
-    const key = rolId || rolNombre?.toLowerCase();
-    return rolMap[key] || { 
-      label: rolNombre || 'Sin rol', 
-      color: 'default', 
-      icon: 'Person', 
-      name: 'unknown' 
+    // Buscar por ID primero
+    if (rolId && rolMap[rolId]) {
+      return rolMap[rolId];
+    }
+
+    // Buscar por nombre si el ID no coincide
+    if (rolNombre) {
+      const nombreLower = rolNombre.toLowerCase();
+      if (rolMap[nombreLower]) {
+        return rolMap[nombreLower];
+      }
+      // Si hay un nombre de rol pero no coincide con el mapeo, usarlo
+      return {
+        label: rolNombre,
+        color: 'default',
+        icon: 'Person',
+        name: nombreLower
+      };
+    }
+
+    // Si no hay ni ID ni nombre válido
+    return {
+      label: 'Sin rol',
+      color: 'warning',
+      icon: 'Person',
+      name: 'unknown'
     };
   }
 }
