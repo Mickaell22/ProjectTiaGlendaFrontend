@@ -13,16 +13,36 @@ import {
   Box,
   Avatar,
   IconButton,
-  Chip
+  Chip,
+  Paper,
+  Container,
+  useTheme,
+  InputAdornment
 } from '@mui/material';
 import {
   Save,
   Business,
-  Schedule
+  Schedule,
+  Phone,
+  Email,
+  LocationOn,
+  AccessTime,
+  CheckCircle,
+  Info
 } from '@mui/icons-material';
+
+// Estilos compartidos para inputs
+const purpleOutlineSX = {
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': { borderColor: 'primary.main' },
+    '&:hover fieldset': { borderColor: 'primary.main' },
+    '&.Mui-focused fieldset': { borderColor: 'primary.main', borderWidth: 2 }
+  }
+};
 
 const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
   const { user } = useAuth();
+  const theme = useTheme();
   const [formData, setFormData] = useState({
     nombreCentro: '',
     direccion: '',
@@ -58,66 +78,86 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Header mejorado */}
-      <Card sx={{
-        borderRadius: 3,
-        mb: 4,
-        backgroundColor: 'primary.main',
-        color: 'white',
-        boxShadow: 3
-      }}>
-        <CardContent sx={{ py: 3 }}>
-          <Box display="flex" alignItems="center" justifyContent="center" textAlign="center">
-            <Business sx={{ mr: 3, fontSize: 48 }} />
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
-                Configuración del Centro
-              </Typography>
-              <Typography variant="h6" sx={{ opacity: 0.9, fontWeight: 300 }}>
-                Administra información básica y configuraciones regionales
-              </Typography>
-              {user?.centro && (
-                <Chip 
-                  label={`${user.centro.nombre} (${user.centro.codigo})`}
-                  sx={{ 
-                    backgroundColor: 'rgba(255, 255, 255, 0.2)', 
-                    color: 'white',
-                    fontWeight: 'bold',
-                    mt: 1
-                  }}
-                />
-              )}
-            </Box>
+    <Container maxWidth="xl" sx={{ py: 0 }}>
+      <Card
+        elevation={8}
+        sx={{
+          borderRadius: 4,
+          mb: 4,
+          backgroundColor: 'background.paper',
+          border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
+          overflow: 'hidden',
+          width: '100%',
+          maxWidth: { xs: '100%', sm: 1000, md: 1200 },
+          mx: 'auto'
+        }}
+      >
+        {/* Header con gradiente */}
+        <Box
+          sx={{
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+            color: 'white',
+            p: 3,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 2
+          }}
+        >
+          <Box>
+            <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
+              <Business sx={{ mr: 1, fontSize: 28 }} />
+              Configuración del Centro
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+              Administra información básica y configuraciones regionales
+            </Typography>
           </Box>
-        </CardContent>
-      </Card>
+          {user?.centro && (
+            <Chip
+              label={`${user.centro.nombre} (${user.centro.codigo})`}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                fontWeight: 'bold',
+                fontSize: '0.875rem'
+              }}
+            />
+          )}
+        </Box>
 
-      <Grid container spacing={4}>
-
-        {/* Información del Centro */}
-        <Grid item xs={12}>
-          <Card sx={{
-            height: 'fit-content',
-            boxShadow: 2,
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              boxShadow: 4,
-              transform: 'translateY(-2px)'
-            }
-          }}>
-            <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+          <Box component="form" onSubmit={handleSubmit}>
+            {/* Información del Centro */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 4,
+                borderRadius: 3,
+                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50',
+                border: `1px solid ${theme.palette.divider}`,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: 3,
+                  transform: 'translateY(-2px)'
+                }
+              }}
+            >
               <Box display="flex" alignItems="center" mb={3}>
-                <Box sx={{ 
-                  p: 1.5, 
-                  borderRadius: '12px', 
-                  background: 'linear-gradient(45deg, #2196f3, #21cbf3)',
-                  mr: 2
-                }}>
-                  <Business sx={{ color: 'white', fontSize: 24 }} />
-                </Box>
+                <Avatar
+                  sx={{
+                    bgcolor: 'primary.main',
+                    width: 48,
+                    height: 48,
+                    mr: 2
+                  }}
+                >
+                  <Business sx={{ fontSize: 24 }} />
+                </Avatar>
                 <Box>
-                  <Typography variant="h6" fontWeight="bold" color="primary">
+                  <Typography variant="h6" fontWeight="bold" color="primary.main">
                     Información del Centro
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -125,177 +165,260 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                   </Typography>
                 </Box>
               </Box>
-              
-              <Box component="form" onSubmit={handleSubmit}>
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Nombre del Centro"
-                      name="nombreCentro"
-                      value={formData.nombreCentro}
-                      onChange={handleChange}
-                      placeholder="Centro de Rehabilitación Integral"
-                      required
-                      variant="outlined"
-                    />
-                  </Grid>
 
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Teléfono"
-                      name="telefono"
-                      value={formData.telefono}
-                      onChange={handleChange}
-                      placeholder="+593 98 765 4321"
-                      variant="outlined"
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="contacto@centro.com"
-                      variant="outlined"
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Horario de Inicio"
-                      name="horarioInicio"
-                      type="time"
-                      value={formData.horarioInicio}
-                      onChange={handleChange}
-                      InputLabelProps={{ shrink: true }}
-                      variant="outlined"
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Horario de Fin"
-                      name="horarioFin"
-                      type="time"
-                      value={formData.horarioFin}
-                      onChange={handleChange}
-                      InputLabelProps={{ shrink: true }}
-                      variant="outlined"
-                    />
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Dirección"
-                      name="direccion"
-                      multiline
-                      rows={2}
-                      value={formData.direccion}
-                      onChange={handleChange}
-                      placeholder="Dirección completa del centro"
-                      variant="outlined"
-                    />
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Descripción"
-                      name="descripcion"
-                      multiline
-                      rows={3}
-                      value={formData.descripcion}
-                      onChange={handleChange}
-                      placeholder="Descripción del centro de rehabilitación"
-                      variant="outlined"
-                    />
-                  </Grid>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Nombre del Centro"
+                    name="nombreCentro"
+                    value={formData.nombreCentro}
+                    onChange={handleChange}
+                    placeholder="Centro de Rehabilitación Integral"
+                    required
+                    variant="outlined"
+                    sx={purpleOutlineSX}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Business color="primary" />
+                        </InputAdornment>
+                      )
+                    }}
+                  />
                 </Grid>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
 
-        {/* Botón centrado y espacioso */}
-        <Grid item xs={12}>
-          <Box sx={{ textAlign: 'center', mt: 4 }}>
-            <Button
-              variant="contained"
-              onClick={handleSubmit}
-              startIcon={<Save />}
-              size="large"
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Teléfono"
+                    name="telefono"
+                    value={formData.telefono}
+                    onChange={handleChange}
+                    placeholder="+593 98 765 4321"
+                    variant="outlined"
+                    sx={purpleOutlineSX}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Phone color="primary" />
+                        </InputAdornment>
+                      )
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="contacto@centro.com"
+                    variant="outlined"
+                    sx={purpleOutlineSX}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Email color="primary" />
+                        </InputAdornment>
+                      )
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Dirección"
+                    name="direccion"
+                    multiline
+                    rows={2}
+                    value={formData.direccion}
+                    onChange={handleChange}
+                    placeholder="Dirección completa del centro"
+                    variant="outlined"
+                    sx={purpleOutlineSX}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                          <LocationOn color="primary" />
+                        </InputAdornment>
+                      )
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Descripción"
+                    name="descripcion"
+                    multiline
+                    rows={3}
+                    value={formData.descripcion}
+                    onChange={handleChange}
+                    placeholder="Descripción del centro de rehabilitación"
+                    variant="outlined"
+                    sx={purpleOutlineSX}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Horarios de Operación */}
+            <Paper
+              elevation={0}
               sx={{
-                fontWeight: 'bold',
-                px: 6,
-                py: 1.5,
+                p: 3,
+                mb: 4,
                 borderRadius: 3,
-                boxShadow: 3,
+                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50',
+                border: `1px solid ${theme.palette.divider}`,
+                transition: 'all 0.3s ease',
                 '&:hover': {
-                  boxShadow: 4,
-                  transform: 'translateY(-1px)'
+                  boxShadow: 3,
+                  transform: 'translateY(-2px)'
                 }
               }}
             >
-              Guardar Configuración General
-            </Button>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Los cambios se aplicarán inmediatamente en todo el sistema
-            </Typography>
-          </Box>
-        </Grid>
-
-        {/* Panel informativo mejorado */}
-        <Grid item xs={12}>
-          <Card sx={{
-            backgroundColor: 'primary.light',
-            borderColor: 'primary.main',
-            borderWidth: 1,
-            borderStyle: 'solid',
-            mt: 2
-          }}>
-            <CardContent sx={{ p: 3 }}>
-              <Box display="flex" alignItems="center" mb={2}>
-                <Schedule sx={{ mr: 2, color: 'primary.main' }} />
-                <Typography variant="h6" color="primary.main" fontWeight="bold">
-                  Información de Horarios
-                </Typography>
+              <Box display="flex" alignItems="center" mb={3}>
+                <Avatar
+                  sx={{
+                    bgcolor: 'success.main',
+                    width: 48,
+                    height: 48,
+                    mr: 2
+                  }}
+                >
+                  <Schedule sx={{ fontSize: 24 }} />
+                </Avatar>
+                <Box>
+                  <Typography variant="h6" fontWeight="bold" color="success.main">
+                    Horarios de Operación
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Define el horario de atención del centro
+                  </Typography>
+                </Box>
               </Box>
 
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
-                  <Box sx={{ textAlign: 'center', p: 2 }}>
-                    <Typography variant="body2" color="text.secondary" paragraph>
-                      <strong>Horario Operativo:</strong>
-                    </Typography>
-                    <Typography variant="h5" color="primary" gutterBottom>
-                      {formData.horarioInicio} - {formData.horarioFin}
-                    </Typography>
-                  </Box>
+                  <TextField
+                    fullWidth
+                    label="Horario de Inicio"
+                    name="horarioInicio"
+                    type="time"
+                    value={formData.horarioInicio}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    variant="outlined"
+                    sx={purpleOutlineSX}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <AccessTime color="success" />
+                        </InputAdornment>
+                      )
+                    }}
+                  />
                 </Grid>
+
                 <Grid item xs={12} md={6}>
-                  <Typography variant="body2" color="primary.main" gutterBottom>
-                    <strong>Aplica para:</strong>
-                  </Typography>
-                  <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }} color="text.primary">
-                    <li>Sesiones terapéuticas</li>
-                    <li>Clases pedagógicas</li>
-                  </Typography>
+                  <TextField
+                    fullWidth
+                    label="Horario de Fin"
+                    name="horarioFin"
+                    type="time"
+                    value={formData.horarioFin}
+                    onChange={handleChange}
+                    InputLabelProps={{ shrink: true }}
+                    variant="outlined"
+                    sx={purpleOutlineSX}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <AccessTime color="success" />
+                        </InputAdornment>
+                      )
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Paper
+                    sx={{
+                      p: 2.5,
+                      borderRadius: 2,
+                      bgcolor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.15)' : 'rgba(76, 175, 80, 0.1)',
+                      border: `1px solid ${theme.palette.success.main}`
+                    }}
+                  >
+                    <Box display="flex" alignItems="flex-start" gap={2}>
+                      <Info sx={{ color: 'success.main', mt: 0.5 }} />
+                      <Box>
+                        <Typography variant="body2" fontWeight="medium" color="success.main" gutterBottom>
+                          Información de Horarios
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: theme.palette.mode === 'dark' ? 'grey.300' : 'text.secondary' }}>
+                          <strong>Horario Operativo:</strong> {formData.horarioInicio} - {formData.horarioFin}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: theme.palette.mode === 'dark' ? 'grey.300' : 'text.secondary', mt: 1 }}>
+                          Este horario se aplicará para:
+                        </Typography>
+                        <Box component="ul" sx={{ m: 0, pl: 2, mt: 0.5 }}>
+                          <Typography variant="body2" sx={{ color: theme.palette.mode === 'dark' ? 'grey.300' : 'text.secondary' }} component="li">
+                            Sesiones terapéuticas
+                          </Typography>
+                          <Typography variant="body2" sx={{ color: theme.palette.mode === 'dark' ? 'grey.300' : 'text.secondary' }} component="li">
+                            Clases pedagógicas
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Paper>
                 </Grid>
               </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-    </Box>
+            </Paper>
+
+            {/* Botón de guardar */}
+            <Box sx={{ textAlign: 'center', mt: 3, mb: 2 }}>
+              <Button
+                type="submit"
+                variant="contained"
+                startIcon={<Save />}
+                size="large"
+                sx={{
+                  fontWeight: 'bold',
+                  px: 6,
+                  py: 1.5,
+                  borderRadius: 3,
+                  boxShadow: 4,
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                  '&:hover': {
+                    boxShadow: 6,
+                    transform: 'translateY(-2px)',
+                    background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                Guardar Configuración General
+              </Button>
+              <Box display="flex" alignItems="center" justifyContent="center" gap={1} sx={{ mt: 2 }}>
+                <CheckCircle sx={{ fontSize: 18, color: 'text.secondary' }} />
+                <Typography variant="body2" color="text.secondary">
+                  Los cambios se aplicarán inmediatamente en todo el sistema
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+    </Container>
   );
 };
 

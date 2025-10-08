@@ -109,20 +109,36 @@ class ConfiguracionService {
 
   /**
    * Obtener configuración de notificaciones del usuario actual
+   * NOTA: Se guarda en localStorage para evitar dependencia del backend
    */
   static async getConfiguracionNotificacionesUsuario() {
     try {
-      const response = await ApiService.get(ENDPOINTS.NOTIFICACIONES_USUARIO);
+      // Obtener de localStorage
+      const stored = localStorage.getItem('config_notificaciones_usuario');
+
+      // Configuración por defecto
+      const defaultConfig = {
+        notificaciones_push: true,
+        notificaciones_email: true,
+        notificaciones_sistema: true,
+        sonido_notificaciones: true,
+        notificar_nuevas_sesiones: true,
+        notificar_cambios_horarios: true,
+        notificar_recordatorios: true
+      };
+
+      const data = stored ? JSON.parse(stored) : defaultConfig;
+
       return {
         success: true,
-        data: response.data.data,
-        message: response.data.message
+        data,
+        message: 'Configuración de notificaciones obtenida exitosamente'
       };
     } catch (error) {
       console.error('Error al obtener configuración de notificaciones de usuario:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Error al obtener configuración de notificaciones de usuario',
+        message: 'Error al obtener configuración de notificaciones de usuario',
         error
       };
     }
@@ -130,19 +146,22 @@ class ConfiguracionService {
 
   /**
    * Actualizar configuración de notificaciones del usuario actual
+   * NOTA: Se guarda en localStorage para evitar dependencia del backend
    */
   static async updateConfiguracionNotificacionesUsuario(configuracion) {
     try {
-      const response = await ApiService.put(ENDPOINTS.NOTIFICACIONES_USUARIO, configuracion);
+      // Guardar en localStorage
+      localStorage.setItem('config_notificaciones_usuario', JSON.stringify(configuracion));
+
       return {
         success: true,
-        message: response.data.message
+        message: 'Configuración de notificaciones actualizada exitosamente'
       };
     } catch (error) {
       console.error('Error al actualizar configuración de notificaciones de usuario:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Error al actualizar configuración de notificaciones de usuario',
+        message: 'Error al actualizar configuración de notificaciones de usuario',
         error
       };
     }

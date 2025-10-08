@@ -94,10 +94,6 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
   };
 
   const handleViewDetail = (item) => {
-    console.log('Datos de sesión pedagógica:', item);
-    console.log('costo_total:', item.costo_total);
-    console.log('costo_por_clase:', item.costo_por_clase);
-    console.log('periodo_academico:', item.periodo_academico);
     setDetailDialog({ open: true, data: item });
   };
 
