@@ -172,8 +172,7 @@ export class UsuarioService {
     return [
       { value: 1, label: 'Administrador', name: 'administrador', icon: 'AdminPanelSettings' },
       { value: 2, label: 'Terapeuta', name: 'terapeuta', icon: 'Psychology' },
-      { value: 3, label: 'Pedagógico', name: 'pedagogico', icon: 'School' },
-      { value: 4, label: 'Cliente', name: 'cliente', icon: 'Person' }
+      { value: 3, label: 'Pedagógico', name: 'pedagogico', icon: 'School' }
     ];
   }
 

@@ -134,26 +134,17 @@ const SesionPedagogicaDetalle = () => {
   };
 
   const fetchAsistencias = async () => {
-    if (asistenciasLoaded || cronograma.length === 0) return;
+    if (asistenciasLoaded) return;
 
     setLoadingAsistencias(true);
     try {
-      // Obtener asistencias de todos los cronogramas
-      const asistenciasPromises = cronograma.map(async (cronogramaItem) => {
-        try {
-          const asistenciaRes = await sesionPedagogicaService.getControlAsistencia(cronogramaItem.id);
-          const asistenciaData = asistenciaRes.data?.estudiantes || asistenciaRes.data || [];
-          return asistenciaData;
-        } catch (err) {
-          return [];
-        }
-      });
-
-      const asistenciasResults = await Promise.all(asistenciasPromises);
-      const todasAsistencias = asistenciasResults.flat();
-      setAsistencias(todasAsistencias);
+      // Obtener todas las asistencias de la sesion en una sola peticion
+      const asistenciaRes = await sesionPedagogicaService.getAsistenciasSesion(id);
+      const asistenciaData = asistenciaRes.data?.data || asistenciaRes.data || [];
+      setAsistencias(asistenciaData);
       setAsistenciasLoaded(true);
     } catch (asistenciasError) {
+      console.error('Error fetching asistencias:', asistenciasError);
       setAsistencias([]);
     } finally {
       setLoadingAsistencias(false);
