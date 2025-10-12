@@ -579,7 +579,7 @@ const SesionPedagogicaDetalle = () => {
                   <Typography variant="h6" color="primary" mb={2} fontWeight="bold">
                     Adaptación Curricular
                   </Typography>
-                  <Paper sx={{ p: 2.5, backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 2 }}>
+                  <Paper sx={{ p: 2.5, backgroundColor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50', borderRadius: 2 }}>
                     <Typography variant="body1">{sesion.adaptacion_curricular}</Typography>
                   </Paper>
                 </CardContent>
@@ -594,7 +594,7 @@ const SesionPedagogicaDetalle = () => {
                   <Typography variant="h6" color="primary" mb={2} fontWeight="bold">
                     Observaciones
                   </Typography>
-                  <Paper sx={{ p: 2.5, backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 2 }}>
+                  <Paper sx={{ p: 2.5, backgroundColor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50', borderRadius: 2 }}>
                     <Typography variant="body1">{sesion.observaciones}</Typography>
                   </Paper>
                 </CardContent>

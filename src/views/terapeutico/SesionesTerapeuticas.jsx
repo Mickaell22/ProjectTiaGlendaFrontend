@@ -917,7 +917,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
           {detailDialog.data && (
             <Box>
               {/* Sección: Información Principal */}
-              <Box sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50' }}>
+              <Box sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50' }}>
                 <Grid container spacing={3}>
                   {/* Terapeuta */}
                   <Grid item xs={12} md={6}>
@@ -1003,7 +1003,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50',
                         textAlign: 'center'
                       }}
                     >
@@ -1020,7 +1020,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50',
                         textAlign: 'center'
                       }}
                     >
@@ -1037,7 +1037,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50',
                         textAlign: 'center'
                       }}
                     >
@@ -1055,7 +1055,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50',
                         textAlign: 'center'
                       }}
                     >
@@ -1092,7 +1092,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
               {isAdmin && (
                 <>
                   <Divider />
-                  <Box sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50' }}>
+                  <Box sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50' }}>
                     <Typography variant="h6" fontWeight="bold" mb={2}>
                       Información Financiera
                     </Typography>
@@ -1155,7 +1155,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                       sx={{
                         p: 2.5,
                         borderRadius: 2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.150' : 'grey.50',
                         border: `1px solid ${theme.palette.divider}`
                       }}
                     >
@@ -1172,7 +1172,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
 
         <Divider />
 
-        <DialogActions sx={{ p: 2.5, gap: 1, bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50' }}>
+        <DialogActions sx={{ p: 2.5, gap: 1, bgcolor: theme.palette.mode === 'dark' ? 'grey.150' : 'grey.50' }}>
           <Button
             variant="outlined"
             startIcon={<PersonAdd />}
@@ -1209,7 +1209,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
               navigate(`/terapeutico/sesion/${detailDialog.data?.id}`);
             }}
             disabled={!detailDialog.data?.id}
-            sx={{ borderRadius: 2 }}
+            sx={{ borderRadius: 2, backgroundColor: "primary.main", "&:hover": { backgroundColor: "primary.dark" } }}
           >
             Ver Detalle Completo
           </Button>
