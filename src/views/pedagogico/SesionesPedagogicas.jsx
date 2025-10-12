@@ -902,7 +902,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
           {detailDialog.data && (
             <Box>
               {/* Sección: Información Principal */}
-              <Box sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50' }}>
+              <Box sx={{ p: 3, bgcolor: theme.palette.mode === "dark" ? 'grey.200' : 'grey.150' }}>
                 <Grid container spacing={3}>
                   {/* Pedagogo */}
                   <Grid item xs={12} md={6}>
@@ -991,7 +991,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50',
                         textAlign: 'center'
                       }}
                     >
@@ -1008,7 +1008,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50',
                         textAlign: 'center'
                       }}
                     >
@@ -1025,7 +1025,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50',
                         textAlign: 'center'
                       }}
                     >
@@ -1043,7 +1043,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50',
                         textAlign: 'center'
                       }}
                     >
@@ -1081,7 +1081,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
 
               {/* Sección: Información Académica */}
               <Divider />
-              <Box sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50' }}>
+              <Box sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50' }}>
                 <Typography variant="h6" fontWeight="bold" mb={2}>
                   Información Académica
                 </Typography>
@@ -1208,7 +1208,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       sx={{
                         p: 2.5,
                         borderRadius: 2,
-                        bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50',
+                        bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50',
                         border: `1px solid ${theme.palette.divider}`
                       }}
                     >
@@ -1225,7 +1225,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
 
         <Divider />
 
-        <DialogActions sx={{ p: 2.5, gap: 1, bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50' }}>
+        <DialogActions sx={{ p: 2.5, gap: 1, bgcolor: theme.palette.mode === 'dark' ? 'grey.150' : 'grey.50' }}>
           <Button
             variant="outlined"
             startIcon={<PersonAdd />}
@@ -1262,7 +1262,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
               navigate(`/pedagogico/sesion/${detailDialog.data?.id}`);
             }}
             disabled={!detailDialog.data?.id}
-            sx={{ borderRadius: 2 }}
+            sx={{ borderRadius: 2, backgroundColor: 'primary.main', '&:hover': { backgroundColor: 'primary.dark' } }}
           >
             Ver Detalle Completo
           </Button>
