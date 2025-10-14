@@ -52,6 +52,7 @@ const PedagogicoAsistencia = () => {
   const [estudiantesSesion, setEstudiantesSesion] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAsistio, setFilterAsistio] = useState('');
+  const [filterPedagogo, setFilterPedagogo] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -351,6 +352,42 @@ const PedagogicoAsistencia = () => {
         </Box>
 
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+          {/* Filtro por Pedagogo */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={8} md={9}>
+              <FormControl fullWidth size="small">
+                <InputLabel shrink>Filtrar por Pedagogo</InputLabel>
+                <Select
+                  sx={{ ...selectStableSX, ...getGreenOutlineSX(theme) }}
+                  value={filterPedagogo}
+                  onChange={(e) => setFilterPedagogo(e.target.value)}
+                  displayEmpty
+                  label="Filtrar por Pedagogo"
+                  MenuProps={menuProps}
+                  renderValue={(val) => (val ? val : 'Todos los pedagogos')}
+                >
+                  <MenuItem value="">Todos los pedagogos</MenuItem>
+                  {[...new Set(sesiones.map(s => s.pedagogo?.nombre || s.pedagogo_nombre))].filter(Boolean).sort().map((pedagogo) => (
+                    <MenuItem key={pedagogo} value={pedagogo}>
+                      {pedagogo}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={4} md={3}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => setFilterPedagogo('')}
+                disabled={!filterPedagogo}
+                sx={{ height: '40px' }}
+              >
+                Limpiar Filtro
+              </Button>
+            </Grid>
+          </Grid>
+
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
@@ -369,7 +406,9 @@ const PedagogicoAsistencia = () => {
                   }}
                 >
                   <MenuItem value="">Seleccione una sesión pedagógica</MenuItem>
-                  {sesiones.map((sesion) => (
+                  {sesiones
+                    .filter(sesion => !filterPedagogo || (sesion.pedagogo?.nombre || sesion.pedagogo_nombre) === filterPedagogo)
+                    .map((sesion) => (
                     <MenuItem key={sesion.id} value={sesion.id}>
                       {`${sesion.titulo || sesion.nombre_clase}`}
                     </MenuItem>

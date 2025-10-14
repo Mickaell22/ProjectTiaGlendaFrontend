@@ -49,6 +49,7 @@ const PedagogicoCronogramas = () => {
   const [selectedSesion, setSelectedSesion] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
+  const [filterPedagogo, setFilterPedagogo] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -97,22 +98,6 @@ const PedagogicoCronogramas = () => {
       fetchCronograma(sesionId);
     } else {
       setCronogramas([]);
-    }
-  };
-
-  const regenerarCronograma = async (sesionId) => {
-    if (window.confirm('¿Está seguro de regenerar el cronograma? Esto eliminará el cronograma actual y creará uno nuevo.')) {
-      setLoading(true);
-      try {
-        await sesionPedagogicaService.generarCronograma(sesionId);
-        setSnackbar({ open: true, message: 'Cronograma regenerado exitosamente', severity: 'success' });
-        fetchCronograma(sesionId);
-      } catch (error) {
-        const errorMessage = sesionPedagogicaService.handleError(error);
-        setSnackbar({ open: true, message: errorMessage, severity: 'error' });
-      } finally {
-        setLoading(false);
-      }
     }
   };
 
@@ -372,6 +357,42 @@ const PedagogicoCronogramas = () => {
         </Box>
 
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+          {/* Filtro por Pedagogo */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={8} md={9}>
+              <FormControl fullWidth size="small">
+                <InputLabel shrink>Filtrar por Pedagogo</InputLabel>
+                <Select
+                  sx={{ ...selectStableSX, ...getGreenOutlineSX(theme) }}
+                  value={filterPedagogo}
+                  onChange={(e) => setFilterPedagogo(e.target.value)}
+                  label="Filtrar por Pedagogo"
+                  displayEmpty
+                  MenuProps={menuProps}
+                  renderValue={(val) => (val ? val : 'Todos los pedagogos')}
+                >
+                  <MenuItem value="">Todos los pedagogos</MenuItem>
+                  {[...new Set(sesiones.map(s => s.pedagogo?.nombre || s.pedagogo_nombre))].sort().map((pedagogo) => (
+                    <MenuItem key={pedagogo} value={pedagogo}>
+                      {pedagogo}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={4} md={3}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                fullWidth
+                onClick={() => setFilterPedagogo('')}
+                size="medium"
+              >
+                Limpiar Filtro
+              </Button>
+            </Grid>
+          </Grid>
+
           <Grid container spacing={3} alignItems="center">
             <Grid item xs={12} md={8}>
               <FormControl fullWidth>
@@ -392,52 +413,30 @@ const PedagogicoCronogramas = () => {
                   }}
                 >
                   <MenuItem value="">Seleccione una sesión pedagógica</MenuItem>
-                  {sesiones.map((sesion) => (
-                    <MenuItem key={sesion.id} value={sesion.id}>
-                      {`${sesion.titulo || sesion.nombre_clase} — ${sesion.pedagogo?.nombre || sesion.pedagogo_nombre}`}
-                    </MenuItem>
-                  ))}
+                  {sesiones
+                    .filter(sesion => !filterPedagogo || (sesion.pedagogo?.nombre || sesion.pedagogo_nombre) === filterPedagogo)
+                    .map((sesion) => (
+                      <MenuItem key={sesion.id} value={sesion.id}>
+                        {`${sesion.titulo || sesion.nombre_clase} — ${sesion.pedagogo?.nombre || sesion.pedagogo_nombre}`}
+                      </MenuItem>
+                    ))}
                 </Select>
               </FormControl>
             </Grid>
 
             {selectedSesion && (
               <Grid item xs={12} md={4}>
-                <Grid container spacing={1}>
-                  <Grid item xs={6}>
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      startIcon={<Refresh />}
-                      onClick={refreshCronograma}
-                      disabled={loading}
-                      fullWidth
-                      size="small"
-                    >
-                      Actualizar
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Button
-                      variant="outlined"
-                      sx={{
-                        borderColor: 'success.main',
-                        color: 'success.main',
-                        '&:hover': {
-                          borderColor: 'success.dark',
-                          backgroundColor: theme.palette.mode === 'dark' ? theme.palette.success.dark : theme.palette.success.light
-                        }
-                      }}
-                      startIcon={<Refresh />}
-                      onClick={() => regenerarCronograma(selectedSesion)}
-                      disabled={loading}
-                      fullWidth
-                      size="small"
-                    >
-                      Regenerar
-                    </Button>
-                  </Grid>
-                </Grid>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  startIcon={<Refresh />}
+                  onClick={refreshCronograma}
+                  disabled={loading}
+                  fullWidth
+                  size="small"
+                >
+                  Actualizar
+                </Button>
               </Grid>
             )}
           </Grid>

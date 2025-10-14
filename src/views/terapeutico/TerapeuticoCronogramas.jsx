@@ -49,6 +49,7 @@ const TerapeuticoCronogramas = () => {
   const [selectedSesion, setSelectedSesion] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
+  const [filterTerapeuta, setFilterTerapeuta] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -95,23 +96,6 @@ const TerapeuticoCronogramas = () => {
       fetchCronograma(sesionId);
     } else {
       setCronogramas([]);
-    }
-  };
-
-  const regenerarCronograma = async (sesionId) => {
-    if (window.confirm('¿Está seguro de regenerar el cronograma? Esto eliminará el cronograma actual y creará uno nuevo.')) {
-      setLoading(true);
-      try {
-        await sesionTerapiaService.generarCronograma(sesionId);
-        setSnackbar({ open: true, message: 'Cronograma regenerado exitosamente', severity: 'success' });
-        fetchCronograma(sesionId);
-      } catch (error) {
-        console.error('Error regenerating cronograma:', error);
-        const errorMessage = sesionTerapiaService.handleError(error);
-        setSnackbar({ open: true, message: errorMessage, severity: 'error' });
-      } finally {
-        setLoading(false);
-      }
     }
   };
 
@@ -296,6 +280,42 @@ const TerapeuticoCronogramas = () => {
         </Box>
 
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+          {/* Filtro por Terapeuta */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={8} md={9}>
+              <FormControl fullWidth size="small">
+                <InputLabel shrink>Filtrar por Terapeuta</InputLabel>
+                <Select
+                  sx={{ ...selectStableSX, ...purpleOutlineSX }}
+                  value={filterTerapeuta}
+                  onChange={(e) => setFilterTerapeuta(e.target.value)}
+                  label="Filtrar por Terapeuta"
+                  displayEmpty
+                  MenuProps={menuProps}
+                  renderValue={(val) => (val ? val : 'Todos los terapeutas')}
+                >
+                  <MenuItem value="">Todos los terapeutas</MenuItem>
+                  {[...new Set(sesiones.map(s => s.terapeuta_nombre))].sort().map((terapeuta) => (
+                    <MenuItem key={terapeuta} value={terapeuta}>
+                      {terapeuta}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={4} md={3}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                fullWidth
+                onClick={() => setFilterTerapeuta('')}
+                size="medium"
+              >
+                Limpiar Filtro
+              </Button>
+            </Grid>
+          </Grid>
+
           <Grid container spacing={3} alignItems="center">
             <Grid item xs={12} md={8}>
               <FormControl fullWidth>
@@ -316,45 +336,30 @@ const TerapeuticoCronogramas = () => {
                   }}
                 >
                   <MenuItem value="">Seleccione una sesión</MenuItem>
-                  {sesiones.map((sesion) => (
-                    <MenuItem key={sesion.id} value={sesion.id}>
-                      {`${sesion.titulo} — ${sesion.terapeuta_nombre}`}
-                    </MenuItem>
-                  ))}
+                  {sesiones
+                    .filter(sesion => !filterTerapeuta || sesion.terapeuta_nombre === filterTerapeuta)
+                    .map((sesion) => (
+                      <MenuItem key={sesion.id} value={sesion.id}>
+                        {`${sesion.titulo} — ${sesion.terapeuta_nombre}`}
+                      </MenuItem>
+                    ))}
                 </Select>
               </FormControl>
             </Grid>
 
             {selectedSesion && (
               <Grid item xs={12} md={4}>
-                <Grid container spacing={1}>
-                  <Grid item xs={6}>
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      startIcon={<Refresh />}
-                      onClick={refreshCronograma}
-                      disabled={loading}
-                      fullWidth
-                      size="small"
-                    >
-                      Actualizar
-                    </Button>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<Refresh />}
-                      onClick={() => regenerarCronograma(selectedSesion)}
-                      disabled={loading}
-                      fullWidth
-                      size="small"
-                    >
-                      Regenerar
-                    </Button>
-                  </Grid>
-                </Grid>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  startIcon={<Refresh />}
+                  onClick={refreshCronograma}
+                  disabled={loading}
+                  fullWidth
+                  size="small"
+                >
+                  Actualizar
+                </Button>
               </Grid>
             )}
           </Grid>
