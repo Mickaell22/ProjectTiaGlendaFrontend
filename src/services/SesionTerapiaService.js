@@ -227,6 +227,34 @@ class SesionTerapiaService {
     }
   }
 
+  /**
+   * Manually finalize a therapy session
+   */
+  async finalizarSesion(sesionId) {
+    try {
+      const response = await ApiService.put(
+        `/api/sesiones-terapia/${sesionId}/finalizar`
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Cancel a therapy session
+   */
+  async cancelarSesion(sesionId) {
+    try {
+      const response = await ApiService.put(
+        `/api/sesiones-terapia/${sesionId}/cancelar`
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // ==================== ATTENDANCE OPERATIONS ====================
 
   /**

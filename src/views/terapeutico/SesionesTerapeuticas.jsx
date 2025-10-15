@@ -32,6 +32,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
   const { isAdmin } = useUserRole();
   const [sesiones, setSesiones] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterEstado, setFilterEstado] = useState('en_curso'); // Filtro por defecto: en_curso
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -90,13 +91,13 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Está seguro de cancelar esta sesión terapéutica?')) {
+    if (window.confirm('¿Está seguro de cancelar esta sesión terapéutica? Esta acción cambiará el estado de la sesión a "cancelada".')) {
       try {
-        await sesionTerapiaService.deleteSesion(id);
+        await sesionTerapiaService.cancelarSesion(id);
         setSnackbar({ open: true, message: 'Sesión cancelada correctamente', severity: 'info' });
         fetchData();
       } catch (error) {
-        console.error('Error deleting session:', error);
+        console.error('Error canceling session:', error);
         const errorMessage = sesionTerapiaService.handleError(error);
         setSnackbar({ open: true, message: errorMessage, severity: 'error' });
       }
@@ -347,7 +348,11 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
       s.especialidad_nombre?.toLowerCase().includes(term) ||
       s.codigo_sesion?.toLowerCase().includes(term) // ok si sigue existiendo en datos aunque ya no se muestre
     );
-    return matchesSearch;
+
+    // Filtro por estado
+    const matchesEstado = filterEstado === '' || s.estado === filterEstado;
+
+    return matchesSearch && matchesEstado;
   });
 
   // Filtrar pacientes disponibles para el diálogo
@@ -477,9 +482,25 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
               sx={{
                 ...purpleOutlineSX,
                 minWidth: 260,
-                flex: '1 1 380px'
+                flex: '1 1 280px'
               }}
             />
+
+            <FormControl size="small" sx={{ minWidth: 180 }}>
+              <InputLabel shrink>Estado</InputLabel>
+              <Select
+                value={filterEstado}
+                onChange={(e) => setFilterEstado(e.target.value)}
+                label="Estado"
+                displayEmpty
+                sx={{ ...purpleOutlineSX }}
+              >
+                <MenuItem value="">Todas</MenuItem>
+                <MenuItem value="en_curso">En Curso</MenuItem>
+                <MenuItem value="finalizada">Finalizada</MenuItem>
+                <MenuItem value="cancelada">Cancelada</MenuItem>
+              </Select>
+            </FormControl>
 
             <ToggleButtonGroup
               value={viewMode}
@@ -700,6 +721,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                   <TableRow>
                     {/* Código: eliminado */}
                     <TableCell>Título</TableCell>
+                    <TableCell>Estado</TableCell>
                     <TableCell>Terapeuta</TableCell>
                     <TableCell>Especialidad</TableCell>
                     <TableCell>Horario</TableCell>
@@ -711,7 +733,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                 <TableBody>
                   {filteredSesiones.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                      <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                         <Box>
                           <Search sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
                           <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -751,6 +773,22 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                             <Typography variant="body2" fontWeight="bold">
                               {item.titulo}
                             </Typography>
+                          </TableCell>
+
+                          {/* Estado */}
+                          <TableCell>
+                            <Chip
+                              label={item.estado || 'en_curso'}
+                              color={
+                                item.estado === 'finalizada' ? 'success' :
+                                item.estado === 'en_curso' ? 'primary' :
+                                item.estado === 'planificada' ? 'info' :
+                                item.estado === 'pausada' ? 'warning' :
+                                item.estado === 'cancelada' ? 'error' :
+                                'default'
+                              }
+                              size="small"
+                            />
                           </TableCell>
 
                           {/* Terapeuta con avatar */}
@@ -816,12 +854,12 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                                   <Visibility fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Cancelar">
+                              <Tooltip title="Cancelar sesión">
                                 <IconButton
                                   color="error"
                                   size="small"
                                   onClick={() => handleDelete(item.id)}
-                                  disabled={item.estado === 'cancelado'}
+                                  disabled={item.estado === 'cancelada' || item.estado === 'finalizada'}
                                 >
                                   <Delete fontSize="small" />
                                 </IconButton>

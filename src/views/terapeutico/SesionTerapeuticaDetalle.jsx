@@ -105,6 +105,7 @@ const SesionTerapeuticaDetalle = () => {
     pacienteId: null,
     pacienteNombre: ''
   });
+  const [finalizarDialog, setFinalizarDialog] = useState({ open: false });
 
   useEffect(() => {
     if (id) {
@@ -376,6 +377,41 @@ const SesionTerapeuticaDetalle = () => {
     setShowRetirados(!showRetirados);
   };
 
+  const handleFinalizarSesion = async () => {
+    try {
+      await sesionTerapiaService.finalizarSesion(id);
+      setSnackbar({
+        open: true,
+        message: 'Sesion finalizada exitosamente',
+        severity: 'success'
+      });
+      await fetchSessionData();
+      setFinalizarDialog({ open: false });
+    } catch (error) {
+      const errorMessage = sesionTerapiaService.handleError(error);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      setFinalizarDialog({ open: false });
+    }
+  };
+
+  const getCronogramaStats = () => {
+    const total = cronograma.length;
+    const completados = cronograma.filter(c => c.estado === 'completada').length;
+    const pendientes = cronograma.filter(c => c.estado !== 'completada' && c.estado !== 'cancelada' && c.estado !== 'reprogramada').length;
+    return { total, completados, pendientes };
+  };
+
+  const getEstadoSesionColor = (estado) => {
+    switch (estado) {
+      case 'finalizada': return 'success';
+      case 'en_curso': return 'primary';
+      case 'planificada': return 'info';
+      case 'pausada': return 'warning';
+      case 'cancelada': return 'error';
+      default: return 'default';
+    }
+  };
+
   if (!sesion) {
     return (
       <Container maxWidth="xl" sx={{ py: 2 }}>
@@ -431,10 +467,20 @@ const SesionTerapeuticaDetalle = () => {
             />
             <Chip
               label={sesion.estado}
-              color={sesion.estado === 'activo' ? 'success' : 'default'}
+              color={getEstadoSesionColor(sesion.estado)}
               size="small"
-              sx={{ bgcolor: sesion.estado === 'activo' ? undefined : 'rgba(255,255,255,0.2)', color: 'white' }}
+              sx={{
+                bgcolor: sesion.estado === 'finalizada' || sesion.estado === 'en_curso' ? undefined : 'rgba(255,255,255,0.2)',
+                color: 'white'
+              }}
             />
+            {cronograma.length > 0 && (
+              <Chip
+                label={`${getCronogramaStats().completados}/${getCronogramaStats().total} completados`}
+                sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+                size="small"
+              />
+            )}
           </Box>
         </Box>
 
@@ -506,11 +552,24 @@ const SesionTerapeuticaDetalle = () => {
                       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
                         Estado
                       </Typography>
-                      <Chip
-                        label={sesion.estado}
-                        color={sesion.estado === 'activo' ? 'success' : 'default'}
-                        size="small"
-                      />
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Chip
+                          label={sesion.estado}
+                          color={getEstadoSesionColor(sesion.estado)}
+                          size="small"
+                        />
+                        {sesion.estado === 'en_curso' && getCronogramaStats().pendientes === 0 && getCronogramaStats().total > 0 && (
+                          <Button
+                            variant="contained"
+                            color="success"
+                            size="small"
+                            onClick={() => setFinalizarDialog({ open: true })}
+                            startIcon={<CheckCircle />}
+                          >
+                            Finalizar Sesion
+                          </Button>
+                        )}
+                      </Box>
                     </Box>
                     <Box sx={{ mb: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
@@ -1161,6 +1220,43 @@ const SesionTerapeuticaDetalle = () => {
             startIcon={<PersonAdd />}
           >
             Reincorporar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog: Finalizar Sesion */}
+      <Dialog
+        open={finalizarDialog.open}
+        onClose={() => setFinalizarDialog({ open: false })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <CheckCircle sx={{ mr: 2, color: 'success.main' }} />
+            Finalizar Sesion Terapeutica
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ py: 2 }}>
+            Esta seguro de que desea finalizar la sesion <strong>{sesion.titulo}</strong>?
+          </Typography>
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Todos los cronogramas han sido completados ({getCronogramaStats().completados}/{getCronogramaStats().total}).
+            La sesion se marcara como finalizada.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setFinalizarDialog({ open: false })}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleFinalizarSesion}
+            variant="contained"
+            color="success"
+            startIcon={<CheckCircle />}
+          >
+            Finalizar Sesion
           </Button>
         </DialogActions>
       </Dialog>

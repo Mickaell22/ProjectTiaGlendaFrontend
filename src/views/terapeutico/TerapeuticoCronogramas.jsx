@@ -168,7 +168,7 @@ const TerapeuticoCronogramas = () => {
   const confirmarCancelacion = async (cancelData) => {
     try {
       setLoading(true);
-      await sesionTerapiaService.cancelarSesion(cancelDialog.data.id, cancelData);
+      await sesionTerapiaService.cancelarSesionCronograma(cancelDialog.data.id, cancelData.motivo_cancelacion);
       setSnackbar({ open: true, message: 'Sesión cancelada exitosamente', severity: 'success' });
       setCancelDialog({ open: false, data: null });
       if (selectedSesion) fetchCronograma(selectedSesion);
