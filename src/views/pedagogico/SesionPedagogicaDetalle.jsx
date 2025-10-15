@@ -103,6 +103,7 @@ const SesionPedagogicaDetalle = () => {
     pacienteId: null,
     estudianteNombre: ''
   });
+  const [finalizarDialog, setFinalizarDialog] = useState({ open: false });
 
   useEffect(() => {
     if (id) {
@@ -312,6 +313,32 @@ const SesionPedagogicaDetalle = () => {
     }
   };
 
+  // Calcular estadísticas de clases
+  const getClasesStats = () => {
+    const total = cronograma.length;
+    const completadas = cronograma.filter(c => c.estado === 'realizada' || c.estado === 'completada').length;
+    const todasCompletadas = total > 0 && completadas === total;
+    return { total, completadas, todasCompletadas };
+  };
+
+  // Manejar finalización de sesión
+  const handleFinalizarSesion = async () => {
+    try {
+      await sesionPedagogicaService.finalizarSesion(id);
+      setSnackbar({
+        open: true,
+        message: 'Sesión finalizada exitosamente',
+        severity: 'success'
+      });
+      setFinalizarDialog({ open: false });
+      await fetchSesionData(); // Refrescar datos
+    } catch (error) {
+      const errorMessage = sesionPedagogicaService.handleError(error);
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      setFinalizarDialog({ open: false });
+    }
+  };
+
   const formatDate = (dateString) => formatDateLocal(dateString);
 
   const formatTime = (timeString) => {
@@ -416,6 +443,21 @@ const SesionPedagogicaDetalle = () => {
                 '& .MuiChip-icon': { color: 'white' }
               }}
             />
+            {sesion.estado !== 'finalizada' && sesion.estado !== 'cancelada' && (
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<CheckCircle />}
+                onClick={() => setFinalizarDialog({ open: true })}
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }
+                }}
+              >
+                Finalizar Sesion
+              </Button>
+            )}
             <Button
               variant="contained"
               startIcon={<Refresh />}
@@ -1217,6 +1259,53 @@ const SesionPedagogicaDetalle = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDetailDialog({ open: false, data: null })}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog: Finalizar Sesion */}
+      <Dialog
+        open={finalizarDialog.open}
+        onClose={() => setFinalizarDialog({ open: false })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <CheckCircle sx={{ mr: 2, color: 'success.main' }} />
+            Finalizar Sesion Pedagogica
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ py: 2 }}>
+            Esta seguro de que desea finalizar esta sesion pedagogica?
+          </Typography>
+          <Box sx={{ mt: 2, p: 2, bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 2 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              <strong>Estadisticas de la sesion:</strong>
+            </Typography>
+            <Typography variant="body2">
+              - Clases completadas: {getClasesStats().completadas} de {getClasesStats().total}
+            </Typography>
+            <Typography variant="body2">
+              - Estudiantes inscritos: {estudiantes.length}
+            </Typography>
+          </Box>
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Una vez finalizada, la sesion no podra ser modificada.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setFinalizarDialog({ open: false })}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleFinalizarSesion}
+            variant="contained"
+            color="success"
+            startIcon={<CheckCircle />}
+          >
+            Finalizar Sesion
+          </Button>
         </DialogActions>
       </Dialog>
 

@@ -824,6 +824,34 @@ class SesionPedagogicaService {
   }
 
   /**
+   * Cancel a pedagogical session
+   */
+  async cancelarSesion(sesionId) {
+    try {
+      const response = await ApiService.put(
+        `/api/sesiones-pedagogicas/${sesionId}/cancelar`
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Finalize a pedagogical session manually
+   */
+  async finalizarSesion(sesionId) {
+    try {
+      const response = await ApiService.put(
+        `/api/sesiones-pedagogicas/${sesionId}/finalizar`
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
    * Handle API errors and return user-friendly messages
    */
   handleError(error) {
