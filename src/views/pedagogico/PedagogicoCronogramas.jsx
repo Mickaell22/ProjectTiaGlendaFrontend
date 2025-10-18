@@ -5,11 +5,12 @@ import {
   Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
   Tooltip, Typography, Alert, Grid, MenuItem, Dialog, DialogTitle, DialogContent,
   DialogActions, Chip, Avatar, FormControl, InputLabel, Select, InputAdornment,
- useTheme
+  useTheme, Divider
 } from '@mui/material';
 import {
   CalendarMonth, Edit, Search, Visibility, Refresh, CheckCircle, Cancel,
-  Schedule, AccessTime, Today, School, EventNote, EditCalendar, Save, Close
+  Schedule, AccessTime, Today, School, EventNote, EditCalendar, Save, Close,
+  Note, InfoOutlined, WarningAmber, ErrorOutline
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -996,76 +997,300 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Reprogramar Clase #{data?.numero_clase || data?.numero_clase_semanal}</DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          boxShadow: theme.shadows[10]
+        }
+      }}
+    >
+      {/* Header con fondo warning */}
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`,
+          color: 'white',
+          p: 3,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2
+        }}
+      >
+        <Avatar
+          sx={{
+            bgcolor: 'rgba(255,255,255,0.2)',
+            width: 56,
+            height: 56
+          }}
+        >
+          <EditCalendar sx={{ fontSize: 32 }} />
+        </Avatar>
+        <Box flex={1}>
+          <Typography variant="h5" fontWeight="bold">
+            Reprogramar Clase
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+            Clase #{data?.numero_clase || data?.numero_clase_semanal} - {formatDateLocal(data?.fecha_programada)}
+          </Typography>
+        </Box>
+      </Box>
+
+      <DialogContent sx={{ p: 3 }}>
+        <Grid container spacing={3}>
+          {/* Información actual */}
           <Grid item xs={12}>
-            <Typography variant="body2" color="text.secondary" mb={2}>
-              Fecha y hora actual: {formatDateLocal(data?.fecha_programada)} a las {data?.hora_inicio}
-            </Typography>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                backgroundColor: 'info.50',
+                border: '2px solid',
+                borderColor: 'info.200',
+                borderRadius: 2
+              }}
+            >
+              <Typography variant="subtitle2" color="info.dark" fontWeight="bold" sx={{ mb: 1 }}>
+                Programación Actual
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Today color="info" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Fecha Actual
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {formatDateLocal(data?.fecha_programada)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <AccessTime color="info" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Hora Actual
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {data?.hora_inicio || data?.hora_programada}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Paper>
           </Grid>
 
+          {/* Botones de acción rápida */}
           <Grid item xs={12}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>Mover fecha rápidamente:</Typography>
-            <Box display="flex" gap={1} flexWrap="wrap">
-              <Button size="small" variant="outlined" onClick={() => moverFecha(1)}>+1 día</Button>
-              <Button size="small" variant="outlined" onClick={() => moverFecha(2)}>+2 días</Button>
-              <Button size="small" variant="outlined" onClick={() => moverFecha(7)}>+1 semana</Button>
-              <Button size="small" variant="outlined" onClick={() => moverFecha(-1)}>-1 día</Button>
-              <Button size="small" variant="outlined" onClick={() => moverFecha(-2)}>-2 días</Button>
+            <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2 }}>
+              Acciones Rápidas
+            </Typography>
+            <Box display="flex" gap={1.5} flexWrap="wrap">
+              <Button
+                size="medium"
+                variant="outlined"
+                color="warning"
+                onClick={() => moverFecha(1)}
+                startIcon={<Today />}
+              >
+                +1 día
+              </Button>
+              <Button
+                size="medium"
+                variant="outlined"
+                color="warning"
+                onClick={() => moverFecha(2)}
+                startIcon={<Today />}
+              >
+                +2 días
+              </Button>
+              <Button
+                size="medium"
+                variant="outlined"
+                color="warning"
+                onClick={() => moverFecha(7)}
+                startIcon={<Today />}
+              >
+                +1 semana
+              </Button>
+              <Divider orientation="vertical" flexItem />
+              <Button
+                size="medium"
+                variant="outlined"
+                color="inherit"
+                onClick={() => moverFecha(-1)}
+                startIcon={<Today />}
+              >
+                -1 día
+              </Button>
+              <Button
+                size="medium"
+                variant="outlined"
+                color="inherit"
+                onClick={() => moverFecha(-2)}
+                startIcon={<Today />}
+              >
+                -2 días
+              </Button>
             </Box>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              type="date"
-              label="Nueva Fecha"
-              value={nuevaFecha}
-              onChange={(e) => setNuevaFecha(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              required
-            />
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              type="time"
-              label="Nueva Hora"
-              value={nuevaHora}
-              onChange={(e) => setNuevaHora(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              required
-            />
-          </Grid>
-
+          {/* Nueva fecha y hora */}
           <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <EditCalendar color="warning" fontSize="small" />
+              Nueva Programación
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  label="Nueva Fecha"
+                  value={nuevaFecha}
+                  onChange={(e) => setNuevaFecha(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Today color="warning" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderColor: 'warning.main', borderWidth: 2 },
+                      '&:hover fieldset': { borderColor: 'warning.dark' },
+                      '&.Mui-focused fieldset': { borderColor: 'warning.dark', borderWidth: 2 }
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="time"
+                  label="Nueva Hora"
+                  value={nuevaHora}
+                  onChange={(e) => setNuevaHora(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AccessTime color="warning" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderColor: 'warning.main', borderWidth: 2 },
+                      '&:hover fieldset': { borderColor: 'warning.dark' },
+                      '&.Mui-focused fieldset': { borderColor: 'warning.dark', borderWidth: 2 }
+                    }
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </Grid>
+
+          {/* Motivo */}
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Note color="warning" fontSize="small" />
+              Motivo de Reprogramación
+            </Typography>
             <TextField
               fullWidth
               multiline
-              rows={3}
-              label="Motivo de la reprogramación"
+              rows={4}
+              label="Explique el motivo"
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
-              placeholder="Explique el motivo de la reprogramación..."
+              placeholder="Describa el motivo de la reprogramación (requerido)"
               required
               error={!motivo || !motivo.trim()}
-              helperText={(!motivo || !motivo.trim()) ? 'El motivo es requerido' : ''}
+              helperText={(!motivo || !motivo.trim()) ? 'El motivo es obligatorio' : `${motivo.length}/500 caracteres`}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                    <Note color="warning" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  alignItems: 'flex-start',
+                  '& fieldset': { borderColor: 'warning.main' },
+                  '&:hover fieldset': { borderColor: 'warning.dark' },
+                  '&.Mui-focused fieldset': { borderColor: 'warning.dark', borderWidth: 2 }
+                }
+              }}
             />
+          </Grid>
+
+          {/* Advertencia */}
+          <Grid item xs={12}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                backgroundColor: 'rgba(255, 167, 38, 0.08)',
+                border: '2px dashed',
+                borderColor: 'warning.main',
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 2
+              }}
+            >
+              <InfoOutlined color="warning" sx={{ fontSize: 28, mt: 0.3 }} />
+              <Box>
+                <Typography variant="subtitle2" color="warning.dark" fontWeight="bold" sx={{ mb: 0.5 }}>
+                  Información Importante
+                </Typography>
+                <Typography variant="body2" color="warning.dark">
+                  La clase original será marcada como reprogramada y se actualizará con la nueva fecha y hora. Esta acción quedará registrada en el historial.
+                </Typography>
+              </Box>
+            </Paper>
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>Cancelar</Button>
-        <Button 
-          onClick={handleConfirm} 
-          variant="contained" 
-          disabled={loading || !nuevaFecha || !nuevaHora || !motivo || !motivo.trim()}
-          sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
+      <DialogActions sx={{ px: 3, py: 2, gap: 1, borderTop: `1px solid ${theme.palette.divider}` }}>
+        <Button
+          onClick={onClose}
+          disabled={loading}
+          variant="outlined"
+          color="inherit"
+          size="large"
         >
-          Reprogramar
+          Cancelar
+        </Button>
+        <Button
+          onClick={handleConfirm}
+          variant="contained"
+          color="warning"
+          disabled={loading || !nuevaFecha || !nuevaHora || !motivo || !motivo.trim()}
+          startIcon={<EditCalendar />}
+          size="large"
+          sx={{
+            minWidth: 200,
+            boxShadow: 3,
+            '&:hover': {
+              boxShadow: 6
+            }
+          }}
+        >
+          Confirmar Reprogramación
         </Button>
       </DialogActions>
     </Dialog>
@@ -1086,41 +1311,193 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Cancelar Clase #{data?.numero_clase || data?.numero_clase_semanal}</DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          boxShadow: theme.shadows[10]
+        }
+      }}
+    >
+      {/* Header con fondo error */}
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${theme.palette.error.main} 0%, ${theme.palette.error.dark} 100%)`,
+          color: 'white',
+          p: 3,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2
+        }}
+      >
+        <Avatar
+          sx={{
+            bgcolor: 'rgba(255,255,255,0.2)',
+            width: 56,
+            height: 56
+          }}
+        >
+          <Cancel sx={{ fontSize: 32 }} />
+        </Avatar>
+        <Box flex={1}>
+          <Typography variant="h5" fontWeight="bold">
+            Cancelar Clase
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+            Clase #{data?.numero_clase || data?.numero_clase_semanal} - {formatDateLocal(data?.fecha_programada)}
+          </Typography>
+        </Box>
+      </Box>
+
+      <DialogContent sx={{ p: 3 }}>
+        <Grid container spacing={3}>
+          {/* Información de la clase */}
           <Grid item xs={12}>
-            <Typography variant="body2" color="text.secondary" mb={2}>
-              Fecha programada: {formatDateLocal(data?.fecha_programada)} a las {data?.hora_inicio}
-            </Typography>
-            <Typography variant="body2" color="error" mb={2}>
-              ⚠️  Esta acción marcará la clase como cancelada y no se podrá deshacer.
-            </Typography>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                backgroundColor: 'error.50',
+                border: '2px solid',
+                borderColor: 'error.200',
+                borderRadius: 2
+              }}
+            >
+              <Typography variant="subtitle2" color="error.dark" fontWeight="bold" sx={{ mb: 1 }}>
+                Información de la Clase
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Today color="error" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Fecha Programada
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {formatDateLocal(data?.fecha_programada)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <AccessTime color="error" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Hora Programada
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {data?.hora_inicio || data?.hora_programada}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Paper>
           </Grid>
 
+          {/* Advertencia importante */}
           <Grid item xs={12}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                backgroundColor: 'rgba(211, 47, 47, 0.08)',
+                border: '2px solid',
+                borderColor: 'error.light',
+                borderRadius: 2
+              }}
+            >
+              <Box display="flex" alignItems="flex-start" gap={2}>
+                <WarningAmber color="error" sx={{ fontSize: 32, mt: 0.5 }} />
+                <Box>
+                  <Typography variant="subtitle1" color="error.dark" fontWeight="bold" sx={{ mb: 1 }}>
+                    Advertencia Importante
+                  </Typography>
+                  <Typography variant="body2" color="error.dark" sx={{ mb: 1.5 }}>
+                    Esta acción marcará la clase como cancelada de forma permanente.
+                  </Typography>
+                  <Box component="ul" sx={{ m: 0, pl: 2, '& li': { mb: 0.5 } }}>
+                    <Typography component="li" variant="body2" color="text.secondary">
+                      La clase no podrá ser revertida al estado anterior
+                    </Typography>
+                    <Typography component="li" variant="body2" color="text.secondary">
+                      El motivo de cancelación quedará registrado en el sistema
+                    </Typography>
+                    <Typography component="li" variant="body2" color="text.secondary">
+                      Se recomienda documentar claramente el motivo de la cancelación
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Paper>
+          </Grid>
+
+          {/* Motivo de cancelación */}
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Note color="error" fontSize="small" />
+              Motivo de Cancelación
+            </Typography>
             <TextField
               fullWidth
               multiline
-              rows={3}
-              label="Motivo de la cancelación"
+              rows={5}
+              label="Explique el motivo (recomendado)"
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
-              placeholder="Explique el motivo de la cancelación..."
-              sx={{
-                minWidth: 350,
-                maxWidth: 900,
-                width: '100%',
-                alignSelf: 'center'
+              placeholder="Describa el motivo de la cancelación. Ejemplos:&#10;• Inasistencia del estudiante&#10;• Problemas de salud del pedagogo&#10;• Solicitud del familiar&#10;• Cambio en la disponibilidad&#10;• Otros motivos relevantes"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                    <ErrorOutline color="error" />
+                  </InputAdornment>
+                ),
               }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  alignItems: 'flex-start',
+                  '& fieldset': { borderColor: 'error.main' },
+                  '&:hover fieldset': { borderColor: 'error.dark' },
+                  '&.Mui-focused fieldset': { borderColor: 'error.dark', borderWidth: 2 }
+                }
+              }}
+              helperText={motivo.length > 0 ? `${motivo.length}/500 caracteres` : 'Opcional pero recomendado para mantener un registro completo'}
             />
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>Cancelar</Button>
-        <Button onClick={handleConfirm} variant="contained" color="error" disabled={loading}>
+
+      <DialogActions sx={{ px: 3, py: 2, gap: 1, borderTop: `1px solid ${theme.palette.divider}`, backgroundColor: 'rgba(0,0,0,0.02)' }}>
+        <Button
+          onClick={onClose}
+          disabled={loading}
+          variant="outlined"
+          color="inherit"
+          size="large"
+        >
+          Volver
+        </Button>
+        <Button
+          onClick={handleConfirm}
+          variant="contained"
+          color="error"
+          disabled={loading}
+          startIcon={<Cancel />}
+          size="large"
+          sx={{
+            minWidth: 220,
+            boxShadow: 3,
+            '&:hover': {
+              boxShadow: 6
+            }
+          }}
+        >
           Confirmar Cancelación
         </Button>
       </DialogActions>
@@ -1157,66 +1534,202 @@ const RealizadaDialogPedagogico = ({ open, data, onClose, onConfirm, loading }) 
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Marcar Clase como Realizada</DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          boxShadow: theme.shadows[10]
+        }
+      }}
+    >
+      {/* Header con fondo success */}
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`,
+          color: 'white',
+          p: 3,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2
+        }}
+      >
+        <Avatar
+          sx={{
+            bgcolor: 'rgba(255,255,255,0.2)',
+            width: 56,
+            height: 56
+          }}
+        >
+          <CheckCircle sx={{ fontSize: 32 }} />
+        </Avatar>
+        <Box flex={1}>
+          <Typography variant="h5" fontWeight="bold">
+            Completar Clase
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+            Clase #{data.numero_clase || data.numero_clase_semanal} - {formatDate(data.fecha_programada)}
+          </Typography>
+        </Box>
+      </Box>
+
+      <DialogContent sx={{ p: 3 }}>
+        <Grid container spacing={3}>
+          {/* Información de la clase */}
           <Grid item xs={12}>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              <strong>Clase #{data.numero_clase || data.numero_clase_semanal || 'N/A'}</strong>
-              {data.fecha_programada && (
-                <><br />📅 {formatDate(data.fecha_programada)} a las {formatTime(data.hora_programada)}</>
-              )}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                backgroundColor: 'success.50',
+                border: '2px solid',
+                borderColor: 'success.200',
+                borderRadius: 2
+              }}
+            >
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <EventNote color="success" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Número de Clase
+                      </Typography>
+                      <Typography variant="h6" fontWeight="bold" color="success.dark">
+                        #{data.numero_clase || data.numero_clase_semanal}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Today color="success" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Fecha
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {formatDate(data.fecha_programada)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <AccessTime color="success" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Hora
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {formatTime(data.hora_programada)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
               {data.tema_clase && (
-                <><br />📚 <strong>Tema:</strong> {data.tema_clase}</>
+                <Box sx={{ mt: 2, pt: 2, borderTop: `1px solid ${theme.palette.success.main}` }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Tema de la Clase
+                  </Typography>
+                  <Typography variant="body1" fontWeight="medium" color="success.dark">
+                    {data.tema_clase}
+                  </Typography>
+                </Box>
               )}
-            </Typography>
-            
-            <Typography variant="body2" color="text.secondary" mb={2}>
-              ¿Desea agregar observaciones sobre esta clase pedagógica?
-            </Typography>
+            </Paper>
           </Grid>
 
+          {/* Campo de observaciones */}
           <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Note color="success" fontSize="small" />
+              Observaciones de la Clase
+            </Typography>
             <TextField
               fullWidth
               multiline
-              rows={4}
-              label="Observaciones de la clase"
+              rows={5}
+              label="Detalles sobre el desarrollo de la clase"
               value={observaciones}
               onChange={(e) => setObservaciones(e.target.value)}
-              placeholder="Escriba aquí cualquier observación sobre el desarrollo de la clase, participación de los estudiantes, objetivos alcanzados, actividades realizadas, etc. (Opcional)"
+              placeholder="Escriba aquí cualquier observación sobre:&#10;• Desarrollo de la clase&#10;• Participación de los estudiantes&#10;• Actividades realizadas&#10;• Objetivos alcanzados&#10;• Cualquier nota relevante&#10;&#10;(Opcional)"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                    <CheckCircle color="success" />
+                  </InputAdornment>
+                ),
+              }}
               sx={{
-                minWidth: 350,
-                maxWidth: 800,
-                width: '100%',
-                alignSelf: 'center',
                 '& .MuiOutlinedInput-root': {
+                  alignItems: 'flex-start',
                   '& fieldset': { borderColor: 'success.main' },
-                  '&:hover fieldset': { borderColor: 'success.main' },
-                  '&.Mui-focused fieldset': { borderColor: 'success.main', borderWidth: 2 }
+                  '&:hover fieldset': { borderColor: 'success.dark' },
+                  '&.Mui-focused fieldset': { borderColor: 'success.dark', borderWidth: 2 }
                 }
               }}
+              helperText={observaciones.length > 0 ? `${observaciones.length}/500 caracteres` : 'Opcional: Agregue observaciones sobre la clase completada'}
             />
           </Grid>
-          
+
+          {/* Mensaje de confirmación */}
           <Grid item xs={12}>
-            <Typography variant="body2" color="success.main" sx={{ mt: 1 }}>
-              ✅ Esta acción marcará la clase como completada exitosamente.
-            </Typography>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                backgroundColor: 'rgba(76, 175, 80, 0.08)',
+                border: '2px dashed',
+                borderColor: 'success.main',
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 2
+              }}
+            >
+              <InfoOutlined color="success" sx={{ fontSize: 28, mt: 0.3 }} />
+              <Box>
+                <Typography variant="subtitle2" color="success.dark" fontWeight="bold" sx={{ mb: 0.5 }}>
+                  Confirmación de Finalización
+                </Typography>
+                <Typography variant="body2" color="success.dark">
+                  Al confirmar, la clase será marcada como completada exitosamente. Esta información quedará registrada en el sistema y podrá consultarse en el historial.
+                </Typography>
+              </Box>
+            </Paper>
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+
+      <DialogActions sx={{ px: 3, py: 2, gap: 1, borderTop: `1px solid ${theme.palette.divider}` }}>
+        <Button
+          onClick={onClose}
+          disabled={loading}
+          variant="outlined"
+          color="inherit"
+          size="large"
+        >
           Cancelar
         </Button>
-        <Button 
-          onClick={handleConfirm} 
-          variant="contained" 
+        <Button
+          onClick={handleConfirm}
+          variant="contained"
           color="success"
           disabled={loading}
           startIcon={<CheckCircle />}
+          size="large"
+          sx={{
+            minWidth: 200,
+            boxShadow: 3,
+            '&:hover': {
+              boxShadow: 6
+            }
+          }}
         >
           Marcar como Realizada
         </Button>

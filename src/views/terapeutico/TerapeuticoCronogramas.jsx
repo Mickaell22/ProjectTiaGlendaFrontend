@@ -5,11 +5,12 @@ import {
   Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField,
   Tooltip, Typography, Alert, Grid, MenuItem, Dialog, DialogTitle, DialogContent,
   DialogActions, Chip, Avatar, FormControl, InputLabel, Select, InputAdornment,
- useTheme
+  useTheme, Divider
 } from '@mui/material';
 import {
   CalendarMonth, Edit, Search, Visibility, Refresh, CheckCircle, Cancel,
-  Schedule, AccessTime, Today, Person, EventNote, EditCalendar
+  Schedule, AccessTime, Today, Person, EventNote, EditCalendar, Note,
+  InfoOutlined, WarningAmber, ErrorOutline
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -50,6 +51,7 @@ const TerapeuticoCronogramas = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterEstado, setFilterEstado] = useState('');
   const [filterTerapeuta, setFilterTerapeuta] = useState('');
+  const [filterEstadoSesion, setFilterEstadoSesion] = useState('en_curso');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -280,9 +282,27 @@ const TerapeuticoCronogramas = () => {
         </Box>
 
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-          {/* Filtro por Terapeuta */}
+          {/* Filtros: Estado de Sesión y Terapeuta */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={8} md={9}>
+            <Grid item xs={12} sm={6} md={4}>
+              <FormControl fullWidth size="small">
+                <InputLabel shrink>Estado de Sesión</InputLabel>
+                <Select
+                  sx={{ ...selectStableSX, ...purpleOutlineSX }}
+                  value={filterEstadoSesion}
+                  onChange={(e) => setFilterEstadoSesion(e.target.value)}
+                  label="Estado de Sesión"
+                  displayEmpty
+                  MenuProps={menuProps}
+                >
+                  <MenuItem value="">Todas</MenuItem>
+                  <MenuItem value="en_curso">En Curso</MenuItem>
+                  <MenuItem value="finalizada">Finalizada</MenuItem>
+                  <MenuItem value="cancelada">Cancelada</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6} md={5}>
               <FormControl fullWidth size="small">
                 <InputLabel shrink>Filtrar por Terapeuta</InputLabel>
                 <Select
@@ -303,15 +323,18 @@ const TerapeuticoCronogramas = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4} md={3}>
+            <Grid item xs={12} sm={12} md={3}>
               <Button
                 variant="outlined"
                 color="secondary"
                 fullWidth
-                onClick={() => setFilterTerapeuta('')}
+                onClick={() => {
+                  setFilterTerapeuta('');
+                  setFilterEstadoSesion('en_curso');
+                }}
                 size="medium"
               >
-                Limpiar Filtro
+                Limpiar Filtros
               </Button>
             </Grid>
           </Grid>
@@ -337,7 +360,11 @@ const TerapeuticoCronogramas = () => {
                 >
                   <MenuItem value="">Seleccione una sesión</MenuItem>
                   {sesiones
-                    .filter(sesion => !filterTerapeuta || sesion.terapeuta_nombre === filterTerapeuta)
+                    .filter(sesion => {
+                      const matchesTerapeuta = !filterTerapeuta || sesion.terapeuta_nombre === filterTerapeuta;
+                      const matchesEstado = !filterEstadoSesion || sesion.estado === filterEstadoSesion;
+                      return matchesTerapeuta && matchesEstado;
+                    })
                     .map((sesion) => (
                       <MenuItem key={sesion.id} value={sesion.id}>
                         {`${sesion.titulo} — ${sesion.terapeuta_nombre}`}
@@ -534,6 +561,7 @@ const TerapeuticoCronogramas = () => {
                               <Typography
                                 variant="body2"
                                 title={
+                                  item.motivo_cancelacion ||
                                   item.observaciones_cronograma ||
                                   item.observaciones ||
                                   item.observaciones_asistencias ||
@@ -542,6 +570,7 @@ const TerapeuticoCronogramas = () => {
                                 }
                               >
                                 {truncateObservations(
+                                  item.motivo_cancelacion ||
                                   item.observaciones_cronograma ||
                                   item.observaciones ||
                                   item.observaciones_asistencias ||
@@ -702,6 +731,15 @@ const TerapeuticoCronogramas = () => {
                 </Grid>
               )}
 
+              {detailDialog.data.motivo_cancelacion && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="error">Motivo de Cancelación</Typography>
+                  <Paper sx={{ p: 2, backgroundColor: 'error.50', border: '1px solid', borderColor: 'error.200' }}>
+                    <Typography variant="body2">{detailDialog.data.motivo_cancelacion}</Typography>
+                  </Paper>
+                </Grid>
+              )}
+
               {selectedSesion && getSesionInfo(selectedSesion) && (
                 <Grid item xs={12}>
                   <Typography variant="subtitle2" color="primary">Información de la Sesión Terapéutica</Typography>
@@ -774,7 +812,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
       const fechaBase = data.fecha_programada?.split('T')[0] || '';
       setFechaOriginal(fechaBase);
       setNuevaFecha(fechaBase);
-      
+
       // Format the hour properly for time input (HH:MM format)
       let horaFormateada = data.hora_programada || '';
       if (horaFormateada && !horaFormateada.includes(':')) {
@@ -790,7 +828,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
           horaFormateada = timePart.split(':').slice(0, 2).join(':');
         }
       }
-      
+
       setNuevaHora(horaFormateada);
       setMotivo('Reprogramación de sesión terapéutica');
     }
@@ -809,7 +847,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
 
   const handleConfirm = () => {
     if (!nuevaFecha || !nuevaHora) return;
-    
+
     // Ensure the hour is in correct format (HH:MM) without seconds
     let horaFormateada = nuevaHora;
     if (horaFormateada.includes(':')) {
@@ -818,7 +856,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
     } else {
       horaFormateada = horaFormateada.padStart(2, '0') + ':00';
     }
-    
+
     const motivoFinal = motivo && motivo.trim() ? motivo.trim() : 'Reprogramación de sesión terapéutica';
     const dataToSend = {
       nueva_fecha: nuevaFecha,
@@ -826,76 +864,306 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
       motivo_reprogramacion: motivoFinal,
       motivo: motivoFinal
     };
-    
+
     onConfirm(dataToSend);
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Reprogramar Sesión #{data?.numero_sesion}</DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          boxShadow: theme.shadows[10]
+        }
+      }}
+    >
+      {/* Header con fondo warning */}
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`,
+          color: 'white',
+          p: 3,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2
+        }}
+      >
+        <Avatar
+          sx={{
+            bgcolor: 'rgba(255,255,255,0.2)',
+            width: 56,
+            height: 56
+          }}
+        >
+          <EditCalendar sx={{ fontSize: 32 }} />
+        </Avatar>
+        <Box flex={1}>
+          <Typography variant="h5" fontWeight="bold">
+            Reprogramar Sesión
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+            Sesión #{data?.numero_sesion} - {formatDateLocal(data?.fecha_programada)}
+          </Typography>
+        </Box>
+      </Box>
+
+      <DialogContent sx={{ p: 3 }}>
+        <Grid container spacing={3}>
+          {/* Información actual */}
           <Grid item xs={12}>
-            <Typography variant="body2" color="text.secondary" mb={2}>
-              Fecha y hora actual: {formatDateLocal(data?.fecha_programada)} a las {data?.hora_programada}
-            </Typography>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                backgroundColor: 'info.50',
+                border: '2px solid',
+                borderColor: 'info.200',
+                borderRadius: 2
+              }}
+            >
+              <Typography variant="subtitle2" color="info.dark" fontWeight="bold" sx={{ mb: 1 }}>
+                Programación Actual
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Today color="info" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Fecha Actual
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {formatDateLocal(data?.fecha_programada)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <AccessTime color="info" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Hora Actual
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {data?.hora_programada}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Paper>
           </Grid>
 
+          {/* Botones de acción rápida */}
           <Grid item xs={12}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>Mover fecha rápidamente:</Typography>
-            <Box display="flex" gap={1} flexWrap="wrap">
-              <Button size="small" variant="outlined" onClick={() => moverFecha(1)}>+1 día</Button>
-              <Button size="small" variant="outlined" onClick={() => moverFecha(2)}>+2 días</Button>
-              <Button size="small" variant="outlined" onClick={() => moverFecha(7)}>+1 semana</Button>
-              <Button size="small" variant="outlined" onClick={() => moverFecha(-1)}>-1 día</Button>
-              <Button size="small" variant="outlined" onClick={() => moverFecha(-2)}>-2 días</Button>
+            <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2 }}>
+              Acciones Rápidas
+            </Typography>
+            <Box display="flex" gap={1.5} flexWrap="wrap">
+              <Button
+                size="medium"
+                variant="outlined"
+                color="warning"
+                onClick={() => moverFecha(1)}
+                startIcon={<Today />}
+              >
+                +1 día
+              </Button>
+              <Button
+                size="medium"
+                variant="outlined"
+                color="warning"
+                onClick={() => moverFecha(2)}
+                startIcon={<Today />}
+              >
+                +2 días
+              </Button>
+              <Button
+                size="medium"
+                variant="outlined"
+                color="warning"
+                onClick={() => moverFecha(7)}
+                startIcon={<Today />}
+              >
+                +1 semana
+              </Button>
+              <Divider orientation="vertical" flexItem />
+              <Button
+                size="medium"
+                variant="outlined"
+                color="inherit"
+                onClick={() => moverFecha(-1)}
+                startIcon={<Today />}
+              >
+                -1 día
+              </Button>
+              <Button
+                size="medium"
+                variant="outlined"
+                color="inherit"
+                onClick={() => moverFecha(-2)}
+                startIcon={<Today />}
+              >
+                -2 días
+              </Button>
             </Box>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              type="date"
-              label="Nueva Fecha"
-              value={nuevaFecha}
-              onChange={(e) => setNuevaFecha(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              required
-            />
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              type="time"
-              label="Nueva Hora"
-              value={nuevaHora}
-              onChange={(e) => setNuevaHora(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              required
-            />
-          </Grid>
-
+          {/* Nueva fecha y hora */}
           <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <EditCalendar color="warning" fontSize="small" />
+              Nueva Programación
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  label="Nueva Fecha"
+                  value={nuevaFecha}
+                  onChange={(e) => setNuevaFecha(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Today color="warning" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderColor: 'warning.main', borderWidth: 2 },
+                      '&:hover fieldset': { borderColor: 'warning.dark' },
+                      '&.Mui-focused fieldset': { borderColor: 'warning.dark', borderWidth: 2 }
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  type="time"
+                  label="Nueva Hora"
+                  value={nuevaHora}
+                  onChange={(e) => setNuevaHora(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  required
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AccessTime color="warning" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderColor: 'warning.main', borderWidth: 2 },
+                      '&:hover fieldset': { borderColor: 'warning.dark' },
+                      '&.Mui-focused fieldset': { borderColor: 'warning.dark', borderWidth: 2 }
+                    }
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </Grid>
+
+          {/* Motivo */}
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Note color="warning" fontSize="small" />
+              Motivo de Reprogramación
+            </Typography>
             <TextField
               fullWidth
               multiline
-              rows={3}
-              label="Motivo de la reprogramación"
+              rows={4}
+              label="Explique el motivo"
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
-              placeholder="Explique el motivo de la reprogramación..."
+              placeholder="Describa el motivo de la reprogramación (requerido)"
               required
               error={!motivo || !motivo.trim()}
-              helperText={(!motivo || !motivo.trim()) ? 'El motivo es requerido' : ''}
+              helperText={(!motivo || !motivo.trim()) ? 'El motivo es obligatorio' : `${motivo.length}/500 caracteres`}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                    <Note color="warning" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  alignItems: 'flex-start',
+                  '& fieldset': { borderColor: 'warning.main' },
+                  '&:hover fieldset': { borderColor: 'warning.dark' },
+                  '&.Mui-focused fieldset': { borderColor: 'warning.dark', borderWidth: 2 }
+                }
+              }}
             />
+          </Grid>
+
+          {/* Advertencia */}
+          <Grid item xs={12}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                backgroundColor: 'rgba(255, 167, 38, 0.08)',
+                border: '2px dashed',
+                borderColor: 'warning.main',
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 2
+              }}
+            >
+              <InfoOutlined color="warning" sx={{ fontSize: 28, mt: 0.3 }} />
+              <Box>
+                <Typography variant="subtitle2" color="warning.dark" fontWeight="bold" sx={{ mb: 0.5 }}>
+                  Información Importante
+                </Typography>
+                <Typography variant="body2" color="warning.dark">
+                  La sesión original será marcada como reprogramada y se actualizará con la nueva fecha y hora. Esta acción quedará registrada en el historial.
+                </Typography>
+              </Box>
+            </Paper>
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>Cancelar</Button>
-        <Button onClick={handleConfirm} variant="contained" disabled={loading || !nuevaFecha || !nuevaHora || !motivo || !motivo.trim()}>
-          Reprogramar
+
+      <DialogActions sx={{ px: 3, py: 2, gap: 1, borderTop: `1px solid ${theme.palette.divider}` }}>
+        <Button
+          onClick={onClose}
+          disabled={loading}
+          variant="outlined"
+          color="inherit"
+          size="large"
+        >
+          Cancelar
+        </Button>
+        <Button
+          onClick={handleConfirm}
+          variant="contained"
+          color="warning"
+          disabled={loading || !nuevaFecha || !nuevaHora || !motivo || !motivo.trim()}
+          startIcon={<EditCalendar />}
+          size="large"
+          sx={{
+            minWidth: 200,
+            boxShadow: 3,
+            '&:hover': {
+              boxShadow: 6
+            }
+          }}
+        >
+          Confirmar Reprogramación
         </Button>
       </DialogActions>
     </Dialog>
@@ -916,35 +1184,193 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Cancelar Sesión #{data?.numero_sesion}</DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          boxShadow: theme.shadows[10]
+        }
+      }}
+    >
+      {/* Header con fondo error */}
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${theme.palette.error.main} 0%, ${theme.palette.error.dark} 100%)`,
+          color: 'white',
+          p: 3,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2
+        }}
+      >
+        <Avatar
+          sx={{
+            bgcolor: 'rgba(255,255,255,0.2)',
+            width: 56,
+            height: 56
+          }}
+        >
+          <Cancel sx={{ fontSize: 32 }} />
+        </Avatar>
+        <Box flex={1}>
+          <Typography variant="h5" fontWeight="bold">
+            Cancelar Sesión
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+            Sesión #{data?.numero_sesion} - {formatDateLocal(data?.fecha_programada)}
+          </Typography>
+        </Box>
+      </Box>
+
+      <DialogContent sx={{ p: 3 }}>
+        <Grid container spacing={3}>
+          {/* Información de la sesión */}
           <Grid item xs={12}>
-            <Typography variant="body2" color="text.secondary" mb={2}>
-              Fecha programada: {formatDateLocal(data?.fecha_programada)} a las {data?.hora_programada}
-            </Typography>
-            <Typography variant="body2" color="error" mb={2}>
-              ⚠️ Esta acción marcará la sesión como cancelada y no se podrá deshacer.
-            </Typography>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                backgroundColor: 'error.50',
+                border: '2px solid',
+                borderColor: 'error.200',
+                borderRadius: 2
+              }}
+            >
+              <Typography variant="subtitle2" color="error.dark" fontWeight="bold" sx={{ mb: 1 }}>
+                Información de la Sesión
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Today color="error" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Fecha Programada
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {formatDateLocal(data?.fecha_programada)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <AccessTime color="error" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Hora Programada
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {data?.hora_programada}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Paper>
           </Grid>
 
+          {/* Advertencia importante */}
           <Grid item xs={12}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                backgroundColor: 'rgba(211, 47, 47, 0.08)',
+                border: '2px solid',
+                borderColor: 'error.light',
+                borderRadius: 2
+              }}
+            >
+              <Box display="flex" alignItems="flex-start" gap={2}>
+                <WarningAmber color="error" sx={{ fontSize: 32, mt: 0.5 }} />
+                <Box>
+                  <Typography variant="subtitle1" color="error.dark" fontWeight="bold" sx={{ mb: 1 }}>
+                    Advertencia Importante
+                  </Typography>
+                  <Typography variant="body2" color="error.dark" sx={{ mb: 1.5 }}>
+                    Esta acción marcará la sesión como cancelada de forma permanente.
+                  </Typography>
+                  <Box component="ul" sx={{ m: 0, pl: 2, '& li': { mb: 0.5 } }}>
+                    <Typography component="li" variant="body2" color="text.secondary">
+                      La sesión no podrá ser revertida al estado anterior
+                    </Typography>
+                    <Typography component="li" variant="body2" color="text.secondary">
+                      El motivo de cancelación quedará registrado en el sistema
+                    </Typography>
+                    <Typography component="li" variant="body2" color="text.secondary">
+                      Se recomienda documentar claramente el motivo de la cancelación
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Paper>
+          </Grid>
+
+          {/* Motivo de cancelación */}
+          <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Note color="error" fontSize="small" />
+              Motivo de Cancelación
+            </Typography>
             <TextField
               fullWidth
               multiline
-              rows={3}
-              label="Motivo de la cancelación"
+              rows={5}
+              label="Explique el motivo (recomendado)"
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
-              placeholder="Explique el motivo de la cancelación..."
+              placeholder="Describa el motivo de la cancelación. Ejemplos:&#10;• Inasistencia del paciente&#10;• Problemas de salud del terapeuta&#10;• Solicitud del familiar&#10;• Cambio en la disponibilidad&#10;• Otros motivos relevantes"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                    <ErrorOutline color="error" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  alignItems: 'flex-start',
+                  '& fieldset': { borderColor: 'error.main' },
+                  '&:hover fieldset': { borderColor: 'error.dark' },
+                  '&.Mui-focused fieldset': { borderColor: 'error.dark', borderWidth: 2 }
+                }
+              }}
+              helperText={motivo.length > 0 ? `${motivo.length}/500 caracteres` : 'Opcional pero recomendado para mantener un registro completo'}
             />
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>Cancelar</Button>
-        <Button onClick={handleConfirm} variant="contained" color="error" disabled={loading}>
+
+      <DialogActions sx={{ px: 3, py: 2, gap: 1, borderTop: `1px solid ${theme.palette.divider}`, backgroundColor: 'rgba(0,0,0,0.02)' }}>
+        <Button
+          onClick={onClose}
+          disabled={loading}
+          variant="outlined"
+          color="inherit"
+          size="large"
+        >
+          Volver
+        </Button>
+        <Button
+          onClick={handleConfirm}
+          variant="contained"
+          color="error"
+          disabled={loading}
+          startIcon={<Cancel />}
+          size="large"
+          sx={{
+            minWidth: 220,
+            boxShadow: 3,
+            '&:hover': {
+              boxShadow: 6
+            }
+          }}
+        >
           Confirmar Cancelación
         </Button>
       </DialogActions>
@@ -966,59 +1392,192 @@ const RealizadaDialog = ({ open, data, onClose, onConfirm, loading }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Marcar Sesión como Realizada</DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2} sx={{ mt: 1 }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 3,
+          boxShadow: theme.shadows[10]
+        }
+      }}
+    >
+      {/* Header con fondo success */}
+      <Box
+        sx={{
+          background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`,
+          color: 'white',
+          p: 3,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2
+        }}
+      >
+        <Avatar
+          sx={{
+            bgcolor: 'rgba(255,255,255,0.2)',
+            width: 56,
+            height: 56
+          }}
+        >
+          <CheckCircle sx={{ fontSize: 32 }} />
+        </Avatar>
+        <Box flex={1}>
+          <Typography variant="h5" fontWeight="bold">
+            Completar Sesión
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+            Sesión #{data?.numero_sesion} - {formatDateLocal(data?.fecha_programada)}
+          </Typography>
+        </Box>
+      </Box>
+
+      <DialogContent sx={{ p: 3 }}>
+        <Grid container spacing={3}>
+          {/* Información de la sesión */}
           <Grid item xs={12}>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              <strong>Sesión #{data?.numero_sesion}</strong>
-              {data?.fecha_programada && (
-                <><br />📅 {formatDateLocal(data.fecha_programada)} a las {data.hora_programada}</>
-              )}
-            </Typography>
-            
-            <Typography variant="body2" color="text.secondary" mb={2}>
-              ¿Desea agregar observaciones sobre esta sesión terapéutica?
-            </Typography>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                backgroundColor: 'success.50',
+                border: '2px solid',
+                borderColor: 'success.200',
+                borderRadius: 2
+              }}
+            >
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <EventNote color="success" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Número de Sesión
+                      </Typography>
+                      <Typography variant="h6" fontWeight="bold" color="success.dark">
+                        #{data?.numero_sesion}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Today color="success" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Fecha
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {formatDateLocal(data?.fecha_programada)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <AccessTime color="success" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Hora
+                      </Typography>
+                      <Typography variant="body1" fontWeight="medium">
+                        {data?.hora_programada}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Paper>
           </Grid>
 
+          {/* Campo de observaciones */}
           <Grid item xs={12}>
+            <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Note color="success" fontSize="small" />
+              Observaciones de la Sesión
+            </Typography>
             <TextField
               fullWidth
               multiline
-              rows={4}
-              label="Observaciones de la sesión"
+              rows={5}
+              label="Detalles sobre el desarrollo de la sesión"
               value={observaciones}
               onChange={(e) => setObservaciones(e.target.value)}
-              placeholder="Escriba aquí cualquier observación sobre el desarrollo de la sesión, progreso del paciente, actividades realizadas, etc. (Opcional)"
+              placeholder="Escriba aquí cualquier observación sobre:&#10;• Desarrollo de la sesión&#10;• Progreso del paciente&#10;• Actividades realizadas&#10;• Recomendaciones&#10;• Cualquier nota relevante&#10;&#10;(Opcional)"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                    <CheckCircle color="success" />
+                  </InputAdornment>
+                ),
+              }}
               sx={{
                 '& .MuiOutlinedInput-root': {
+                  alignItems: 'flex-start',
                   '& fieldset': { borderColor: 'success.main' },
-                  '&:hover fieldset': { borderColor: 'success.main' },
-                  '&.Mui-focused fieldset': { borderColor: 'success.main', borderWidth: 2 }
+                  '&:hover fieldset': { borderColor: 'success.dark' },
+                  '&.Mui-focused fieldset': { borderColor: 'success.dark', borderWidth: 2 }
                 }
               }}
+              helperText={observaciones.length > 0 ? `${observaciones.length}/500 caracteres` : 'Opcional: Agregue observaciones sobre la sesión completada'}
             />
           </Grid>
-          
+
+          {/* Mensaje de confirmación */}
           <Grid item xs={12}>
-            <Typography variant="body2" color="success.main" sx={{ mt: 1 }}>
-              ✅ Esta acción marcará la sesión como completada exitosamente.
-            </Typography>
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2.5,
+                backgroundColor: 'rgba(76, 175, 80, 0.08)',
+                border: '2px dashed',
+                borderColor: 'success.main',
+                borderRadius: 2,
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 2
+              }}
+            >
+              <InfoOutlined color="success" sx={{ fontSize: 28, mt: 0.3 }} />
+              <Box>
+                <Typography variant="subtitle2" color="success.dark" fontWeight="bold" sx={{ mb: 0.5 }}>
+                  Confirmación de Finalización
+                </Typography>
+                <Typography variant="body2" color="success.dark">
+                  Al confirmar, la sesión será marcada como completada exitosamente. Esta información quedará registrada en el sistema y podrá consultarse en el historial.
+                </Typography>
+              </Box>
+            </Paper>
           </Grid>
         </Grid>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+
+      <DialogActions sx={{ px: 3, py: 2, gap: 1, borderTop: `1px solid ${theme.palette.divider}` }}>
+        <Button
+          onClick={onClose}
+          disabled={loading}
+          variant="outlined"
+          color="inherit"
+          size="large"
+        >
           Cancelar
         </Button>
-        <Button 
-          onClick={handleConfirm} 
-          variant="contained" 
+        <Button
+          onClick={handleConfirm}
+          variant="contained"
           color="success"
           disabled={loading}
           startIcon={<CheckCircle />}
+          size="large"
+          sx={{
+            minWidth: 200,
+            boxShadow: 3,
+            '&:hover': {
+              boxShadow: 6
+            }
+          }}
         >
           Marcar como Realizada
         </Button>

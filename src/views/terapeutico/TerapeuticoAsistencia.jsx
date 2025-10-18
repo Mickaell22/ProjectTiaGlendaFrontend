@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import {
   CheckCircle, Cancel, Search, Visibility, Add, Edit, AccessTime,
-  Person, Assignment
+  Person, Assignment, EventAvailable, Note, TrendingUp, TaskAlt, Flag
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -758,123 +758,286 @@ const TerapeuticoAsistencia = () => {
         </Card>
       )}
 
-      {/* Dialog Registrar/Editar asistencia (lógica igual) */}
+      {/* Dialog Registrar/Editar asistencia (diseño mejorado) */}
       <Dialog
         open={asistenciaDialog.open}
         onClose={() => setAsistenciaDialog({ open: false, data: null, isEdit: false })}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: theme.shadows[10]
+          }
+        }}
       >
-        <DialogTitle>
-          {asistenciaDialog.isEdit ? 'Editar Asistencia' : 'Registrar Asistencia'}
-        </DialogTitle>
-        <DialogContent>
+        {/* Header del diálogo con diseño mejorado */}
+        <Box
+          sx={{
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+            color: 'white',
+            p: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2
+          }}
+        >
+          <Avatar
+            sx={{
+              bgcolor: 'rgba(255,255,255,0.2)',
+              width: 48,
+              height: 48
+            }}
+          >
+            {asistenciaDialog.isEdit ? <Edit /> : <Add />}
+          </Avatar>
+          <Box flex={1}>
+            <Typography variant="h6" fontWeight="bold">
+              {asistenciaDialog.isEdit ? 'Editar Asistencia' : 'Registrar Asistencia'}
+            </Typography>
+            {asistenciaDialog.data && (
+              <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+                {asistenciaDialog.data.paciente?.paciente_nombre || asistenciaDialog.data.paciente_nombre}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+
+        <DialogContent sx={{ pt: 3, pb: 2 }}>
           {asistenciaDialog.data && (
             <Box>
-              <Typography variant="subtitle2" color="primary" mb={1} sx={{ fontSize: '1rem' }}>
-                Paciente: {asistenciaDialog.data.paciente?.paciente_nombre || asistenciaDialog.data.paciente_nombre}
-              </Typography>
-              <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                <Grid item xs={12} md={6}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={formData.asistio}
-                        onChange={(e) => setFormData(prev => ({ ...prev, asistio: e.target.checked }))}
-                        color="success"
+              {/* Información del paciente */}
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  mb: 3,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'grey.50',
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2
+                }}
+              >
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Avatar sx={{ bgcolor: 'primary.main' }}>
+                    <Person />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="600">
+                      {asistenciaDialog.data.paciente?.paciente_nombre || asistenciaDialog.data.paciente_nombre}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Cédula: {asistenciaDialog.data.paciente?.paciente_cedula || asistenciaDialog.data.paciente_cedula || 'N/A'}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Paper>
+
+              {/* Control de asistencia */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <EventAvailable fontSize="small" />
+                  Estado de Asistencia
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2,
+                        border: `2px solid ${formData.asistio ? theme.palette.success.main : theme.palette.grey[300]}`,
+                        borderRadius: 2,
+                        backgroundColor: formData.asistio
+                          ? theme.palette.mode === 'dark' ? 'rgba(46, 125, 50, 0.1)' : 'success.50'
+                          : 'transparent',
+                        transition: 'all 0.3s ease'
+                      }}
+                    >
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={formData.asistio}
+                            onChange={(e) => setFormData(prev => ({ ...prev, asistio: e.target.checked }))}
+                            color="success"
+                            size="medium"
+                          />
+                        }
+                        label={
+                          <Box>
+                            <Typography variant="body1" fontWeight="600">
+                              {formData.asistio ? 'Asistió a la sesión' : 'No asistió'}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {formData.asistio ? 'El paciente estuvo presente' : 'Marcar como presente'}
+                            </Typography>
+                          </Box>
+                        }
                       />
-                    }
-                    label={<span style={{ fontWeight: 500, fontSize: '0.95rem' }}>Asistió a la sesión</span>}
-                    sx={{ width: 220 }} // Edita el ancho aquí
-                  />
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Minutos de tardanza"
+                      value={formData.llegada_tardanza_minutos}
+                      onChange={(e) => setFormData(prev => ({ ...prev, llegada_tardanza_minutos: e.target.value }))}
+                      inputProps={{ min: 0, max: 120 }}
+                      disabled={!formData.asistio}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <AccessTime />
+                          </InputAdornment>
+                        ),
+                      }}
+                      helperText={formData.asistio ? 'Ingrese 0 si llegó puntual' : 'Solo si asistió'}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          height: '100%'
+                        }
+                      }}
+                    />
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Minutos de tardanza"
-                    value={formData.llegada_tardanza_minutos}
-                    onChange={(e) => setFormData(prev => ({ ...prev, llegada_tardanza_minutos: e.target.value }))}
-                    inputProps={{ min: 0 }}
-                    disabled={!formData.asistio}
-                    sx={{ width: 180 }} // Edita el ancho aquí
-                  />
+              </Box>
+
+              {/* Campos de observaciones y notas */}
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Note fontSize="small" />
+                  Observaciones y Notas Clínicas
+                </Typography>
+                <Grid container spacing={2.5}>
+                  {/* Observaciones del Terapeuta */}
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      label="Observaciones del Terapeuta"
+                      value={formData.observaciones_terapeuta}
+                      onChange={(e) => setFormData(prev => ({ ...prev, observaciones_terapeuta: e.target.value }))}
+                      placeholder="Observaciones generales sobre la asistencia y comportamiento del paciente..."
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                            <Note color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          alignItems: 'flex-start'
+                        }
+                      }}
+                    />
+                  </Grid>
+
+                  {/* Progreso Observado */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      label="Progreso Observado"
+                      value={formData.progreso_observado}
+                      onChange={(e) => setFormData(prev => ({ ...prev, progreso_observado: e.target.value }))}
+                      placeholder="Avances y mejoras observadas durante la sesión..."
+                      disabled={!formData.asistio}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                            <TrendingUp color={formData.asistio ? 'success' : 'disabled'} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          alignItems: 'flex-start'
+                        }
+                      }}
+                    />
+                  </Grid>
+
+                  {/* Objetivos Trabajados */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      label="Objetivos Trabajados"
+                      value={formData.objetivos_trabajados}
+                      onChange={(e) => setFormData(prev => ({ ...prev, objetivos_trabajados: e.target.value }))}
+                      placeholder="Objetivos terapéuticos abordados en la sesión..."
+                      disabled={!formData.asistio}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                            <Flag color={formData.asistio ? 'primary' : 'disabled'} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          alignItems: 'flex-start'
+                        }
+                      }}
+                    />
+                  </Grid>
+
+                  {/* Tareas Asignadas */}
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      label="Tareas Asignadas para Casa"
+                      value={formData.tareas_asignadas}
+                      onChange={(e) => setFormData(prev => ({ ...prev, tareas_asignadas: e.target.value }))}
+                      placeholder="Ejercicios, actividades o tareas asignadas para realizar en casa..."
+                      disabled={!formData.asistio}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                            <TaskAlt color={formData.asistio ? 'secondary' : 'disabled'} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          alignItems: 'flex-start'
+                        }
+                      }}
+                    />
+                  </Grid>
                 </Grid>
-              </Grid>
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                {/* Segunda fila: 2 x 2 */}
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    label="Observaciones del Terapeuta"
-                    value={formData.observaciones_terapeuta}
-                    onChange={(e) => setFormData(prev => ({ ...prev, observaciones_terapeuta: e.target.value }))}
-                    placeholder="Observaciones sobre la asistencia..."
-                    sx={{ width: 260 }} // Edita el ancho aquí
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    label="Progreso Observado"
-                    value={formData.progreso_observado}
-                    onChange={(e) => setFormData(prev => ({ ...prev, progreso_observado: e.target.value }))}
-                    placeholder="Notas sobre el progreso del paciente en esta sesión..."
-                    disabled={!formData.asistio}
-                    sx={{ width: 260 }} // Edita el ancho aquí
-                  />
-                </Grid>
-                {/* Tercera fila: 2 x 2 */}
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    label="Tareas Asignadas"
-                    value={formData.tareas_asignadas}
-                    onChange={(e) => setFormData(prev => ({ ...prev, tareas_asignadas: e.target.value }))}
-                    placeholder="Tareas o ejercicios asignados para casa..."
-                    disabled={!formData.asistio}
-                    sx={{ width: 260 }} // Edita el ancho aquí
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    label="Objetivos Trabajados"
-                    value={formData.objetivos_trabajados}
-                    onChange={(e) => setFormData(prev => ({ ...prev, objetivos_trabajados: e.target.value }))}
-                    placeholder="Objetivos para las próximas sesiones..."
-                    disabled={!formData.asistio}
-                    sx={{ width: 260 }} // Edita el ancho aquí
-                  />
-                </Grid>
-              </Grid>
+              </Box>
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAsistenciaDialog({ open: false, data: null, isEdit: false })}>
+
+        <DialogActions sx={{ px: 3, py: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+          <Button
+            onClick={() => setAsistenciaDialog({ open: false, data: null, isEdit: false })}
+            variant="outlined"
+            color="inherit"
+          >
             Cancelar
           </Button>
           <Button
             variant="contained"
             onClick={handleSubmitAsistencia}
+            startIcon={asistenciaDialog.isEdit ? <Edit /> : <CheckCircle />}
             sx={{
               backgroundColor: theme.palette.primary.main,
               '&:hover': {
                 backgroundColor: theme.palette.primary.dark
               },
-              color: theme.palette.primary.contrastText
+              color: theme.palette.primary.contrastText,
+              px: 3
             }}
           >
-            {asistenciaDialog.isEdit ? 'Actualizar' : 'Registrar'}
+            {asistenciaDialog.isEdit ? 'Actualizar Asistencia' : 'Registrar Asistencia'}
           </Button>
         </DialogActions>
       </Dialog>

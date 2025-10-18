@@ -10,7 +10,8 @@ import {
 } from '@mui/material';
 import {
   CheckCircle, Cancel, Search, Visibility, Add, Edit, AccessTime,
-  Person, Assignment, School
+  Person, Assignment, School, EventAvailable, Note, TrendingUp, TaskAlt,
+  Flag, Grade, EmojiEvents
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -695,147 +696,348 @@ const PedagogicoAsistencia = () => {
         </Card>
       )}
 
-      {/* Dialog Registrar/Editar asistencia */}
+      {/* Dialog Registrar/Editar asistencia (diseño mejorado) */}
       <Dialog
         open={asistenciaDialog.open}
         onClose={() => setAsistenciaDialog({ open: false, data: null, isEdit: false })}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: theme.shadows[10]
+          }
+        }}
       >
-        <DialogTitle>
-          {asistenciaDialog.isEdit ? 'Editar Asistencia' : 'Registrar Asistencia'}
-        </DialogTitle>
-        <DialogContent>
+        {/* Header del diálogo con diseño mejorado */}
+        <Box
+          sx={{
+            background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`,
+            color: 'white',
+            p: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2
+          }}
+        >
+          <Avatar
+            sx={{
+              bgcolor: 'rgba(255,255,255,0.2)',
+              width: 48,
+              height: 48
+            }}
+          >
+            {asistenciaDialog.isEdit ? <Edit /> : <Add />}
+          </Avatar>
+          <Box flex={1}>
+            <Typography variant="h6" fontWeight="bold">
+              {asistenciaDialog.isEdit ? 'Editar Asistencia Pedagógica' : 'Registrar Asistencia Pedagógica'}
+            </Typography>
+            {asistenciaDialog.data && (
+              <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+                {asistenciaDialog.data.estudiante?.estudiante?.nombre || asistenciaDialog.data.estudiante_nombre}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+
+        <DialogContent sx={{ pt: 3, pb: 2 }}>
           {asistenciaDialog.data && (
             <Box>
-              <Grid container spacing={3} sx={{ mt: 1 }}>
-                <Grid item xs={12}>
-                  <Box display="flex" flexDirection="column" alignItems="flex-start" mb={2}>
-                    <Typography variant="subtitle2" color="primary" mb={1}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                        Estudiante: {asistenciaDialog.data.estudiante?.estudiante?.nombre || asistenciaDialog.data.estudiante_nombre}
-                      </span>
+              {/* Información del estudiante */}
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 2,
+                  mb: 3,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'grey.50',
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2
+                }}
+              >
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Avatar sx={{ bgcolor: 'success.main' }}>
+                    <School />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight="600">
+                      {asistenciaDialog.data.estudiante?.estudiante?.nombre || asistenciaDialog.data.estudiante_nombre}
                     </Typography>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={formData.asistio}
-                          onChange={(e) => setFormData(prev => ({ ...prev, asistio: e.target.checked }))}
-                          sx={{
-                            '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
-                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
-                          }}
-                        />
-                      }
-                      label={<span style={{ fontWeight: 500, fontSize: '0.85rem' }}>Asistió a la clase</span>}
-                      sx={{ mt: 1 }}
-                    />
+                    <Typography variant="caption" color="text.secondary">
+                      Cédula: {asistenciaDialog.data.estudiante?.estudiante?.cedula || asistenciaDialog.data.estudiante_cedula || 'N/A'}
+                    </Typography>
                   </Box>
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Minutos de tardanza"
-                    value={formData.llegada_tardanza_minutos}
-                    onChange={(e) => setFormData(prev => ({ ...prev, llegada_tardanza_minutos: e.target.value }))}
-                    inputProps={{ min: 0 }}
-                    disabled={!formData.asistio}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Participación en clase</InputLabel>
-                    <Select
-                      value={formData.participacion_clase}
-                      onChange={(e) => setFormData(prev => ({ ...prev, participacion_clase: e.target.value }))}
-                      disabled={!formData.asistio}
-                      label="Participación en clase"
+                </Box>
+              </Paper>
+
+              {/* Control de asistencia */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <EventAvailable fontSize="small" />
+                  Estado de Asistencia
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={7}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2,
+                        border: `2px solid ${formData.asistio ? theme.palette.success.main : theme.palette.grey[300]}`,
+                        borderRadius: 2,
+                        backgroundColor: formData.asistio
+                          ? theme.palette.mode === 'dark' ? 'rgba(46, 125, 50, 0.1)' : 'success.50'
+                          : 'transparent',
+                        transition: 'all 0.3s ease'
+                      }}
                     >
-                      <MenuItem value="">Sin especificar</MenuItem>
-                      <MenuItem value="excelente">Excelente</MenuItem>
-                      <MenuItem value="buena">Buena</MenuItem>
-                      <MenuItem value="regular">Regular</MenuItem>
-                      <MenuItem value="deficiente">Deficiente</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    sx={{ minWidth: 220 }}
-                    multiline
-                    rows={2}
-                    label="Observaciones del Educador"
-                    value={formData.observaciones_educador}
-                    onChange={(e) => setFormData(prev => ({ ...prev, observaciones_educador: e.target.value }))}
-                    placeholder="Observaciones sobre la asistencia..."
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    sx={{ minWidth: 220 }}
-                    multiline
-                    rows={2}
-                    label="Objetivos trabajados en clase"
-                    value={formData.objetivos_trabajados}
-                    onChange={(e) => setFormData(prev => ({ ...prev, objetivos_trabajados: e.target.value }))}
-                    placeholder="Descripción de los objetivos específicos trabajados durante la clase..."
-                    disabled={!formData.asistio}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    sx={{ minWidth: 220 }}
-                    multiline
-                    rows={2}
-                    label="Tareas asignadas"
-                    value={formData.tareas_asignadas}
-                    onChange={(e) => setFormData(prev => ({ ...prev, tareas_asignadas: e.target.value }))}
-                    placeholder="Tareas o ejercicios asignados para casa..."
-                    disabled={!formData.asistio}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Calificación de clase (1-10)"
-                    value={formData.calificacion_evaluacion}
-                    onChange={(e) => setFormData(prev => ({ ...prev, calificacion_evaluacion: e.target.value }))}
-                    inputProps={{ min: 1, max: 10 }}
-                    disabled={!formData.asistio}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={formData.actividades_completadas}
-                        onChange={(e) => setFormData(prev => ({ ...prev, actividades_completadas: e.target.checked }))}
-                        sx={{
-                          '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
-                          '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
-                        }}
-                        disabled={!formData.asistio}
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={formData.asistio}
+                            onChange={(e) => setFormData(prev => ({ ...prev, asistio: e.target.checked }))}
+                            sx={{
+                              '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
+                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
+                            }}
+                          />
+                        }
+                        label={
+                          <Box>
+                            <Typography variant="body1" fontWeight="600">
+                              {formData.asistio ? 'Asistió a la clase' : 'No asistió'}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {formData.asistio ? 'El estudiante estuvo presente' : 'Marcar como presente'}
+                            </Typography>
+                          </Box>
+                        }
                       />
-                    }
-                    label="Actividades completadas"
-                  />
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} sm={5}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Minutos de tardanza"
+                      value={formData.llegada_tardanza_minutos}
+                      onChange={(e) => setFormData(prev => ({ ...prev, llegada_tardanza_minutos: e.target.value }))}
+                      inputProps={{ min: 0, max: 120 }}
+                      disabled={!formData.asistio}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <AccessTime />
+                          </InputAdornment>
+                        ),
+                      }}
+                      helperText={formData.asistio ? 'Ingrese 0 si llegó puntual' : 'Solo si asistió'}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          height: '100%'
+                        }
+                      }}
+                    />
+                  </Grid>
                 </Grid>
-              </Grid>
+              </Box>
+
+              {/* Evaluación de la clase */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Grade fontSize="small" />
+                  Evaluación y Desempeño
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth disabled={!formData.asistio}>
+                      <InputLabel>Participación en clase</InputLabel>
+                      <Select
+                        value={formData.participacion_clase}
+                        onChange={(e) => setFormData(prev => ({ ...prev, participacion_clase: e.target.value }))}
+                        label="Participación en clase"
+                        startAdornment={
+                          <InputAdornment position="start">
+                            <TrendingUp color={formData.asistio ? 'action' : 'disabled'} />
+                          </InputAdornment>
+                        }
+                      >
+                        <MenuItem value="">Sin especificar</MenuItem>
+                        <MenuItem value="excelente">Excelente</MenuItem>
+                        <MenuItem value="buena">Buena</MenuItem>
+                        <MenuItem value="regular">Regular</MenuItem>
+                        <MenuItem value="deficiente">Deficiente</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Calificación de clase (1-10)"
+                      value={formData.calificacion_evaluacion || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, calificacion_evaluacion: e.target.value }))}
+                      inputProps={{ min: 1, max: 10 }}
+                      disabled={!formData.asistio}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EmojiEvents color={formData.asistio ? 'warning' : 'disabled'} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      helperText="Calificación del 1 al 10"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2,
+                        border: `2px solid ${formData.actividades_completadas ? theme.palette.success.main : theme.palette.grey[300]}`,
+                        borderRadius: 2,
+                        backgroundColor: formData.actividades_completadas
+                          ? theme.palette.mode === 'dark' ? 'rgba(46, 125, 50, 0.1)' : 'success.50'
+                          : 'transparent',
+                        transition: 'all 0.3s ease',
+                        opacity: formData.asistio ? 1 : 0.5
+                      }}
+                    >
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={formData.actividades_completadas}
+                            onChange={(e) => setFormData(prev => ({ ...prev, actividades_completadas: e.target.checked }))}
+                            sx={{
+                              '& .MuiSwitch-switchBase.Mui-checked': { color: 'success.main' },
+                              '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { backgroundColor: 'success.main' }
+                            }}
+                            disabled={!formData.asistio}
+                          />
+                        }
+                        label={
+                          <Box>
+                            <Typography variant="body1" fontWeight="600">
+                              Actividades completadas
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Marcar si el estudiante completó todas las actividades de clase
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              {/* Campos de observaciones y notas */}
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Note fontSize="small" />
+                  Observaciones y Notas Académicas
+                </Typography>
+                <Grid container spacing={2.5}>
+                  {/* Observaciones del Educador */}
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      label="Observaciones del Educador"
+                      value={formData.observaciones_educador}
+                      onChange={(e) => setFormData(prev => ({ ...prev, observaciones_educador: e.target.value }))}
+                      placeholder="Observaciones generales sobre la asistencia y comportamiento del estudiante..."
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                            <Note color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          alignItems: 'flex-start'
+                        }
+                      }}
+                    />
+                  </Grid>
+
+                  {/* Objetivos Trabajados */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      label="Objetivos Trabajados en Clase"
+                      value={formData.objetivos_trabajados}
+                      onChange={(e) => setFormData(prev => ({ ...prev, objetivos_trabajados: e.target.value }))}
+                      placeholder="Descripción de los objetivos específicos trabajados durante la clase..."
+                      disabled={!formData.asistio}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                            <Flag color={formData.asistio ? 'success' : 'disabled'} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          alignItems: 'flex-start'
+                        }
+                      }}
+                    />
+                  </Grid>
+
+                  {/* Tareas Asignadas */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      label="Tareas Asignadas para Casa"
+                      value={formData.tareas_asignadas}
+                      onChange={(e) => setFormData(prev => ({ ...prev, tareas_asignadas: e.target.value }))}
+                      placeholder="Tareas o ejercicios asignados para realizar en casa..."
+                      disabled={!formData.asistio}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start" sx={{ alignSelf: 'flex-start', mt: 1.5 }}>
+                            <TaskAlt color={formData.asistio ? 'primary' : 'disabled'} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiInputBase-root': {
+                          alignItems: 'flex-start'
+                        }
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAsistenciaDialog({ open: false, data: null, isEdit: false })}>
+
+        <DialogActions sx={{ px: 3, py: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+          <Button
+            onClick={() => setAsistenciaDialog({ open: false, data: null, isEdit: false })}
+            variant="outlined"
+            color="inherit"
+          >
             Cancelar
           </Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={handleSubmitAsistencia}
-            sx={{ bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
+            startIcon={asistenciaDialog.isEdit ? <Edit /> : <CheckCircle />}
+            sx={{
+              bgcolor: 'success.main',
+              '&:hover': { bgcolor: 'success.dark' },
+              px: 3
+            }}
           >
-            {asistenciaDialog.isEdit ? 'Actualizar' : 'Registrar'}
+            {asistenciaDialog.isEdit ? 'Actualizar Asistencia' : 'Registrar Asistencia'}
           </Button>
         </DialogActions>
       </Dialog>
