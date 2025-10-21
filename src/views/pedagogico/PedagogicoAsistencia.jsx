@@ -176,19 +176,19 @@ const PedagogicoAsistencia = () => {
   };
 
   const handleRegistrarAsistencia = (estudianteData) => {
-    
+
     // Get the cronograma ID - prioritize selectedCronograma since it's the main state
     const cronogramaId = selectedCronograma || currentCronogramaId;
-    
+
     if (!cronogramaId) {
-      setSnackbar({ 
-        open: true, 
-        message: 'Error: No se ha seleccionado una fecha de clase. Seleccione una fecha antes de registrar asistencias.', 
-        severity: 'error' 
+      setSnackbar({
+        open: true,
+        message: 'Error: No se ha seleccionado una fecha de clase. Seleccione una fecha antes de registrar asistencias.',
+        severity: 'error'
       });
       return;
     }
-    
+
     setFormData({
       asistio: false,
       llegada_tardanza_minutos: 0,
@@ -199,10 +199,16 @@ const PedagogicoAsistencia = () => {
       tareas_asignadas: '',
       calificacion_evaluacion: null
     });
-    
-    // Handle both old estudiante structure and new asistencia structure
-    const estudiante = estudianteData.estudiante_id ? estudianteData : { estudiante_id: estudianteData.id || estudianteData.paciente_id };
-    
+
+    // Preservar toda la información del estudiante
+    const estudiante = {
+      estudiante_id: estudianteData.estudiante_id || estudianteData.paciente_id || estudianteData.id,
+      estudiante: {
+        nombre: estudianteData.nombre || estudianteData.estudiante_nombre,
+        cedula: estudianteData.cedula || estudianteData.estudiante_cedula
+      }
+    };
+
     setAsistenciaDialog({
       open: true,
       data: { estudiante, cronograma_id: cronogramaId },
@@ -221,9 +227,17 @@ const PedagogicoAsistencia = () => {
       tareas_asignadas: asistencia.tareas_asignadas || '',
       calificacion_evaluacion: asistencia.calificacion_clase || null
     });
+
+    // Asegurar que la información del estudiante esté correctamente estructurada
+    const asistenciaConEstudiante = {
+      ...asistencia,
+      estudiante_nombre: asistencia.estudiante_nombre || asistencia.nombre,
+      estudiante_cedula: asistencia.estudiante_cedula || asistencia.cedula
+    };
+
     setAsistenciaDialog({
       open: true,
-      data: asistencia,
+      data: asistenciaConEstudiante,
       isEdit: true
     });
   };

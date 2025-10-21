@@ -591,24 +591,28 @@ const MiPerfil = () => {
     setChangingPassword(true);
     try {
       const response = await ApiService.put(`/api/usuarios/${userData.id}/cambiar-contrasenia`, {
+        contrasenia_actual: passwordData.currentPassword,
         nueva_contrasenia: passwordData.newPassword,
         confirmar_contrasenia: passwordData.confirmPassword
       });
 
-      if (response.success || response.data) {
-        showSuccess('Contraseña cambiada correctamente');
-        setChangePasswordDialogOpen(false);
-        setPasswordData({
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: ''
-        });
-      } else {
-        showError('Error al cambiar la contraseña. Verifica tu contraseña actual.');
-      }
+      console.log('Password change response:', response);
+
+      // Extraer datos de la respuesta usando extractData
+      const data = extractData(response);
+
+      // Si llegamos aquí sin error, la contraseña se cambió exitosamente
+      showSuccess('Contraseña cambiada correctamente');
+      setChangePasswordDialogOpen(false);
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
     } catch (error) {
       console.error('Error changing password:', error);
-      showError('Error al cambiar la contraseña. Verifica tu contraseña actual.');
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || 'Error al cambiar la contraseña. Verifica tu contraseña actual.';
+      showError(errorMessage);
     } finally {
       setChangingPassword(false);
     }
@@ -1414,11 +1418,25 @@ const MiPerfil = () => {
         </DialogTitle>
 
         <DialogContent>
-          <Alert severity="info" sx={{ mb: 2 }}>
-            Como administrador, puedes cambiar la contraseña directamente sin necesidad de la contraseña actual.
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Por seguridad, debes ingresar tu contraseña actual para poder cambiarla.
           </Alert>
 
           <Stack spacing={3} sx={{ mt: 1 }}>
+            <TextField
+              label="Contraseña Actual"
+              type="password"
+              fullWidth
+              value={passwordData.currentPassword}
+              onChange={(e) => setPasswordData(prev => ({
+                ...prev,
+                currentPassword: e.target.value
+              }))}
+              disabled={changingPassword}
+              required
+              helperText="Ingresa tu contraseña actual para verificar tu identidad"
+            />
+
             <TextField
               label="Nueva Contraseña"
               type="password"

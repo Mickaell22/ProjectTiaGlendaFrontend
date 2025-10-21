@@ -22,6 +22,7 @@ import {
   Snackbar,
   Divider,
   Paper,
+  Stack,
   useTheme,
 } from '@mui/material';
 import {
@@ -33,9 +34,11 @@ import {
   Refresh,
   Description,
   Security,
+  Close,
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { formatDateLocal } from 'src/utils/dateUtils';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Servicios
 import { API_CONFIG } from '../../config/api.js';
@@ -45,10 +48,14 @@ import { FileValidator } from '../../utils/fileValidation.js';
 const DocumentosPaciente = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Soporta rutas /pacientes/:id/documentos o /pacientes/:pacienteId/documentos
   const { pacienteId: pacienteIdParam, id: idParam } = useParams();
   const pacienteId = pacienteIdParam || idParam;
+
+  // Verificar si el usuario es administrador
+  const esAdministrador = user?.rol?.toLowerCase() === 'administrador';
 
   // Estados principales
   const [paciente, setPaciente] = useState(null);
@@ -353,25 +360,27 @@ const DocumentosPaciente = () => {
           </Box>
 
           <Box display="flex" gap={1} flexWrap="wrap">
-            <Tooltip title="Subir Documento">
-              <Button
-                variant="contained"
-                startIcon={<Upload />}
-                onClick={() => setShowUploadForm(true)}
-                disabled={uploading}
-                sx={{
-                  borderRadius: 3,
-                  textTransform: 'none',
-                  fontWeight: 'bold',
-                  backgroundColor: theme.palette.primary.main,
-                '&:hover': {
-                backgroundColor: theme.palette.primary.dark,
-               }
-                }}
-              >
-                Subir
-              </Button>
-            </Tooltip>
+            {esAdministrador && (
+              <Tooltip title="Subir Documento">
+                <Button
+                  variant="contained"
+                  startIcon={<Upload />}
+                  onClick={() => setShowUploadForm(true)}
+                  disabled={uploading}
+                  sx={{
+                    borderRadius: 3,
+                    textTransform: 'none',
+                    fontWeight: 'bold',
+                    backgroundColor: theme.palette.primary.main,
+                  '&:hover': {
+                  backgroundColor: theme.palette.primary.dark,
+                 }
+                  }}
+                >
+                  Subir
+                </Button>
+              </Tooltip>
+            )}
             <Tooltip title="Recargar">
               <IconButton
                 onClick={loadDocumentos}
@@ -444,18 +453,20 @@ const DocumentosPaciente = () => {
               <Typography variant="body2" color="text.secondary" mb={3}>
                 Este paciente no tiene documentos PDF cargados
               </Typography>
-              <Button
-                variant="contained"
-                startIcon={<Upload />}
-                onClick={() => setShowUploadForm(true)}
-                sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 'bold' ,backgroundColor: theme.palette.primary.main,
-                '&:hover': {
-                backgroundColor: theme.palette.primary.dark,
-               }
-            }}
-              >
-                Subir Primer Documento
-              </Button>
+              {esAdministrador && (
+                <Button
+                  variant="contained"
+                  startIcon={<Upload />}
+                  onClick={() => setShowUploadForm(true)}
+                  sx={{ borderRadius: 3, textTransform: 'none', fontWeight: 'bold' ,backgroundColor: theme.palette.primary.main,
+                  '&:hover': {
+                  backgroundColor: theme.palette.primary.dark,
+                 }
+              }}
+                >
+                  Subir Primer Documento
+                </Button>
+              )}
             </Box>
           ) : (
             <Grid container spacing={3}>
@@ -521,16 +532,20 @@ const DocumentosPaciente = () => {
                             <Download />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Editar">
-                          <IconButton size="small" color="success" onClick={() => handleEdit(documento)}>
-                            <Edit />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Eliminar">
-                          <IconButton size="small" color="error" onClick={() => handleDelete(documento)}>
-                            <Delete />
-                          </IconButton>
-                        </Tooltip>
+                        {esAdministrador && (
+                          <>
+                            <Tooltip title="Editar">
+                              <IconButton size="small" color="success" onClick={() => handleEdit(documento)}>
+                                <Edit />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Eliminar">
+                              <IconButton size="small" color="error" onClick={() => handleDelete(documento)}>
+                                <Delete />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        )}
                       </Box>
                     </CardContent>
                   </Card>
@@ -542,104 +557,161 @@ const DocumentosPaciente = () => {
       </Card>
 
       {/* Dialog de Subir Documento */}
-      <Dialog open={showUploadForm} onClose={() => setShowUploadForm(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={showUploadForm}
+        onClose={() => setShowUploadForm(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+          }
+        }}
+      >
         <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <Upload />
-            Subir Nuevo Documento
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Typography variant="h6" fontWeight={600}>
+              Subir Documento
+            </Typography>
+            <IconButton size="small" onClick={() => setShowUploadForm(false)}>
+              <Close />
+            </IconButton>
           </Box>
         </DialogTitle>
+
+        <Divider />
+
         <form onSubmit={handleUploadSubmit}>
-          <DialogContent>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
+          <DialogContent sx={{ pt: 3 }}>
+            <Stack spacing={2.5}>
+              {/* Zona de Archivo */}
+              <Box>
+                <input
+                  id="file-upload-paciente"
                   type="file"
-                  fullWidth
-                  label="Archivo PDF"
-                  InputLabelProps={{ shrink: true }}
-                  inputProps={{ accept: '.pdf' }}
+                  accept=".pdf"
                   onChange={handleFileChange}
-                  required
                   disabled={uploading}
-                  helperText="Solo archivos PDF, máximo 10MB"
+                  style={{ display: 'none' }}
                 />
-              </Grid>
+                <label htmlFor="file-upload-paciente">
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      border: '2px dashed',
+                      borderColor: uploadData.archivo ? 'success.main' : 'grey.300',
+                      backgroundColor: uploadData.archivo ? 'success.50' : 'grey.50',
+                      borderRadius: 2,
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                        backgroundColor: 'primary.50',
+                      }
+                    }}
+                  >
+                    {uploadData.archivo ? (
+                      <>
+                        <Description sx={{ fontSize: 48, color: 'success.main', mb: 1 }} />
+                        <Typography variant="body2" fontWeight={600} gutterBottom noWrap>
+                          {uploadData.archivo.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {(uploadData.archivo.size / 1024 / 1024).toFixed(2)} MB
+                        </Typography>
+                      </>
+                    ) : (
+                      <>
+                        <Upload sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+                        <Typography variant="body2" fontWeight={600} gutterBottom>
+                          Seleccionar archivo PDF
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          Solo archivos PDF (Máx. 10MB)
+                        </Typography>
+                      </>
+                    )}
+                  </Paper>
+                </label>
+              </Box>
 
-              <Grid item xs={12} md={6}>
-                <TextField
-                  select
-                  sx={{ width: 270 }} 
-                  label="Tipo de Documento"
-                  value={uploadData.tipo_documento}
-                  onChange={(e) => setUploadData(prev => ({ ...prev, tipo_documento: e.target.value }))}
-                  required
-                  disabled={uploading}
-                >
-                  {tiposDocumento.map((tipo) => (
-                    <MenuItem key={tipo.value} value={tipo.value}>
-                      {tipo.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
+              {/* Tipo de Documento */}
+              <TextField
+                select
+                fullWidth
+                label="Tipo de Documento"
+                value={uploadData.tipo_documento}
+                onChange={(e) => setUploadData(prev => ({ ...prev, tipo_documento: e.target.value }))}
+                required
+                disabled={uploading}
+              >
+                {tiposDocumento.map((tipo) => (
+                  <MenuItem key={tipo.value} value={tipo.value}>
+                    {tipo.label}
+                  </MenuItem>
+                ))}
+              </TextField>
 
-              <Grid item xs={12} md={6}>
-                <TextField
-                  type="date"
-                  fullWidth
-                  label="Fecha de Vencimiento"
-                  InputLabelProps={{ shrink: true }}
-                  value={uploadData.fecha_vencimiento}
-                  onChange={(e) => setUploadData(prev => ({ ...prev, fecha_vencimiento: e.target.value }))}
-                  disabled={uploading}
-                />
-              </Grid>
+              {/* Fecha de Vencimiento */}
+              <TextField
+                type="date"
+                fullWidth
+                label="Fecha de Vencimiento (Opcional)"
+                InputLabelProps={{ shrink: true }}
+                value={uploadData.fecha_vencimiento}
+                onChange={(e) => setUploadData(prev => ({ ...prev, fecha_vencimiento: e.target.value }))}
+                disabled={uploading}
+              />
 
-              <Grid item xs={12}>
-                <TextField
-                  sx={{ width: 300}} 
-                  multiline
-                  rows={3}
-                  label="Descripción del documento (opcional)"
-                  placeholder=""
-                  value={uploadData.descripcion}
-                  onChange={(e) => setUploadData(prev => ({ ...prev, descripcion: e.target.value }))}
-                  disabled={uploading}
-                />
-              </Grid>
+              {/* Descripción */}
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label="Descripción (Opcional)"
+                placeholder="Detalles del documento..."
+                value={uploadData.descripcion}
+                onChange={(e) => setUploadData(prev => ({ ...prev, descripcion: e.target.value }))}
+                disabled={uploading}
+              />
 
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={uploadData.es_confidencial}
-                      onChange={(e) => setUploadData(prev => ({ ...prev, es_confidencial: e.target.checked }))}
-                      disabled={uploading}
-                    />
-                  }
-                  label="🔒 Documento confidencial"
-                />
-              </Grid>
-            </Grid>
+              {/* Confidencial */}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={uploadData.es_confidencial}
+                    onChange={(e) => setUploadData(prev => ({ ...prev, es_confidencial: e.target.checked }))}
+                    disabled={uploading}
+                  />
+                }
+                label="Documento Confidencial"
+              />
+
+              {/* Loading */}
+              {uploading && (
+                <Alert severity="info" icon={<CircularProgress size={20} />}>
+                  Subiendo documento...
+                </Alert>
+              )}
+            </Stack>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowUploadForm(false)} disabled={uploading}>
+
+          <DialogActions sx={{ p: 2, gap: 1 }}>
+            <Button
+              onClick={() => setShowUploadForm(false)}
+              disabled={uploading}
+            >
               Cancelar
             </Button>
             <Button
               type="submit"
               variant="contained"
               disabled={uploading || !uploadData.archivo}
-              startIcon={uploading ? <CircularProgress size={20} /> : <Upload />}
-              sx={{ textTransform: 'none', fontWeight: 'bold', borderRadius: 2, backgroundColor: theme.palette.primary.main,
-              '&:hover': {
-             backgroundColor: theme.palette.primary.dark, // 👈 color al pasar el mouse
-               }
-                  }}
-              
+              startIcon={<Upload />}
             >
-              {uploading ? 'Subiendo...' : 'Subir Documento'}
+              {uploading ? 'Subiendo...' : 'Subir'}
             </Button>
           </DialogActions>
         </form>
