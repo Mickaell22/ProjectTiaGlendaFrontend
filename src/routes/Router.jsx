@@ -31,6 +31,7 @@ import PublicSessionView from 'src/views/public/PublicSessionView';
 import PublicPedagogicalSessionView from 'src/views/public/PublicPedagogicalSessionView';
 import HistorialPausasView from 'src/views/paciente/HistorialPausasView';
 import DashboardPausasView from 'src/views/DashboardPausasView';
+import LandingPage from 'src/views/landing/LandingPage';
 
 
 
@@ -137,61 +138,65 @@ const Configuracion = () => (
 const Router = [
   {
     path: '/',
+    element: <LandingPage />,
+  },
+  {
+    path: '/app',
     element: (
       <ProtectedRoute>
         <FullLayout />
       </ProtectedRoute>
     ),
     children: [
-      { path: '/', element: <Navigate to={ROUTES.DASHBOARD} /> },
-      { path: ROUTES.DASHBOARD, element: <DashboardMain /> },
-      { path: ROUTES.PROFILE, element: <MiPerfil /> },
-      
+      { path: '/app', element: <Navigate to="/app/dashboard" /> },
+      { path: 'dashboard', element: <DashboardMain /> },
+      { path: 'mi-perfil', element: <MiPerfil /> },
+
       // Gestión de Personas
-      { path: '/apps/contacts', element: <PacientesAlumnos /> },
-      { path: '/apps/user-profile/followers', element: <PersonalLista /> },
-      { path: '/apps/user-profile/friends', element: <PersonalEquipos /> },
-      { path: ROUTES.GESTION.PERSONA, element: <PersonaMain /> },
-      { path: ROUTES.GESTION.PACIENTE, element: <PacienteMain /> },
-      { path: ROUTES.GESTION.TUTOR, element: <TutorMain /> },
-      { path: ROUTES.GESTION.USUARIO, element: <UsuarioMain /> },
-      { path: ROUTES.GESTION.ESPECIALIDAD, element: <EspecialidadMain /> },
-      { path: ROUTES.GESTION.PERSONAL, element: <PersonalMain /> },
-      { path: '/pacientes/:pacienteId/documentos', element: <DocumentosPaciente /> },
-      { path: '/personal/:personalId/documentos', element: <DocumentosPersonal /> },
+      { path: 'apps/contacts', element: <PacientesAlumnos /> },
+      { path: 'apps/user-profile/followers', element: <PersonalLista /> },
+      { path: 'apps/user-profile/friends', element: <PersonalEquipos /> },
+      { path: 'gestion/persona', element: <PersonaMain /> },
+      { path: 'gestion/paciente', element: <PacienteMain /> },
+      { path: 'gestion/tutor', element: <TutorMain /> },
+      { path: 'gestion/usuario', element: <UsuarioMain /> },
+      { path: 'gestion/especialidad', element: <EspecialidadMain /> },
+      { path: 'gestion/personal', element: <PersonalMain /> },
+      { path: 'pacientes/:pacienteId/documentos', element: <DocumentosPaciente /> },
+      { path: 'personal/:personalId/documentos', element: <DocumentosPersonal /> },
 
       // Control de Pausas
-      { path: '/gestion/pacientes/:id/historial-pausas', element: <HistorialPausasView /> },
-      { path: '/gestion/pausas/dashboard', element: <DashboardPausasView /> },
+      { path: 'gestion/pacientes/:id/historial-pausas', element: <HistorialPausasView /> },
+      { path: 'gestion/pausas/dashboard', element: <DashboardPausasView /> },
 
       // Módulo Terapéutico
-      { path: `${ROUTES.TERAPEUTICO.BASE}/*`, element: <TerapeuticoMain /> },
-      { path: '/terapeutico/sesion/:id', element: <SesionTerapeuticaDetalle /> },
+      { path: 'terapeutico/*', element: <TerapeuticoMain /> },
+      { path: 'terapeutico/sesion/:id', element: <SesionTerapeuticaDetalle /> },
 
       // Módulo Pedagógico
-      { path: `${ROUTES.PEDAGOGICO.BASE}/*`, element: <PedagogicoMain /> },
-      { path: '/pedagogico/sesion/:id', element: <SesionPedagogicaDetalle /> },
-      
-      // Reportes
-      { path: ROUTES.REPORTES.SISTEMA, element: <ReportesPage /> },
-      
-      // Configuración del sistema
-      { path: '/configuracion', element: <ConfiguracionMain /> },
-      { path: '/gestion/roles', element: <GestionRoles /> },
-      { path: '/configuracion/general', element: <ConfiguracionGeneral /> },
-      { path: '/configuracion/sistema', element: <ConfiguracionMain /> },
+      { path: 'pedagogico/*', element: <PedagogicoMain /> },
+      { path: 'pedagogico/sesion/:id', element: <SesionPedagogicaDetalle /> },
 
-      
+      // Reportes
+      { path: 'reportes/sistema', element: <ReportesPage /> },
+
+      // Configuración del sistema
+      { path: 'configuracion', element: <ConfiguracionMain /> },
+      { path: 'gestion/roles', element: <GestionRoles /> },
+      { path: 'configuracion/general', element: <ConfiguracionGeneral /> },
+      { path: 'configuracion/sistema', element: <ConfiguracionMain /> },
+
+
       // Centro
-      { path: '/apps/user-profile/gallery', element: <Galeria /> },
-      { path: '/pages/account-settings', element: <Configuracion /> },
-      
+      { path: 'apps/user-profile/gallery', element: <Galeria /> },
+      { path: 'pages/account-settings', element: <Configuracion /> },
+
       // Herramientas (en desarrollo)
-      { path: '/forms/form-layouts', element: () => <ComingSoon title="Formularios - Layouts" module="Herramientas" progress={90} /> },
-      { path: '/forms/form-validation', element: () => <ComingSoon title="Formularios - Validación" module="Herramientas" progress={85} /> },
-      { path: '/tables/basic', element: () => <ComingSoon title="Tablas Básicas" module="Herramientas" progress={95} /> },
-      { path: '/tables/pagination', element: () => <ComingSoon title="Tablas con Paginación" module="Herramientas" progress={90} /> },
-      { path: '/tables/search', element: () => <ComingSoon title="Tablas con Búsqueda" module="Herramientas" progress={85} /> },
+      { path: 'forms/form-layouts', element: () => <ComingSoon title="Formularios - Layouts" module="Herramientas" progress={90} /> },
+      { path: 'forms/form-validation', element: () => <ComingSoon title="Formularios - Validación" module="Herramientas" progress={85} /> },
+      { path: 'tables/basic', element: () => <ComingSoon title="Tablas Básicas" module="Herramientas" progress={95} /> },
+      { path: 'tables/pagination', element: () => <ComingSoon title="Tablas con Paginación" module="Herramientas" progress={90} /> },
+      { path: 'tables/search', element: () => <ComingSoon title="Tablas con Búsqueda" module="Herramientas" progress={85} /> },
     ],
   },
   {

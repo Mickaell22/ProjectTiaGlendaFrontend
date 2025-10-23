@@ -2,7 +2,7 @@
 // Configuración centralizada de todas las rutas de la aplicación
 
 export const ROUTES = {
-  // Ruta raíz
+  // Ruta raíz (Landing page)
   ROOT: '/',
 
   // Autenticación
@@ -15,92 +15,92 @@ export const ROUTES = {
   },
 
   // Dashboard principal
-  DASHBOARD: '/dashboard',
+  DASHBOARD: '/app/dashboard',
 
   // Perfil de usuario
-  PROFILE: '/mi-perfil',
+  PROFILE: '/app/mi-perfil',
 
   // Módulo de gestión
   GESTION: {
-    PERSONA: '/gestion/persona',
-    USUARIO: '/gestion/usuario',
-    PACIENTE: '/gestion/paciente',
-    TUTOR: '/gestion/tutor',
-    ESPECIALIDAD: '/gestion/especialidad',
-    PERSONAL: '/gestion/personal',
-    ROLES: '/gestion/roles',
+    PERSONA: '/app/gestion/persona',
+    USUARIO: '/app/gestion/usuario',
+    PACIENTE: '/app/gestion/paciente',
+    TUTOR: '/app/gestion/tutor',
+    ESPECIALIDAD: '/app/gestion/especialidad',
+    PERSONAL: '/app/gestion/personal',
+    ROLES: '/app/gestion/roles',
   },
 
   // Módulo terapéutico
   TERAPEUTICO: {
-    BASE: '/terapeutico',
-    SESION: (id) => `/terapeutico/sesion/${id}`,
-    CREAR_SESION: '/terapeutico/crear-sesion',
+    BASE: '/app/terapeutico',
+    SESION: (id) => `/app/terapeutico/sesion/${id}`,
+    CREAR_SESION: '/app/terapeutico/crear-sesion',
   },
 
   // Módulo pedagógico
   PEDAGOGICO: {
-    BASE: '/pedagogico',
-    SESIONES: '/pedagogico/sesiones',
-    CRONOGRAMAS: '/pedagogico/cronogramas',
-    ASISTENCIA: '/pedagogico/asistencia',
-    EVALUACIONES: '/pedagogico/evaluaciones',
-    ESTADISTICAS: '/pedagogico/estadisticas',
-    SESION: (id) => `/pedagogico/sesion/${id}`,
-    CREAR_SESION: '/pedagogico/crear-sesion',
+    BASE: '/app/pedagogico',
+    SESIONES: '/app/pedagogico/sesiones',
+    CRONOGRAMAS: '/app/pedagogico/cronogramas',
+    ASISTENCIA: '/app/pedagogico/asistencia',
+    EVALUACIONES: '/app/pedagogico/evaluaciones',
+    ESTADISTICAS: '/app/pedagogico/estadisticas',
+    SESION: (id) => `/app/pedagogico/sesion/${id}`,
+    CREAR_SESION: '/app/pedagogico/crear-sesion',
   },
 
   // Documentos
   DOCUMENTOS: {
-    PACIENTE: (pacienteId) => `/pacientes/${pacienteId}/documentos`,
-    PERSONAL: (personalId) => `/personal/${personalId}/documentos`,
+    PACIENTE: (pacienteId) => `/app/pacientes/${pacienteId}/documentos`,
+    PERSONAL: (personalId) => `/app/personal/${personalId}/documentos`,
   },
 
   // Consultas especializadas
   CONSULTAS: {
-    PACIENTES_DISPONIBLES: '/consultas/pacientes-disponibles',
-    TERAPEUTAS_DISPONIBLES: '/consultas/terapeutas-disponibles',
-    SESIONES_TERAPEUTA: '/consultas/sesiones-terapeuta',
-    HISTORIAL_ASISTENCIA: '/consultas/historial-asistencia',
+    PACIENTES_DISPONIBLES: '/app/consultas/pacientes-disponibles',
+    TERAPEUTAS_DISPONIBLES: '/app/consultas/terapeutas-disponibles',
+    SESIONES_TERAPEUTA: '/app/consultas/sesiones-terapeuta',
+    HISTORIAL_ASISTENCIA: '/app/consultas/historial-asistencia',
   },
 
   // Reportes y estadísticas
   REPORTES: {
-    BASE: '/reportes',
-    DASHBOARD: '/reportes/dashboard',
-    ESTADISTICAS: '/reportes/estadisticas',
-    PDF: '/reportes/pdf',
-    SISTEMA: '/reportes/sistema',
+    BASE: '/app/reportes',
+    DASHBOARD: '/app/reportes/dashboard',
+    ESTADISTICAS: '/app/reportes/estadisticas',
+    PDF: '/app/reportes/pdf',
+    SISTEMA: '/app/reportes/sistema',
   },
 
   // Configuración del sistema
   CONFIGURACION: {
-    BASE: '/configuracion',
-    GENERAL: '/configuracion/general',
-    SISTEMA: '/configuracion/sistema',
+    BASE: '/app/configuracion',
+    GENERAL: '/app/configuracion/general',
+    SISTEMA: '/app/configuracion/sistema',
   },
 
   // Rutas legacy/temporales (para compatibilidad)
   LEGACY: {
     APPS: {
-      CONTACTS: '/apps/contacts',
+      CONTACTS: '/app/apps/contacts',
       USER_PROFILE: {
-        FOLLOWERS: '/apps/user-profile/followers',
-        FRIENDS: '/apps/user-profile/friends',
-        GALLERY: '/apps/user-profile/gallery',
+        FOLLOWERS: '/app/apps/user-profile/followers',
+        FRIENDS: '/app/apps/user-profile/friends',
+        GALLERY: '/app/apps/user-profile/gallery',
       },
     },
     PAGES: {
-      ACCOUNT_SETTINGS: '/pages/account-settings',
+      ACCOUNT_SETTINGS: '/app/pages/account-settings',
     },
     FORMS: {
-      LAYOUTS: '/forms/form-layouts',
-      VALIDATION: '/forms/form-validation',
+      LAYOUTS: '/app/forms/form-layouts',
+      VALIDATION: '/app/forms/form-validation',
     },
     TABLES: {
-      BASIC: '/tables/basic',
-      PAGINATION: '/tables/pagination',
-      SEARCH: '/tables/search',
+      BASIC: '/app/tables/basic',
+      PAGINATION: '/app/tables/pagination',
+      SEARCH: '/app/tables/search',
     },
   },
 };
@@ -126,6 +126,7 @@ export const PROTECTED_ROUTES = [
 
 // Rutas públicas (sin autenticación)
 export const PUBLIC_ROUTES = [
+  ROUTES.ROOT,
   ...Object.values(ROUTES.AUTH),
 ];
 

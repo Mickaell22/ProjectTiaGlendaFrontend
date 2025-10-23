@@ -62,7 +62,7 @@ const Login = () => {
           if (loginSuccess) {
             // Inicializar configuracion despues del login exitoso
             initConfig();
-            const from = location.state?.from?.pathname || '/dashboard';
+            const from = location.state?.from?.pathname || '/app';
             navigate(from, { replace: true });
           } else {
             setErrorMsg('Error al procesar el login');
