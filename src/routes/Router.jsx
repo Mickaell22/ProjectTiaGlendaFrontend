@@ -141,6 +141,42 @@ const Router = [
     element: <LandingPage />,
   },
   {
+    path: '/dashboard',
+    element: <Navigate to="/app/dashboard" replace />,
+  },
+  {
+    path: '/configuracion',
+    element: <Navigate to="/app/configuracion" replace />,
+  },
+  {
+    path: '/mi-perfil',
+    element: <Navigate to="/app/mi-perfil" replace />,
+  },
+  {
+    path: '/gestion',
+    children: [
+      { path: 'persona', element: <Navigate to="/app/gestion/persona" replace /> },
+      { path: 'paciente', element: <Navigate to="/app/gestion/paciente" replace /> },
+      { path: 'tutor', element: <Navigate to="/app/gestion/tutor" replace /> },
+      { path: 'usuario', element: <Navigate to="/app/gestion/usuario" replace /> },
+      { path: 'especialidad', element: <Navigate to="/app/gestion/especialidad" replace /> },
+      { path: 'personal', element: <Navigate to="/app/gestion/personal" replace /> },
+      { path: 'roles', element: <Navigate to="/app/gestion/roles" replace /> },
+    ],
+  },
+  {
+    path: '/terapeutico',
+    element: <Navigate to="/app/terapeutico" replace />,
+  },
+  {
+    path: '/pedagogico',
+    element: <Navigate to="/app/pedagogico" replace />,
+  },
+  {
+    path: '/reportes',
+    element: <Navigate to="/app/reportes/sistema" replace />,
+  },
+  {
     path: '/app',
     element: (
       <ProtectedRoute>

@@ -36,7 +36,7 @@ const Login = () => {
   // Si ya está autenticado, redirigir al dashboard o la página original
   React.useEffect(() => {
     if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/dashboard';
+      const from = location.state?.from?.pathname || '/app/dashboard';
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, location]);
