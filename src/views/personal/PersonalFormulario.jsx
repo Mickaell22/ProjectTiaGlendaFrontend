@@ -27,6 +27,7 @@ import {
 import EspecialidadService from '../../services/especialidadService.js';
 import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
 import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
+import useAuth from '../../hooks/useAuth.js';
 
 /* ---------- Estilos coherentes con PersonaFormulario ---------- */
 // Inputs sin estilos morados: usamos el tema por defecto
@@ -70,10 +71,40 @@ const PersonalFormulario = ({
   onCancel
 }) => {
   const theme = useTheme();
+  const { user } = useAuth();
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit();
   };
+
+  // Filtrar especialidades solo del centro del usuario logueado
+  const especialidadesFiltradas = React.useMemo(() => {
+    console.log('🔍 DEBUG - Usuario completo:', user);
+    console.log('🔍 DEBUG - user.id_centro:', user?.id_centro);
+    console.log('🔍 DEBUG - user.centro_id:', user?.centro_id);
+    console.log('🔍 DEBUG - user.centro:', user?.centro);
+    console.log('🔍 DEBUG - Especialidades completas:', especialidades);
+
+    // Obtener el id del centro del usuario de cualquier variante posible
+    const centroId = user?.id_centro || user?.centro_id || user?.centro?.id;
+
+    if (!centroId) {
+      console.log('⚠️ Usuario sin id_centro definido, mostrando todas las especialidades');
+      return especialidades;
+    }
+
+    console.log('🎯 Centro ID del usuario:', centroId);
+
+    const filtradas = especialidades.filter(esp => {
+      const match = esp.id_centro == centroId && esp.estado === 'activo';
+      console.log(`Comparando especialidad "${esp.nombre}": esp.id_centro (${esp.id_centro}) == centroId (${centroId}): ${match}`);
+      return match;
+    });
+
+    console.log('✅ Especialidades filtradas:', filtradas);
+    return filtradas;
+  }, [especialidades, user]);
 
   const canSubmit =
     (personaEncontrada?.id || formData.persona_id) &&
@@ -192,7 +223,7 @@ const PersonalFormulario = ({
                   Especialidad Principal <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
                 <Autocomplete
-                  value={especialidades.find(esp => esp.id === formData.id_especialidad) || null}
+                  value={especialidadesFiltradas.find(esp => esp.id === formData.id_especialidad) || null}
                   onChange={(event, newValue) => {
                     onChange({
                       target: {
@@ -201,7 +232,7 @@ const PersonalFormulario = ({
                       }
                     });
                   }}
-                  options={especialidades.filter(esp => esp.estado === 'activo')}
+                  options={especialidadesFiltradas}
                   getOptionLabel={(option) =>
                     `${option.nombre} (${EspecialidadService.getAreaLabel(option.area)})`
                   }
@@ -229,7 +260,7 @@ const PersonalFormulario = ({
                       sx={neutralInputSX}
                     />
                   )}
-                  noOptionsText="No hay especialidades disponibles"
+                  noOptionsText="No hay especialidades disponibles para tu centro"
                 />
               </Box>
 
