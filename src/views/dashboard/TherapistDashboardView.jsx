@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Typography, Card, CardContent, Grid, Avatar, LinearProgress,
-  Divider, Paper, Button, Alert, List, ListItem, ListItemText, Chip, CircularProgress
+  Divider, Paper, Button, Alert, List, ListItem, ListItemText, Chip, CircularProgress, Skeleton
 } from '@mui/material';
 import {
   Psychology, EventNote, AccessTime, TrendingUp, CalendarToday,
@@ -45,25 +45,25 @@ const TherapistDashboardView = () => {
     }
   };
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     loadTherapistData();
-  };
+  }, [loadTherapistData]);
 
-  const handleVerSesiones = () => {
+  const handleVerSesiones = useCallback(() => {
     navigate('/terapeutico', { state: { initialTab: 0 } }); // Tab "Sesiones"
-  };
+  }, [navigate]);
 
-  const handleVerCronogramas = () => {
+  const handleVerCronogramas = useCallback(() => {
     navigate('/terapeutico', { state: { initialTab: 1 } }); // Tab "Cronogramas"
-  };
+  }, [navigate]);
 
-  const handleVerAsistencia = () => {
+  const handleVerAsistencia = useCallback(() => {
     navigate('/terapeutico', { state: { initialTab: 2 } }); // Tab "Asistencia"
-  };
+  }, [navigate]);
 
-  const handleVerHoy = () => {
+  const handleVerHoy = useCallback(() => {
     navigate('/terapeutico', { state: { initialTab: 3 } }); // Tab "Hoy"
-  };
+  }, [navigate]);
 
   const getEstadoColor = (estado) => {
     switch (estado) {
@@ -77,11 +77,49 @@ const TherapistDashboardView = () => {
   if (loading) {
     return (
       <PageContainer title="Mi Panel Terapéutico" description="Dashboard del terapeuta">
-        <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" minHeight="400px" gap={2}>
-          <CircularProgress size={60} thickness={4} />
-          <Typography variant="h6" color="text.secondary">
-            Cargando tu panel terapéutico...
-          </Typography>
+        <Box>
+          {/* Header Skeleton */}
+          <Paper elevation={4} sx={{ p: 4, mb: 3, borderRadius: 3, maxWidth: 1000, mx: 'auto' }}>
+            <Skeleton variant="text" width="50%" height={50} sx={{ mx: 'auto' }} />
+            <Skeleton variant="text" width="70%" height={30} sx={{ mt: 1, mx: 'auto' }} />
+            <Skeleton variant="text" width="60%" height={25} sx={{ mt: 1, mx: 'auto' }} />
+          </Paper>
+
+          {/* Stats Cards Skeleton */}
+          <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: 'auto', justifyContent: 'center' }}>
+            {[1, 2, 3, 4].map((item) => (
+              <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center" key={item}>
+                <Card sx={{ height: 200, width: 200 }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
+                      <Skeleton variant="circular" width={56} height={56} sx={{ mb: 2 }} />
+                      <Skeleton variant="text" width="60%" height={40} />
+                      <Skeleton variant="text" width="80%" height={20} />
+                      <Skeleton variant="text" width="50%" height={15} sx={{ mt: 1 }} />
+                      <Skeleton variant="rectangular" width="100%" height={10} sx={{ mt: 1, borderRadius: 1 }} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* Agenda Skeleton */}
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12}>
+              <Card sx={{ width: 1000, height: 500, mx: 'auto' }}>
+                <CardContent>
+                  <Skeleton variant="text" width="40%" height={30} sx={{ mb: 2 }} />
+                  <Skeleton variant="rectangular" width="100%" height={1} sx={{ mb: 2 }} />
+                  {[1, 2, 3, 4].map((item) => (
+                    <Box key={item} sx={{ mb: 2 }}>
+                      <Skeleton variant="rectangular" width="100%" height={60} sx={{ borderRadius: 1 }} />
+                    </Box>
+                  ))}
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
         </Box>
       </PageContainer>
     );
@@ -178,7 +216,7 @@ const TherapistDashboardView = () => {
         </Paper>
 
         {/* Main Statistics */}
-        <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: '1000', justifyContent: 'center' }}>
+        <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: 'auto', justifyContent: 'center' }}>
                   <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
                     <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
                       <CardContent sx={{ p: 3 }}>
@@ -226,7 +264,9 @@ const TherapistDashboardView = () => {
                   </Typography>
                   <LinearProgress
                     variant="determinate"
-                    value={75}
+                    value={dashboardData.sesiones?.hoy > 0
+                      ? Math.min(((dashboardData.sesiones.hoy - (dashboardData.sesiones?.pendientes || 0)) / dashboardData.sesiones.hoy) * 100, 100)
+                      : 0}
                     color="primary.main"
                     sx={{ mt: 1, borderRadius: 1, width: '100%' }}
                   />
@@ -280,7 +320,9 @@ const TherapistDashboardView = () => {
                   </Typography>
                   <LinearProgress
                     variant="determinate"
-                    value={85}
+                    value={dashboardData.mis_pacientes?.activos > 0
+                      ? Math.min(((dashboardData.mis_pacientes.activos - (dashboardData.estadisticas?.evaluaciones_pendientes || 0)) / dashboardData.mis_pacientes.activos) * 100, 100)
+                      : 0}
                     color="primary.main"
                     sx={{ mt: 1, borderRadius: 1, width: '100%' }}
                   />

@@ -70,17 +70,31 @@ export const useDashboard = (dashboardType) => {
     return loadData(true);
   }, [loadData]);
 
-  // Auto-refresh setup
+  // Auto-refresh setup with Page Visibility API
   useEffect(() => {
     const autoRefreshInterval = 5 * 60 * 1000; // 5 minutes
 
+    // Handle visibility change - refresh when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden && !loading && !error) {
+        loadData(false);
+      }
+    };
+
+    // Add visibility change listener
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Set up interval for auto-refresh (only when visible)
     const interval = setInterval(() => {
-      if (!loading && !error) {
+      if (!document.hidden && !loading && !error) {
         loadData(false); // Use cache if available
       }
     }, autoRefreshInterval);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [loading, error, loadData]);
 
   // Initial load

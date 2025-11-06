@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Card, CardContent, Grid, Avatar, LinearProgress,
-  Divider, Paper, Button, Alert, List, ListItem, ListItemText, Chip, CircularProgress
+  Divider, Paper, Button, Alert, List, ListItem, ListItemText, Chip, CircularProgress, Skeleton
 } from '@mui/material';
 import {
   School, MenuBook, AccessTime, TrendingUp, CalendarToday,
-  CheckCircle, Person, Assignment, Class, Settings, Refresh,
-  SpaceBar
+  CheckCircle, Person, Assignment, Class, Settings, Refresh
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -61,11 +60,49 @@ const PedagogueDashboardView = () => {
   if (loading) {
     return (
       <PageContainer title="Mi Panel Pedagógico" description="Dashboard del pedagogo">
-        <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" minHeight="400px" gap={2}>
-          <CircularProgress size={60} thickness={4} />
-          <Typography variant="h6" color="text.secondary">
-            Cargando tu panel pedagógico...
-          </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+          {/* Header Skeleton */}
+          <Paper elevation={4} sx={{ p: 4, mb: 4, borderRadius: 3, maxWidth: 900, width: '100%' }}>
+            <Skeleton variant="text" width="50%" height={50} sx={{ mx: 'auto' }} />
+            <Skeleton variant="text" width="70%" height={30} sx={{ mt: 1, mx: 'auto' }} />
+            <Skeleton variant="text" width="60%" height={25} sx={{ mt: 1, mx: 'auto' }} />
+          </Paper>
+
+          {/* Stats Cards Skeleton */}
+          <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: 'auto', justifyContent: 'center' }}>
+            {[1, 2, 3, 4].map((item) => (
+              <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center" key={item}>
+                <Card sx={{ height: 200, width: 200 }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
+                      <Skeleton variant="circular" width={56} height={56} sx={{ mb: 2 }} />
+                      <Skeleton variant="text" width="60%" height={40} />
+                      <Skeleton variant="text" width="80%" height={20} />
+                      <Skeleton variant="text" width="50%" height={15} sx={{ mt: 1 }} />
+                      <Skeleton variant="rectangular" width="100%" height={10} sx={{ mt: 1, borderRadius: 1 }} />
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* Schedule Skeleton */}
+          <Grid container spacing={3} sx={{ mb: 4, maxWidth: 900, mx: 'auto', justifyContent: 'center' }}>
+            <Grid item xs={12}>
+              <Paper elevation={3} sx={{ borderRadius: 3, p: 3, width: '100%', maxWidth: 900 }}>
+                <CardContent>
+                  <Skeleton variant="text" width="40%" height={30} sx={{ mb: 2, mx: 'auto' }} />
+                  <Skeleton variant="rectangular" width="100%" height={1} sx={{ mb: 2 }} />
+                  {[1, 2, 3, 4].map((item) => (
+                    <Box key={item} sx={{ mb: 2 }}>
+                      <Skeleton variant="rectangular" width="100%" height={60} sx={{ borderRadius: 1 }} />
+                    </Box>
+                  ))}
+                </CardContent>
+              </Paper>
+            </Grid>
+          </Grid>
         </Box>
       </PageContainer>
     );
@@ -162,7 +199,7 @@ const PedagogueDashboardView = () => {
         </Paper>
 
         {/* Main Statistics */}
-  <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: '1000', justifyContent: 'center' }}>
+  <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: 'auto', justifyContent: 'center' }}>
           <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
             <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
               <CardContent sx={{ p: 3 }}>
@@ -212,7 +249,9 @@ const PedagogueDashboardView = () => {
                   </Typography>
                   <LinearProgress
                     variant="determinate"
-                    value={80}
+                    value={dashboardData.clases?.esta_semana > 0
+                      ? Math.min(((dashboardData.clases.hoy / Math.max(dashboardData.clases.esta_semana / 5, 1)) * 100), 100)
+                      : 0}
                     color="primary"
                     sx={{ mt: 1, borderRadius: 1, width: '100%' }}
                   />
@@ -255,7 +294,7 @@ const PedagogueDashboardView = () => {
                   <Avatar sx={{ mb: 2, bgcolor: 'primary.main', width: 56, height: 56 }}>
                 <MenuBook fontSize="large" sx={{ mx: 1, my: 1 }} />
                   </Avatar>
-                  <box my={1} />
+                  <Box my={1} />
                   <Typography variant="h4" fontWeight="bold" sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}>
                     {dashboardData.mis_estudiantes?.activos || 0}
                   </Typography>
@@ -267,7 +306,9 @@ const PedagogueDashboardView = () => {
                   </Typography>
                   <LinearProgress
                     variant="determinate"
-                    value={90}
+                    value={dashboardData.mis_estudiantes?.activos > 0
+                      ? Math.min(((dashboardData.mis_estudiantes.activos - (dashboardData.estadisticas?.evaluaciones_pendientes || 0)) / dashboardData.mis_estudiantes.activos) * 100, 100)
+                      : 0}
                     color="primary"
                     sx={{ mt: 1, borderRadius: 1, width: '100%' }}
                   />
