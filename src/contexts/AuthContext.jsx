@@ -1,10 +1,12 @@
 // src/contexts/AuthContext.jsx
 // Context de autenticación para gestión global del estado
 
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ApiService from '../services/apiService';
 import { API_ENDPOINTS } from '../config/api';
+import logger from '../utils/logger';
+import { validateToken, isTokenExpired } from '../utils/tokenValidator';
 
 // Estados del reducer
 const authReducer = (state, action) => {
@@ -76,12 +78,26 @@ export const AuthProvider = ({ children }) => {
       const userStr = localStorage.getItem('user');
 
       if (token) {
+        // Validar token antes de continuar
+        const validation = validateToken(token);
+
+        if (!validation.valid) {
+          logger.warn('Token inválido durante checkAuthStatus', { reason: validation.reason });
+          // Limpiar localStorage
+          localStorage.removeItem('jwt_token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('login_data');
+          localStorage.removeItem('full_login_data');
+          dispatch({ type: 'SET_AUTHENTICATED', payload: false });
+          return;
+        }
+
         let user = null;
         if (userStr) {
           try {
             user = JSON.parse(userStr);
           } catch (e) {
-            // Silently handle parsing error
+            logger.warn('Error al parsear usuario de localStorage', e);
           }
         }
 
@@ -102,12 +118,12 @@ export const AuthProvider = ({ children }) => {
         dispatch({ type: 'SET_AUTHENTICATED', payload: false });
       }
     } catch (error) {
-      console.error('Error checking auth status:', error);
+      logger.authError('Error checking auth status', error);
       dispatch({ type: 'SET_AUTHENTICATED', payload: false });
     }
   };
 
-  const login = (token, user = null, fullLoginData = null) => {
+  const login = useCallback((token, user = null, fullLoginData = null) => {
     try {
       localStorage.setItem('jwt_token', token);
       if (user) {
@@ -128,12 +144,12 @@ export const AuthProvider = ({ children }) => {
 
       return true;
     } catch (error) {
-      console.error('Error during login:', error);
+      logger.authError('Error during login', error);
       return false;
     }
-  };
+  }, [dispatch]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     try {
       localStorage.removeItem('jwt_token');
       localStorage.removeItem('user');
@@ -144,24 +160,35 @@ export const AuthProvider = ({ children }) => {
       
       // Redirigir al login
       navigate('/auth/login');
+      logger.logoutEvent('manual');
     } catch (error) {
-      console.error('Error during logout:', error);
+      logger.authError('Error during logout', error);
     }
-  };
+  }, [navigate, dispatch]);
 
-  const getToken = () => {
-    return state.token || localStorage.getItem('jwt_token');
-  };
+  const getToken = useCallback(() => {
+    const token = state.token || localStorage.getItem('jwt_token');
 
-  const getAuthHeaders = () => {
+    // Verificar si el token está expirado
+    if (token && isTokenExpired(token)) {
+      logger.warn('Token expirado detectado en getToken()');
+      // Auto-logout si el token está expirado
+      logout();
+      return null;
+    }
+
+    return token;
+  }, [state.token]);
+
+  const getAuthHeaders = useCallback(() => {
     const token = getToken();
     return {
       'Content-Type': 'application/json',
       'Authorization': token ? `Bearer ${token}` : '',
     };
-  };
+  }, [getToken]);
 
-  const requireAuth = () => {
+  const requireAuth = useCallback(() => {
     const token = getToken();
 
     if (!token) {
@@ -175,10 +202,10 @@ export const AuthProvider = ({ children }) => {
     }
 
     return true;
-  };
+  }, [getToken, state.isAuthenticated, navigate, dispatch]);
 
   // Seleccionar centro después del login
-  const seleccionarCentro = async (idCentro) => {
+  const seleccionarCentro = useCallback(async (idCentro) => {
     try {
       const response = await ApiService.post(API_ENDPOINTS.AUTH.SELECCIONAR_CENTRO, {
         id_centro: idCentro
@@ -218,16 +245,16 @@ export const AuthProvider = ({ children }) => {
 
       return { success: false, message: data.message || 'Error al seleccionar centro' };
     } catch (error) {
-      console.error('Error al seleccionar centro:', error);
+      logger.authError('Error al seleccionar centro', error, { centroId: idCentro });
       return {
         success: false,
         message: error?.response?.data?.message || error?.message || 'Error al seleccionar centro'
       };
     }
-  };
+  }, [state.user, dispatch]);
 
   // Cambiar de centro sin hacer logout
-  const cambiarCentro = async (idCentro) => {
+  const cambiarCentro = useCallback(async (idCentro) => {
     try {
       const response = await ApiService.post(API_ENDPOINTS.AUTH.CAMBIAR_CENTRO, {
         id_centro: idCentro
@@ -268,15 +295,15 @@ export const AuthProvider = ({ children }) => {
 
       return { success: false, message: data.message || 'Error al cambiar de centro' };
     } catch (error) {
-      console.error('Error al cambiar de centro:', error);
+      logger.authError('Error al cambiar de centro', error, { centroId: idCentro });
       return {
         success: false,
         message: error?.response?.data?.message || error?.message || 'Error al cambiar de centro'
       };
     }
-  };
+  }, [state.user, dispatch]);
 
-  const value = {
+  const value = useMemo(() => ({
     ...state,
     login,
     logout,
@@ -286,7 +313,16 @@ export const AuthProvider = ({ children }) => {
     checkAuthStatus,
     seleccionarCentro,
     cambiarCentro,
-  };
+  }), [
+    state,
+    login,
+    logout,
+    getToken,
+    getAuthHeaders,
+    requireAuth,
+    seleccionarCentro,
+    cambiarCentro,
+  ]);
 
   return (
     <AuthContext.Provider value={value}>

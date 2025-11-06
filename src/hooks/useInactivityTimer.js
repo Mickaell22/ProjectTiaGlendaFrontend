@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import { useAuth } from './useAuth.js';
+import logger from '../utils/logger';
 
 const useInactivityTimer = () => {
   const { logout, isAuthenticated } = useAuth();
@@ -24,7 +25,7 @@ const useInactivityTimer = () => {
       // Si es 0, significa que el cierre automático está deshabilitado
       return timeoutMinutes === 0 ? null : timeoutMinutes * 60 * 1000; // convertir a millisegundos
     } catch (error) {
-      console.error('Error getting inactivity timeout:', error);
+      logger.warn('Error getting inactivity timeout', error);
       return 30 * 60 * 1000; // default 30 minutos
     }
   }, []);
