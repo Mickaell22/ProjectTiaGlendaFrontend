@@ -3,6 +3,7 @@
 
 import axios from 'axios';
 import { API_CONFIG, HTTP_STATUS, ERROR_MESSAGES } from '../config/api.js';
+import logger from '../utils/logger';
 
 // Instancia de Axios configurada
 const apiClient = axios.create({
@@ -158,13 +159,16 @@ export const extractData = (response) => {
 
 // Función helper para manejar errores de forma consistente
 export const handleApiError = (error, customMessage = null) => {
-  console.error('API Error:', error);
-  
+  logger.apiError('API Error', error, {
+    customMessage,
+    endpoint: error.config?.url || 'unknown',
+  });
+
   const message = customMessage || error.message || ERROR_MESSAGES.SERVER_ERROR;
-  
+
   // Aquí se puede integrar con un sistema de notificaciones global
   // Por ejemplo: toast.error(message);
-  
+
   return {
     success: false,
     message,

@@ -86,7 +86,6 @@ const UsuarioPassword = ({
       onPasswordChanged && onPasswordChanged();
       handleClose();
     } catch (error) {
-      console.log('Error cambio contraseña:', error);
       const backendMsg = error?.response?.data?.message || error.message || 'Error al cambiar la contraseña';
       showError(backendMsg);
     } finally {

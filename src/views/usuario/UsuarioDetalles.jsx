@@ -48,9 +48,8 @@ const UsuarioDetalles = ({
   onEdit, 
   onChangePassword 
 }) => {
-  // Depuración: mostrar datos en consola
   if (!userData) return null;
-  console.log('UsuarioDetalles userData:', userData);
+
   let rolKey = userData.rol_nombre || userData.rol?.nombre || userData.rol?.id || userData.rol_id || userData.rol;
   if (typeof rolKey === 'object' && rolKey !== null) {
     rolKey = rolKey.nombre || rolKey.id || '';
@@ -58,7 +57,6 @@ const UsuarioDetalles = ({
   if (typeof rolKey === 'string') {
     rolKey = rolKey.trim().toLowerCase();
   }
-  console.log('UsuarioDetalles rolKey:', rolKey);
 
   const estadoInfo = UsuarioService.getEstadoInfo(userData.estado);
   const contactInfo = UsuarioService.getContactInfo(userData);

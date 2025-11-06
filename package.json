@@ -11,7 +11,6 @@
     "start": "serve -s dist -p $PORT"
   },
   "dependencies": {
-    "serve": "^14.2.3",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -23,15 +22,18 @@
     "axios": "^1.11.0",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.18",
+    "dompurify": "^3.3.0",
     "formik": "^2.4.6",
     "framer-motion": "^12.23.13",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
+    "jwt-decode": "^4.0.0",
     "lodash": "^4.17.21",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.7.0",
+    "serve": "^14.2.3",
     "stylis-plugin-rtl": "^2.1.1",
     "yup": "^1.6.1"
   },

@@ -6,10 +6,10 @@ export const ROUTES = {
   ROOT: '/',
 
   // Autenticación
+  // Nota: No hay ruta de registro. Los usuarios son creados por administradores.
   AUTH: {
     BASE: '/auth',
     LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
     LOGOUT: '/auth/logout',
     ERROR_404: '/auth/404',
   },

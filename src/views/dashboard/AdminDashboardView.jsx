@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Card, CardContent, Grid, Avatar, LinearProgress,
-  Divider, Paper, Button, Alert, useTheme, CircularProgress
+  Divider, Paper, Button, Alert, useTheme, CircularProgress, Skeleton
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon, TrendingUp, Group, EventNote, School,
@@ -55,11 +55,53 @@ const AdminDashboardView = () => {
   if (loading) {
     return (
       <PageContainer title="Panel Administrativo" description="Dashboard administrativo">
-        <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" minHeight="400px" gap={2}>
-          <CircularProgress size={60} thickness={4} />
-          <Typography variant="h6" color="text.secondary">
-            Cargando panel administrativo...
-          </Typography>
+        <Box>
+          {/* Header Skeleton */}
+          <Paper elevation={4} sx={{ p: 4, mb: 4, borderRadius: 3 }}>
+            <Skeleton variant="text" width="60%" height={50} />
+            <Skeleton variant="text" width="80%" height={30} sx={{ mt: 1 }} />
+            <Skeleton variant="text" width="50%" height={25} sx={{ mt: 1 }} />
+          </Paper>
+
+          {/* Stats Cards Skeleton */}
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            {[1, 2, 3, 4].map((item) => (
+              <Grid size={{ xs: 12, md: 3 }} key={item}>
+                <Card>
+                  <CardContent sx={{ textAlign: 'center', p: 3 }}>
+                    <Skeleton variant="circular" width={56} height={56} sx={{ mx: 'auto', mb: 2 }} />
+                    <Skeleton variant="text" width="60%" height={40} sx={{ mx: 'auto' }} />
+                    <Skeleton variant="text" width="80%" height={20} sx={{ mx: 'auto' }} />
+                    <Skeleton variant="text" width="50%" height={15} sx={{ mx: 'auto', mt: 1 }} />
+                    <Skeleton variant="rectangular" width="100%" height={10} sx={{ mt: 1, borderRadius: 1 }} />
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* Staff Overview Skeleton */}
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid size={12}>
+              <Card>
+                <CardContent>
+                  <Skeleton variant="text" width="40%" height={30} sx={{ mb: 2 }} />
+                  <Skeleton variant="rectangular" width="100%" height={1} sx={{ mb: 3 }} />
+                  <Grid container spacing={2}>
+                    {[1, 2, 3, 4].map((item) => (
+                      <Grid size={6} key={item}>
+                        <Box textAlign="center" p={2}>
+                          <Skeleton variant="circular" width={64} height={64} sx={{ mx: 'auto', mb: 1 }} />
+                          <Skeleton variant="text" width="50%" height={30} sx={{ mx: 'auto' }} />
+                          <Skeleton variant="text" width="60%" height={20} sx={{ mx: 'auto' }} />
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
         </Box>
       </PageContainer>
     );
@@ -210,7 +252,9 @@ const AdminDashboardView = () => {
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={92}
+                  value={dashboardData.pacientes?.total > 0
+                    ? Math.min(((dashboardData.pacientes?.activos || 0) / dashboardData.pacientes.total) * 100, 100)
+                    : 0}
                   color="primary"
                   sx={{ mt: 1, borderRadius: 1 }}
                 />
@@ -235,7 +279,9 @@ const AdminDashboardView = () => {
                 </Typography>
                 <LinearProgress
                   variant="determinate"
-                  value={75}
+                  value={dashboardData.sesiones?.esta_semana > 0 && dashboardData.sesiones?.hoy >= 0
+                    ? Math.min(((dashboardData.sesiones.hoy / Math.max(dashboardData.sesiones.esta_semana / 5, 1)) * 100), 100)
+                    : 0}
                   color="primary"
                   sx={{ mt: 1, borderRadius: 1 }}
                 />

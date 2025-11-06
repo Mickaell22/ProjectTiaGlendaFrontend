@@ -18,6 +18,9 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner.jsx';
 import ConfirmDialog from '../../components/shared/ConfirmDialog.jsx';
 import ErrorBoundary from '../../components/shared/ErrorBoundary.jsx';
 
+// HOC de protección de roles
+import withRole from '../../hoc/withRole.jsx';
+
 function TabPanel({ children, value, index, ...other }) {
   return (
     <div
@@ -282,4 +285,8 @@ const PersonaMain = () => {
   );
 };
 
-export default PersonaMain;
+// Protección de acceso: Solo administradores
+export default withRole(PersonaMain, {
+  allowedRoles: ['administrador'],
+  moduleName: 'Gestión de Personas'
+});

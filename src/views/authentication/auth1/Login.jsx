@@ -8,26 +8,33 @@ import {
   Alert,
   Card,
   CardContent,
-  useTheme,
 } from '@mui/material';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import PageContainer from 'src/components/container/PageContainer';
 import useAuth from 'src/hooks/useAuth';
 import { useConfig } from 'src/contexts/ConfigContext';
 import ApiService from 'src/services/apiService';
 import { API_ENDPOINTS } from 'src/config/api';
 import SelectorCentro from 'src/components/shared/SelectorCentro';
+import logger from 'src/utils/logger';
+import DOMPurify from 'dompurify';
 
-// Esquema de validación con Yup
+// Esquema de validación con Yup para login
+// NOTA: Para login, usamos validaciones básicas para permitir contraseñas existentes
+// Las validaciones estrictas se deben aplicar solo al CREAR o CAMBIAR contraseñas
 const validationSchema = Yup.object({
-  usuario: Yup.string().required('El usuario es requerido'),
-  contrasenia: Yup.string().min(6, 'La contraseña debe tener al menos 6 caracteres').required('La contraseña es requerida'),
+  usuario: Yup.string()
+    .min(3, 'El usuario debe tener al menos 3 caracteres')
+    .max(50, 'El usuario no puede exceder 50 caracteres')
+    .required('El usuario es requerido'),
+  contrasenia: Yup.string()
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
+    .max(100, 'La contraseña no puede exceder 100 caracteres')
+    .required('La contraseña es requerida'),
 });
 
 const Login = () => {
-  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [errorMsg, setErrorMsg] = useState('');
@@ -55,9 +62,13 @@ const Login = () => {
     onSubmit: async (values, { setSubmitting }) => {
       setErrorMsg('');
       try {
+        // Sanitizar inputs antes de enviar
+        const sanitizedUsuario = DOMPurify.sanitize(values.usuario.trim(), { ALLOWED_TAGS: [] });
+        const sanitizedContrasenia = DOMPurify.sanitize(values.contrasenia, { ALLOWED_TAGS: [] });
+
         const response = await ApiService.post(API_ENDPOINTS.AUTH.LOGIN, {
-          usuario: values.usuario,
-          contrasenia: values.contrasenia,
+          usuario: sanitizedUsuario,
+          contrasenia: sanitizedContrasenia,
         });
 
         const data = response?.data || response;
@@ -99,7 +110,10 @@ const Login = () => {
           setErrorMsg(data.message || 'Credenciales incorrectas');
         }
       } catch (error) {
-        console.error('Error en login:', error);
+        logger.authError('Error en login', error, {
+          usuario: values.usuario,
+          endpoint: API_ENDPOINTS.AUTH.LOGIN,
+        });
         setErrorMsg(
           error?.response?.data?.message ||
           error?.message ||

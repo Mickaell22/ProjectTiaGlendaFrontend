@@ -23,6 +23,9 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner.jsx';
 import ConfirmDialog from '../../components/shared/ConfirmDialog.jsx';
 import ErrorBoundary from '../../components/shared/ErrorBoundary.jsx';
 
+// HOC de protección de roles
+import withRole from '../../hoc/withRole.jsx';
+
 function TabPanel({ children, value, index, ...other }) {
   return (
     <div
@@ -352,4 +355,8 @@ const PacienteMain = () => {
   );
 };
 
-export default PacienteMain;
+// Protección de acceso: Administradores y Terapeutas
+export default withRole(PacienteMain, {
+  allowedRoles: ['administrador', 'terapeuta'],
+  moduleName: 'Gestión de Pacientes'
+});

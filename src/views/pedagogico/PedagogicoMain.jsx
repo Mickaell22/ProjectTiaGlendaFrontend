@@ -14,6 +14,9 @@ import PedagogicoAsistencia from './PedagogicoAsistencia';
 import PedagogicoHoy from './PedagogicoHoy';
 import { useUserRole } from '../../hooks/useUserRole';
 
+// HOC de protección de roles
+import withRole from '../../hoc/withRole.jsx';
+
 function TabPanel({ children, value, index, ...other }) {
   return (
     <div
@@ -229,4 +232,8 @@ const PedagogicoMain = () => {
   );
 };
 
-export default PedagogicoMain;
+// Protección de acceso: Administradores y Pedagógicos
+export default withRole(PedagogicoMain, {
+  allowedRoles: ['administrador', 'pedagogico'],
+  moduleName: 'Módulo Pedagógico'
+});

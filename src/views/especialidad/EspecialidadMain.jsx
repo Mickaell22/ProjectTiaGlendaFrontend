@@ -15,6 +15,9 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner.jsx';
 import ConfirmDialog from '../../components/shared/ConfirmDialog.jsx';
 import ErrorBoundary from '../../components/shared/ErrorBoundary.jsx';
 
+// HOC de protección de roles
+import withRole from '../../hoc/withRole.jsx';
+
 // Componentes modulares
 import EspecialidadLista from './EspecialidadLista.jsx';
 import EspecialidadFormulario from './EspecialidadFormulario.jsx';
@@ -363,4 +366,8 @@ const EspecialidadMain = () => {
   );
 };
 
-export default EspecialidadMain;
+// Protección de acceso: Solo administradores
+export default withRole(EspecialidadMain, {
+  allowedRoles: ['administrador'],
+  moduleName: 'Gestión de Especialidades'
+});

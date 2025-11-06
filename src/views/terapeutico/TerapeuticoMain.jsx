@@ -20,6 +20,9 @@ import TerapeuticoAsistencia from './TerapeuticoAsistencia';
 import TerapeuticoHoy from './TerapeuticoHoy';
 import { useUserRole } from '../../hooks/useUserRole';
 
+// HOC de protección de roles
+import withRole from '../../hoc/withRole.jsx';
+
 function TabPanel({ children, value, index, ...other }) {
   return (
     <div
@@ -191,4 +194,8 @@ function getAllTabs({ permissions, isAdmin, isTherapist, refreshSesiones, handle
   );
 };
 
-export default TerapeuticoMain;
+// Protección de acceso: Administradores y Terapeutas
+export default withRole(TerapeuticoMain, {
+  allowedRoles: ['administrador', 'terapeuta'],
+  moduleName: 'Módulo Terapéutico'
+});
