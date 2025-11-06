@@ -23,6 +23,9 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner.jsx';
 import ConfirmDialog from '../../components/shared/ConfirmDialog.jsx';
 import ErrorBoundary from '../../components/shared/ErrorBoundary.jsx';
 
+// HOC de protección de roles
+import withAdminRole from '../../hoc/withAdminRole.jsx';
+
 function TabPanel({ children, value, index, ...other }) {
   return (
     <div
@@ -331,4 +334,8 @@ const UsuarioMain = () => {
   );
 };
 
-export default UsuarioMain;
+// Exportar el componente protegido con verificación de rol de Administrador
+export default withAdminRole(UsuarioMain, {
+  allowedRoles: ['administrador'],
+  showAccessDenied: true
+});

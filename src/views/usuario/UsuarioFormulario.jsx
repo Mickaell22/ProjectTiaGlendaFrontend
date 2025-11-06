@@ -240,17 +240,9 @@ const UsuarioFormulario = ({
   };
 
   const validateForm = () => {
-    console.log('🔍 validateForm - Iniciando validación');
-    console.log('🔍 validateForm - formData:', formData);
-    console.log('🔍 validateForm - isEditing:', isEditing);
-
     const personaIdNum = parseInt(formData.persona_id, 10);
     const rolIdNum = parseInt(formData.rol_id, 10);
     const centroIdNum = parseInt(formData.centro_id, 10);
-
-    console.log('🔍 validateForm - personaIdNum:', personaIdNum);
-    console.log('🔍 validateForm - rolIdNum:', rolIdNum);
-    console.log('🔍 validateForm - centros_ids:', formData.centros_ids);
 
     // Inicializar errores manualmente en lugar de usar el servicio
     const validationErrors = {};
@@ -287,9 +279,6 @@ const UsuarioFormulario = ({
       }
     }
 
-    console.log('🔍 validateForm - Errores finales:', validationErrors);
-    console.log('🔍 validateForm - Es válido:', Object.keys(validationErrors).length === 0);
-
     setErrors(validationErrors);
     return Object.keys(validationErrors).length === 0;
   };
@@ -312,31 +301,21 @@ const UsuarioFormulario = ({
     }
     // En edición, NO enviar persona_id (no se puede cambiar)
 
-    console.log('📦 buildPayload - payload final (sin formatear):', payload);
-
     // NO usar formatForBackend porque no está adaptado para múltiples centros
     return payload;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('🔍 handleSubmit - FormData actual:', formData);
-    console.log('🔍 handleSubmit - isEditing:', isEditing);
-    console.log('🔍 handleSubmit - editingData:', editingData);
 
     if (!validateForm()) {
-      console.log('❌ Validación fallida. Errores:', errors);
       return;
     }
 
-    console.log('✅ Validación exitosa');
-
     try {
       const payload = buildPayload(isEditing);
-      console.log('📦 Payload generado:', payload);
 
       await onSubmit(payload, isEditing);
-      console.log('✅ onSubmit ejecutado exitosamente');
 
       resetForm();
     } catch (error) {

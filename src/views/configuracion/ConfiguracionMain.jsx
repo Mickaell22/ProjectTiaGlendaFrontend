@@ -17,6 +17,9 @@ import CustomSnackbar from '../../components/shared/CustomSnackbar.jsx';
 import LoadingSpinner from '../../components/shared/LoadingSpinner.jsx';
 import ErrorBoundary from '../../components/shared/ErrorBoundary.jsx';
 
+// HOC de protección de roles
+import withRole from '../../hoc/withRole.jsx';
+
 // Componentes modulares
 import ConfiguracionGeneral from './ConfiguracionGeneral.jsx';
 import ConfiguracionNotificaciones from './ConfiguracionNotificaciones.jsx';
@@ -250,4 +253,8 @@ const ConfiguracionMain = () => {
   );
 };
 
-export default ConfiguracionMain;
+// Protección de acceso: Solo administradores
+export default withRole(ConfiguracionMain, {
+  allowedRoles: ['administrador'],
+  moduleName: 'Configuración del Sistema'
+});

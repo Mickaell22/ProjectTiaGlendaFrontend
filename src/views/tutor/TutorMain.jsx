@@ -22,6 +22,9 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner.jsx';
 import ConfirmDialog from '../../components/shared/ConfirmDialog.jsx';
 import ErrorBoundary from '../../components/shared/ErrorBoundary.jsx';
 
+// HOC de protección de roles
+import withRole from '../../hoc/withRole.jsx';
+
 function TabPanel({ children, value, index, ...other }) {
   return (
     <div
@@ -326,4 +329,8 @@ const TutorMain = () => {
   );
 };
 
-export default TutorMain;
+// Protección de acceso: Solo administradores
+export default withRole(TutorMain, {
+  allowedRoles: ['administrador'],
+  moduleName: 'Gestión de Tutores'
+});
