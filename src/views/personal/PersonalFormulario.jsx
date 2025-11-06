@@ -80,30 +80,14 @@ const PersonalFormulario = ({
 
   // Filtrar especialidades solo del centro del usuario logueado
   const especialidadesFiltradas = React.useMemo(() => {
-    console.log('🔍 DEBUG - Usuario completo:', user);
-    console.log('🔍 DEBUG - user.id_centro:', user?.id_centro);
-    console.log('🔍 DEBUG - user.centro_id:', user?.centro_id);
-    console.log('🔍 DEBUG - user.centro:', user?.centro);
-    console.log('🔍 DEBUG - Especialidades completas:', especialidades);
-
     // Obtener el id del centro del usuario de cualquier variante posible
     const centroId = user?.id_centro || user?.centro_id || user?.centro?.id;
 
     if (!centroId) {
-      console.log('⚠️ Usuario sin id_centro definido, mostrando todas las especialidades');
       return especialidades;
     }
 
-    console.log('🎯 Centro ID del usuario:', centroId);
-
-    const filtradas = especialidades.filter(esp => {
-      const match = esp.id_centro == centroId && esp.estado === 'activo';
-      console.log(`Comparando especialidad "${esp.nombre}": esp.id_centro (${esp.id_centro}) == centroId (${centroId}): ${match}`);
-      return match;
-    });
-
-    console.log('✅ Especialidades filtradas:', filtradas);
-    return filtradas;
+    return especialidades.filter(esp => esp.id_centro == centroId && esp.estado === 'activo');
   }, [especialidades, user]);
 
   const canSubmit =

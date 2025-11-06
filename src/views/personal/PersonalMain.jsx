@@ -250,12 +250,6 @@ const PersonalMainComponent = () => {
     navigate(`/personal/${item.id}/documentos`);
   };
 
-  // Filtrar especialidades por centro del usuario logueado
-  const especialidadesFiltradas = React.useMemo(() => {
-    if (!user?.id_centro) return especialidades;
-    return especialidades.filter(esp => esp.id_centro === user.id_centro);
-  }, [especialidades, user]);
-
   // Configuración de tabs
   const tabs = [
     {
@@ -281,7 +275,7 @@ const PersonalMainComponent = () => {
           errors={errors}
           editingId={editingId}
           personasDisponibles={personasDisponibles}
-          especialidades={especialidadesFiltradas}
+          especialidades={especialidades}
           centros={centros}
           personaEncontrada={personaEncontrada}
           onChange={handleChange}

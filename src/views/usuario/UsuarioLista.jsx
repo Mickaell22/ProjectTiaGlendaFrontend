@@ -37,7 +37,8 @@ import {
   SupervisorAccount,
   AccessTime,
   Psychology,
-  School
+  School,
+  Business
 } from '@mui/icons-material';
 
 import UsuarioService from '../../services/usuarioService.js';
@@ -234,11 +235,63 @@ const UsuarioLista = ({
                       />
                     </TableCell>
 
-                    {/* Centro */}
+                    {/* Centro(s) */}
                     <TableCell>
-                      <Typography variant="body2" fontWeight="medium">
-                        {item.centro_nombre || 'Centro Tía Glenda'}
-                      </Typography>
+                      {(() => {
+                        // Intentar obtener múltiples centros del usuario
+                        let centrosArray = [];
+
+                        // Opción 1: centros como array
+                        if (item.centros && Array.isArray(item.centros)) {
+                          centrosArray = item.centros;
+                        }
+                        // Opción 2: centros_nombres como string separado por comas
+                        else if (item.centros_nombres && typeof item.centros_nombres === 'string') {
+                          const nombres = item.centros_nombres.split(',').map(n => n.trim());
+                          centrosArray = nombres.map(nombre => ({ nombre }));
+                        }
+                        // Opción 3: Solo un centro (fallback)
+                        else if (item.centro_nombre) {
+                          centrosArray = [{ nombre: item.centro_nombre }];
+                        }
+
+                        // Si tiene múltiples centros, mostrar como chips
+                        if (centrosArray.length > 1) {
+                          return (
+                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                              {centrosArray.map((centro, index) => (
+                                <Chip
+                                  key={index}
+                                  label={centro.nombre || centro}
+                                  size="small"
+                                  icon={<Business />}
+                                  variant="outlined"
+                                  color="primary"
+                                />
+                              ))}
+                            </Box>
+                          );
+                        }
+                        // Si tiene un solo centro, mostrar como texto
+                        else if (centrosArray.length === 1) {
+                          return (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Business sx={{ fontSize: 16, color: 'text.secondary' }} />
+                              <Typography variant="body2" fontWeight="medium">
+                                {centrosArray[0].nombre || centrosArray[0]}
+                              </Typography>
+                            </Box>
+                          );
+                        }
+                        // Fallback
+                        else {
+                          return (
+                            <Typography variant="body2" color="text.secondary">
+                              Sin centro asignado
+                            </Typography>
+                          );
+                        }
+                      })()}
                     </TableCell>
 
                     {/* Último Acceso */}

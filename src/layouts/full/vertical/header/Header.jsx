@@ -25,6 +25,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ApiService, { extractData } from 'src/services/apiService.js';
 import FotoPerfilService from 'src/services/fotoPerfilService.js';
 import FotoPerfilConAutorizacion from 'src/components/shared/FotoPerfilConAutorizacion.jsx';
+import CentroSwitcher from 'src/components/shared/CentroSwitcher.jsx';
 
 // Chat service para contador de mensajes
 import chatService from 'src/services/chatService';
@@ -285,6 +286,9 @@ const Header = ({ onChatToggle = () => {} }) => {
             </Typography>
             <Typography variant="body1">{horaActual}</Typography>
           </Stack>
+
+          {/* Selector de Centro */}
+          <CentroSwitcher />
 
           {/* Chat con contador de mensajes */}
           <IconButton

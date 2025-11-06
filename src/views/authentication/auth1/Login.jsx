@@ -18,6 +18,7 @@ import useAuth from 'src/hooks/useAuth';
 import { useConfig } from 'src/contexts/ConfigContext';
 import ApiService from 'src/services/apiService';
 import { API_ENDPOINTS } from 'src/config/api';
+import SelectorCentro from 'src/components/shared/SelectorCentro';
 
 // Esquema de validación con Yup
 const validationSchema = Yup.object({
@@ -30,16 +31,20 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [errorMsg, setErrorMsg] = useState('');
-  const { login, isAuthenticated } = useAuth();
+  const [showSelectorCentro, setShowSelectorCentro] = useState(false);
+  const [centrosDisponibles, setCentrosDisponibles] = useState([]);
+  const [loadingCentro, setLoadingCentro] = useState(false);
+  const [errorCentro, setErrorCentro] = useState('');
+  const { login, isAuthenticated, seleccionarCentro } = useAuth();
   const { initConfig } = useConfig();
 
-  // Si ya está autenticado, redirigir al dashboard o la página original
+  // Si ya está autenticado Y no está mostrando selector de centro, redirigir
   React.useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !showSelectorCentro) {
       const from = location.state?.from?.pathname || '/app/dashboard';
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, navigate, location]);
+  }, [isAuthenticated, navigate, location, showSelectorCentro]);
 
   const formik = useFormik({
     initialValues: {
@@ -54,18 +59,41 @@ const Login = () => {
           usuario: values.usuario,
           contrasenia: values.contrasenia,
         });
-        
+
         const data = response?.data || response;
-        
+
         if (data.status === 'success' && data.data?.token) {
-          const loginSuccess = login(data.data.token, data.data.user, data);
-          if (loginSuccess) {
-            // Inicializar configuracion despues del login exitoso
-            initConfig();
-            const from = location.state?.from?.pathname || '/app';
-            navigate(from, { replace: true });
+          // Verificar si el usuario tiene múltiples centros
+          const user = data.data.user;
+          const centros = user?.centros || [];
+
+          if (centros.length > 1) {
+            // Usuario tiene múltiples centros, mostrar selector
+            const loginSuccess = login(data.data.token, user, data);
+            if (loginSuccess) {
+              setCentrosDisponibles(centros);
+              setShowSelectorCentro(true);
+            } else {
+              setErrorMsg('Error al procesar el login');
+            }
+          } else if (centros.length === 1) {
+            // Solo tiene un centro, seleccionarlo automáticamente
+            const loginSuccess = login(data.data.token, user, data);
+            if (loginSuccess) {
+              const result = await seleccionarCentro(centros[0].id);
+              if (result.success) {
+                initConfig();
+                const from = location.state?.from?.pathname || '/app';
+                navigate(from, { replace: true });
+              } else {
+                setErrorMsg(result.message || 'Error al seleccionar centro');
+              }
+            } else {
+              setErrorMsg('Error al procesar el login');
+            }
           } else {
-            setErrorMsg('Error al procesar el login');
+            // No tiene centros asignados
+            setErrorMsg('No tienes centros asignados. Contacta al administrador.');
           }
         } else {
           setErrorMsg(data.message || 'Credenciales incorrectas');
@@ -81,6 +109,24 @@ const Login = () => {
       setSubmitting(false);
     },
   });
+
+  // Manejar selección de centro
+  const handleSeleccionarCentro = async (idCentro) => {
+    setLoadingCentro(true);
+    setErrorCentro('');
+
+    const result = await seleccionarCentro(idCentro);
+
+    if (result.success) {
+      // Inicializar configuración y navegar
+      initConfig();
+      const from = location.state?.from?.pathname || '/app';
+      navigate(from, { replace: true });
+    } else {
+      setErrorCentro(result.message || 'Error al seleccionar centro');
+      setLoadingCentro(false);
+    }
+  };
 
   return (
     <>
@@ -333,6 +379,15 @@ const Login = () => {
           </Card>
         </div>
       </div>
+
+      {/* Selector de Centro */}
+      <SelectorCentro
+        open={showSelectorCentro}
+        centros={centrosDisponibles}
+        onSeleccionar={handleSeleccionarCentro}
+        loading={loadingCentro}
+        error={errorCentro}
+      />
     </>
   );
 };

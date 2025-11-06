@@ -189,7 +189,7 @@ const PersonSelector = ({
             size="small"
             onClick={(e) => {
               e.stopPropagation();
-              handlePersonSelect(null);
+              onSelect(null);
             }}
             sx={{
               position: 'absolute',
