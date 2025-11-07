@@ -34,7 +34,9 @@ import {
   LocalHospital,
   CalendarToday,
   Pause,
-  PlayArrow
+  PlayArrow,
+  Warning,
+  Medication
 } from '@mui/icons-material';
 import { CircularProgress } from '@mui/material';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
@@ -145,6 +147,8 @@ async function exportPacientePDF(paciente) {
     ['Dirección paciente', paciente?.direccion ?? '—'],
     ['Fecha nacimiento', formatDateLocal(paciente?.fecha_nacimiento)],
     ['Diagnóstico', paciente?.diagnostico ?? '—'],
+    ['Alergias', paciente?.alergias ?? '—'],
+    ['Medicamentos', paciente?.medicina ?? '—'],
     ['Observaciones', paciente?.observaciones ?? '—'],
   ].filter(([_, v]) => v && v !== '—'); // omitimos filas totalmente vacías
 
@@ -559,9 +563,21 @@ const PacienteLista = ({
                             <Person />
                           </Avatar>
                           <Box>
-                            <Typography variant="body2" fontWeight="bold">
-                              {p.nombre_completo}
-                            </Typography>
+                            <Box display="flex" alignItems="center" gap={0.5}>
+                              <Typography variant="body2" fontWeight="bold">
+                                {p.nombre_completo}
+                              </Typography>
+                              {p.alergias && (
+                                <Tooltip title={`Alergias: ${p.alergias}`} arrow>
+                                  <Warning sx={{ fontSize: 18, color: 'error.main', cursor: 'help' }} />
+                                </Tooltip>
+                              )}
+                              {p.medicina && (
+                                <Tooltip title={`Medicamentos: ${p.medicina}`} arrow>
+                                  <Medication sx={{ fontSize: 18, color: 'info.main', cursor: 'help' }} />
+                                </Tooltip>
+                              )}
+                            </Box>
                           </Box>
                         </Box>
                       </TableCell>

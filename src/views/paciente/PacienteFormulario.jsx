@@ -96,7 +96,9 @@ const PacienteFormulario = ({
     fecha_ingreso: getCurrentDateForInput(),
     estado_tratamiento: 'activo',
     observaciones: '',
-    observaciones_tratamiento: ''
+    observaciones_tratamiento: '',
+    alergias: '',
+    medicina: ''
   });
   const [errors, setErrors] = useState({});
   const [personaEncontrada, setPersonaEncontrada] = useState(null);
@@ -133,7 +135,10 @@ const PacienteFormulario = ({
           ? editingData.fecha_ingreso.split('T')[0]
           : getCurrentDateForInput(),
         estado_tratamiento: editingData.estado_tratamiento || 'activo',
-        observaciones: editingData.observaciones || ''
+        observaciones: editingData.observaciones || '',
+        observaciones_tratamiento: editingData.observaciones_tratamiento || '',
+        alergias: editingData.alergias || '',
+        medicina: editingData.medicina || ''
       });
 
       if (editingData.persona_id) {
@@ -164,7 +169,9 @@ const PacienteFormulario = ({
       fecha_ingreso: getCurrentDateForInput(),
       estado_tratamiento: 'activo',
       observaciones: '',
-      observaciones_tratamiento: ''
+      observaciones_tratamiento: '',
+      alergias: '',
+      medicina: ''
     });
     setErrors({});
     setPersonaEncontrada(null);
@@ -270,24 +277,42 @@ const PacienteFormulario = ({
     if (!formData.fecha_ingreso)
       errors.fecha_ingreso = 'Debe especificar la fecha de ingreso';
 
-    // Validar especialidades
-    if (formData.especialidades.length === 0) {
-      errors.especialidades = 'Debe agregar al menos una especialidad';
-    } else {
-      // Validar cada especialidad
-      let hasErrors = false;
-      formData.especialidades.forEach((esp, index) => {
-        if (!esp.id_especialidad) {
-          errors[`especialidad_${index}`] = 'Debe seleccionar una especialidad';
+    // Validar especialidades - solo requeridas en modo creación
+    if (!isEditing) {
+      if (formData.especialidades.length === 0) {
+        errors.especialidades = 'Debe agregar al menos una especialidad';
+      } else {
+        // Validar cada especialidad
+        let hasErrors = false;
+        formData.especialidades.forEach((esp, index) => {
+          if (!esp.id_especialidad) {
+            errors[`especialidad_${index}`] = 'Debe seleccionar una especialidad';
+            hasErrors = true;
+          }
+        });
+
+        // Verificar que hay al menos una especialidad principal
+        const tieneEspecialidadPrincipal = formData.especialidades.some(esp => esp.es_principal);
+        if (!tieneEspecialidadPrincipal && formData.especialidades.length > 0) {
+          errors.especialidades = 'Debe marcar al menos una especialidad como principal';
           hasErrors = true;
         }
-      });
+      }
+    } else {
+      // En modo edición, validar especialidades solo si hay alguna
+      if (formData.especialidades.length > 0) {
+        // Validar cada especialidad existente
+        formData.especialidades.forEach((esp, index) => {
+          if (!esp.id_especialidad) {
+            errors[`especialidad_${index}`] = 'Debe seleccionar una especialidad';
+          }
+        });
 
-      // Verificar que hay al menos una especialidad principal
-      const tieneEspecialidadPrincipal = formData.especialidades.some(esp => esp.es_principal);
-      if (!tieneEspecialidadPrincipal && formData.especialidades.length > 0) {
-        errors.especialidades = 'Debe marcar al menos una especialidad como principal';
-        hasErrors = true;
+        // Verificar que hay al menos una especialidad principal si hay especialidades
+        const tieneEspecialidadPrincipal = formData.especialidades.some(esp => esp.es_principal);
+        if (!tieneEspecialidadPrincipal) {
+          errors.especialidades = 'Debe marcar al menos una especialidad como principal';
+        }
       }
     }
 
@@ -309,8 +334,10 @@ const PacienteFormulario = ({
       fecha_inicio_tratamiento: especialidadPrincipal?.fecha_inicio_tratamiento || null,
       fecha_fin_tratamiento: especialidadPrincipal?.fecha_fin_tratamiento || null,
       estado_tratamiento: formData.estado_tratamiento || 'activo',
-      observaciones_tratamiento: especialidadPrincipal?.observaciones || '',
+      observaciones_tratamiento: formData.observaciones_tratamiento || '',
       observaciones: formData.observaciones || '',
+      alergias: formData.alergias || '',
+      medicina: formData.medicina || '',
 
       // Incluir todas las especialidades para el backend
       especialidades: formData.especialidades.map(esp => ({
@@ -349,12 +376,15 @@ const PacienteFormulario = ({
   const tutorNombre =
     tutorEncontrado?.nombre_completo || '' /* idem */;
 
-  const canSubmit =
-    !!formData.persona_id &&
-    !!formData.tutor_id &&
-    formData.especialidades.length > 0 &&
-    formData.especialidades.every(esp => esp.id_especialidad) &&
-    !!formData.fecha_ingreso;
+  // En modo edición, permitir submit si hay datos básicos
+  // En modo creación, requerir todas las validaciones
+  const canSubmit = isEditing
+    ? !!formData.persona_id && !!formData.tutor_id && !!formData.fecha_ingreso
+    : !!formData.persona_id &&
+      !!formData.tutor_id &&
+      formData.especialidades.length > 0 &&
+      formData.especialidades.every(esp => esp.id_especialidad) &&
+      !!formData.fecha_ingreso;
 
   return (
     <Box>
@@ -660,6 +690,69 @@ const PacienteFormulario = ({
                     errors.fecha_ingreso ||
                     'Fecha en que el paciente ingresó al centro'
                   }
+                  sx={neutralInputSX}
+                />
+              </Box>
+            </Box>
+
+            {/* ===== Bloque: Información Médica Adicional ===== */}
+            <Box
+              sx={{
+                mb: 3,
+                p: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 2,
+                backgroundColor: 'background.paper'
+              }}
+            >
+              <Typography
+                variant="overline"
+                sx={{ fontWeight: 'bold', color: 'text.secondary' }}
+                display="flex"
+                alignItems="center"
+              >
+                <LocalHospital sx={{ mr: 1 }} />
+                Información Médica Adicional
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Alergias
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  name="alergias"
+                  value={formData.alergias}
+                  onChange={handleChange}
+                  error={!!errors.alergias}
+                  helperText={
+                    errors.alergias || 'Registra las alergias conocidas del paciente'
+                  }
+                  placeholder="Ej: Penicilina, Polen, Mariscos..."
+                  sx={neutralInputSX}
+                />
+              </Box>
+
+              <Box sx={rowGridSX}>
+                <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Medicamentos
+                </Typography>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={2}
+                  name="medicina"
+                  value={formData.medicina}
+                  onChange={handleChange}
+                  error={!!errors.medicina}
+                  helperText={
+                    errors.medicina || 'Medicamentos que toma el paciente actualmente'
+                  }
+                  placeholder="Ej: Paracetamol 500mg cada 8 horas, Loratadina 10mg diaria..."
                   sx={neutralInputSX}
                 />
               </Box>

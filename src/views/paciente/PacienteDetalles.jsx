@@ -391,6 +391,63 @@ const PacienteDetalles = ({
               </Card>
             </Grid>
 
+            {/* Información Médica Adicional */}
+            {(pacienteData.alergias || pacienteData.medicina) && (
+              <Grid item xs={12}>
+                <Card elevation={1}>
+                  <CardContent>
+                    <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
+                      <LocalHospital sx={{ mr: 1 }} />
+                      Información Médica Adicional
+                    </Typography>
+                    <Divider sx={{ mb: 2 }} />
+
+                    <Grid container spacing={3}>
+                      {pacienteData.alergias && (
+                        <Grid item xs={12} md={6}>
+                          <Box>
+                            <Typography variant="body2" color="text.secondary" gutterBottom fontWeight="bold">
+                              Alergias Conocidas
+                            </Typography>
+                            <Typography variant="body1" sx={{
+                              p: 2,
+                              bgcolor: 'error.50',
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: 'error.200',
+                              color: 'error.dark'
+                            }}>
+                              {pacienteData.alergias}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                      )}
+
+                      {pacienteData.medicina && (
+                        <Grid item xs={12} md={6}>
+                          <Box>
+                            <Typography variant="body2" color="text.secondary" gutterBottom fontWeight="bold">
+                              Medicamentos Actuales
+                            </Typography>
+                            <Typography variant="body1" sx={{
+                              p: 2,
+                              bgcolor: 'info.50',
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: 'info.200',
+                              color: 'info.dark'
+                            }}>
+                              {pacienteData.medicina}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                      )}
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
+
             {/* Observaciones */}
             {(pacienteData.observaciones_tratamiento || pacienteData.observaciones) && (
               <Grid item xs={12}>
@@ -401,7 +458,7 @@ const PacienteDetalles = ({
                       Observaciones
                     </Typography>
                     <Divider sx={{ mb: 2 }} />
-                    
+
                     <Grid container spacing={3}>
                       {pacienteData.observaciones_tratamiento && (
                         <Grid item xs={12} md={6}>
@@ -409,9 +466,9 @@ const PacienteDetalles = ({
                             <Typography variant="body2" color="text.secondary" gutterBottom>
                               Observaciones del Tratamiento
                             </Typography>
-                            <Typography variant="body1" sx={{ 
-                              p: 2, 
-                              bgcolor: 'transparent', 
+                            <Typography variant="body1" sx={{
+                              p: 2,
+                              bgcolor: 'transparent',
                               borderRadius: 1,
                               border: '1px solid',
                               borderColor: 'grey.200'
@@ -421,16 +478,16 @@ const PacienteDetalles = ({
                           </Box>
                         </Grid>
                       )}
-                      
+
                       {pacienteData.observaciones && (
                         <Grid item xs={12} md={6}>
                           <Box>
                             <Typography variant="body2" color="text.secondary" gutterBottom>
                               Observaciones Generales
                             </Typography>
-                            <Typography variant="body1" sx={{ 
-                              p: 2, 
-                              bgcolor: 'trasparent', 
+                            <Typography variant="body1" sx={{
+                              p: 2,
+                              bgcolor: 'trasparent',
                               borderRadius: 1,
                               border: '1px solid',
                               borderColor: 'grey.200'
