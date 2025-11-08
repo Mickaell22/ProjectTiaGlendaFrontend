@@ -162,118 +162,152 @@ const PacienteDetalles = ({
               </Card>
             </Grid>
 
-            {/* Información del Tutor */}
+            {/* Información de Tutores */}
             <Grid item xs={12}>
               <Card elevation={1}>
                 <CardContent>
-                  <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
-                    <FamilyRestroom sx={{ mr: 1 }} />
-                    Información del Tutor/Representante
+                  <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center" justifyContent="space-between">
+                    <Box display="flex" alignItems="center">
+                      <FamilyRestroom sx={{ mr: 1 }} />
+                      Tutores/Responsables
+                    </Box>
+                    {pacienteData.tutores && pacienteData.tutores.length > 0 && (
+                      <Chip
+                        label={`${pacienteData.tutores.length} tutor${pacienteData.tutores.length > 1 ? 'es' : ''}`}
+                        size="small"
+                        color="primary"
+                      />
+                    )}
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
 
-                  <Grid container spacing={3}>
-                    {/* Columna 1: Información Personal del Tutor */}
-                    <Grid item xs={12} md={6}>
-                      <Stack spacing={2}>
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">Nombre del Tutor</Typography>
-                          <Typography variant="body1" fontWeight="bold">
-                            {pacienteData.nombre_tutor || 'Sin tutor asignado'}
-                          </Typography>
-                        </Box>
+                  {/* Mostrar múltiples tutores */}
+                  {pacienteData.tutores && pacienteData.tutores.length > 0 ? (
+                    <Grid container spacing={2}>
+                      {pacienteData.tutores.map((tutor, index) => (
+                        <Grid item xs={12} md={6} key={index}>
+                          <Card
+                            variant="outlined"
+                            sx={{
+                              border: tutor.es_principal ? '2px solid' : '1px solid',
+                              borderColor: tutor.es_principal ? 'primary.main' : 'divider',
+                              bgcolor: tutor.es_principal ? 'primary.50' : 'background.paper'
+                            }}
+                          >
+                            <CardContent>
+                              {/* Header con badges */}
+                              <Box sx={{ mb: 2 }}>
+                                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                                  {tutor.nombre_completo || 'Tutor sin nombre'}
+                                </Typography>
+                                <Stack direction="row" spacing={1} flexWrap="wrap">
+                                  {tutor.es_principal && (
+                                    <Chip
+                                      icon={<StarIcon />}
+                                      label="Principal"
+                                      size="small"
+                                      color="primary"
+                                    />
+                                  )}
+                                  {tutor.tipo_relacion && (
+                                    <Chip
+                                      label={tutor.tipo_relacion.toUpperCase()}
+                                      size="small"
+                                      variant="outlined"
+                                    />
+                                  )}
+                                  {tutor.contacto_emergencia && (
+                                    <Chip
+                                      label={`Emergencia P${tutor.prioridad_contacto}`}
+                                      size="small"
+                                      color={tutor.prioridad_contacto === 1 ? 'error' : tutor.prioridad_contacto === 2 ? 'warning' : 'default'}
+                                      variant="outlined"
+                                    />
+                                  )}
+                                </Stack>
+                              </Box>
 
-                        {pacienteData.cedula_tutor && (
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">Cédula del Tutor</Typography>
-                            <Typography variant="body1" fontWeight="bold">{pacienteData.cedula_tutor}</Typography>
-                          </Box>
-                        )}
+                              <Divider sx={{ mb: 2 }} />
 
-                        {pacienteData.parentesco && (
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">Parentesco</Typography>
-                            <Chip
-                              label={pacienteData.parentesco.charAt(0).toUpperCase() + pacienteData.parentesco.slice(1)}
-                              color="secondary"
-                              size="small"
-                              sx={{ mt: 0.5 }}
-                            />
-                          </Box>
-                        )}
+                              {/* Información de contacto */}
+                              <Stack spacing={1.5}>
+                                {tutor.cedula && (
+                                  <Box>
+                                    <Typography variant="caption" color="text.secondary">Cédula</Typography>
+                                    <Typography variant="body2" fontWeight="medium">{tutor.cedula}</Typography>
+                                  </Box>
+                                )}
 
-                        {pacienteData.telefono_tutor && (
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">Teléfono del Tutor</Typography>
-                            <Typography variant="body1" fontWeight="bold">{pacienteData.telefono_tutor}</Typography>
-                          </Box>
-                        )}
+                                {tutor.telefono && (
+                                  <Box>
+                                    <Typography variant="caption" color="text.secondary">Teléfono</Typography>
+                                    <Typography variant="body2" fontWeight="medium">{tutor.telefono}</Typography>
+                                  </Box>
+                                )}
 
-                        {pacienteData.correo_tutor && (
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">Correo del Tutor</Typography>
-                            <Typography variant="body1" fontWeight="bold">{pacienteData.correo_tutor}</Typography>
-                          </Box>
-                        )}
-                      </Stack>
+                                {tutor.correo && (
+                                  <Box>
+                                    <Typography variant="caption" color="text.secondary">Email</Typography>
+                                    <Typography
+                                      variant="body2"
+                                      fontWeight="medium"
+                                      sx={{ wordBreak: 'break-word' }}
+                                    >
+                                      {tutor.correo}
+                                    </Typography>
+                                  </Box>
+                                )}
+
+                                {/* Permisos */}
+                                <Box>
+                                  <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                                    Permisos
+                                  </Typography>
+                                  <Stack direction="row" spacing={1} flexWrap="wrap">
+                                    {tutor.puede_autorizar && (
+                                      <Chip label="Autorizar" size="small" variant="outlined" color="success" />
+                                    )}
+                                    {tutor.puede_retirar && (
+                                      <Chip label="Retirar" size="small" variant="outlined" color="info" />
+                                    )}
+                                  </Stack>
+                                </Box>
+
+                                {tutor.observaciones && (
+                                  <Box>
+                                    <Typography variant="caption" color="text.secondary">Observaciones</Typography>
+                                    <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+                                      {tutor.observaciones}
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </Stack>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
                     </Grid>
-
-                    {/* Columna 2: Dirección e Información Laboral */}
-                    <Grid item xs={12} md={6}>
-                      <Stack spacing={2}>
-                        {pacienteData.direccion_tutor && (
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">Dirección</Typography>
-                            <Typography variant="body1" sx={{
-                              p: 1.5,
-                              bgcolor: 'grey.50',
-                              borderRadius: 1,
-                              border: '1px solid',
-                              borderColor: 'grey.200'
-                            }}>
-                              {pacienteData.direccion_tutor}
-                            </Typography>
-                          </Box>
+                  ) : (
+                    // Fallback para formato antiguo (un solo tutor)
+                    <Box sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.50', borderRadius: 1 }}>
+                      <FamilyRestroom sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
+                      <Typography variant="body1" color="text.secondary">
+                        {pacienteData.nombre_tutor ? (
+                          <>
+                            <strong>{pacienteData.nombre_tutor}</strong>
+                            {pacienteData.parentesco && ` - ${pacienteData.parentesco}`}
+                            {pacienteData.telefono_tutor && (
+                              <Box component="span" display="block" sx={{ mt: 1 }}>
+                                Tel: {pacienteData.telefono_tutor}
+                              </Box>
+                            )}
+                          </>
+                        ) : (
+                          'Sin tutores asignados'
                         )}
-
-                        {pacienteData.ocupacion && (
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">Ocupación</Typography>
-                            <Typography variant="body1" fontWeight="bold">{pacienteData.ocupacion}</Typography>
-                          </Box>
-                        )}
-
-                        {pacienteData.nombre_empresa && (
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">Empresa</Typography>
-                            <Typography variant="body1" fontWeight="bold">{pacienteData.nombre_empresa}</Typography>
-                          </Box>
-                        )}
-
-                        {pacienteData.telefono_empresa && (
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">Teléfono Laboral</Typography>
-                            <Typography variant="body1" fontWeight="bold">{pacienteData.telefono_empresa}</Typography>
-                          </Box>
-                        )}
-
-                        {pacienteData.direccion_empresa && (
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">Dirección Laboral</Typography>
-                            <Typography variant="body1" sx={{
-                              p: 1.5,
-                              bgcolor: 'grey.50',
-                              borderRadius: 1,
-                              border: '1px solid',
-                              borderColor: 'grey.200'
-                            }}>
-                              {pacienteData.direccion_empresa}
-                            </Typography>
-                          </Box>
-                        )}
-                      </Stack>
-                    </Grid>
-                  </Grid>
+                      </Typography>
+                    </Box>
+                  )}
                 </CardContent>
               </Card>
             </Grid>

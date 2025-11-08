@@ -418,6 +418,140 @@ export class PacienteService {
         especialidad: p.especialidad_nombre
       }));
   }
+
+  // ============================================
+  // METODOS PARA GESTION DE MULTIPLES TUTORES
+  // ============================================
+
+  // Obtener todos los tutores de un paciente
+  static async getTutoresPaciente(pacienteId) {
+    const response = await ApiService.get(`${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/tutores`);
+    return extractData(response);
+  }
+
+  // Agregar un tutor a un paciente
+  static async agregarTutor(pacienteId, tutorData) {
+    const response = await ApiService.post(`${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/tutores`, tutorData);
+    return extractData(response);
+  }
+
+  // Cambiar el tutor principal de un paciente
+  static async cambiarTutorPrincipal(pacienteId, tutorId) {
+    const response = await ApiService.put(
+      `${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/tutores/${tutorId}/principal`,
+      {}
+    );
+    return extractData(response);
+  }
+
+  // Remover un tutor de un paciente
+  static async removerTutor(pacienteId, tutorId) {
+    const response = await ApiService.delete(
+      `${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/tutores/${tutorId}`
+    );
+    return extractData(response);
+  }
+
+  // Actualizar la relacion paciente-tutor
+  static async actualizarRelacionTutor(pacienteId, tutorId, relacionData) {
+    const response = await ApiService.patch(
+      `${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/tutores/${tutorId}`,
+      relacionData
+    );
+    return extractData(response);
+  }
+
+  // Validar datos de tutores antes de enviar
+  static validarTutores(tutores) {
+    const errors = {};
+
+    if (!tutores || tutores.length === 0) {
+      errors.tutores = 'Debe asignar al menos un tutor al paciente';
+      return { valid: false, errors };
+    }
+
+    // Verificar que haya un tutor principal
+    const tutoresPrincipales = tutores.filter(t => t.es_principal);
+    if (tutoresPrincipales.length === 0) {
+      errors.tutores = 'Debe marcar un tutor como principal';
+      return { valid: false, errors };
+    }
+
+    if (tutoresPrincipales.length > 1) {
+      errors.tutores = 'Solo puede haber un tutor marcado como principal';
+      return { valid: false, errors };
+    }
+
+    // Validar cada tutor individualmente
+    tutores.forEach((tutor, index) => {
+      if (!tutor.tutor_id) {
+        errors[`tutores.${index}.tutor_id`] = 'Debe seleccionar un tutor';
+      }
+
+      if (!tutor.tipo_relacion || tutor.tipo_relacion.trim() === '') {
+        errors[`tutores.${index}.tipo_relacion`] = 'El tipo de relación es requerido';
+      }
+    });
+
+    // Verificar que no haya tutores duplicados
+    const tutorIds = tutores.map(t => t.tutor_id).filter(id => id);
+    const duplicados = tutorIds.filter((id, index) => tutorIds.indexOf(id) !== index);
+    if (duplicados.length > 0) {
+      errors.tutores = 'No puede asignar el mismo tutor más de una vez';
+      return { valid: false, errors };
+    }
+
+    return {
+      valid: Object.keys(errors).length === 0,
+      errors
+    };
+  }
+
+  // Formatear tutores para enviar al backend
+  static formatearTutoresParaEnvio(tutores) {
+    return tutores.map(tutor => ({
+      tutor_id: tutor.tutor_id,
+      es_principal: tutor.es_principal || false,
+      tipo_relacion: tutor.tipo_relacion,
+      puede_autorizar: tutor.puede_autorizar !== false,
+      puede_retirar: tutor.puede_retirar !== false,
+      contacto_emergencia: tutor.contacto_emergencia || false,
+      prioridad_contacto: tutor.prioridad_contacto || 1,
+      observaciones: tutor.observaciones || ''
+    }));
+  }
+
+  // Obtener el tutor principal de un paciente
+  static getTutorPrincipal(paciente) {
+    if (paciente.tutores && Array.isArray(paciente.tutores)) {
+      return paciente.tutores.find(t => t.es_principal) || paciente.tutores[0] || null;
+    }
+
+    // Retrocompatibilidad con el formato antiguo
+    if (paciente.tutor_id) {
+      return {
+        tutor_id: paciente.tutor_id,
+        nombre_completo: paciente.nombre_tutor,
+        telefono: paciente.telefono_tutor,
+        correo: paciente.correo_tutor,
+        cedula: paciente.cedula_tutor,
+        es_principal: true
+      };
+    }
+
+    return null;
+  }
+
+  // Obtener contactos de emergencia ordenados por prioridad
+  static getContactosEmergencia(paciente) {
+    if (!paciente.tutores || !Array.isArray(paciente.tutores)) {
+      return [];
+    }
+
+    return paciente.tutores
+      .filter(t => t.contacto_emergencia)
+      .sort((a, b) => (a.prioridad_contacto || 99) - (b.prioridad_contacto || 99));
+  }
 }
 
 export default PacienteService;

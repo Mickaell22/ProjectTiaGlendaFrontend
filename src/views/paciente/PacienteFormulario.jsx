@@ -36,6 +36,7 @@ import PacienteService from '../../services/pacienteService.js';
 import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelector.jsx';
 import TutorSelector from '../../components/shared/TutorSelector.jsx';
 import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
+import MultipleTutoresManager from '../../components/Pacientes/MultipleTutoresManager.jsx';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
 /* ---------- Helpers ---------- */
@@ -93,7 +94,8 @@ const PacienteFormulario = ({
   const theme = useTheme();
   const [formData, setFormData] = useState({
     persona_id: '',
-    tutor_id: '',
+    tutor_id: '', // Mantener para retrocompatibilidad
+    tutores: [], // Array de tutores multiples
     especialidades: [], // Array de especialidades
     fecha_ingreso: getCurrentDateForInput(),
     estado_tratamiento: 'activo',
@@ -118,9 +120,46 @@ const PacienteFormulario = ({
       // Formatear especialidades del backend
       const especialidadesList = editingData.especialidades || [];
 
+      // Formatear tutores del backend
+      let tutoresList = [];
+      if (editingData.tutores && Array.isArray(editingData.tutores)) {
+        // Nuevo formato con multiples tutores
+        tutoresList = editingData.tutores.map(tut => ({
+          tutor_id: tut.tutor_id,
+          es_principal: tut.es_principal || false,
+          tipo_relacion: tut.tipo_relacion || tut.parentesco || '',
+          puede_autorizar: tut.puede_autorizar !== false,
+          puede_retirar: tut.puede_retirar !== false,
+          contacto_emergencia: tut.contacto_emergencia || false,
+          prioridad_contacto: tut.prioridad_contacto || 1,
+          observaciones: tut.observaciones_relacion || tut.observaciones || '',
+          nombre_completo: tut.nombre_completo || tut.nombre_tutor || '',
+          telefono: tut.telefono || tut.telefono_tutor || '',
+          correo: tut.correo || tut.correo_tutor || '',
+          cedula: tut.cedula || tut.cedula_tutor || ''
+        }));
+      } else if (editingData.tutor_id) {
+        // Retrocompatibilidad: formato antiguo con un solo tutor
+        tutoresList = [{
+          tutor_id: editingData.tutor_id,
+          es_principal: true,
+          tipo_relacion: editingData.parentesco || '',
+          puede_autorizar: true,
+          puede_retirar: true,
+          contacto_emergencia: true,
+          prioridad_contacto: 1,
+          observaciones: '',
+          nombre_completo: editingData.nombre_tutor || '',
+          telefono: editingData.telefono_tutor || '',
+          correo: editingData.correo_tutor || '',
+          cedula: editingData.cedula_tutor || ''
+        }];
+      }
+
       setFormData({
         persona_id: editingData.persona_id || '',
         tutor_id: editingData.tutor_id || '',
+        tutores: tutoresList,
         especialidades: especialidadesList.map(esp => ({
           id_especialidad: esp.id_especialidad,
           es_principal: esp.es_principal || false,
@@ -167,6 +206,7 @@ const PacienteFormulario = ({
     setFormData({
       persona_id: '',
       tutor_id: '',
+      tutores: [],
       especialidades: [],
       fecha_ingreso: getCurrentDateForInput(),
       estado_tratamiento: 'activo',
@@ -272,15 +312,20 @@ const PacienteFormulario = ({
   const validateForm = () => {
     const errors = {};
 
-    // En modo edición, persona y tutor ya están asignados (opcional reseleccionarlos)
+    // En modo edición, persona ya está asignada (opcional reseleccionarla)
     if (!isEditing) {
       if (!formData.persona_id)
         errors.persona_id = 'Debe seleccionar una persona';
-      if (!formData.tutor_id)
-        errors.tutor_id = 'Debe seleccionar un tutor';
     }
+
     if (!formData.fecha_ingreso)
       errors.fecha_ingreso = 'Debe especificar la fecha de ingreso';
+
+    // Validar tutores - requeridos siempre
+    const tutoresValidation = PacienteService.validarTutores(formData.tutores);
+    if (!tutoresValidation.valid) {
+      Object.assign(errors, tutoresValidation.errors);
+    }
 
     // Validar especialidades - solo requeridas en modo creación
     if (!isEditing) {
@@ -331,9 +376,12 @@ const PacienteFormulario = ({
     // Para compatibilidad con el backend actual, usar la especialidad principal como especialidad_id
     const especialidadPrincipal = formData.especialidades.find(esp => esp.es_principal);
 
+    // Para compatibilidad, usar el tutor principal como tutor_id
+    const tutorPrincipal = formData.tutores.find(tut => tut.es_principal);
+
     const payload = {
       persona_id: parseInt(formData.persona_id, 10),
-      tutor_id: parseInt(formData.tutor_id, 10),
+      tutor_id: tutorPrincipal ? parseInt(tutorPrincipal.tutor_id, 10) : null,
       especialidad_id: especialidadPrincipal ? parseInt(especialidadPrincipal.id_especialidad, 10) : null,
       fecha_ingreso: formData.fecha_ingreso || null,
       fecha_inicio_tratamiento: especialidadPrincipal?.fecha_inicio_tratamiento || null,
@@ -343,6 +391,9 @@ const PacienteFormulario = ({
       observaciones: formData.observaciones || '',
       alergias: formData.alergias || '',
       medicina: formData.medicina || '',
+
+      // Incluir tutores multiples formateados
+      tutores: PacienteService.formatearTutoresParaEnvio(formData.tutores),
 
       // Incluir todas las especialidades para el backend
       especialidades: formData.especialidades.map(esp => ({
@@ -381,12 +432,12 @@ const PacienteFormulario = ({
   const tutorNombre =
     tutorEncontrado?.nombre_completo || '' /* idem */;
 
-  // En modo edición, permitir submit si hay fecha de ingreso (persona y tutor ya asignados)
+  // En modo edición, permitir submit si hay fecha de ingreso (persona y tutores ya asignados)
   // En modo creación, requerir todas las validaciones
   const canSubmit = isEditing
     ? !!formData.fecha_ingreso
     : !!formData.persona_id &&
-      !!formData.tutor_id &&
+      formData.tutores.length > 0 &&
       formData.especialidades.length > 0 &&
       formData.especialidades.every(esp => esp.id_especialidad) &&
       !!formData.fecha_ingreso;
@@ -521,77 +572,31 @@ const PacienteFormulario = ({
                 )}
               </Box>
 
-              {/* Tutor Selector */}
+              {/* Tutores Multiples */}
               <Box sx={{ mb: 3 }}>
-                <Typography variant="body1" mb={1}>
-                  Tutor (Responsable): {!isEditing && <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>}
-                  {isEditing && <span style={{ color: 'gray', fontSize: '0.85rem' }}> (Opcional - ya asignado)</span>}
+                <Typography variant="h6" mb={2} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <FamilyRestroom />
+                  Tutores / Responsables
+                  <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
 
-                {isEditing ? (
-                  // Modo edición: Mostrar tutor actual
-                  <Box>
-                    {tutorEncontrado ? (
-                      <Box
-                        sx={{
-                          p: 2,
-                          border: '2px solid',
-                          borderColor: 'secondary.main',
-                          borderRadius: 2,
-                          bgcolor: 'secondary.50',
-                          mb: 1
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <FamilyRestroom sx={{ fontSize: 32, color: 'secondary.main' }} />
-                            <Box>
-                              <Typography variant="body1" fontWeight="bold">
-                                {tutorEncontrado.nombre_completo || 'Sin nombre'}
-                              </Typography>
-                              {tutorEncontrado.cedula && (
-                                <Typography variant="caption" color="text.secondary">
-                                  Cédula: {tutorEncontrado.cedula}
-                                </Typography>
-                              )}
-                            </Box>
-                          </Box>
-                          <Chip label="Tutor asignado" color="secondary" size="small" />
-                        </Box>
-                      </Box>
-                    ) : (
-                      <Box
-                        sx={{
-                          p: 2,
-                          border: '2px solid',
-                          borderColor: 'info.main',
-                          borderRadius: 2,
-                          bgcolor: 'info.50'
-                        }}
-                      >
-                        <Typography variant="body2" color="text.secondary">
-                          Tutor asignado (ID: {formData.tutor_id || 'No disponible'})
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                ) : (
-                  // Modo creación: Selector obligatorio
-                  <TutorSelector
-                    selectedTutor={tutorEncontrado}
-                    onSelect={(tutor) => {
-                      setTutorEncontrado(tutor);
-                      setFormData(p => ({ ...p, tutor_id: tutor.id }));
-                    }}
-                    placeholder="Busca y selecciona el tutor o responsable del paciente"
-                  />
-                )}
-
-                {errors.tutor_id && (
-                  <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
-                    {errors.tutor_id}
-                  </Typography>
-                )}
+                <MultipleTutoresManager
+                  tutores={formData.tutores}
+                  onTutoresChange={(nuevosTutores) => {
+                    setFormData(prev => ({ ...prev, tutores: nuevosTutores }));
+                    // Limpiar errores de tutores al cambiar
+                    const newErrors = { ...errors };
+                    Object.keys(newErrors).forEach(key => {
+                      if (key.startsWith('tutores')) {
+                        delete newErrors[key];
+                      }
+                    });
+                    setErrors(newErrors);
+                  }}
+                  disabled={loading}
+                  errors={errors}
+                  modoEdicion={isEditing}
+                />
               </Box>
 
               {/* Especialidades Múltiples */}
