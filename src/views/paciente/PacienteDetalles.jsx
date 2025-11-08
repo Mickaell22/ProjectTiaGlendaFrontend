@@ -163,31 +163,117 @@ const PacienteDetalles = ({
             </Grid>
 
             {/* Información del Tutor */}
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
                     <FamilyRestroom sx={{ mr: 1 }} />
-                    Tutor/Representante
+                    Información del Tutor/Representante
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
-                  
-                  <Stack spacing={2}>
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">Nombre del Tutor</Typography>
-                      <Typography variant="body1" fontWeight="bold">
-                        {pacienteData.nombre_tutor || 'Sin tutor asignado'}
-                      </Typography>
-                    </Box>
-                    
-                    {pacienteData.tutor_cedula && (
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">Cédula del Tutor</Typography>
-                        <Typography variant="body1" fontWeight="bold">{pacienteData.tutor_cedula}</Typography>
-                      </Box>
-                    )}
 
-                  </Stack>
+                  <Grid container spacing={3}>
+                    {/* Columna 1: Información Personal del Tutor */}
+                    <Grid item xs={12} md={6}>
+                      <Stack spacing={2}>
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">Nombre del Tutor</Typography>
+                          <Typography variant="body1" fontWeight="bold">
+                            {pacienteData.nombre_tutor || 'Sin tutor asignado'}
+                          </Typography>
+                        </Box>
+
+                        {pacienteData.cedula_tutor && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">Cédula del Tutor</Typography>
+                            <Typography variant="body1" fontWeight="bold">{pacienteData.cedula_tutor}</Typography>
+                          </Box>
+                        )}
+
+                        {pacienteData.parentesco && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">Parentesco</Typography>
+                            <Chip
+                              label={pacienteData.parentesco.charAt(0).toUpperCase() + pacienteData.parentesco.slice(1)}
+                              color="secondary"
+                              size="small"
+                              sx={{ mt: 0.5 }}
+                            />
+                          </Box>
+                        )}
+
+                        {pacienteData.telefono_tutor && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">Teléfono del Tutor</Typography>
+                            <Typography variant="body1" fontWeight="bold">{pacienteData.telefono_tutor}</Typography>
+                          </Box>
+                        )}
+
+                        {pacienteData.correo_tutor && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">Correo del Tutor</Typography>
+                            <Typography variant="body1" fontWeight="bold">{pacienteData.correo_tutor}</Typography>
+                          </Box>
+                        )}
+                      </Stack>
+                    </Grid>
+
+                    {/* Columna 2: Dirección e Información Laboral */}
+                    <Grid item xs={12} md={6}>
+                      <Stack spacing={2}>
+                        {pacienteData.direccion_tutor && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">Dirección</Typography>
+                            <Typography variant="body1" sx={{
+                              p: 1.5,
+                              bgcolor: 'grey.50',
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: 'grey.200'
+                            }}>
+                              {pacienteData.direccion_tutor}
+                            </Typography>
+                          </Box>
+                        )}
+
+                        {pacienteData.ocupacion && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">Ocupación</Typography>
+                            <Typography variant="body1" fontWeight="bold">{pacienteData.ocupacion}</Typography>
+                          </Box>
+                        )}
+
+                        {pacienteData.nombre_empresa && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">Empresa</Typography>
+                            <Typography variant="body1" fontWeight="bold">{pacienteData.nombre_empresa}</Typography>
+                          </Box>
+                        )}
+
+                        {pacienteData.telefono_empresa && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">Teléfono Laboral</Typography>
+                            <Typography variant="body1" fontWeight="bold">{pacienteData.telefono_empresa}</Typography>
+                          </Box>
+                        )}
+
+                        {pacienteData.direccion_empresa && (
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">Dirección Laboral</Typography>
+                            <Typography variant="body1" sx={{
+                              p: 1.5,
+                              bgcolor: 'grey.50',
+                              borderRadius: 1,
+                              border: '1px solid',
+                              borderColor: 'grey.200'
+                            }}>
+                              {pacienteData.direccion_empresa}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Stack>
+                    </Grid>
+                  </Grid>
                 </CardContent>
               </Card>
             </Grid>

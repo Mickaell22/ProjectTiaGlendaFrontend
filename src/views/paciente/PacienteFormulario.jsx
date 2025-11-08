@@ -27,7 +27,9 @@ import {
   Assignment,
   Add as AddIcon,
   Delete as DeleteIcon,
-  Star as StarIcon
+  Star as StarIcon,
+  Person,
+  FamilyRestroom
 } from '@mui/icons-material';
 
 import PacienteService from '../../services/pacienteService.js';
@@ -270,10 +272,13 @@ const PacienteFormulario = ({
   const validateForm = () => {
     const errors = {};
 
-    if (!formData.persona_id)
-      errors.persona_id = 'Debe seleccionar una persona';
-    if (!formData.tutor_id)
-      errors.tutor_id = 'Debe seleccionar un tutor';
+    // En modo edición, persona y tutor ya están asignados (opcional reseleccionarlos)
+    if (!isEditing) {
+      if (!formData.persona_id)
+        errors.persona_id = 'Debe seleccionar una persona';
+      if (!formData.tutor_id)
+        errors.tutor_id = 'Debe seleccionar un tutor';
+    }
     if (!formData.fecha_ingreso)
       errors.fecha_ingreso = 'Debe especificar la fecha de ingreso';
 
@@ -376,10 +381,10 @@ const PacienteFormulario = ({
   const tutorNombre =
     tutorEncontrado?.nombre_completo || '' /* idem */;
 
-  // En modo edición, permitir submit si hay datos básicos
+  // En modo edición, permitir submit si hay fecha de ingreso (persona y tutor ya asignados)
   // En modo creación, requerir todas las validaciones
   const canSubmit = isEditing
-    ? !!formData.persona_id && !!formData.tutor_id && !!formData.fecha_ingreso
+    ? !!formData.fecha_ingreso
     : !!formData.persona_id &&
       !!formData.tutor_id &&
       formData.especialidades.length > 0 &&
@@ -446,16 +451,69 @@ const PacienteFormulario = ({
               {/* Persona Selector */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="body1" mb={1}>
-                  Persona (Paciente): <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
+                  Persona (Paciente): {!isEditing && <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>}
+                  {isEditing && <span style={{ color: 'gray', fontSize: '0.85rem' }}> (Opcional - ya asignada)</span>}
                 </Typography>
-                <PersonaGeneralSelector
-                  selectedPersona={personaEncontrada}
-                  onSelect={(persona) => {
-                    setPersonaEncontrada(persona);
-                    setFormData(p => ({ ...p, persona_id: persona.id }));
-                  }}
-                  placeholder="Busca y selecciona la persona que será el paciente"
-                />
+
+                {isEditing ? (
+                  // Modo edición: Mostrar persona actual
+                  <Box>
+                    {personaEncontrada ? (
+                      <Box
+                        sx={{
+                          p: 2,
+                          border: '2px solid',
+                          borderColor: 'success.main',
+                          borderRadius: 2,
+                          bgcolor: 'success.50',
+                          mb: 1
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Person sx={{ fontSize: 32, color: 'success.main' }} />
+                            <Box>
+                              <Typography variant="body1" fontWeight="bold">
+                                {personaEncontrada.nombre_completo || 'Sin nombre'}
+                              </Typography>
+                              {personaEncontrada.cedula && (
+                                <Typography variant="caption" color="text.secondary">
+                                  Cédula: {personaEncontrada.cedula}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                          <Chip label="Persona asignada" color="success" size="small" />
+                        </Box>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          p: 2,
+                          border: '2px solid',
+                          borderColor: 'info.main',
+                          borderRadius: 2,
+                          bgcolor: 'info.50'
+                        }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          Persona asignada (ID: {formData.persona_id || 'No disponible'})
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                ) : (
+                  // Modo creación: Selector obligatorio
+                  <PersonaGeneralSelector
+                    selectedPersona={personaEncontrada}
+                    onSelect={(persona) => {
+                      setPersonaEncontrada(persona);
+                      setFormData(p => ({ ...p, persona_id: persona.id }));
+                    }}
+                    placeholder="Busca y selecciona la persona que será el paciente"
+                  />
+                )}
+
                 {errors.persona_id && (
                   <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
                     {errors.persona_id}
@@ -466,16 +524,69 @@ const PacienteFormulario = ({
               {/* Tutor Selector */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="body1" mb={1}>
-                  Tutor (Responsable): <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
+                  Tutor (Responsable): {!isEditing && <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>}
+                  {isEditing && <span style={{ color: 'gray', fontSize: '0.85rem' }}> (Opcional - ya asignado)</span>}
                 </Typography>
-                <TutorSelector
-                  selectedTutor={tutorEncontrado}
-                  onSelect={(tutor) => {
-                    setTutorEncontrado(tutor);
-                    setFormData(p => ({ ...p, tutor_id: tutor.id }));
-                  }}
-                  placeholder="Busca y selecciona el tutor o responsable del paciente"
-                />
+
+                {isEditing ? (
+                  // Modo edición: Mostrar tutor actual
+                  <Box>
+                    {tutorEncontrado ? (
+                      <Box
+                        sx={{
+                          p: 2,
+                          border: '2px solid',
+                          borderColor: 'secondary.main',
+                          borderRadius: 2,
+                          bgcolor: 'secondary.50',
+                          mb: 1
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <FamilyRestroom sx={{ fontSize: 32, color: 'secondary.main' }} />
+                            <Box>
+                              <Typography variant="body1" fontWeight="bold">
+                                {tutorEncontrado.nombre_completo || 'Sin nombre'}
+                              </Typography>
+                              {tutorEncontrado.cedula && (
+                                <Typography variant="caption" color="text.secondary">
+                                  Cédula: {tutorEncontrado.cedula}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                          <Chip label="Tutor asignado" color="secondary" size="small" />
+                        </Box>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          p: 2,
+                          border: '2px solid',
+                          borderColor: 'info.main',
+                          borderRadius: 2,
+                          bgcolor: 'info.50'
+                        }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          Tutor asignado (ID: {formData.tutor_id || 'No disponible'})
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                ) : (
+                  // Modo creación: Selector obligatorio
+                  <TutorSelector
+                    selectedTutor={tutorEncontrado}
+                    onSelect={(tutor) => {
+                      setTutorEncontrado(tutor);
+                      setFormData(p => ({ ...p, tutor_id: tutor.id }));
+                    }}
+                    placeholder="Busca y selecciona el tutor o responsable del paciente"
+                  />
+                )}
+
                 {errors.tutor_id && (
                   <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
                     {errors.tutor_id}

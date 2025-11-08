@@ -36,14 +36,16 @@ export class TutorService {
   }
 
   // Validar datos de tutor
-  static validateTutorData(data) {
+  static validateTutorData(data, isEditing = false) {
     const errors = {};
 
-    // Validar ID de persona (requerido)
-    if (!data.id_persona) {
-      errors.id_persona = 'Debe seleccionar una persona';
-    } else if (isNaN(parseInt(data.id_persona)) || parseInt(data.id_persona) <= 0) {
-      errors.id_persona = 'El ID de persona debe ser un número válido';
+    // Validar ID de persona (requerido solo en creación)
+    if (!isEditing) {
+      if (!data.id_persona) {
+        errors.id_persona = 'Debe seleccionar una persona';
+      } else if (isNaN(parseInt(data.id_persona)) || parseInt(data.id_persona) <= 0) {
+        errors.id_persona = 'El ID de persona debe ser un número válido';
+      }
     }
 
     // Validar parentesco (requerido)
@@ -83,12 +85,8 @@ export class TutorService {
   }
 
   // Formatear datos para el backend
-  static formatForBackend(frontendData, selectedPerson = null) {
-    // El backend ahora espera solo id_persona y campos específicos del tutor
-    return {
-      // ID de la persona seleccionada (requerido)
-      id_persona: frontendData.id_persona || (selectedPerson ? selectedPerson.id : null),
-
+  static formatForBackend(frontendData, selectedPerson = null, isEditing = false) {
+    const payload = {
       // Campos específicos del tutor
       parentesco: frontendData.parentesco?.trim(),
       ocupacion: frontendData.ocupacion?.trim() || '',
@@ -97,6 +95,14 @@ export class TutorService {
       nombre_empresa: frontendData.nombre_empresa?.trim() || '',
       estado: frontendData.estado || 'activo'
     };
+
+    // En creación, incluir id_persona (requerido)
+    // En edición, NO enviar id_persona (no se puede cambiar)
+    if (!isEditing) {
+      payload.id_persona = frontendData.id_persona || (selectedPerson ? selectedPerson.id : null);
+    }
+
+    return payload;
   }
 
   // Buscar tutores por término

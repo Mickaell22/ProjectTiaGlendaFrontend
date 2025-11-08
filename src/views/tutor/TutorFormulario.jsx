@@ -12,7 +12,7 @@ import {
   Card,
   CardContent,
   InputAdornment,
-
+  Chip,
   useTheme
 } from '@mui/material';
 import {
@@ -22,7 +22,8 @@ import {
   Work,
   Phone,
   Home,
-  Assignment
+  Assignment,
+  Person
 } from '@mui/icons-material';
 
 import TutorService from '../../services/tutorService.js';
@@ -148,9 +149,19 @@ const TutorFormulario = ({
   // Cuando llega editingData o cambia la lista de personas, precargar todo
   useEffect(() => {
     if (editingData) {
+      // Intentar obtener persona_id de TODAS las variantes posibles
+      const personaId =
+        editingData.id_persona ||
+        editingData.persona_id ||
+        editingData.personaId ||
+        editingData.id_Persona ||
+        editingData.Persona_id ||
+        editingData.IdPersona ||
+        '';
+
       // Precargar campos del formulario
       setFormData({
-        id_persona: editingData.id_persona || editingData.persona_id || editingData.personaId || '',
+        id_persona: String(personaId), // Convertir a string para consistencia
         parentesco: editingData.parentesco || '',
         ocupacion: editingData.ocupacion || '',
         direccion_empresa: editingData.direccion_empresa || '',
@@ -160,11 +171,23 @@ const TutorFormulario = ({
 
       // Resolver persona seleccionada desde distintas formas de payload
       const resolved = resolveSelectedPerson(editingData, personasDisponibles);
-      if (resolved) setPersonaEncontrada(resolved);
+      if (resolved) {
+        setPersonaEncontrada(resolved);
+      } else if (personaId) {
+        // Si no se resolvió pero hay persona_id, crear objeto mínimo
+        setPersonaEncontrada({
+          id: personaId,
+          nombre: editingData.nombre || editingData.nombre_persona || '',
+          apellido: editingData.apellido || editingData.apellido_persona || '',
+          nombre_completo: editingData.nombre_completo ||
+                          `${editingData.nombre || editingData.nombre_persona || ''} ${editingData.apellido || editingData.apellido_persona || ''}`.trim(),
+          cedula: editingData.cedula || editingData.cedula_persona || ''
+        });
+      }
     } else {
       resetForm();
     }
-     
+
   }, [editingData, personasDisponibles]); // importante: incluir personasDisponibles
 
   const resetForm = () => {
@@ -189,19 +212,14 @@ const TutorFormulario = ({
   const validateForm = () => {
     // Formateo/validación del servicio
     const backendData = TutorService.formatForBackend
-      ? TutorService.formatForBackend(formData, personaEncontrada)
+      ? TutorService.formatForBackend(formData, personaEncontrada, isEditing)
       : { ...formData };
-    
+
     const validation = TutorService.validateTutorData
-      ? TutorService.validateTutorData(backendData)
+      ? TutorService.validateTutorData(backendData, isEditing)
       : { isValid: true, errors: {} };
 
-    // Reglas adicionales de UI
-    const personaId = formData.id_persona || formData.persona_id;
-    if (!personaId || !personaEncontrada) {
-      validation.errors.id_persona = 'Debe seleccionar una persona';
-      validation.isValid = false;
-    }
+    // Reglas adicionales de UI (solo parentesco, el resto lo valida el servicio)
     if (!formData.parentesco) {
       validation.errors.parentesco = 'Debe especificar el parentesco';
       validation.isValid = false;
@@ -225,9 +243,9 @@ const TutorFormulario = ({
 
     try {
       const backendData = TutorService.formatForBackend
-        ? TutorService.formatForBackend(formData, personaEncontrada)
+        ? TutorService.formatForBackend(formData, personaEncontrada, isEditing)
         : { ...formData };
-      
+
       await onSubmit(backendData, isEditing);
       resetForm();
     } catch (error) {
@@ -299,16 +317,90 @@ const TutorFormulario = ({
               {/* Persona Selector */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="body1" mb={1}>
-                  Persona (Tutor): <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
+                  Persona (Tutor): {!isEditing && <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>}
+                  {isEditing && <span style={{ color: 'gray', fontSize: '0.85rem' }}> (Opcional - ya asignada)</span>}
                 </Typography>
-                <PersonaGeneralSelector
-                  selectedPersona={personaEncontrada}
-                  onSelect={(persona) => {
-                    setPersonaEncontrada(persona);
-                    setFormData(prev => ({ ...prev, id_persona: persona.id }));
-                  }}
-                  placeholder="Busca y selecciona la persona que será el tutor"
-                />
+
+                {isEditing ? (
+                  // Modo edición: Mostrar persona actual con opción de cambiar
+                  <Box>
+                    {personaEncontrada ? (
+                      <Box
+                        sx={{
+                          p: 2,
+                          border: '2px solid',
+                          borderColor: 'success.main',
+                          borderRadius: 2,
+                          bgcolor: 'success.50',
+                          mb: 1
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Person sx={{ fontSize: 32, color: 'success.main' }} />
+                            <Box>
+                              <Typography variant="body1" fontWeight="bold">
+                                {personaEncontrada.nombre_completo ||
+                                 `${personaEncontrada.nombre || ''} ${personaEncontrada.apellido || ''}`.trim() ||
+                                 'Sin nombre'}
+                              </Typography>
+                              {personaEncontrada.cedula && (
+                                <Typography variant="caption" color="text.secondary">
+                                  Cédula: {personaEncontrada.cedula}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                          <Chip label="Persona asignada" color="success" size="small" />
+                        </Box>
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          ID de Persona: {formData.id_persona || 'No disponible'}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          p: 2,
+                          border: '2px solid',
+                          borderColor: 'info.main',
+                          borderRadius: 2,
+                          bgcolor: 'info.50',
+                          mb: 1
+                        }}
+                      >
+                        <Typography variant="body2" color="text.secondary">
+                          Persona asignada (ID: {formData.id_persona || 'No disponible'})
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Selector opcional para cambiar persona */}
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="caption" color="text.secondary" display="block" mb={1}>
+                        Si deseas cambiar la persona asignada, selecciona una nueva:
+                      </Typography>
+                      <PersonaGeneralSelector
+                        selectedPersona={personaEncontrada}
+                        onSelect={(persona) => {
+                          setPersonaEncontrada(persona);
+                          setFormData(prev => ({ ...prev, id_persona: persona.id }));
+                        }}
+                        placeholder="Cambiar persona (opcional)"
+                      />
+                    </Box>
+                  </Box>
+                ) : (
+                  // Modo creación: Selector obligatorio
+                  <PersonaGeneralSelector
+                    selectedPersona={personaEncontrada}
+                    onSelect={(persona) => {
+                      setPersonaEncontrada(persona);
+                      setFormData(prev => ({ ...prev, id_persona: persona.id }));
+                    }}
+                    placeholder="Busca y selecciona la persona que será el tutor"
+                  />
+                )}
+
                 {errors.id_persona && (
                   <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
                     {errors.id_persona}
@@ -455,7 +547,11 @@ const TutorFormulario = ({
                 color="primary"
                 startIcon={isEditing ? <Edit /> : <PersonAdd />}
                 size="large"
-                disabled={loading || !formData.id_persona || !formData.parentesco}
+                disabled={
+                  loading ||
+                  !formData.parentesco ||
+                  (!isEditing && !formData.id_persona)
+                }
                 sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
               >
                 {isEditing ? 'Actualizar Tutor' : 'Crear Tutor'}

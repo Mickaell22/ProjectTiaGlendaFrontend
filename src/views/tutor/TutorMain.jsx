@@ -12,6 +12,7 @@ import TutorDetalles from './TutorDetalles';
 // Servicios y hooks
 import TutorService from '../../services/tutorService.js';
 import PersonaService from '../../services/personaService.js';
+import PacienteService from '../../services/pacienteService.js';
 import useSnackbar from '../../hooks/useSnackbar.js';
 import useAuth from '../../hooks/useAuth.js';
 import { useUserRole } from '../../hooks/useUserRole';
@@ -58,6 +59,7 @@ const TutorMain = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [tutores, setTutores] = useState([]);
   const [personasDisponibles, setPersonasDisponibles] = useState([]);
+  const [pacientes, setPacientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingData, setEditingData] = useState(null);
 
@@ -79,12 +81,14 @@ const TutorMain = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [tutoresData, personasData] = await Promise.all([
+      const [tutoresData, personasData, pacientesData] = await Promise.all([
         TutorService.getAll().catch(() => []),
-        PersonaService.getAll().catch(() => [])
+        PersonaService.getAll().catch(() => []),
+        PacienteService.getAll().catch(() => [])
       ]);
       setTutores(tutoresData);
       setPersonasDisponibles(personasData);
+      setPacientes(pacientesData);
     } catch (error) {
       showError('Error al cargar datos: ' + (error?.message || 'Desconocido'));
     } finally {
@@ -303,6 +307,11 @@ const TutorMain = () => {
           onClose={() => setDetailDialog({ open: false, data: null })}
           tutorData={detailDialog.data}
           onEdit={handleEdit}
+          pacientesRelacionados={
+            detailDialog.data
+              ? pacientes.filter(p => p.tutor_id === detailDialog.data.id)
+              : []
+          }
         />
 
         {/* Diálogo de confirmación */}

@@ -27,14 +27,17 @@ import {
   Home,
   Edit,
   ContactEmergency,
-  WhatsApp
+  WhatsApp,
+  LocalHospital,
+  PeopleAlt
 } from '@mui/icons-material';
 
 const TutorDetalles = ({
   open,
   onClose,
   tutorData,
-  onEdit
+  onEdit,
+  pacientesRelacionados = []
 }) => {
   if (!tutorData) return null;
 
@@ -310,6 +313,93 @@ const TutorDetalles = ({
                 </Card>
               </Grid>
             )}
+
+            {/* Pacientes Relacionados */}
+            <Grid item xs={12}>
+              <Card elevation={1}>
+                <CardContent>
+                  <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
+                    <PeopleAlt sx={{ mr: 1 }} />
+                    Pacientes a Cargo ({pacientesRelacionados.length})
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
+
+                  {pacientesRelacionados.length === 0 ? (
+                    <Box textAlign="center" py={4}>
+                      <LocalHospital sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                      <Typography variant="h6" color="text.secondary" gutterBottom>
+                        Sin Pacientes Asignados
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Este tutor no tiene pacientes registrados actualmente.
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Grid container spacing={2}>
+                      {pacientesRelacionados.map((paciente, index) => (
+                        <Grid item xs={12} sm={6} md={4} key={paciente.id || index}>
+                          <Card
+                            variant="outlined"
+                            sx={{
+                              height: '100%',
+                              '&:hover': {
+                                boxShadow: 2,
+                                borderColor: 'primary.main'
+                              },
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            <CardContent>
+                              <Box display="flex" alignItems="center" mb={1}>
+                                <Avatar sx={{ bgcolor: 'primary.main', mr: 1.5, width: 40, height: 40 }}>
+                                  <Person fontSize="small" />
+                                </Avatar>
+                                <Box flex={1}>
+                                  <Typography variant="body1" fontWeight="bold" noWrap>
+                                    {paciente.nombre_completo}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary">
+                                    {paciente.cedula}
+                                  </Typography>
+                                </Box>
+                              </Box>
+
+                              <Divider sx={{ my: 1 }} />
+
+                              <Stack spacing={1}>
+                                {paciente.especialidad_nombre && (
+                                  <Box display="flex" alignItems="center">
+                                    <LocalHospital sx={{ fontSize: 14, mr: 0.5, color: 'text.secondary' }} />
+                                    <Typography variant="caption" color="text.secondary" noWrap>
+                                      {paciente.especialidad_nombre}
+                                    </Typography>
+                                  </Box>
+                                )}
+
+                                {paciente.estado_tratamiento && (
+                                  <Box>
+                                    <Chip
+                                      label={paciente.estado_tratamiento}
+                                      size="small"
+                                      color={
+                                        paciente.estado_tratamiento === 'activo' ? 'success' :
+                                        paciente.estado_tratamiento === 'completado' ? 'info' :
+                                        paciente.estado_tratamiento === 'suspendido' ? 'warning' : 'default'
+                                      }
+                                      sx={{ fontSize: '0.7rem' }}
+                                    />
+                                  </Box>
+                                )}
+                              </Stack>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
 
           </Grid>
         </Box>
