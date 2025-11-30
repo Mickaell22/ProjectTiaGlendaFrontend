@@ -92,7 +92,8 @@ export class PersonalService {
       id_persona: parseInt(frontendData.persona_id),
       id_especialidad: parseInt(frontendData.id_especialidad),
       fecha_ingreso: frontendData.fecha_ingreso,
-      cargo: frontendData.titulo_profesional?.trim() || frontendData.cargo?.trim(),
+      titulo_profesional: frontendData.titulo_profesional?.trim(),
+      cargo: frontendData.cargo?.trim(),
       tipo_contrato: frontendData.tipo_contrato,
       id_centro: parseInt(frontendData.id_centro)
     };
@@ -101,7 +102,7 @@ export class PersonalService {
     if (frontendData.fecha_salida) {
       backendData.fecha_salida = frontendData.fecha_salida;
     }
-    
+
     if (frontendData.observaciones?.trim()) {
       backendData.observaciones = frontendData.observaciones.trim();
     }
