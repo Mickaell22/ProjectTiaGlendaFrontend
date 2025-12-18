@@ -141,7 +141,9 @@ const MultipleTutoresManager = ({
       telefono: tutorData.telefono || '',
       correo: tutorData.correo || tutorData.email || '',
       cedula: tutorData.cedula || '',
-      tipo_relacion: tutorData.parentesco || nuevosTutores[index].tipo_relacion || ''
+      tipo_relacion: tutorData.parentesco || nuevosTutores[index].tipo_relacion || '',
+      // Guardar el objeto completo para el selector
+      _tutorObject: tutorData
     };
     onTutoresChange(nuevosTutores);
   };
@@ -165,13 +167,31 @@ const MultipleTutoresManager = ({
   return (
     <Box>
       {/* Boton Agregar Tutor */}
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="body2" color="text.secondary">
+          {tutores.length === 0
+            ? 'Agrega al menos un tutor responsable para el paciente'
+            : `${tutores.length} tutor${tutores.length > 1 ? 'es' : ''} asignado${tutores.length > 1 ? 's' : ''}`
+          }
+        </Typography>
         <Button
           variant="contained"
           size="medium"
           startIcon={<AddIcon />}
           onClick={agregarTutor}
           disabled={disabled}
+          sx={{
+            borderRadius: 2,
+            px: 3,
+            py: 1,
+            fontWeight: 600,
+            boxShadow: 2,
+            '&:hover': {
+              boxShadow: 4,
+              transform: 'translateY(-1px)'
+            },
+            transition: 'all 0.2s ease'
+          }}
         >
           Agregar Tutor
         </Button>
@@ -182,20 +202,24 @@ const MultipleTutoresManager = ({
         <Paper
           elevation={0}
           sx={{
-            p: 4,
+            p: 5,
             textAlign: 'center',
-            border: '2px dashed',
-            borderColor: 'divider',
-            borderRadius: 2,
-            backgroundColor: 'action.hover'
+            border: '3px dashed',
+            borderColor: 'primary.light',
+            borderRadius: 3,
+            backgroundColor: 'primary.lighter',
+            mb: 3
           }}
         >
-          <FamilyIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary" gutterBottom>
+          <FamilyIcon sx={{ fontSize: 72, color: 'primary.main', mb: 2, opacity: 0.7 }} />
+          <Typography variant="h6" color="primary.main" gutterBottom fontWeight={600}>
             No hay tutores asignados
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Haz clic en "Agregar Tutor" para asignar un responsable al paciente
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Cada paciente debe tener al menos un tutor o responsable legal
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Haz clic en "Agregar Tutor" para comenzar
           </Typography>
         </Paper>
       )}
@@ -205,19 +229,25 @@ const MultipleTutoresManager = ({
         <Card
           key={index}
           sx={{
-            mb: 2,
-            borderRadius: 2,
+            mb: 3,
+            borderRadius: 3,
             border: tutor.es_principal ? `2px solid ${theme.palette.primary.main}` : '1px solid',
             borderColor: tutor.es_principal ? 'primary.main' : 'divider',
-            boxShadow: tutor.es_principal ? 3 : 1
+            boxShadow: tutor.es_principal ? 4 : 2,
+            transition: 'all 0.2s ease',
+            '&:hover': {
+              boxShadow: tutor.es_principal ? 6 : 4,
+              transform: 'translateY(-2px)'
+            }
           }}
         >
-          <CardContent>
+          <CardContent sx={{ p: 3 }}>
             {/* Header del tutor con badges */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
               <Box sx={{ flex: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <Typography variant="h6" component="div">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                  <FamilyIcon sx={{ fontSize: 28, color: tutor.es_principal ? 'primary.main' : 'text.secondary' }} />
+                  <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
                     {getTutorLabel(tutor, index)}
                   </Typography>
                   {tutor.es_principal && (
@@ -226,24 +256,27 @@ const MultipleTutoresManager = ({
                       label="Principal"
                       size="small"
                       color="primary"
+                      sx={{ fontWeight: 600 }}
                     />
                   )}
                 </Box>
-                <Stack direction="row" spacing={1} flexWrap="wrap">
+                <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
                   {tutor.contacto_emergencia && (
                     <Chip
                       icon={<WarningIcon />}
                       label={`Emergencia P${tutor.prioridad_contacto}`}
                       size="small"
                       color={getPrioridadColor(tutor.prioridad_contacto)}
-                      variant="outlined"
+                      variant="filled"
                     />
                   )}
                   {tutor.tipo_relacion && (
                     <Chip
-                      label={tutor.tipo_relacion.toUpperCase()}
+                      icon={<FamilyIcon />}
+                      label={tutor.tipo_relacion.replace('_', ' ').toUpperCase()}
                       size="small"
                       variant="outlined"
+                      color="default"
                     />
                   )}
                 </Stack>
@@ -275,14 +308,24 @@ const MultipleTutoresManager = ({
               </Box>
             </Box>
 
-            <Divider sx={{ mb: 2 }} />
+            <Divider sx={{ my: 3 }}>
+              <Chip label="INFORMACIÓN DEL TUTOR" size="small" color="primary" variant="outlined" />
+            </Divider>
 
             {/* SECCION 1: DATOS BASICOS */}
-            <Grid container spacing={2}>
+            <Grid container spacing={3}>
               {/* Selector de Tutor */}
               <Grid item xs={12} md={7}>
                 <TutorSelector
-                  selectedTutor={tutor.tutor_id}
+                  selectedTutor={tutor._tutorObject || (tutor.tutor_id ? {
+                    id: tutor.tutor_id,
+                    nombre: tutor.nombre,
+                    apellido: tutor.apellido,
+                    nombre_completo: tutor.nombre_completo,
+                    cedula: tutor.cedula,
+                    telefono: tutor.telefono,
+                    correo: tutor.correo
+                  } : null)}
                   onSelect={(tutorData) => handleTutorSelect(index, tutorData)}
                   placeholder="Buscar y seleccionar tutor..."
                   disabled={disabled || modoEdicion}
@@ -299,13 +342,17 @@ const MultipleTutoresManager = ({
                 <TextField
                   select
                   fullWidth
-                  size="small"
                   label="Tipo de Relación *"
                   value={tutor.tipo_relacion || ''}
                   onChange={(e) => actualizarTutor(index, 'tipo_relacion', e.target.value)}
                   disabled={disabled}
                   error={Boolean(errors[`tutores.${index}.tipo_relacion`])}
-                  helperText={errors[`tutores.${index}.tipo_relacion`]}
+                  helperText={errors[`tutores.${index}.tipo_relacion`] || 'Especifica la relación con el paciente'}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'background.paper'
+                    }
+                  }}
                 >
                   {TIPOS_RELACION.map((tipo) => (
                     <MenuItem key={tipo} value={tipo}>
@@ -319,11 +366,11 @@ const MultipleTutoresManager = ({
             {/* SECCION 2: INFO CONTACTO (solo si hay tutor seleccionado) */}
             {tutor.tutor_id && (tutor.nombre_completo || tutor.telefono || tutor.correo || tutor.cedula) && (
               <>
-                <Divider sx={{ my: 2 }}>
-                  <Chip label="INFORMACIÓN DE CONTACTO" size="small" />
+                <Divider sx={{ my: 3 }}>
+                  <Chip label="INFORMACIÓN DE CONTACTO" size="small" color="info" variant="outlined" />
                 </Divider>
 
-                <Grid container spacing={2}>
+                <Grid container spacing={2} sx={{ mb: 2 }}>
                   {tutor.telefono && (
                     <Grid item xs={12} sm={6} md={4}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, backgroundColor: 'action.hover', borderRadius: 1 }}>
@@ -376,11 +423,11 @@ const MultipleTutoresManager = ({
             )}
 
             {/* SECCION 3: PERMISOS */}
-            <Divider sx={{ my: 2 }}>
-              <Chip label="PERMISOS Y AUTORIZACIONES" size="small" />
+            <Divider sx={{ my: 3 }}>
+              <Chip label="PERMISOS Y AUTORIZACIONES" size="small" color="success" variant="outlined" />
             </Divider>
 
-            <Grid container spacing={2}>
+            <Grid container spacing={2} sx={{ mb: 2 }}>
               <Grid item xs={12} sm={6} md={4}>
                 <FormControlLabel
                   control={
@@ -451,31 +498,67 @@ const MultipleTutoresManager = ({
                   />
                 </Grid>
               )}
-
-              {/* Observaciones */}
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  size="small"
-                  label="Observaciones"
-                  value={tutor.observaciones || ''}
-                  onChange={(e) => actualizarTutor(index, 'observaciones', e.target.value)}
-                  disabled={disabled}
-                  placeholder="Ej: Contactar solo en horario laboral, vive fuera de la ciudad, etc."
-                />
-              </Grid>
             </Grid>
+
+            {/* SECCION 4: OBSERVACIONES - Ocupa toda la parte inferior */}
+            <Divider sx={{ my: 3 }}>
+              <Chip label="OBSERVACIONES Y NOTAS ADICIONALES" size="small" color="default" variant="outlined" />
+            </Divider>
+
+            <Box sx={{ mt: 2 }}>
+              <TextField
+                fullWidth
+                multiline
+                rows={5}
+                label="Observaciones y Notas Adicionales"
+                value={tutor.observaciones || ''}
+                onChange={(e) => actualizarTutor(index, 'observaciones', e.target.value)}
+                disabled={disabled}
+                placeholder="Escribe aquí cualquier información relevante sobre este tutor: horarios preferidos de contacto, restricciones especiales, ubicación, situaciones particulares, acuerdos específicos, etc."
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    fontSize: '1rem',
+                    borderRadius: 2
+                  },
+                  '& .MuiInputBase-input': {
+                    lineHeight: 1.8
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontWeight: 500
+                  }
+                }}
+              />
+            </Box>
           </CardContent>
         </Card>
       ))}
 
       {/* Validacion general */}
       {errors.tutores && (
-        <Typography variant="body2" color="error" sx={{ mt: 1, p: 2, backgroundColor: 'error.lighter', borderRadius: 1 }}>
-          {errors.tutores}
-        </Typography>
+        <Paper
+          elevation={0}
+          sx={{
+            mt: 2,
+            p: 2.5,
+            backgroundColor: 'error.lighter',
+            borderRadius: 2,
+            border: '2px solid',
+            borderColor: 'error.main',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5
+          }}
+        >
+          <WarningIcon sx={{ color: 'error.main', fontSize: 28 }} />
+          <Box>
+            <Typography variant="subtitle2" color="error.main" fontWeight={600}>
+              Error de Validación
+            </Typography>
+            <Typography variant="body2" color="error.dark">
+              {errors.tutores}
+            </Typography>
+          </Box>
+        </Paper>
       )}
     </Box>
   );
