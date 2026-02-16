@@ -496,7 +496,9 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                 sx={{ ...purpleOutlineSX }}
               >
                 <MenuItem value="">Todas</MenuItem>
+                <MenuItem value="planificada">Planificada</MenuItem>
                 <MenuItem value="en_curso">En Curso</MenuItem>
+                <MenuItem value="pausada">Pausada</MenuItem>
                 <MenuItem value="finalizada">Finalizada</MenuItem>
                 <MenuItem value="cancelada">Cancelada</MenuItem>
               </Select>

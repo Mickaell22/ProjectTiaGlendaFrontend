@@ -186,10 +186,12 @@ const TerapeuticoCronogramas = () => {
   const getEstadoColor = (estado) => {
     switch (estado) {
       case 'programada': return 'info';
-      case 'realizada': return 'success';
+      case 'confirmada': return 'info';
+      case 'en_curso': return 'primary';
       case 'completada': return 'success';
       case 'cancelada': return 'error';
       case 'reprogramada': return 'warning';
+      case 'no_asistio': return 'error';
       default: return 'default';
     }
   };
@@ -197,10 +199,12 @@ const TerapeuticoCronogramas = () => {
   const getEstadoIcon = (estado) => {
     switch (estado) {
       case 'programada': return <Schedule />;
-      case 'realizada': return <CheckCircle />;
+      case 'confirmada': return <Schedule />;
+      case 'en_curso': return <AccessTime />;
       case 'completada': return <CheckCircle />;
       case 'cancelada': return <Cancel />;
       case 'reprogramada': return <AccessTime />;
+      case 'no_asistio': return <Cancel />;
       default: return <EventNote />;
     }
   };
@@ -296,7 +300,9 @@ const TerapeuticoCronogramas = () => {
                   MenuProps={menuProps}
                 >
                   <MenuItem value="">Todas</MenuItem>
+                  <MenuItem value="planificada">Planificada</MenuItem>
                   <MenuItem value="en_curso">En Curso</MenuItem>
+                  <MenuItem value="pausada">Pausada</MenuItem>
                   <MenuItem value="finalizada">Finalizada</MenuItem>
                   <MenuItem value="cancelada">Cancelada</MenuItem>
                 </Select>
@@ -497,10 +503,12 @@ const TerapeuticoCronogramas = () => {
                 >
                   <MenuItem value="">Todos los estados</MenuItem>
                   <MenuItem value="programada">Programada</MenuItem>
-                  <MenuItem value="realizada">Realizada</MenuItem>
+                  <MenuItem value="confirmada">Confirmada</MenuItem>
+                  <MenuItem value="en_curso">En Curso</MenuItem>
                   <MenuItem value="completada">Completada</MenuItem>
                   <MenuItem value="cancelada">Cancelada</MenuItem>
                   <MenuItem value="reprogramada">Reprogramada</MenuItem>
+                  <MenuItem value="no_asistio">No Asistió</MenuItem>
                 </Select>
               </FormControl>
             </Box>
@@ -861,8 +869,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
     const dataToSend = {
       nueva_fecha: nuevaFecha,
       nueva_hora: horaFormateada,
-      motivo_reprogramacion: motivoFinal,
-      motivo: motivoFinal
+      motivo_reprogramacion: motivoFinal
     };
 
     onConfirm(dataToSend);

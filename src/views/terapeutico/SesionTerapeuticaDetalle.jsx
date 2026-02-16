@@ -151,17 +151,21 @@ const SesionTerapeuticaDetalle = () => {
 
   const getEstadoCronogramaColor = (estado) => {
     switch (estado) {
-      case 'realizada': return 'success';
+      case 'completada': return 'success';
       case 'programada': return 'primary';
+      case 'confirmada': return 'info';
+      case 'en_curso': return 'primary';
       case 'cancelada': return 'error';
       case 'reprogramada': return 'warning';
+      case 'no_asistio': return 'error';
       default: return 'default';
     }
   };
 
   const getEstadoCronogramaIcon = (sesionCronograma) => {
-    if (sesionCronograma.estado === 'realizada') return <CheckCircle />;
+    if (sesionCronograma.estado === 'completada') return <CheckCircle />;
     if (sesionCronograma.estado === 'cancelada') return <Cancel />;
+    if (sesionCronograma.estado === 'no_asistio') return <EventBusy />;
     if (sesionCronograma.estado_actual === 'vencida') return <EventBusy />;
     if (sesionCronograma.estado_actual === 'hoy') return <Today />;
     return <Schedule />;
@@ -1388,10 +1392,10 @@ const AttendanceForm = ({ cronogramaData, pacientes, onSubmit }) => {
   const [attendanceData, setAttendanceData] = useState({
     asistio: true,
     llegada_tardanza_minutos: 0,
-    observaciones_asistencia: '',
-    notas_progreso: '',
+    observaciones_terapeuta: '',
+    progreso_observado: '',
     tareas_asignadas: '',
-    proximos_objetivos: ''
+    objetivos_trabajados: ''
   });
 
   const handleSubmit = () => {
@@ -1454,9 +1458,9 @@ const AttendanceForm = ({ cronogramaData, pacientes, onSubmit }) => {
         fullWidth
         multiline
         rows={3}
-        label="Observaciones de asistencia"
-        value={attendanceData.observaciones_asistencia}
-        onChange={(e) => setAttendanceData(prev => ({ ...prev, observaciones_asistencia: e.target.value }))}
+        label="Observaciones del Terapeuta"
+        value={attendanceData.observaciones_terapeuta}
+        onChange={(e) => setAttendanceData(prev => ({ ...prev, observaciones_terapeuta: e.target.value }))}
         sx={{ mb: 2 }}
       />
 
@@ -1464,9 +1468,29 @@ const AttendanceForm = ({ cronogramaData, pacientes, onSubmit }) => {
         fullWidth
         multiline
         rows={3}
-        label="Notas de progreso"
-        value={attendanceData.notas_progreso}
-        onChange={(e) => setAttendanceData(prev => ({ ...prev, notas_progreso: e.target.value }))}
+        label="Progreso Observado"
+        value={attendanceData.progreso_observado}
+        onChange={(e) => setAttendanceData(prev => ({ ...prev, progreso_observado: e.target.value }))}
+        sx={{ mb: 2 }}
+      />
+
+      <TextField
+        fullWidth
+        multiline
+        rows={3}
+        label="Tareas Asignadas"
+        value={attendanceData.tareas_asignadas}
+        onChange={(e) => setAttendanceData(prev => ({ ...prev, tareas_asignadas: e.target.value }))}
+        sx={{ mb: 2 }}
+      />
+
+      <TextField
+        fullWidth
+        multiline
+        rows={3}
+        label="Objetivos Trabajados"
+        value={attendanceData.objetivos_trabajados}
+        onChange={(e) => setAttendanceData(prev => ({ ...prev, objetivos_trabajados: e.target.value }))}
         sx={{ mb: 2 }}
       />
       <Box display="flex" justifyContent="flex-end" gap={2} mt={3}>
