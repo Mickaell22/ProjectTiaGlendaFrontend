@@ -379,21 +379,36 @@ const PacienteFormulario = ({
     // Para compatibilidad, usar el tutor principal como tutor_id
     const tutorPrincipal = formData.tutores.find(tut => tut.es_principal);
 
+    if (isEdit) {
+      // Backend PUT acepta: id_tutor, fecha_ingreso, motivo_consulta, estado_tratamiento, observaciones, alergias, medicina, estado, usuario_modificacion
+      const payload = {
+        id_tutor: tutorPrincipal ? parseInt(tutorPrincipal.tutor_id, 10) : null,
+        fecha_ingreso: formData.fecha_ingreso || null,
+        motivo_consulta: formData.observaciones_tratamiento || '',
+        estado_tratamiento: formData.estado_tratamiento || 'activo',
+        observaciones: formData.observaciones || '',
+        alergias: formData.alergias || '',
+        medicina: formData.medicina || '',
+      };
+
+      if (usuarioId) {
+        payload.usuario_modificacion = usuarioId;
+      }
+
+      return payload;
+    }
+
+    // Payload para CREATE
     const payload = {
       persona_id: parseInt(formData.persona_id, 10),
       tutor_id: tutorPrincipal ? parseInt(tutorPrincipal.tutor_id, 10) : null,
       especialidad_id: especialidadPrincipal ? parseInt(especialidadPrincipal.id_especialidad, 10) : null,
       fecha_ingreso: formData.fecha_ingreso || null,
-      fecha_inicio_tratamiento: especialidadPrincipal?.fecha_inicio_tratamiento || null,
-      fecha_fin_tratamiento: especialidadPrincipal?.fecha_fin_tratamiento || null,
       estado_tratamiento: formData.estado_tratamiento || 'activo',
       observaciones_tratamiento: formData.observaciones_tratamiento || '',
       observaciones: formData.observaciones || '',
       alergias: formData.alergias || '',
       medicina: formData.medicina || '',
-
-      // Incluir tutores multiples formateados
-      tutores: PacienteService.formatearTutoresParaEnvio(formData.tutores),
 
       // Incluir todas las especialidades para el backend
       especialidades: formData.especialidades.map(esp => ({
@@ -406,8 +421,7 @@ const PacienteFormulario = ({
       }))
     };
 
-    if (!isEdit && usuarioId) {
-      payload.created_by = usuarioId;
+    if (usuarioId) {
       payload.usuario_creacion = usuarioId;
     }
 
@@ -757,7 +771,7 @@ const PacienteFormulario = ({
                   helperText={errors.estado_tratamiento || 'Define el estado actual'}
                   sx={neutralInputSX}
                 >
-                  {['activo', 'en pausa', 'completado', 'suspendido'].map((opt) => (
+                  {['activo', 'completado', 'suspendido', 'pausado'].map((opt) => (
                     <MenuItem key={opt} value={opt}>
                       {opt.charAt(0).toUpperCase() + opt.slice(1)}
                     </MenuItem>

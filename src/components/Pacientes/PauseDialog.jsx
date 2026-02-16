@@ -84,7 +84,7 @@ const PauseDialog = ({
     }
 
     if (!paciente?.id) {
-      setError('No se encontró información válida del paciente');
+      setErrors({ general: 'No se encontró información válida del paciente' });
       return;
     }
 

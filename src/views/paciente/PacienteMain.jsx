@@ -145,11 +145,11 @@ const PacienteMain = () => {
   };
 
   const handleViewDocuments = (paciente) => {
-    navigate(`/pacientes/${paciente.id}/documentos`);
+    navigate(`/app/pacientes/${paciente.id}/documentos`);
   };
 
   const handleViewHistorialPausas = (paciente) => {
-    navigate(`/gestion/pacientes/${paciente.id}/historial-pausas`);
+    navigate(`/app/gestion/pacientes/${paciente.id}/historial-pausas`);
   };
 
   /* ===== Formulario ===== */
@@ -355,8 +355,8 @@ const PacienteMain = () => {
   );
 };
 
-// Protección de acceso: Administradores y Terapeutas
+// Protección de acceso: Administradores, Terapeutas y Pedagogos
 export default withRole(PacienteMain, {
-  allowedRoles: ['administrador', 'terapeuta'],
+  allowedRoles: ['administrador', 'terapeuta', 'pedagogo'],
   moduleName: 'Gestión de Pacientes'
 });

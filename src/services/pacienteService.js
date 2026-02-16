@@ -161,7 +161,7 @@ export class PacienteService {
       item.nombre?.toLowerCase().includes(term) ||
       item.apellido?.toLowerCase().includes(term) ||
       item.cedula?.includes(term) ||
-      item.tutor_nombre?.toLowerCase().includes(term) ||
+      item.nombre_tutor?.toLowerCase().includes(term) ||
       item.especialidad_nombre?.toLowerCase().includes(term)
     );
   }
@@ -190,8 +190,7 @@ export class PacienteService {
       { value: 'activo', label: 'Activo' },
       { value: 'inactivo', label: 'Inactivo' },
       { value: 'alta', label: 'Alta' },
-      { value: 'derivado', label: 'Derivado' },
-      { value: 'eliminado', label: 'Eliminado' }
+      { value: 'derivado', label: 'Derivado' }
     ];
   }
 
@@ -223,8 +222,7 @@ export class PacienteService {
       activo: { label: 'Activo', color: 'success' },
       inactivo: { label: 'Inactivo', color: 'error' },
       alta: { label: 'Alta', color: 'info' },
-      derivado: { label: 'Derivado', color: 'warning' },
-      eliminado: { label: 'Eliminado', color: 'error' }
+      derivado: { label: 'Derivado', color: 'warning' }
     };
 
     return estadoMap[estado] || { label: estado, color: 'default' };
@@ -379,9 +377,9 @@ export class PacienteService {
   // Obtener información de contacto del tutor
   static getTutorContactInfo(paciente) {
     return {
-      nombre: paciente.tutor_nombre || 'Sin tutor asignado',
-      telefono: paciente.tutor_telefono || 'Sin teléfono',
-      parentesco: paciente.tutor_parentesco || 'N/A'
+      nombre: paciente.nombre_tutor || 'Sin tutor asignado',
+      telefono: paciente.telefono_tutor || 'Sin teléfono',
+      parentesco: paciente.parentesco || 'N/A'
     };
   }
 
@@ -438,8 +436,8 @@ export class PacienteService {
   // Cambiar el tutor principal de un paciente
   static async cambiarTutorPrincipal(pacienteId, tutorId) {
     const response = await ApiService.put(
-      `${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/tutores/${tutorId}/principal`,
-      {}
+      `${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/tutor-principal`,
+      { nuevo_tutor_id: tutorId }
     );
     return extractData(response);
   }
@@ -454,7 +452,7 @@ export class PacienteService {
 
   // Actualizar la relacion paciente-tutor
   static async actualizarRelacionTutor(pacienteId, tutorId, relacionData) {
-    const response = await ApiService.patch(
+    const response = await ApiService.put(
       `${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/tutores/${tutorId}`,
       relacionData
     );

@@ -146,7 +146,7 @@ async function exportPacientePDF(paciente) {
     ['Correo paciente', paciente?.correo ?? '—'],
     ['Dirección paciente', paciente?.direccion ?? '—'],
     ['Fecha nacimiento', formatDateLocal(paciente?.fecha_nacimiento)],
-    ['Diagnóstico', paciente?.diagnostico ?? '—'],
+    ['Observaciones Tratamiento', paciente?.observaciones_tratamiento ?? '—'],
     ['Alergias', paciente?.alergias ?? '—'],
     ['Medicamentos', paciente?.medicina ?? '—'],
     ['Observaciones', paciente?.observaciones ?? '—'],
@@ -280,7 +280,7 @@ const PacienteLista = ({
   });
 
   const handleDocs = (paciente) => {
-    navigate(`/pacientes/${paciente.id}/documentos`);
+    navigate(`/app/pacientes/${paciente.id}/documentos`);
   };
 
   const handleExportPdf = async (paciente) => {
@@ -352,12 +352,13 @@ const PacienteLista = ({
       (p.cedula || '').includes(searchTerm) ||
       normalize(p.nombre_tutor || '').includes(normalize(searchTerm));
 
-    const estado = normalize(p.estado_tratamiento || '');
+    const estado = normalize(p.estado || '');
     const estadoOk =
       !filterEstado ||
       (filterEstado === 'activo' && estado === 'activo') ||
       (filterEstado === 'inactivo' && estado === 'inactivo') ||
-      (filterEstado === 'finalizado' && estado === 'finalizado');
+      (filterEstado === 'alta' && estado === 'alta') ||
+      (filterEstado === 'derivado' && estado === 'derivado');
 
     // Filter by pause status
     const pauseStatus = PacienteService.isPacientePausado(p);
@@ -453,20 +454,16 @@ const PacienteLista = ({
               value={filterEstado}
               onChange={(e) => setFilterEstado(e.target.value)}
               displayEmpty
-              renderValue={(val) =>
-                val === ''
-                  ? 'Estado'
-                  : val === 'activo'
-                  ? 'Activo'
-                  : val === 'inactivo'
-                  ? 'Inactivo'
-                  : 'Finalizado'
-              }
+              renderValue={(val) => {
+                const labels = { activo: 'Activo', inactivo: 'Inactivo', alta: 'Alta', derivado: 'Derivado' };
+                return val === '' ? 'Estado' : labels[val] || val;
+              }}
             >
               <MenuItem value="">Todos los Estados</MenuItem>
               <MenuItem value="activo">Activo</MenuItem>
               <MenuItem value="inactivo">Inactivo</MenuItem>
-              <MenuItem value="finalizado">Finalizado</MenuItem>
+              <MenuItem value="alta">Alta</MenuItem>
+              <MenuItem value="derivado">Derivado</MenuItem>
             </Select>
           </FormControl>
 

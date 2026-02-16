@@ -393,7 +393,7 @@ const DocumentosPaciente = () => {
             </Tooltip>
             <Tooltip title="Volver">
               <IconButton
-                onClick={() => navigate('/gestion/paciente')}
+                onClick={() => navigate('/app/gestion/paciente')}
                 color="inherit"
                 sx={{ border: '1px solid', borderColor: 'divider' }}
               >
