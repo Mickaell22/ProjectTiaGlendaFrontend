@@ -322,7 +322,7 @@ const TutorFormulario = ({
                 </Typography>
 
                 {isEditing ? (
-                  // Modo edición: Mostrar persona actual con opción de cambiar
+                  // Modo edición: Solo mostrar persona actual (no se puede cambiar)
                   <Box>
                     {personaEncontrada ? (
                       <Box
@@ -354,7 +354,7 @@ const TutorFormulario = ({
                           <Chip label="Persona asignada" color="success" size="small" />
                         </Box>
                         <Typography variant="caption" color="text.secondary" display="block">
-                          ID de Persona: {formData.id_persona || 'No disponible'}
+                          La persona asignada no puede ser modificada.
                         </Typography>
                       </Box>
                     ) : (
@@ -373,21 +373,6 @@ const TutorFormulario = ({
                         </Typography>
                       </Box>
                     )}
-
-                    {/* Selector opcional para cambiar persona */}
-                    <Box sx={{ mt: 1 }}>
-                      <Typography variant="caption" color="text.secondary" display="block" mb={1}>
-                        Si deseas cambiar la persona asignada, selecciona una nueva:
-                      </Typography>
-                      <PersonaGeneralSelector
-                        selectedPersona={personaEncontrada}
-                        onSelect={(persona) => {
-                          setPersonaEncontrada(persona);
-                          setFormData(prev => ({ ...prev, id_persona: persona.id }));
-                        }}
-                        placeholder="Cambiar persona (opcional)"
-                      />
-                    </Box>
                   </Box>
                 ) : (
                   // Modo creación: Selector obligatorio

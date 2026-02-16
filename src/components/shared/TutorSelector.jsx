@@ -15,7 +15,7 @@ const TutorSelector = ({
   const loadTutores = async () => {
     try {
       setLoading(true);
-      const data = await TutorService.getAll();
+      const data = await TutorService.getActivos();
 
       // Transform tutors data to match PersonSelector format
       const formattedTutores = data.map(tutor => ({

@@ -36,8 +36,7 @@ const TutorDetalles = ({
   open,
   onClose,
   tutorData,
-  onEdit,
-  pacientesRelacionados = []
+  onEdit
 }) => {
   if (!tutorData) return null;
 
@@ -63,9 +62,7 @@ const TutorDetalles = ({
   // Función para abrir WhatsApp
   const handleWhatsApp = (telefono) => {
     if (!telefono) return;
-    // Limpiar el número de teléfono (quitar espacios, guiones, etc.)
     const cleanNumber = telefono.replace(/\D/g, '');
-    // Abrir WhatsApp en nueva pestaña
     window.open(`https://wa.me/${cleanNumber}`, '_blank');
   };
 
@@ -74,7 +71,7 @@ const TutorDetalles = ({
       case 'activo':
         return 'success';
       case 'inactivo':
-        return 'error';
+        return 'warning';
       default:
         return 'default';
     }
@@ -95,9 +92,12 @@ const TutorDetalles = ({
     }
   };
 
+  // Pacientes del backend (viene del GET /tutores/{id})
+  const pacientes = tutorData.pacientes || [];
+
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={onClose}
       maxWidth="md"
       fullWidth
@@ -106,15 +106,15 @@ const TutorDetalles = ({
         <Visibility sx={{ mr: 1 }} />
         Detalle del Tutor
       </DialogTitle>
-      
+
       <DialogContent sx={{ p: 0, mt: 2 }}>
         {/* Header del tutor */}
         <Box sx={{ p: 3, bgcolor: 'primary.50' }}>
           <Box display="flex" alignItems="center" mb={2}>
-            <Avatar 
-              sx={{ 
-                width: 80, 
-                height: 80, 
+            <Avatar
+              sx={{
+                width: 80,
+                height: 80,
                 bgcolor: 'secondary.main',
                 mr: 3,
                 fontSize: '2rem'
@@ -130,13 +130,13 @@ const TutorDetalles = ({
                 Cédula: {tutorData.cedula}
               </Typography>
               <Box display="flex" gap={1} flexWrap="wrap">
-                <Chip 
+                <Chip
                   label={tutorData.parentesco || 'Sin parentesco'}
                   color={getParentescoColor(tutorData.parentesco)}
                   icon={<FamilyRestroom />}
                 />
-                <Chip 
-                  label={tutorData.estado || 'activo'}
+                <Chip
+                  label={tutorData.estado === 'activo' ? 'Activo' : 'Inactivo'}
                   color={getEstadoColor(tutorData.estado)}
                 />
               </Box>
@@ -155,13 +155,13 @@ const TutorDetalles = ({
                     Información Personal
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
-                  
+
                   <Stack spacing={2}>
                     <Box>
                       <Typography variant="body2" color="text.secondary">Nombre Completo</Typography>
                       <Typography variant="body1" fontWeight="bold">{tutorData.nombre_completo}</Typography>
                     </Box>
-                    
+
                     <Box>
                       <Typography variant="body2" color="text.secondary">Cédula de Identidad</Typography>
                       <Typography variant="body1" fontWeight="bold">{tutorData.cedula}</Typography>
@@ -169,7 +169,7 @@ const TutorDetalles = ({
 
                     <Box>
                       <Typography variant="body2" color="text.secondary">Parentesco</Typography>
-                      <Chip 
+                      <Chip
                         label={tutorData.parentesco || 'No especificado'}
                         color={getParentescoColor(tutorData.parentesco)}
                         size="small"
@@ -200,12 +200,22 @@ const TutorDetalles = ({
                       </Box>
                     )}
 
-                    {tutorData.correo && (
+                    {tutorData.email && (
                       <Box>
                         <Typography variant="body2" color="text.secondary">Correo Electrónico</Typography>
                         <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center">
                           <Email sx={{ fontSize: 16, mr: 0.5 }} />
-                          {tutorData.correo}
+                          {tutorData.email}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {tutorData.direccion && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">Dirección</Typography>
+                        <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center">
+                          <Home sx={{ fontSize: 16, mr: 0.5 }} />
+                          {tutorData.direccion}
                         </Typography>
                       </Box>
                     )}
@@ -220,10 +230,10 @@ const TutorDetalles = ({
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
                     <ContactEmergency sx={{ mr: 1 }} />
-                    Contacto de Emergencia
+                    Contacto de Empresa
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
-                  
+
                   <Stack spacing={2}>
                     {tutorData.telefono_empresa ? (
                       <Box>
@@ -254,14 +264,22 @@ const TutorDetalles = ({
 
                     <Box>
                       <Typography variant="body2" color="text.secondary">Estado</Typography>
-                      <Chip 
-                        label={tutorData.estado || 'activo'}
+                      <Chip
+                        label={tutorData.estado === 'activo' ? 'Activo' : 'Inactivo'}
                         color={getEstadoColor(tutorData.estado)}
                         size="small"
                         sx={{ mt: 0.5 }}
                       />
                     </Box>
 
+                    {(tutorData.total_pacientes !== undefined) && (
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">Pacientes</Typography>
+                        <Typography variant="body1" fontWeight="bold">
+                          {tutorData.pacientes_activos ?? 0} activos / {tutorData.total_pacientes ?? 0} total
+                        </Typography>
+                      </Box>
+                    )}
                   </Stack>
                 </CardContent>
               </Card>
@@ -277,7 +295,7 @@ const TutorDetalles = ({
                       Información Laboral
                     </Typography>
                     <Divider sx={{ mb: 2 }} />
-                    
+
                     <Grid container spacing={3}>
                       {tutorData.nombre_empresa && (
                         <Grid item xs={12} sm={6}>
@@ -287,7 +305,7 @@ const TutorDetalles = ({
                           </Box>
                         </Grid>
                       )}
-                      
+
                       {tutorData.ocupacion && (
                         <Grid item xs={12} sm={6}>
                           <Box>
@@ -320,11 +338,11 @@ const TutorDetalles = ({
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
                     <PeopleAlt sx={{ mr: 1 }} />
-                    Pacientes a Cargo ({pacientesRelacionados.length})
+                    Pacientes a Cargo ({pacientes.length})
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
 
-                  {pacientesRelacionados.length === 0 ? (
+                  {pacientes.length === 0 ? (
                     <Box textAlign="center" py={4}>
                       <LocalHospital sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
                       <Typography variant="h6" color="text.secondary" gutterBottom>
@@ -336,7 +354,7 @@ const TutorDetalles = ({
                     </Box>
                   ) : (
                     <Grid container spacing={2}>
-                      {pacientesRelacionados.map((paciente, index) => (
+                      {pacientes.map((paciente, index) => (
                         <Grid item xs={12} sm={6} md={4} key={paciente.id || index}>
                           <Card
                             variant="outlined"
@@ -359,7 +377,7 @@ const TutorDetalles = ({
                                     {paciente.nombre_completo}
                                   </Typography>
                                   <Typography variant="caption" color="text.secondary">
-                                    {paciente.cedula}
+                                    {paciente.codigo_paciente || paciente.cedula}
                                   </Typography>
                                 </Box>
                               </Box>
@@ -367,29 +385,24 @@ const TutorDetalles = ({
                               <Divider sx={{ my: 1 }} />
 
                               <Stack spacing={1}>
-                                {paciente.especialidad_nombre && (
-                                  <Box display="flex" alignItems="center">
-                                    <LocalHospital sx={{ fontSize: 14, mr: 0.5, color: 'text.secondary' }} />
-                                    <Typography variant="caption" color="text.secondary" noWrap>
-                                      {paciente.especialidad_nombre}
-                                    </Typography>
-                                  </Box>
+                                {paciente.fecha_nacimiento && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    Nacimiento: {paciente.fecha_nacimiento}
+                                  </Typography>
                                 )}
-
-                                {paciente.estado_tratamiento && (
-                                  <Box>
-                                    <Chip
-                                      label={paciente.estado_tratamiento}
-                                      size="small"
-                                      color={
-                                        paciente.estado_tratamiento === 'activo' ? 'success' :
-                                        paciente.estado_tratamiento === 'completado' ? 'info' :
-                                        paciente.estado_tratamiento === 'suspendido' ? 'warning' : 'default'
-                                      }
-                                      sx={{ fontSize: '0.7rem' }}
-                                    />
-                                  </Box>
+                                {paciente.fecha_ingreso && (
+                                  <Typography variant="caption" color="text.secondary">
+                                    Ingreso: {paciente.fecha_ingreso}
+                                  </Typography>
                                 )}
+                                <Box>
+                                  <Chip
+                                    label={paciente.estado === 'activo' ? 'Activo' : paciente.estado}
+                                    size="small"
+                                    color={paciente.estado === 'activo' ? 'success' : 'default'}
+                                    sx={{ fontSize: '0.7rem' }}
+                                  />
+                                </Box>
                               </Stack>
                             </CardContent>
                           </Card>
@@ -404,26 +417,28 @@ const TutorDetalles = ({
           </Grid>
         </Box>
       </DialogContent>
-      
+
       <DialogActions sx={{ p: 3 }}>
         <Stack direction="row" spacing={1}>
           <Button onClick={onClose} variant="outlined">
             Cerrar
           </Button>
-          <Button 
-            onClick={handleEdit}
-            variant="contained"
-            startIcon={<Edit />}
-            sx={(theme) => ({
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
-              '&:hover': {
-                backgroundColor: theme.palette.primary.dark,
-              },
-            })}
-          >
-            Editar Tutor
-          </Button>
+          {tutorData.estado === 'activo' && (
+            <Button
+              onClick={handleEdit}
+              variant="contained"
+              startIcon={<Edit />}
+              sx={(theme) => ({
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
+                '&:hover': {
+                  backgroundColor: theme.palette.primary.dark,
+                },
+              })}
+            >
+              Editar Tutor
+            </Button>
+          )}
         </Stack>
       </DialogActions>
     </Dialog>

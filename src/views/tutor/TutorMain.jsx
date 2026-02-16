@@ -11,8 +11,6 @@ import TutorDetalles from './TutorDetalles';
 
 // Servicios y hooks
 import TutorService from '../../services/tutorService.js';
-import PersonaService from '../../services/personaService.js';
-import PacienteService from '../../services/pacienteService.js';
 import useSnackbar from '../../hooks/useSnackbar.js';
 import useAuth from '../../hooks/useAuth.js';
 import { useUserRole } from '../../hooks/useUserRole';
@@ -59,13 +57,12 @@ const TutorMain = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [tutores, setTutores] = useState([]);
   const [personasDisponibles, setPersonasDisponibles] = useState([]);
-  const [pacientes, setPacientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingData, setEditingData] = useState(null);
 
   // Diálogos
   const [detailDialog, setDetailDialog] = useState({ open: false, data: null });
-  const [confirmDialog, setConfirmDialog] = useState({ open: false, id: null });
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, id: null, action: null });
 
   // Hooks
   const { snackbar, showSuccess, showError, hideSnackbar } = useSnackbar();
@@ -81,14 +78,12 @@ const TutorMain = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [tutoresData, personasData, pacientesData] = await Promise.all([
+      const [tutoresData, personasData] = await Promise.all([
         TutorService.getAll().catch(() => []),
-        PersonaService.getAll().catch(() => []),
-        PacienteService.getAll().catch(() => [])
+        TutorService.getPersonasDisponibles().catch(() => [])
       ]);
       setTutores(tutoresData);
       setPersonasDisponibles(personasData);
-      setPacientes(pacientesData);
     } catch (error) {
       showError('Error al cargar datos: ' + (error?.message || 'Desconocido'));
     } finally {
@@ -114,22 +109,44 @@ const TutorMain = () => {
   };
 
   const handleDelete = (id) => {
-    setConfirmDialog({ open: true, id });
+    setConfirmDialog({ open: true, id, action: 'delete' });
   };
 
   const confirmDelete = async () => {
     try {
       await TutorService.delete(confirmDialog.id);
-      showSuccess('Tutor eliminado correctamente');
+      showSuccess('Tutor desactivado correctamente');
       fetchData();
     } catch (error) {
-      showError('Error al eliminar tutor: ' + (error?.message || 'Desconocido'));
+      showError(error?.message || 'Error al desactivar tutor');
     }
-    setConfirmDialog({ open: false, id: null });
+    setConfirmDialog({ open: false, id: null, action: null });
   };
 
-  const handleViewDetail = (item) => {
-    setDetailDialog({ open: true, data: item });
+  const handleReactivar = (id) => {
+    setConfirmDialog({ open: true, id, action: 'reactivar' });
+  };
+
+  const confirmReactivar = async () => {
+    try {
+      await TutorService.reactivar(confirmDialog.id);
+      showSuccess('Tutor reactivado correctamente');
+      fetchData();
+    } catch (error) {
+      showError(error?.message || 'Error al reactivar tutor');
+    }
+    setConfirmDialog({ open: false, id: null, action: null });
+  };
+
+  const handleViewDetail = async (item) => {
+    try {
+      // Usar el endpoint de detalle que incluye pacientes del backend
+      const detalle = await TutorService.getById(item.id);
+      setDetailDialog({ open: true, data: detalle });
+    } catch {
+      // Fallback: usar los datos de la lista si falla el detalle
+      setDetailDialog({ open: true, data: item });
+    }
   };
 
   // Formulario
@@ -146,7 +163,7 @@ const TutorMain = () => {
       await fetchData();
       setActiveTab(0);
     } catch (error) {
-      showError('Error al guardar tutor: ' + (error?.message || 'Desconocido'));
+      showError(error?.message || 'Error al guardar tutor');
       throw error;
     }
   };
@@ -164,11 +181,12 @@ const TutorMain = () => {
         <TutorLista
           tutores={tutores}
           onEdit={permissions.tutores.edit ? handleEdit : null}
-          onDelete={permissions.tutores.edit ? handleDelete : null}
+          onDelete={isAdmin ? handleDelete : null}
+          onReactivar={isAdmin ? handleReactivar : null}
           onViewDetail={handleViewDetail}
           onNewTutor={permissions.tutores.create ? handleNewTutor : null}
           loading={loading}
-          showFinancialInfo={isAdmin}
+          isAdmin={isAdmin}
         />
       )
     },
@@ -183,7 +201,6 @@ const TutorMain = () => {
           onSubmit={handleFormSubmit}
           onCancel={handleFormCancel}
           loading={loading}
-          showFinancialInfo={isAdmin}
         />
       )
     }] : [])
@@ -307,23 +324,30 @@ const TutorMain = () => {
           onClose={() => setDetailDialog({ open: false, data: null })}
           tutorData={detailDialog.data}
           onEdit={handleEdit}
-          pacientesRelacionados={
-            detailDialog.data
-              ? pacientes.filter(p => p.tutor_id === detailDialog.data.id)
-              : []
-          }
         />
 
-        {/* Diálogo de confirmación */}
+        {/* Diálogo de confirmación - Desactivar */}
         <ConfirmDialog
-          open={confirmDialog.open}
-          onClose={() => setConfirmDialog({ open: false, id: null })}
+          open={confirmDialog.open && confirmDialog.action === 'delete'}
+          onClose={() => setConfirmDialog({ open: false, id: null, action: null })}
           onConfirm={confirmDelete}
-          title="¿Eliminar tutor?"
-          message="Esta acción no se puede deshacer. ¿Deseas eliminar este tutor?"
-          confirmText="Eliminar"
-          confirmColor="error"
-          severity="error"
+          title="¿Desactivar tutor?"
+          message="El tutor será marcado como inactivo. Puede ser reactivado posteriormente por un administrador."
+          confirmText="Desactivar"
+          confirmColor="warning"
+          severity="warning"
+        />
+
+        {/* Diálogo de confirmación - Reactivar */}
+        <ConfirmDialog
+          open={confirmDialog.open && confirmDialog.action === 'reactivar'}
+          onClose={() => setConfirmDialog({ open: false, id: null, action: null })}
+          onConfirm={confirmReactivar}
+          title="¿Reactivar tutor?"
+          message="El tutor será reactivado y podrá ser asignado a pacientes nuevamente."
+          confirmText="Reactivar"
+          confirmColor="success"
+          severity="info"
         />
 
         {/* Notificaciones */}
@@ -338,8 +362,8 @@ const TutorMain = () => {
   );
 };
 
-// Protección de acceso: Solo administradores
+// Protección de acceso: Admin, Terapeuta y Pedagogo
 export default withRole(TutorMain, {
-  allowedRoles: ['administrador'],
+  allowedRoles: ['administrador', 'terapeuta', 'pedagogo'],
   moduleName: 'Gestión de Tutores'
 });

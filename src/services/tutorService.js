@@ -4,14 +4,31 @@
 import ApiService, { extractData } from './apiService.js';
 import { API_ENDPOINTS } from '../config/api.js';
 
+// Parentescos válidos aceptados por el backend
+const PARENTESCOS_VALIDOS = [
+  { value: 'padre', label: 'Padre' },
+  { value: 'madre', label: 'Madre' },
+  { value: 'abuelo', label: 'Abuelo' },
+  { value: 'abuela', label: 'Abuela' },
+  { value: 'tio', label: 'Tío' },
+  { value: 'tia', label: 'Tía' },
+  { value: 'hermano', label: 'Hermano' },
+  { value: 'hermana', label: 'Hermana' },
+  { value: 'tutor_legal', label: 'Tutor Legal' }
+];
+
+const PARENTESCOS_VALUES = PARENTESCOS_VALIDOS.map(p => p.value);
+
 export class TutorService {
+  // ==================== API CALLS ====================
+
   // Obtener todos los tutores
   static async getAll() {
     const response = await ApiService.get(API_ENDPOINTS.TUTORES.BASE);
     return extractData(response);
   }
 
-  // Obtener tutor por ID
+  // Obtener tutor por ID (incluye pacientes)
   static async getById(id) {
     const response = await ApiService.get(API_ENDPOINTS.TUTORES.BY_ID(id));
     return extractData(response);
@@ -29,11 +46,37 @@ export class TutorService {
     return extractData(response);
   }
 
-  // Eliminar tutor
+  // Desactivar tutor (soft delete)
   static async delete(id) {
     const response = await ApiService.delete(API_ENDPOINTS.TUTORES.BY_ID(id));
     return extractData(response);
   }
+
+  // Reactivar tutor (PATCH)
+  static async reactivar(id) {
+    const response = await ApiService.patch(API_ENDPOINTS.TUTORES.REACTIVAR(id));
+    return extractData(response);
+  }
+
+  // Obtener tutores activos (para combos/selects)
+  static async getActivos() {
+    const response = await ApiService.get(API_ENDPOINTS.TUTORES.ACTIVOS);
+    return extractData(response);
+  }
+
+  // Obtener estadísticas de tutores
+  static async getEstadisticas() {
+    const response = await ApiService.get(API_ENDPOINTS.TUTORES.ESTADISTICAS);
+    return extractData(response);
+  }
+
+  // Obtener personas disponibles para ser tutor
+  static async getPersonasDisponibles() {
+    const response = await ApiService.get(API_ENDPOINTS.TUTORES.PERSONAS_DISPONIBLES);
+    return extractData(response);
+  }
+
+  // ==================== VALIDACIONES ====================
 
   // Validar datos de tutor
   static validateTutorData(data, isEditing = false) {
@@ -51,29 +94,29 @@ export class TutorService {
     // Validar parentesco (requerido)
     if (!data.parentesco?.trim()) {
       errors.parentesco = 'El parentesco es requerido';
-    } else if (data.parentesco.trim().length < 2) {
-      errors.parentesco = 'El parentesco debe tener al menos 2 caracteres';
+    } else if (!PARENTESCOS_VALUES.includes(data.parentesco.trim())) {
+      errors.parentesco = 'Seleccione un parentesco válido';
     }
 
-    // Validar teléfono de emergencia si se proporciona
+    // Validar teléfono de empresa si se proporciona
     if (data.telefono_empresa && data.telefono_empresa.trim()) {
       const telefonoRegex = /^[0-9+\-\s()]+$/;
       if (!telefonoRegex.test(data.telefono_empresa.trim())) {
-        errors.telefono_empresa = 'El teléfono de emergencia no es válido';
+        errors.telefono_empresa = 'El teléfono de empresa no es válido';
       }
     }
 
-    // Validar dirección de trabajo si se proporciona
-    if (data.direccion_empresa && data.direccion_empresa.trim().length > 500) {
-      errors.direccion_empresa = 'La dirección de trabajo no puede superar los 500 caracteres';
+    // Validar dirección de empresa (max 255 - alineado con backend)
+    if (data.direccion_empresa && data.direccion_empresa.trim().length > 255) {
+      errors.direccion_empresa = 'La dirección de empresa no puede superar los 255 caracteres';
     }
 
-    // Validar nombre de empresa si se proporciona
-    if (data.nombre_empresa && data.nombre_empresa.trim().length > 100) {
-      errors.nombre_empresa = 'El nombre de empresa no puede superar los 100 caracteres';
+    // Validar nombre de empresa (max 150 - alineado con backend)
+    if (data.nombre_empresa && data.nombre_empresa.trim().length > 150) {
+      errors.nombre_empresa = 'El nombre de empresa no puede superar los 150 caracteres';
     }
 
-    // Validar ocupación si se proporciona
+    // Validar ocupación (max 100)
     if (data.ocupacion && data.ocupacion.trim().length > 100) {
       errors.ocupacion = 'La ocupación no puede superar los 100 caracteres';
     }
@@ -87,13 +130,11 @@ export class TutorService {
   // Formatear datos para el backend
   static formatForBackend(frontendData, selectedPerson = null, isEditing = false) {
     const payload = {
-      // Campos específicos del tutor
       parentesco: frontendData.parentesco?.trim(),
       ocupacion: frontendData.ocupacion?.trim() || '',
       direccion_empresa: frontendData.direccion_empresa?.trim() || '',
       telefono_empresa: frontendData.telefono_empresa?.trim() || '',
       nombre_empresa: frontendData.nombre_empresa?.trim() || '',
-      estado: frontendData.estado || 'activo'
     };
 
     // En creación, incluir id_persona (requerido)
@@ -104,6 +145,8 @@ export class TutorService {
 
     return payload;
   }
+
+  // ==================== FILTROS Y UTILIDADES ====================
 
   // Buscar tutores por término
   static filterTutores(tutores, searchTerm) {
@@ -116,8 +159,8 @@ export class TutorService {
       item.apellido?.toLowerCase().includes(term) ||
       item.cedula?.includes(term) ||
       item.parentesco?.toLowerCase().includes(term) ||
-      item.empresa_trabajo?.toLowerCase().includes(term) ||
-      item.cargo_trabajo?.toLowerCase().includes(term)
+      item.nombre_empresa?.toLowerCase().includes(term) ||
+      item.ocupacion?.toLowerCase().includes(term)
     );
   }
 
@@ -133,40 +176,24 @@ export class TutorService {
     return tutores.filter(item => item.parentesco?.toLowerCase().includes(parentesco.toLowerCase()));
   }
 
-  // Obtener estados disponibles
+  // Obtener estados disponibles (solo activo/inactivo, alineado con backend)
   static getEstados() {
     return [
       { value: 'activo', label: 'Activo' },
-      { value: 'inactivo', label: 'Inactivo' },
-      { value: 'eliminado', label: 'Eliminado' }
+      { value: 'inactivo', label: 'Inactivo' }
     ];
   }
 
-  // Obtener parentescos comunes
+  // Obtener parentescos válidos
   static getParentescosComunes() {
-    return [
-      { value: 'padre', label: 'Padre' },
-      { value: 'madre', label: 'Madre' },
-      { value: 'abuelo', label: 'Abuelo' },
-      { value: 'abuela', label: 'Abuela' },
-      { value: 'tio', label: 'Tío' },
-      { value: 'tia', label: 'Tía' },
-      { value: 'hermano', label: 'Hermano' },
-      { value: 'hermana', label: 'Hermana' },
-      { value: 'primo', label: 'Primo' },
-      { value: 'prima', label: 'Prima' },
-      { value: 'tutor_legal', label: 'Tutor Legal' },
-      { value: 'cuidador', label: 'Cuidador' },
-      { value: 'otro', label: 'Otro' }
-    ];
+    return PARENTESCOS_VALIDOS;
   }
 
   // Obtener estado con color para UI
   static getEstadoInfo(estado) {
     const estadoMap = {
       activo: { label: 'Activo', color: 'success' },
-      inactivo: { label: 'Inactivo', color: 'warning' },
-      eliminado: { label: 'Eliminado', color: 'error' }
+      inactivo: { label: 'Inactivo', color: 'warning' }
     };
 
     return estadoMap[estado] || { label: estado, color: 'default' };
@@ -183,25 +210,23 @@ export class TutorService {
       'tia': 'warning',
       'hermano': 'success',
       'hermana': 'success',
-      'tutor_legal': 'error',
-      'cuidador': 'default',
-      'otro': 'default'
+      'tutor_legal': 'error'
     };
-    
+
     const parentescoKey = parentesco?.toLowerCase().replace(/\s+/g, '_');
     return colorMap[parentescoKey] || 'default';
   }
 
   // Generar nombre completo
   static getFullName(tutor) {
-    return tutor.nombre_completo || 
+    return tutor.nombre_completo ||
            `${tutor.nombre || ''} ${tutor.apellido || ''}`.trim();
   }
 
   // Verificar si una persona ya está registrada como tutor
   static checkPersonaExists(tutores, personaId, excludeId = null) {
-    return tutores.some(t => 
-      t.persona_id === parseInt(personaId) && t.id !== excludeId
+    return tutores.some(t =>
+      t.id_persona === parseInt(personaId) && t.id !== excludeId
     );
   }
 
@@ -211,38 +236,38 @@ export class TutorService {
     return new Date(dateString).toLocaleDateString();
   }
 
-  // Obtener información de contacto
+  // Obtener información de contacto (campos alineados con backend)
   static getContactInfo(tutor) {
     return {
       telefono: tutor.telefono || 'Sin teléfono',
-      telefonoEmergencia: tutor.telefono_emergencia || 'Sin teléfono de emergencia',
-      correo: tutor.correo || 'Sin correo',
+      telefonoEmpresa: tutor.telefono_empresa || 'Sin teléfono de empresa',
+      email: tutor.email || 'Sin correo',
       direccion: tutor.direccion || 'Sin dirección'
     };
   }
 
-  // Obtener información laboral
+  // Obtener información laboral (campos alineados con backend)
   static getLaboralInfo(tutor) {
     return {
-      empresa: tutor.empresa_trabajo || 'Sin empresa',
-      cargo: tutor.cargo_trabajo || 'Sin cargo',
-      direccionTrabajo: tutor.direccion_trabajo || 'Sin dirección de trabajo'
+      empresa: tutor.nombre_empresa || 'Sin empresa',
+      ocupacion: tutor.ocupacion || 'Sin ocupación',
+      direccionEmpresa: tutor.direccion_empresa || 'Sin dirección de empresa'
     };
   }
 
   // Calcular edad si tiene fecha de nacimiento
   static calculateAge(fechaNacimiento) {
     if (!fechaNacimiento) return 'N/A';
-    
+
     const today = new Date();
     const birthDate = new Date(fechaNacimiento);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-    
+
     return `${age} años`;
   }
 
@@ -259,11 +284,11 @@ export class TutorService {
     return grupos;
   }
 
-  // Estadísticas de tutores
+  // Estadísticas de tutores (client-side, campos alineados con backend)
   static getStats(tutores) {
     const total = tutores.length;
     const activos = tutores.filter(t => t.estado === 'activo').length;
-    
+
     const porParentesco = {};
     tutores.forEach(t => {
       if (t.parentesco) {
@@ -271,13 +296,9 @@ export class TutorService {
       }
     });
 
-    // Contar tutores con información laboral
-    const conTrabajoRegistrado = tutores.filter(t => 
-      t.empresa_trabajo || t.cargo_trabajo
+    const conTrabajoRegistrado = tutores.filter(t =>
+      t.nombre_empresa || t.ocupacion
     ).length;
-
-    // Contar tutores con teléfono de emergencia
-    const conTelefonoEmergencia = tutores.filter(t => t.telefono_emergencia).length;
 
     return {
       total,
@@ -285,79 +306,40 @@ export class TutorService {
       inactivos: total - activos,
       porParentesco,
       conTrabajoRegistrado,
-      conTelefonoEmergencia,
-      porcentajeConTrabajo: total > 0 ? Math.round((conTrabajoRegistrado / total) * 100) : 0,
-      porcentajeConEmergencia: total > 0 ? Math.round((conTelefonoEmergencia / total) * 100) : 0
+      porcentajeConTrabajo: total > 0 ? Math.round((conTrabajoRegistrado / total) * 100) : 0
     };
   }
 
-  // Obtener tutores activos
-  static getTutoresActivos(tutores) {
+  // Obtener tutores activos (filtrado client-side)
+  static getTutoresActivosList(tutores) {
     return tutores.filter(t => t.estado === 'activo');
-  }
-
-  // Buscar tutores disponibles (activos sin asignaciones específicas si es necesario)
-  static getTutoresDisponibles(tutores) {
-    return this.getTutoresActivos(tutores);
-  }
-
-  // Validar antes de eliminar (verificar si tiene pacientes asignados)
-  static validateBeforeDelete(tutor, pacientes = []) {
-    const warnings = [];
-    
-    // Verificar si el tutor tiene pacientes asignados
-    const pacientesAsignados = pacientes.filter(p => p.tutor_id === tutor.id);
-    
-    if (pacientesAsignados.length > 0) {
-      warnings.push(`Este tutor tiene ${pacientesAsignados.length} paciente(s) asignado(s)`);
-    }
-
-    return {
-      canDelete: pacientesAsignados.length === 0,
-      message: warnings.length > 0 ? 
-        'No se puede eliminar este tutor por las siguientes razones:' : 
-        '',
-      warnings
-    };
   }
 
   // Formatear parentesco para mostrar
   static formatParentesco(parentesco) {
     if (!parentesco) return 'Sin especificar';
-    
-    const parentescoMap = {
-      'padre': 'Padre',
-      'madre': 'Madre',
-      'abuelo': 'Abuelo',
-      'abuela': 'Abuela',
-      'tio': 'Tío',
-      'tia': 'Tía',
-      'hermano': 'Hermano',
-      'hermana': 'Hermana',
-      'primo': 'Primo',
-      'prima': 'Prima',
-      'tutor_legal': 'Tutor Legal',
-      'cuidador': 'Cuidador',
-      'otro': 'Otro'
-    };
 
-    return parentescoMap[parentesco.toLowerCase()] || 
+    const parentescoMap = {};
+    PARENTESCOS_VALIDOS.forEach(p => {
+      parentescoMap[p.value] = p.label;
+    });
+
+    return parentescoMap[parentesco.toLowerCase()] ||
            parentesco.charAt(0).toUpperCase() + parentesco.slice(1).toLowerCase();
   }
 
   // Generar resumen de contacto para emergencias
   static getEmergencyContactSummary(tutor) {
-    const contactInfo = this.getContactInfo(tutor);
     const summary = [];
-    
+
     summary.push(`${this.getFullName(tutor)} (${this.formatParentesco(tutor.parentesco)})`);
-    
+
     if (tutor.telefono) {
       summary.push(`Tel: ${tutor.telefono}`);
     }
-    
-    if (tutor.telefono_emergencia && tutor.telefono_emergencia !== tutor.telefono) {
-      summary.push(`Emergencia: ${tutor.telefono_emergencia}`);
+
+    if (tutor.telefono_empresa && tutor.telefono_empresa !== tutor.telefono) {
+      summary.push(`Empresa: ${tutor.telefono_empresa}`);
     }
 
     return summary.join(' • ');
@@ -369,7 +351,6 @@ export class TutorService {
       personal: {
         nombre: this.getFullName(tutor),
         cedula: tutor.cedula,
-        edad: this.calculateAge(tutor.fecha_nacimiento),
         parentesco: this.formatParentesco(tutor.parentesco)
       },
       contacto: this.getContactInfo(tutor),

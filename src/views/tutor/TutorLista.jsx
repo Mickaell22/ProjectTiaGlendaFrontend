@@ -17,7 +17,7 @@ import {
   Tooltip,
   Chip,
   Avatar,
-
+  MenuItem,
   useTheme
 } from '@mui/material';
 import {
@@ -30,7 +30,9 @@ import {
   FamilyRestroom,
   Phone,
   Email,
-  WhatsApp
+  WhatsApp,
+  RestoreFromTrash,
+  PeopleAlt
 } from '@mui/icons-material';
 
 const purpleOutlineSX = {
@@ -45,47 +47,38 @@ const TutorLista = ({
   tutores = [],
   onEdit,
   onDelete,
+  onReactivar,
   onViewDetail,
   onNewTutor,
   loading = false,
-  showFinancialInfo = false
+  isAdmin = false
 }) => {
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
+  const [estadoFilter, setEstadoFilter] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  // Verificar si el usuario es administrador
-  const isAdmin = () => {
-    try {
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        return user.rol === 'Administrador';
-      }
-    } catch (e) {
-      console.error('Error checking admin role:', e);
-    }
-    return false;
-  };
 
   // Función para abrir WhatsApp
   const handleWhatsApp = (telefono) => {
     if (!telefono) return;
-    // Limpiar el número de teléfono (quitar espacios, guiones, etc.)
     const cleanNumber = telefono.replace(/\D/g, '');
-    // Abrir WhatsApp en nueva pestaña
     window.open(`https://wa.me/${cleanNumber}`, '_blank');
   };
 
   // Filtrar tutores
-  const filteredTutores = tutores.filter((t) =>
-    (t.nombre_completo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (t.cedula || '').includes(searchTerm) ||
-    (t.parentesco || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (t.telefono || '').includes(searchTerm) ||
-    (t.email || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTutores = tutores.filter((t) => {
+    const matchesSearch =
+      (t.nombre_completo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (t.cedula || '').includes(searchTerm) ||
+      (t.parentesco || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (t.telefono || '').includes(searchTerm) ||
+      (t.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesEstado = !estadoFilter || t.estado === estadoFilter;
+
+    return matchesSearch && matchesEstado;
+  });
 
   return (
     <Card
@@ -97,11 +90,11 @@ const TutorLista = ({
         border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
         overflow: 'hidden',
         width: '100%',
-        maxWidth: { xs: '100%', sm: 800, md: 900 },
+        maxWidth: { xs: '100%', sm: 800, md: 950 },
         mx: 'auto'
       }}
     >
-      {/* Header morado estilo PersonalLista */}
+      {/* Header */}
       <Box
         sx={{
           background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
@@ -131,7 +124,7 @@ const TutorLista = ({
       </Box>
 
       <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-        {/* Toolbar (búsqueda + botón nuevo) */}
+        {/* Toolbar (búsqueda + filtro estado + botón nuevo) */}
         <Box
           sx={{
             display: 'flex',
@@ -147,7 +140,7 @@ const TutorLista = ({
           <TextField
             size="small"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
             placeholder="Buscar por nombre, cédula, correo, parentesco o teléfono..."
             InputProps={{
               startAdornment: (
@@ -163,6 +156,19 @@ const TutorLista = ({
             }}
           />
 
+          <TextField
+            select
+            size="small"
+            value={estadoFilter}
+            onChange={(e) => { setEstadoFilter(e.target.value); setPage(0); }}
+            sx={{ minWidth: 130 }}
+            label="Estado"
+          >
+            <MenuItem value="">Todos</MenuItem>
+            <MenuItem value="activo">Activo</MenuItem>
+            <MenuItem value="inactivo">Inactivo</MenuItem>
+          </TextField>
+
           {onNewTutor && (
             <Button
               variant="contained"
@@ -177,7 +183,7 @@ const TutorLista = ({
         </Box>
 
         <>
-          {/* Tabla (contenedor con scroll horizontal) */}
+          {/* Tabla */}
           <Box sx={{ width: '100%', overflowX: 'auto' }}>
             <Table>
               <TableHead>
@@ -186,6 +192,8 @@ const TutorLista = ({
                   <TableCell>Cédula</TableCell>
                   <TableCell>Parentesco</TableCell>
                   <TableCell>Teléfono</TableCell>
+                  <TableCell>Pacientes</TableCell>
+                  <TableCell>Estado</TableCell>
                   <TableCell>Acciones</TableCell>
                 </TableRow>
               </TableHead>
@@ -193,18 +201,18 @@ const TutorLista = ({
               <TableBody>
                 {filteredTutores.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                       <Box>
                         <Search sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
                         <Typography variant="h6" color="text.secondary" gutterBottom>
-                          {searchTerm ? 'No se encontraron tutores' : 'No hay tutores registrados'}
+                          {searchTerm || estadoFilter ? 'No se encontraron tutores' : 'No hay tutores registrados'}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" gutterBottom>
-                          {searchTerm
-                            ? 'Intenta con otros términos de búsqueda'
+                          {searchTerm || estadoFilter
+                            ? 'Intenta con otros términos de búsqueda o cambia el filtro'
                             : 'Comienza agregando el primer tutor al sistema'}
                         </Typography>
-                        {!searchTerm && onNewTutor && (
+                        {!searchTerm && !estadoFilter && onNewTutor && (
                           <Button
                             variant="contained"
                             startIcon={<PersonAdd />}
@@ -221,11 +229,11 @@ const TutorLista = ({
                   filteredTutores
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                     .map((t) => (
-                      <TableRow key={t.id}>
-                        {/* Tutor (avatar morado + nombre y correo) */}
+                      <TableRow key={t.id} sx={t.estado === 'inactivo' ? { opacity: 0.6 } : {}}>
+                        {/* Tutor (avatar + nombre y correo) */}
                         <TableCell>
                           <Box display="flex" alignItems="center">
-                            <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
+                            <Avatar sx={{ mr: 2, bgcolor: t.estado === 'activo' ? 'primary.main' : 'grey.400' }}>
                               <Person />
                             </Avatar>
                             <Box>
@@ -243,7 +251,7 @@ const TutorLista = ({
                         {/* Cédula */}
                         <TableCell>
                           <Typography variant="body2" color="text.primary">
-                            {t.cedula || '—'}
+                            {t.cedula || '\u2014'}
                           </Typography>
                         </TableCell>
 
@@ -256,7 +264,7 @@ const TutorLista = ({
                           />
                         </TableCell>
 
-                        {/* Teléfono (solo número) */}
+                        {/* Teléfono */}
                         <TableCell>
                           <Typography
                             variant="body2"
@@ -270,6 +278,25 @@ const TutorLista = ({
                           </Typography>
                         </TableCell>
 
+                        {/* Pacientes */}
+                        <TableCell>
+                          <Box display="flex" alignItems="center" gap={0.5}>
+                            <PeopleAlt sx={{ fontSize: 14, color: 'text.secondary' }} />
+                            <Typography variant="body2">
+                              {t.pacientes_activos ?? 0}/{t.total_pacientes ?? 0}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+
+                        {/* Estado */}
+                        <TableCell>
+                          <Chip
+                            label={t.estado === 'activo' ? 'Activo' : 'Inactivo'}
+                            color={t.estado === 'activo' ? 'success' : 'warning'}
+                            size="small"
+                          />
+                        </TableCell>
+
                         {/* Acciones */}
                         <TableCell>
                           <Box sx={{ display: 'flex', gap: 0.5 }}>
@@ -278,7 +305,7 @@ const TutorLista = ({
                                 <Visibility fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                            {isAdmin() && (t.telefono || t.telefono_empresa) && (
+                            {isAdmin && (t.telefono || t.telefono_empresa) && (
                               <Tooltip title="Enviar mensaje WhatsApp">
                                 <IconButton
                                   color="success"
@@ -290,17 +317,24 @@ const TutorLista = ({
                                 </IconButton>
                               </Tooltip>
                             )}
-                            {onEdit && (
+                            {onEdit && t.estado === 'activo' && (
                               <Tooltip title="Editar">
                                 <IconButton color="primary" onClick={() => onEdit(t)} size="small">
                                   <Edit fontSize="small" />
                                 </IconButton>
                               </Tooltip>
                             )}
-                            {onDelete && (
-                              <Tooltip title="Eliminar">
-                                <IconButton color="error" onClick={() => onDelete(t.id)} size="small">
+                            {onDelete && t.estado === 'activo' && (
+                              <Tooltip title="Desactivar">
+                                <IconButton color="warning" onClick={() => onDelete(t.id)} size="small">
                                   <Delete fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                            {onReactivar && t.estado === 'inactivo' && (
+                              <Tooltip title="Reactivar">
+                                <IconButton color="success" onClick={() => onReactivar(t.id)} size="small">
+                                  <RestoreFromTrash fontSize="small" />
                                 </IconButton>
                               </Tooltip>
                             )}

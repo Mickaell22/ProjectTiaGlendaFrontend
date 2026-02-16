@@ -124,6 +124,10 @@ export const API_ENDPOINTS = {
   TUTORES: {
     BASE: '/api/tutores',
     BY_ID: (id) => `/api/tutores/${id}`,
+    REACTIVAR: (id) => `/api/tutores/${id}/reactivar`,
+    ACTIVOS: '/api/tutores/activos',
+    ESTADISTICAS: '/api/tutores/estadisticas',
+    PERSONAS_DISPONIBLES: '/api/tutores/personas-disponibles',
   },
 
   // Sesiones Terapéuticas
