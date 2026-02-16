@@ -35,11 +35,11 @@ const DashboardMain = () => {
     // Check specialties for therapist or pedagogue role
     if (user.especialidades && user.especialidades.length > 0) {
       const hasTherapeuticSpecialty = user.especialidades.some(esp =>
-        esp.area === 'Especialidad terapéutica' ||
+        esp.area === 'Especialidad terapeutica' ||
         esp.area?.toLowerCase().includes('terap')
       );
       const hasPedagogicalSpecialty = user.especialidades.some(esp =>
-        esp.area === 'Especialidad pedagógica' ||
+        esp.area === 'Especialidad pedagogica' ||
         esp.area?.toLowerCase().includes('pedag')
       );
 

@@ -52,10 +52,9 @@ const EspecialidadMain = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // Form (⚠️ mantenemos el campo `estado`)
+  // Form (sin campo descripcion - no existe en backend)
   const [formData, setFormData] = useState({
     nombre: '',
-    descripcion: '',
     area: '',
     id_centro: '',
     estado: 'activo',
@@ -78,26 +77,23 @@ const EspecialidadMain = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Carga de datos usando Promise.all como en PersonalMain.jsx
+  // Carga de datos usando Promise.all
   const fetchData = async () => {
     try {
       setLoading(true);
-      // Obtener centro del usuario si existe
       const userCentroId = user?.centro?.id;
 
       const [especialidadesData, centrosData] = await Promise.all([
-        // Filtrar especialidades por centro del usuario si existe
         userCentroId
           ? EspecialidadService.getAll(userCentroId)
           : EspecialidadService.getAll(),
         CentroService.getAll()
       ]);
 
-
       setEspecialidades(especialidadesData);
       setCentros(centrosData);
     } catch (error) {
-      console.error('❌ Error cargando datos:', error);
+      console.error('Error cargando datos:', error);
       showError(error?.message || 'Error al cargar datos');
     } finally {
       setLoading(false);
@@ -106,7 +102,10 @@ const EspecialidadMain = () => {
 
   const fetchEspecialidades = async () => {
     try {
-      const data = await EspecialidadService.getAll();
+      const userCentroId = user?.centro?.id;
+      const data = userCentroId
+        ? await EspecialidadService.getAll(userCentroId)
+        : await EspecialidadService.getAll();
       setEspecialidades(data);
     } catch (error) {
       showError(error?.message || 'Error al cargar especialidades');
@@ -125,7 +124,7 @@ const EspecialidadMain = () => {
     const validation = EspecialidadService.validateEspecialidadData(backendData);
 
     if (EspecialidadService.checkNombreExists(especialidades, formData.nombre, formData.id_centro, editingId)) {
-      validation.errors.nombre = 'Esta especialidad ya está registrada en este centro';
+      validation.errors.nombre = 'Esta especialidad ya esta registrada en este centro';
       validation.isValid = false;
     }
 
@@ -155,7 +154,6 @@ const EspecialidadMain = () => {
   const resetForm = () => {
     setFormData({
       nombre: '',
-      descripcion: '',
       area: '',
       id_centro: '',
       estado: 'activo',
@@ -168,10 +166,9 @@ const EspecialidadMain = () => {
   const handleEdit = (item) => {
     setFormData({
       nombre: item.nombre,
-      descripcion: item.descripcion || '',
       area: item.area,
       id_centro: item.id_centro || '',
-      estado: item.estado, // ✅ se mantiene
+      estado: item.estado,
     });
     setEditingId(item.id);
     setActiveTab(1);
@@ -182,19 +179,28 @@ const EspecialidadMain = () => {
   const confirmDelete = async () => {
     try {
       await EspecialidadService.delete(confirmDialog.id);
-      showSuccess('Especialidad eliminada correctamente');
+      showSuccess('Especialidad desactivada correctamente');
       fetchEspecialidades();
     } catch (error) {
-      showError(error?.message || 'Error al eliminar especialidad');
+      showError(error?.message || 'Error al desactivar especialidad');
     }
     setConfirmDialog({ open: false, id: null });
+  };
+
+  const handleReactivar = async (id) => {
+    try {
+      await EspecialidadService.reactivar(id);
+      showSuccess('Especialidad reactivada correctamente');
+      fetchEspecialidades();
+    } catch (error) {
+      showError(error?.message || 'Error al reactivar especialidad');
+    }
   };
 
   const handleViewDetail = (item) => setDetailDialog({ open: true, data: item });
 
   const handleAddNew = () => {
     resetForm();
-    // Pre-seleccionar centro del usuario si existe
     if (user?.centro?.id) {
       setFormData(prev => ({
         ...prev,
@@ -209,7 +215,7 @@ const EspecialidadMain = () => {
     setActiveTab(0);
   };
 
-  // Tabs (estilo unificado como en los otros módulos/listas)
+  // Tabs
   const tabs = [
     {
       label: 'Lista',
@@ -221,6 +227,7 @@ const EspecialidadMain = () => {
           user={user}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onReactivar={handleReactivar}
           onViewDetail={handleViewDetail}
           onAddNew={handleAddNew}
         />
@@ -249,7 +256,7 @@ const EspecialidadMain = () => {
   return (
     <ErrorBoundary>
       <Box>
-        {/* Header con tabs integrados y estilo del resto de *listas* */}
+        {/* Header con tabs integrados */}
         <Container maxWidth="xl" sx={{ py: 2 }}>
           <Paper
             elevation={4}
@@ -282,16 +289,16 @@ const EspecialidadMain = () => {
                 mb={2}
               >
                 <MedicalServices sx={{ mr: 2, fontSize: 40 }} />
-                Gestión de Especialidades
+                Gestion de Especialidades
               </Typography>
               <Typography variant="body1" color="text.secondary" mb={3}>
-                Administración de especialidades médicas y áreas de tratamiento
+                Administracion de especialidades medicas y areas de tratamiento
               </Typography>
 
               <Tabs
                 value={activeTab}
                 onChange={(_, v) => setActiveTab(v)}
-                aria-label="Pestañas de gestión de especialidades"
+                aria-label="Pestanas de gestion de especialidades"
                 variant="scrollable"
                 scrollButtons="auto"
                 sx={{
@@ -327,7 +334,7 @@ const EspecialidadMain = () => {
           </Paper>
         </Container>
 
-        {/* Contenido de pestañas */}
+        {/* Contenido de pestanas */}
         {tabs.map((tab, index) => (
           <TabPanel key={index} value={activeTab} index={index}>
             {tab.component}
@@ -342,16 +349,16 @@ const EspecialidadMain = () => {
           onEdit={handleEdit}
         />
 
-        {/* Confirmación */}
+        {/* Confirmacion de desactivacion */}
         <ConfirmDialog
           open={confirmDialog.open}
           onClose={() => setConfirmDialog({ open: false, id: null })}
           onConfirm={confirmDelete}
-          title="¿Eliminar especialidad?"
-          message="Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar esta especialidad?"
-          confirmText="Eliminar"
+          title="Desactivar especialidad"
+          message="La especialidad sera desactivada (cambio de estado a inactivo). Podra reactivarla posteriormente si lo necesita."
+          confirmText="Desactivar"
           confirmColor="error"
-          severity="error"
+          severity="warning"
         />
 
         {/* Snackbar */}
@@ -366,8 +373,8 @@ const EspecialidadMain = () => {
   );
 };
 
-// Protección de acceso: Solo administradores
+// Proteccion de acceso: Solo administradores
 export default withRole(EspecialidadMain, {
   allowedRoles: ['administrador'],
-  moduleName: 'Gestión de Especialidades'
+  moduleName: 'Gestion de Especialidades'
 });

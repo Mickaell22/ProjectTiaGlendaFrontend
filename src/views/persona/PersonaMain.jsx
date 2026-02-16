@@ -94,12 +94,21 @@ const PersonaMain = () => {
   const confirmDelete = async () => {
     try {
       await PersonaService.delete(confirmDialog.id);
-      showSuccess('Persona eliminada correctamente');
+      showSuccess('Persona desactivada correctamente');
       fetchPersonas();
     } catch (error) {
       showError(error.message);
     }
     setConfirmDialog({ open: false, id: null });
+  };
+  const handleReactivar = async (id) => {
+    try {
+      await PersonaService.reactivar(id);
+      showSuccess('Persona reactivada correctamente');
+      fetchPersonas();
+    } catch (error) {
+      showError(error.message);
+    }
   };
   const handleViewDetail = (item) => setDetailDialog({ open: true, data: item });
 
@@ -135,6 +144,7 @@ const PersonaMain = () => {
           personas={personas}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onReactivar={handleReactivar}
           onViewDetail={handleViewDetail}
           onNewPersona={handleNewPersona}
           loading={loading}
@@ -266,11 +276,11 @@ const PersonaMain = () => {
           open={confirmDialog.open}
           onClose={() => setConfirmDialog({ open: false, id: null })}
           onConfirm={confirmDelete}
-          title="¿Eliminar persona?"
-          message="Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar esta persona del sistema?"
-          confirmText="Eliminar"
+          title="¿Desactivar persona?"
+          message="La persona será desactivada y no aparecerá en las listas activas. Podrás reactivarla posteriormente si lo necesitas."
+          confirmText="Desactivar"
           confirmColor="error"
-          severity="error"
+          severity="warning"
         />
 
         {/* Notificaciones */}

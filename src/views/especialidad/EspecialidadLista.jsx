@@ -22,7 +22,6 @@ import {
   FormControl,
   Select,
   MenuItem,
-
   useTheme
 } from '@mui/material';
 import {
@@ -34,13 +33,15 @@ import {
   Search,
   Work,
   LocalHospital,
-  School
+  School,
+  RestoreFromTrash,
+  People
 } from '@mui/icons-material';
 
 // Servicios
 import EspecialidadService from '../../services/especialidadService.js';
 
-/* ---------------- Helpers (estilo unificado con otras listas) ---------------- */
+/* ---------------- Helpers ---------------- */
 const purpleOutlineSX = {
   '& .MuiOutlinedInput-root': {
     '& fieldset': { borderColor: 'primary.main' },
@@ -55,6 +56,7 @@ const EspecialidadLista = ({
   user = null,
   onEdit,
   onDelete,
+  onReactivar,
   onViewDetail,
   onAddNew
 }) => {
@@ -64,7 +66,7 @@ const EspecialidadLista = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  // Datos filtrados (servicio) - Solo por búsqueda y área
+  // Datos filtrados
   let filteredEspecialidades = EspecialidadService.filterEspecialidades(especialidades, searchTerm);
   filteredEspecialidades = EspecialidadService.filterByArea(filteredEspecialidades, filterArea);
 
@@ -89,11 +91,11 @@ const EspecialidadLista = ({
         border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
         overflow: 'hidden',
         width: '100%',
-        maxWidth: { xs: '100%', sm: 800, md: 900 },
+        maxWidth: { xs: '100%', sm: 800, md: 1000 },
         mx: 'auto'
       }}
     >
-      {/* Header morado con contador (consistente con otras vistas) */}
+      {/* Header */}
       <Box
         sx={{
           background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
@@ -110,7 +112,7 @@ const EspecialidadLista = ({
             Lista de Especialidades
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.9 }}>
-            Busca, filtra por área y gestiona las especialidades
+            Busca, filtra por area y gestiona las especialidades
           </Typography>
         </Box>
 
@@ -123,7 +125,7 @@ const EspecialidadLista = ({
       </Box>
 
       <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-        {/* Toolbar (búsqueda + filtro área + botón nuevo) */}
+        {/* Toolbar */}
         <Box
           sx={{
             display: 'flex',
@@ -156,7 +158,7 @@ const EspecialidadLista = ({
             }}
           />
 
-          {/* Filtro Área */}
+          {/* Filtro Area */}
           <FormControl size="small" sx={{ ...purpleOutlineSX, width: 200 }}>
             <Select
               value={filterArea}
@@ -164,11 +166,11 @@ const EspecialidadLista = ({
               displayEmpty
               renderValue={(val) =>
                 val === ''
-                  ? 'Todas las áreas'
-                  : (EspecialidadService.getAreas().find((a) => a.value === val)?.label || 'Área')
+                  ? 'Todas las areas'
+                  : (EspecialidadService.getAreas().find((a) => a.value === val)?.label || 'Area')
               }
             >
-              <MenuItem value="">Todas las áreas</MenuItem>
+              <MenuItem value="">Todas las areas</MenuItem>
               {EspecialidadService.getAreas().map((area) => (
                 <MenuItem key={area.value} value={area.value}>
                   {area.label}
@@ -177,14 +179,13 @@ const EspecialidadLista = ({
             </Select>
           </FormControl>
 
-
           {/* Nueva especialidad */}
           <Button
             variant="contained"
             startIcon={<Add />}
             onClick={onAddNew}
             sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.getContrastText(theme.palette.primary.main), '&:hover': { bgcolor: theme.palette.primary.dark } }}
-              >
+          >
             Nueva Especialidad
           </Button>
         </Box>
@@ -194,7 +195,9 @@ const EspecialidadLista = ({
           <TableHead>
             <TableRow>
               <TableCell>Especialidad</TableCell>
-              <TableCell>Área</TableCell>
+              <TableCell>Area</TableCell>
+              <TableCell>Centro</TableCell>
+              <TableCell>Personal</TableCell>
               <TableCell>Estado</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
@@ -202,7 +205,7 @@ const EspecialidadLista = ({
           <TableBody>
             {filteredEspecialidades.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" color="text.secondary">
                     {searchTerm || filterArea
                       ? 'No se encontraron especialidades con los filtros aplicados'
@@ -216,8 +219,9 @@ const EspecialidadLista = ({
                 .map((item) => {
                   const estadoInfo = EspecialidadService.getEstadoInfo(item.estado);
                   const areaInfo = EspecialidadService.getAreaInfo(item.area);
+                  const isInactivo = item.estado === 'inactivo';
                   return (
-                    <TableRow key={item.id}>
+                    <TableRow key={item.id} sx={isInactivo ? { opacity: 0.7 } : {}}>
                       {/* Especialidad */}
                       <TableCell>
                         <Box display="flex" alignItems="center">
@@ -232,7 +236,7 @@ const EspecialidadLista = ({
                         </Box>
                       </TableCell>
 
-                      {/* Área */}
+                      {/* Area */}
                       <TableCell>
                         <Chip
                           label={areaInfo.label}
@@ -242,13 +246,32 @@ const EspecialidadLista = ({
                         />
                       </TableCell>
 
+                      {/* Centro */}
+                      <TableCell>
+                        <Typography variant="body2">
+                          {item.centro_nombre || 'N/A'}
+                        </Typography>
+                        {item.centro_codigo && (
+                          <Typography variant="caption" color="text.secondary">
+                            {item.centro_codigo}
+                          </Typography>
+                        )}
+                      </TableCell>
+
+                      {/* Personal asignado */}
+                      <TableCell>
+                        <Chip
+                          icon={<People />}
+                          label={item.personal_asignado ?? 0}
+                          size="small"
+                          variant="outlined"
+                          color="info"
+                        />
+                      </TableCell>
 
                       {/* Estado */}
                       <TableCell>
                         <Chip label={estadoInfo.label} color={estadoInfo.color} size="small" />
-                        <Typography variant="caption" display="block" color="text.secondary">
-                          Desde: {EspecialidadService.formatDate(item.fecha_creacion)}
-                        </Typography>
                       </TableCell>
 
                       {/* Acciones */}
@@ -264,11 +287,19 @@ const EspecialidadLista = ({
                               <Edit />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Eliminar">
-                            <IconButton color="error" size="small" onClick={() => onDelete(item.id)}>
-                              <Delete />
-                            </IconButton>
-                          </Tooltip>
+                          {isInactivo ? (
+                            <Tooltip title="Reactivar">
+                              <IconButton color="success" size="small" onClick={() => onReactivar(item.id)}>
+                                <RestoreFromTrash />
+                              </IconButton>
+                            </Tooltip>
+                          ) : (
+                            <Tooltip title="Desactivar">
+                              <IconButton color="error" size="small" onClick={() => onDelete(item.id)}>
+                                <Delete />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </Stack>
                       </TableCell>
                     </TableRow>
@@ -278,7 +309,7 @@ const EspecialidadLista = ({
           </TableBody>
         </Table>
 
-        {/* Paginación */}
+        {/* Paginacion */}
         <TablePagination
           component="div"
           count={filteredEspecialidades.length}
@@ -290,9 +321,9 @@ const EspecialidadLista = ({
             setPage(0);
           }}
           rowsPerPageOptions={[5, 10, 25, 50]}
-          labelRowsPerPage="Filas por página:"
+          labelRowsPerPage="Filas por pagina:"
           labelDisplayedRows={({ from, to, count }) =>
-            `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+            `${from}-${to} de ${count !== -1 ? count : `mas de ${to}`}`
           }
         />
       </CardContent>

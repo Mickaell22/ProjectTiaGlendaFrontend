@@ -29,7 +29,9 @@ import {
   Add,
   Person,
   Phone,
-  CalendarToday
+  CalendarToday,
+  RestoreFromTrash,
+  FilterList
 } from '@mui/icons-material';
 import { parseLocalDate } from '../../utils/dateUtils';
 
@@ -63,6 +65,7 @@ const PersonaLista = ({
   personas = [],
   onEdit,
   onDelete,
+  onReactivar,
   onViewDetail,
   onNewPersona,
   loading = false
@@ -71,14 +74,20 @@ const PersonaLista = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [showInactivas, setShowInactivas] = useState(false);
 
   let filteredPersonas = (personas || []).filter((p) => {
     const nombre = p.nombre || p.nombres || '';
     const apellido = p.apellido || p.apellidos || '';
     const telefono = p.telefono || '';
 
-    // Solo personas activas
-    if (p.estado && p.estado.toLowerCase() !== 'activo') return false;
+    // Filtro por estado
+    const estadoLower = (p.estado || '').toLowerCase();
+    if (showInactivas) {
+      if (estadoLower !== 'inactivo') return false;
+    } else {
+      if (estadoLower !== 'activo') return false;
+    }
 
     const search =
       !searchTerm ||
@@ -167,6 +176,15 @@ const PersonaLista = ({
             }}
           />
           <Button
+            variant={showInactivas ? 'contained' : 'outlined'}
+            color={showInactivas ? 'warning' : 'inherit'}
+            startIcon={<FilterList />}
+            onClick={() => { setShowInactivas(!showInactivas); setPage(0); }}
+            sx={{ height: 40, px: 2 }}
+          >
+            {showInactivas ? 'Ver Activas' : 'Ver Inactivas'}
+          </Button>
+          <Button
             variant="contained"
             color="primary"
             startIcon={<Add />}
@@ -191,13 +209,14 @@ const PersonaLista = ({
               <TableCell sx={{ fontWeight: 'bold' }}>Cédula</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Contacto</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Edad</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Estado</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredPersonas.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" color="text.secondary">
                     No hay personas registradas
                   </Typography>
@@ -270,6 +289,15 @@ const PersonaLista = ({
                         </Box>
                       </TableCell>
 
+                      {/* Estado */}
+                      <TableCell>
+                        <Chip
+                          label={p.estado === 'activo' ? 'Activo' : 'Inactivo'}
+                          color={p.estado === 'activo' ? 'success' : 'error'}
+                          size="small"
+                        />
+                      </TableCell>
+
                       {/* Acciones */}
                       <TableCell>
                         <Stack direction="row" spacing={1}>
@@ -278,16 +306,26 @@ const PersonaLista = ({
                               <Visibility />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="Editar">
-                            <IconButton color="primary" size="small" onClick={() => onEdit(p)}>
-                              <Edit />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Eliminar">
-                            <IconButton color="error" size="small" onClick={() => onDelete(p.id)}>
-                              <Delete />
-                            </IconButton>
-                          </Tooltip>
+                          {p.estado === 'activo' ? (
+                            <>
+                              <Tooltip title="Editar">
+                                <IconButton color="primary" size="small" onClick={() => onEdit(p)}>
+                                  <Edit />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Desactivar">
+                                <IconButton color="error" size="small" onClick={() => onDelete(p.id)}>
+                                  <Delete />
+                                </IconButton>
+                              </Tooltip>
+                            </>
+                          ) : (
+                            <Tooltip title="Reactivar">
+                              <IconButton color="success" size="small" onClick={() => onReactivar(p.id)}>
+                                <RestoreFromTrash />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                         </Stack>
                       </TableCell>
                     </TableRow>

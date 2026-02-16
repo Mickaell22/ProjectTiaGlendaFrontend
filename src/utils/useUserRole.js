@@ -59,11 +59,11 @@ const useUserRole = () => {
     // Verificar por especialidades si las tiene
     if (user.especialidades && user.especialidades.length > 0) {
       const tieneEspecialidadTerapeutica = user.especialidades.some(esp =>
-        esp.area === 'Especialidad terapéutica' ||
+        esp.area === 'Especialidad terapeutica' ||
         esp.area?.toLowerCase().includes('terap')
       );
       const tieneEspecialidadPedagogica = user.especialidades.some(esp =>
-        esp.area === 'Especialidad pedagógica' ||
+        esp.area === 'Especialidad pedagogica' ||
         esp.area?.toLowerCase().includes('pedag')
       );
 

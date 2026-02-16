@@ -171,8 +171,8 @@ const PersonaFormulario = ({
     let filteredValue = value;
 
     if (name === 'nombre' || name === 'apellido') {
-      // Solo letras y espacios
-      filteredValue = filteredValue.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '');
+      // Solo letras, espacios y apostrofes
+      filteredValue = filteredValue.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s']/g, '');
     }
     if (name === 'cedula') {
       // Solo números

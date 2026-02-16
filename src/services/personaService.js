@@ -35,6 +35,12 @@ export class PersonaService {
     return extractData(response);
   }
 
+  // Reactivar persona inactiva
+  static async reactivar(id) {
+    const response = await ApiService.put(API_ENDPOINTS.PERSONAS.REACTIVAR(id));
+    return extractData(response);
+  }
+
   // Obtener personas disponibles para crear usuarios
   static async getAvailableForUsers() {
     const response = await ApiService.get(API_ENDPOINTS.PERSONAS.DISPONIBLES);
@@ -47,20 +53,34 @@ export class PersonaService {
 
     if (!data.nombre?.trim()) {
       errors.nombre = 'El nombre es requerido';
+    } else if (data.nombre.trim().length < 2) {
+      errors.nombre = 'El nombre debe tener al menos 2 caracteres';
+    } else if (data.nombre.trim().length > 100) {
+      errors.nombre = 'El nombre no puede exceder 100 caracteres';
     }
 
     if (!data.apellido?.trim()) {
       errors.apellido = 'El apellido es requerido';
+    } else if (data.apellido.trim().length < 2) {
+      errors.apellido = 'El apellido debe tener al menos 2 caracteres';
+    } else if (data.apellido.trim().length > 100) {
+      errors.apellido = 'El apellido no puede exceder 100 caracteres';
     }
 
     if (!data.cedula?.trim()) {
       errors.cedula = 'La cédula es requerida';
-    } else if (data.cedula.trim().length < 6) {
-      errors.cedula = 'La cédula debe tener al menos 6 caracteres';
+    } else if (data.cedula.trim().length < 7) {
+      errors.cedula = 'La cédula debe tener al menos 7 caracteres';
+    } else if (data.cedula.trim().length > 20) {
+      errors.cedula = 'La cédula no puede exceder 20 caracteres';
     }
 
-    if (data.telefono && data.telefono.trim() && data.telefono.trim().length < 7) {
-      errors.telefono = 'El teléfono debe tener al menos 7 caracteres';
+    if (data.telefono && data.telefono.trim()) {
+      if (data.telefono.trim().length < 8) {
+        errors.telefono = 'El teléfono debe tener al menos 8 dígitos';
+      } else if (data.telefono.trim().length > 15) {
+        errors.telefono = 'El teléfono no puede exceder 15 dígitos';
+      }
     }
 
     if (data.correo && data.correo.trim()) {
@@ -70,7 +90,9 @@ export class PersonaService {
       }
     }
 
-    // La dirección es opcional
+    if (data.direccion && data.direccion.trim().length > 255) {
+      errors.direccion = 'La dirección no puede exceder 255 caracteres';
+    }
 
     // La fecha de nacimiento es opcional
 

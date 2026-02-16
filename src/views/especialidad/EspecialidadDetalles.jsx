@@ -14,15 +14,17 @@ import {
   CardContent,
   Avatar,
   Divider,
-  Stack,
-  Icon
+  Stack
 } from '@mui/material';
 import {
   MedicalServices,
   Edit,
   Work,
   LocalHospital,
-  School
+  School,
+  Business,
+  People,
+  CalendarToday
 } from '@mui/icons-material';
 
 // Servicios
@@ -49,14 +51,12 @@ const EspecialidadDetalles = ({ open, data, onClose, onEdit }) => {
     onClose?.();
   };
 
-  const areaInfo = EspecialidadService.getAreaInfo
-    ? EspecialidadService.getAreaInfo(data.area)
-    : { label: data.area || '—', color: 'default', icon: 'Work' };
-
+  const areaInfo = EspecialidadService.getAreaInfo(data.area);
+  const estadoInfo = EspecialidadService.getEstadoInfo(data.estado);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      {/* Header morado con icono */}
+      {/* Header */}
       <DialogTitle
         sx={{
           bgcolor: 'primary.main',
@@ -87,15 +87,19 @@ const EspecialidadDetalles = ({ open, data, onClose, onEdit }) => {
 
             <Box flex={1}>
               <Typography variant="h5" fontWeight="bold" gutterBottom>
-                {data.nombre || '—'}
+                {data.nombre || '--'}
               </Typography>
 
               <Box display="flex" gap={1} flexWrap="wrap">
-                {/* Área */}
                 <Chip
                   label={areaInfo.label}
                   color={areaInfo.color || 'default'}
                   icon={renderAreaIcon(areaInfo.icon)}
+                />
+                <Chip
+                  label={estadoInfo.label}
+                  color={estadoInfo.color}
+                  size="small"
                 />
               </Box>
             </Box>
@@ -105,8 +109,8 @@ const EspecialidadDetalles = ({ open, data, onClose, onEdit }) => {
         {/* Secciones en tarjetas */}
         <Box sx={{ p: 3 }}>
           <Grid container spacing={3}>
-            {/* Información de la Especialidad */}
-            <Grid item xs={12}>
+            {/* Informacion de la Especialidad */}
+            <Grid item xs={12} md={6}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography
@@ -117,7 +121,7 @@ const EspecialidadDetalles = ({ open, data, onClose, onEdit }) => {
                     alignItems="center"
                   >
                     <MedicalServices sx={{ mr: 1 }} />
-                    Información de la Especialidad
+                    Informacion General
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
 
@@ -127,30 +131,123 @@ const EspecialidadDetalles = ({ open, data, onClose, onEdit }) => {
                         Nombre
                       </Typography>
                       <Typography variant="body1" fontWeight="bold">
-                        {data.nombre || '—'}
+                        {data.nombre || '--'}
                       </Typography>
                     </Box>
 
                     <Box>
                       <Typography variant="body2" color="text.secondary">
-                        Área
+                        Area
                       </Typography>
-                      <Typography
-                        variant="body1"
-                        fontWeight="bold"
-                        display="flex"
-                        alignItems="center"
-                        gap={0.5}
-                      >
-                        <Icon fontSize="small">{renderAreaIcon(areaInfo.icon)}</Icon>
-                        {areaInfo.label}
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        {renderAreaIcon(areaInfo.icon)}
+                        <Typography variant="body1" fontWeight="bold">
+                          {areaInfo.label}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Estado
                       </Typography>
+                      <Chip
+                        label={estadoInfo.label}
+                        color={estadoInfo.color}
+                        size="small"
+                      />
                     </Box>
                   </Stack>
                 </CardContent>
               </Card>
             </Grid>
 
+            {/* Centro y Personal */}
+            <Grid item xs={12} md={6}>
+              <Card elevation={1}>
+                <CardContent>
+                  <Typography
+                    variant="h6"
+                    color="primary"
+                    gutterBottom
+                    display="flex"
+                    alignItems="center"
+                  >
+                    <Business sx={{ mr: 1 }} />
+                    Centro y Personal
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
+
+                  <Stack spacing={2}>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Centro
+                      </Typography>
+                      <Typography variant="body1" fontWeight="bold">
+                        {data.centro_nombre || '--'}
+                      </Typography>
+                      {data.centro_codigo && (
+                        <Typography variant="caption" color="text.secondary">
+                          Codigo: {data.centro_codigo}
+                        </Typography>
+                      )}
+                    </Box>
+
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Personal asignado
+                      </Typography>
+                      <Chip
+                        icon={<People />}
+                        label={`${data.personal_asignado ?? 0} profesional${(data.personal_asignado ?? 0) !== 1 ? 'es' : ''}`}
+                        color="info"
+                        variant="outlined"
+                        size="small"
+                      />
+                    </Box>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Fechas */}
+            <Grid item xs={12}>
+              <Card elevation={1}>
+                <CardContent>
+                  <Typography
+                    variant="h6"
+                    color="primary"
+                    gutterBottom
+                    display="flex"
+                    alignItems="center"
+                  >
+                    <CalendarToday sx={{ mr: 1 }} />
+                    Fechas
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
+
+                  <Stack direction="row" spacing={4}>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Fecha de creacion
+                      </Typography>
+                      <Typography variant="body1" fontWeight="bold">
+                        {EspecialidadService.formatDate(data.fecha_creacion)}
+                      </Typography>
+                    </Box>
+
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Ultima modificacion
+                      </Typography>
+                      <Typography variant="body1" fontWeight="bold">
+                        {EspecialidadService.formatDate(data.fecha_modificacion)}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
           </Grid>
         </Box>
       </DialogContent>

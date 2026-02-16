@@ -334,7 +334,7 @@ class SesionPedagogicaService {
 
       // Filter pedagogical specialties
       const pedagogicas = allEspecialidades.filter(esp =>
-        esp.area === 'Especialidad pedagógica' ||
+        esp.area === 'Especialidad pedagogica' ||
         esp.area === 'pedagogica' ||
         esp.area?.toLowerCase().includes('pedagog')
       );
@@ -483,7 +483,7 @@ class SesionPedagogicaService {
         const filteredData = allData.filter(personal => 
           personal.rol === 'Pedagógico' || 
           personal.cargo?.toLowerCase().includes('pedagog') ||
-          personal.especialidades?.some(esp => esp.area === 'Especialidad pedagógica')
+          personal.especialidades?.some(esp => esp.area === 'Especialidad pedagogica')
         );
         return { data: filteredData };
       } catch (fallbackError) {
@@ -733,7 +733,7 @@ class SesionPedagogicaService {
 
       // Filtrar especialidades pedagógicas
       const pedagogicas = allEspecialidades.filter(esp =>
-        esp.area === 'Especialidad pedagógica' ||
+        esp.area === 'Especialidad pedagogica' ||
         esp.area === 'pedagogica' ||
         esp.area?.toLowerCase().includes('pedagog')
       );

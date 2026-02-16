@@ -439,7 +439,7 @@ class SesionTerapiaService {
 
       // Filter therapeutic specialties
       const terapeuticas = allEspecialidades.filter(esp =>
-        esp.area === 'Especialidad terapéutica' ||
+        esp.area === 'Especialidad terapeutica' ||
         esp.area === 'Especialidad terapeutica'
       );
 
@@ -476,7 +476,7 @@ class SesionTerapiaService {
 
       // Filtrar especialidades terapéuticas
       const terapeuticas = allEspecialidades.filter(esp =>
-        esp.area === 'Especialidad terapéutica' ||
+        esp.area === 'Especialidad terapeutica' ||
         esp.area === 'terapeutica' ||
         esp.area?.toLowerCase().includes('terap')
       );

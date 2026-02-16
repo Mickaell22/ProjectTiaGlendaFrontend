@@ -25,7 +25,7 @@ export const useTerapeutas = () => {
 
         // Filtrar por especialidades terapéuticas
         const tieneEspecialidadTerapeutica = personal.especialidades?.some(esp =>
-          esp.area === 'Especialidad terapéutica' ||
+          esp.area === 'Especialidad terapeutica' ||
           esp.area === 'terapeutica' ||
           esp.nombre?.toLowerCase().includes('terapeut') ||
           esp.nombre?.toLowerCase().includes('terapia')

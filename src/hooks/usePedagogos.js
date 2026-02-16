@@ -25,7 +25,7 @@ export const usePedagogos = () => {
 
         // Filtrar por especialidades pedagógicas
         const tieneEspecialidadPedagogica = personal.especialidades?.some(esp =>
-          esp.area === 'Especialidad pedagógica' ||
+          esp.area === 'Especialidad pedagogica' ||
           esp.area === 'pedagogica' ||
           esp.nombre?.toLowerCase().includes('pedagog') ||
           esp.nombre?.toLowerCase().includes('educac')

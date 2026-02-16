@@ -33,7 +33,7 @@ export const API_ENDPOINTS = {
     BASE: '/api/personas',
     BY_ID: (id) => `/api/personas/${id}`,
     DISPONIBLES: '/api/personas/disponibles',
-    DISPONIBLES_PERSONAL: '/api/personas',
+    REACTIVAR: (id) => `/api/personas/${id}/reactivar`,
   },
 
   // Usuarios
@@ -70,9 +70,14 @@ export const API_ENDPOINTS = {
   ESPECIALIDADES: {
     BASE: '/api/especialidades',
     BY_ID: (id) => `/api/especialidades/id/${id}`,
-    BY_AREA: (area) => `/api/especialidades/area/${encodeURIComponent(area)}`,
-    TERAPEUTICAS: '/api/especialidades/area/Especialidad%20terapéutica',
-    PEDAGOGICAS: '/api/especialidades/area/Especialidad%20pedagógica',
+    BY_AREA: (area) => `/api/especialidades/${encodeURIComponent(area)}`,
+    TERAPEUTICAS: '/api/especialidades/Especialidad%20terapeutica',
+    PEDAGOGICAS: '/api/especialidades/Especialidad%20pedagogica',
+    REACTIVAR: (id) => `/api/especialidades/id/${id}/reactivar`,
+    ACTIVAS: '/api/especialidades/activas',
+    ESTADISTICAS: '/api/especialidades/estadisticas',
+    COMPATIBILIDAD: (personalId, pacienteId) => `/api/compatibilidad-especialidades/${personalId}/${pacienteId}`,
+    ESTADISTICAS_MULTIPLES: '/api/especialidades-multiples/estadisticas',
   },
 
   // Pacientes
