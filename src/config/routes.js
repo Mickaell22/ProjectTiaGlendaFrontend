@@ -28,6 +28,7 @@ export const ROUTES = {
     TUTOR: '/app/gestion/tutor',
     ESPECIALIDAD: '/app/gestion/especialidad',
     PERSONAL: '/app/gestion/personal',
+    CENTRO: '/app/gestion/centro',
     ROLES: '/app/gestion/roles',
   },
 

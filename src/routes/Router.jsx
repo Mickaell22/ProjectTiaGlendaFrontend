@@ -14,6 +14,7 @@ import PacienteMain from 'src/views/paciente/PacienteMain';
 import TutorMain from 'src/views/tutor/TutorMain';
 import UsuarioMain from 'src/views/usuario/UsuarioMain';
 import EspecialidadMain from 'src/views/especialidad/EspecialidadMain';
+import CentroMain from 'src/views/centro/CentroMain';
 import PersonalMain from 'src/views/personal/PersonalMain';
 import TerapeuticoMain from 'src/views/terapeutico/TerapeuticoMain';
 import SesionTerapeuticaDetalle from 'src/views/terapeutico/SesionTerapeuticaDetalle';
@@ -159,6 +160,7 @@ const Router = [
       { path: 'tutor', element: <Navigate to="/app/gestion/tutor" replace /> },
       { path: 'usuario', element: <Navigate to="/app/gestion/usuario" replace /> },
       { path: 'especialidad', element: <Navigate to="/app/gestion/especialidad" replace /> },
+      { path: 'centro', element: <Navigate to="/app/gestion/centro" replace /> },
       { path: 'personal', element: <Navigate to="/app/gestion/personal" replace /> },
       { path: 'roles', element: <Navigate to="/app/gestion/roles" replace /> },
     ],
@@ -196,6 +198,7 @@ const Router = [
       { path: 'gestion/tutor', element: <TutorMain /> },
       { path: 'gestion/usuario', element: <UsuarioMain /> },
       { path: 'gestion/especialidad', element: <EspecialidadMain /> },
+      { path: 'gestion/centro', element: <CentroMain /> },
       { path: 'gestion/personal', element: <PersonalMain /> },
       { path: 'pacientes/:pacienteId/documentos', element: <DocumentosPaciente /> },
       { path: 'personal/:personalId/documentos', element: <DocumentosPersonal /> },

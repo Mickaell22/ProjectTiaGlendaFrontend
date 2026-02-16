@@ -190,8 +190,11 @@ export const API_ENDPOINTS = {
 
   // Centros
   CENTROS: {
-    BASE: '/api/centros-disponibles',
+    BASE: '/api/centros',
     BY_ID: (id) => `/api/centros/${id}`,
+    BY_CODIGO: (codigo) => `/api/centros/codigo/${codigo}`,
+    ESTADISTICAS: (id) => `/api/centros/${id}/estadisticas`,
+    REACTIVAR: (id) => `/api/centros/${id}/reactivar`,
     DISPONIBLES: '/api/centros-disponibles',
   },
 

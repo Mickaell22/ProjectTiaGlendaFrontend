@@ -51,6 +51,7 @@ const hasPermission = (module, userRole) => {
     case 'personal':
     case 'usuarios':
     case 'especialidades':
+    case 'centros':
     case 'configuracion':
     case 'reportes':
       return isAdmin;
@@ -119,6 +120,16 @@ export const getMenuItems = (user) => {
             href: ROUTES.GESTION.USUARIO,
           },
         ],
+      },
+    ] : []),
+
+    // Gestión de Centros - Solo Admins
+    ...(hasPermission('centros', userRole) ? [
+      {
+        id: uniqueId(),
+        title: 'Gestión de Centros',
+        icon: Business,
+        href: ROUTES.GESTION.CENTRO,
       },
     ] : []),
 

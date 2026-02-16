@@ -47,7 +47,9 @@
       "Bash(railway link:*)",
       "Bash(railway up:*)",
       "Bash(find:*)",
-      "Bash(where:*)"
+      "Bash(where:*)",
+      "Bash(wc:*)",
+      "Bash(npx vite:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
