@@ -47,6 +47,13 @@ export const API_ENDPOINTS = {
   PERSONAL: {
     BASE: '/api/personal',
     BY_ID: (id) => `/api/personal/${id}`,
+    REACTIVAR: (id) => `/api/personal/${id}/reactivar`,
+    BY_AREA: (area) => `/api/personal/area/${area}`,
+    ESTADISTICAS: '/api/personal/estadisticas',
+    ESPECIALIDADES: (id) => `/api/personal/${id}/especialidades`,
+    ESPECIALIDADES_BY_ID: (id, espId) => `/api/personal/${id}/especialidades/${espId}`,
+    ESPECIALIDADES_DISPONIBLES: (id) => `/api/personal/${id}/especialidades-disponibles`,
+    POR_ESPECIALIDAD: (espId) => `/api/personal/por-especialidad/${espId}`,
   },
 
   // Documentos Personal

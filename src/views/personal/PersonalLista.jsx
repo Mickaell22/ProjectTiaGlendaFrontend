@@ -33,7 +33,8 @@ import {
   Search,
   Person,
   Phone,
-  Description
+  Description,
+  RestoreFromTrash
 } from '@mui/icons-material';
 
 // Servicios
@@ -52,6 +53,7 @@ const PersonalLista = ({
   personal = [],
   onEdit,
   onDelete,
+  onReactivate,
   onViewDetail,
   onViewDocuments,
   onAddNew
@@ -182,6 +184,7 @@ const PersonalLista = ({
                 <TableCell>Título</TableCell>
                 <TableCell>Especialidades</TableCell>
                 <TableCell>Contacto</TableCell>
+                <TableCell>Estado</TableCell>
                 <TableCell>Acciones</TableCell>
               </TableRow>
             </TableHead>
@@ -248,6 +251,20 @@ const PersonalLista = ({
                       </Typography>
                     </TableCell>
 
+                    {/* Estado */}
+                    <TableCell>
+                      {(() => {
+                        const estadoInfo = PersonalService.getEstadoInfo(item.estado);
+                        return (
+                          <Chip
+                            label={estadoInfo.label}
+                            color={estadoInfo.color}
+                            size="small"
+                          />
+                        );
+                      })()}
+                    </TableCell>
+
                     {/* Acciones */}
                     <TableCell>
                       <Stack direction="row" spacing={1}>
@@ -266,11 +283,19 @@ const PersonalLista = ({
                             <Edit />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Eliminar">
-                          <IconButton color="error" size="small" onClick={() => onDelete(item.id)}>
-                            <Delete />
-                          </IconButton>
-                        </Tooltip>
+                        {item.estado === 'inactivo' ? (
+                          <Tooltip title="Reactivar">
+                            <IconButton color="success" size="small" onClick={() => onReactivate(item.id)}>
+                              <RestoreFromTrash />
+                            </IconButton>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip title="Desactivar">
+                            <IconButton color="error" size="small" onClick={() => onDelete(item.id)}>
+                              <Delete />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>

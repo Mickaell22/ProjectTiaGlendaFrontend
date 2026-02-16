@@ -227,7 +227,7 @@ const PersonalMainComponent = () => {
   const confirmDelete = async () => {
     try {
       await PersonalService.delete(confirmDialog.id);
-      showSuccess('Personal eliminado correctamente');
+      showSuccess('Personal desactivado correctamente');
       fetchData();
     } catch (error) {
       showError(error.message);
@@ -250,7 +250,17 @@ const PersonalMainComponent = () => {
   };
 
   const handleViewDocuments = (item) => {
-    navigate(`/personal/${item.id}/documentos`);
+    navigate(`/app/personal/${item.id}/documentos`);
+  };
+
+  const handleReactivate = async (id) => {
+    try {
+      await PersonalService.reactivate(id);
+      showSuccess('Personal reactivado correctamente');
+      fetchData();
+    } catch (error) {
+      showError(error.message);
+    }
   };
 
   // Configuración de tabs
@@ -263,6 +273,7 @@ const PersonalMainComponent = () => {
           personal={personal}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onReactivate={handleReactivate}
           onViewDetail={handleViewDetail}
           onViewDocuments={handleViewDocuments}
           onAddNew={handleAddNew}
@@ -406,11 +417,11 @@ const PersonalMainComponent = () => {
           open={confirmDialog.open}
           onClose={() => setConfirmDialog({ open: false, id: null })}
           onConfirm={confirmDelete}
-          title="¿Eliminar personal?"
-          message="Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este miembro del personal?"
-          confirmText="Eliminar"
-          confirmColor="error"
-          severity="error"
+          title="¿Desactivar personal?"
+          message="El personal será desactivado (estado inactivo). Podrá reactivarlo posteriormente si es necesario."
+          confirmText="Desactivar"
+          confirmColor="warning"
+          severity="warning"
         />
 
         {/* Notificaciones */}

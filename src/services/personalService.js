@@ -29,9 +29,15 @@ export class PersonalService {
     return extractData(response);
   }
 
-  // Eliminar personal
+  // Eliminar personal (soft delete - cambia estado a inactivo)
   static async delete(id) {
     const response = await ApiService.delete(API_ENDPOINTS.PERSONAL.BY_ID(id));
+    return extractData(response);
+  }
+
+  // Reactivar personal inactivo
+  static async reactivate(id) {
+    const response = await ApiService.put(API_ENDPOINTS.PERSONAL.REACTIVAR(id));
     return extractData(response);
   }
 
@@ -149,8 +155,8 @@ export class PersonalService {
     const estadoMap = {
       activo: { label: 'Activo', color: 'success' },
       inactivo: { label: 'Inactivo', color: 'error' },
-      suspendido: { label: 'Suspendido', color: 'warning' },
       vacaciones: { label: 'Vacaciones', color: 'info' },
+      licencia: { label: 'Licencia', color: 'warning' },
     };
 
     return estadoMap[estado] || { label: estado, color: 'default' };
@@ -198,8 +204,8 @@ export class PersonalService {
     return [
       { value: 'activo', label: 'Activo' },
       { value: 'inactivo', label: 'Inactivo' },
-      { value: 'suspendido', label: 'Suspendido' },
-      { value: 'vacaciones', label: 'Vacaciones' }
+      { value: 'vacaciones', label: 'Vacaciones' },
+      { value: 'licencia', label: 'Licencia' }
     ];
   }
 
