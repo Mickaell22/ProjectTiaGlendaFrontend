@@ -311,7 +311,7 @@ const UsuarioRoles = ({ usuarios = [] }) => {
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell>{usuario.nombre_usuario}</TableCell>
+                      <TableCell>{usuario.usuario}</TableCell>
                       <TableCell>
                         <Chip label={estadoInfo.label} color={estadoInfo.color} size="small" />
                       </TableCell>

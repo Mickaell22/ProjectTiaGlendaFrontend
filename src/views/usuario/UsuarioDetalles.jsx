@@ -200,8 +200,12 @@ const UsuarioDetalles = ({
                       <Business color="primary" />
                     </ListItemIcon>
                     <ListItemText
-                      primary="Centro de Trabajo"
-                      secondary={userData.centro_nombre || 'Centro Tía Glenda'}
+                      primary="Centro(s) de Trabajo"
+                      secondary={
+                        userData.centro_display ||
+                        userData.centro_nombre ||
+                        'Sin centro asignado'
+                      }
                     />
                   </ListItem>
                 </List>
@@ -226,7 +230,7 @@ const UsuarioDetalles = ({
                     </ListItemIcon>
                     <ListItemText
                       primary="Nombre de Usuario"
-                      secondary={userData.nombre_usuario}
+                      secondary={userData.usuario}
                     />
                   </ListItem>
 

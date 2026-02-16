@@ -41,6 +41,7 @@ export const API_ENDPOINTS = {
     BASE: '/api/usuarios',
     BY_ID: (id) => `/api/usuarios/${id}`,
     CHANGE_PASSWORD: (id) => `/api/usuarios/${id}/cambiar-contrasenia`,
+    REACTIVAR: (id) => `/api/usuarios/${id}/reactivar`,
   },
 
   // Personal

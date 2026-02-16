@@ -38,7 +38,8 @@ import {
   AccessTime,
   Psychology,
   School,
-  Business
+  Business,
+  RestoreFromTrash
 } from '@mui/icons-material';
 
 import UsuarioService from '../../services/usuarioService.js';
@@ -57,6 +58,7 @@ const UsuarioLista = ({
   usuarios,
   onEdit,
   onDelete,
+  onReactivate,
   onViewDetail,
   onChangePassword,
   onNewUser,
@@ -333,11 +335,19 @@ const UsuarioLista = ({
                             <Edit />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Eliminar">
-                          <IconButton color="error" size="small" onClick={() => onDelete(item.id)}>
-                            <Delete />
-                          </IconButton>
-                        </Tooltip>
+                        {item.estado === 'inactivo' ? (
+                          <Tooltip title="Reactivar">
+                            <IconButton color="success" size="small" onClick={() => onReactivate(item.id)}>
+                              <RestoreFromTrash />
+                            </IconButton>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip title="Desactivar">
+                            <IconButton color="error" size="small" onClick={() => onDelete(item.id)}>
+                              <Delete />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>

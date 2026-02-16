@@ -131,11 +131,21 @@ const UsuarioMain = () => {
 
   const handleChangePassword = (userId, userName = null) => {
     const user = usuarios.find(u => u.id === userId);
-    setPasswordDialog({ 
-      open: true, 
-      userId, 
-      userName: userName || (user ? user.nombre_usuario : '') 
+    setPasswordDialog({
+      open: true,
+      userId,
+      userName: userName || (user ? user.usuario : '')
     });
+  };
+
+  const handleReactivate = async (id) => {
+    try {
+      await UsuarioService.reactivate(id);
+      showSuccess('Usuario reactivado correctamente');
+      fetchData();
+    } catch (error) {
+      showError(error.message);
+    }
   };
 
   // Manejadores para UsuarioFormulario
@@ -179,6 +189,7 @@ const UsuarioMain = () => {
           usuarios={usuarios}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onReactivate={handleReactivate}
           onViewDetail={handleViewDetail}
           onChangePassword={handleChangePassword}
           onNewUser={handleNewUser}
@@ -315,11 +326,11 @@ const UsuarioMain = () => {
           open={confirmDialog.open}
           onClose={() => setConfirmDialog({ open: false, id: null })}
           onConfirm={confirmDelete}
-          title="¿Eliminar usuario?"
-          message="Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este usuario del sistema?"
-          confirmText="Eliminar"
-          confirmColor="error"
-          severity="error"
+          title="¿Desactivar usuario?"
+          message="El usuario será desactivado y no podrá acceder al sistema. Podrá ser reactivado posteriormente si es necesario."
+          confirmText="Desactivar"
+          confirmColor="warning"
+          severity="warning"
         />
 
         {/* Notificaciones */}

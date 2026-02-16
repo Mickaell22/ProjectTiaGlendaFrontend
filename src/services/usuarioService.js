@@ -30,9 +30,15 @@ export class UsuarioService {
     return extractData(response);
   }
 
-  // Eliminar usuario
+  // Eliminar usuario (soft delete)
   static async delete(id) {
     const response = await ApiService.delete(API_ENDPOINTS.USUARIOS.BY_ID(id));
+    return extractData(response);
+  }
+
+  // Reactivar usuario inactivo
+  static async reactivate(id) {
+    const response = await ApiService.put(API_ENDPOINTS.USUARIOS.REACTIVAR(id));
     return extractData(response);
   }
 
@@ -54,8 +60,8 @@ export class UsuarioService {
       errors.nombre_usuario = 'El nombre de usuario es requerido';
     } else if (data.nombre_usuario.trim().length < 3) {
       errors.nombre_usuario = 'El nombre de usuario debe tener al menos 3 caracteres';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(data.nombre_usuario.trim())) {
-      errors.nombre_usuario = 'El nombre de usuario solo puede contener letras, números y guiones bajos';
+    } else if (!/^[a-zA-Z0-9._-]+$/.test(data.nombre_usuario.trim())) {
+      errors.nombre_usuario = 'El nombre de usuario solo puede contener letras, números, puntos, guiones y guiones bajos';
     }
 
     if (!data.contrasenia) {
@@ -111,13 +117,16 @@ export class UsuarioService {
       usuario: frontendData.nombre_usuario?.trim().toLowerCase(),
       contrasenia: frontendData.contrasenia,
       id_rol: parseInt(frontendData.rol_id),
-      id_centro: parseInt(frontendData.centro_id),
       estado: frontendData.estado || 'activo'
     };
-    
-    // Photos are handled separately via dedicated endpoint
-    // Don't include foto_perfil in user creation/update payload
-    
+
+    // Multi-centro: enviar centros_ids si existe, sino fallback a id_centro
+    if (frontendData.centros_ids && frontendData.centros_ids.length > 0) {
+      payload.centros_ids = frontendData.centros_ids.map(id => parseInt(id));
+    } else if (frontendData.centro_id) {
+      payload.id_centro = parseInt(frontendData.centro_id);
+    }
+
     return payload;
   }
 
@@ -161,9 +170,7 @@ export class UsuarioService {
   static getEstados() {
     return [
       { value: 'activo', label: 'Activo' },
-      { value: 'inactivo', label: 'Inactivo' },
-      { value: 'bloqueado', label: 'Bloqueado' },
-      { value: 'eliminado', label: 'Eliminado' }
+      { value: 'inactivo', label: 'Inactivo' }
     ];
   }
 
@@ -196,9 +203,7 @@ export class UsuarioService {
   static getEstadoInfo(estado) {
     const estadoMap = {
       activo: { label: 'Activo', color: 'success' },
-      inactivo: { label: 'Inactivo', color: 'warning' },
-      bloqueado: { label: 'Bloqueado', color: 'error' },
-      eliminado: { label: 'Eliminado', color: 'error' }
+      inactivo: { label: 'Inactivo', color: 'warning' }
     };
 
     return estadoMap[estado] || { label: estado, color: 'default' };

@@ -44,25 +44,6 @@ import PersonaGeneralSelector from '../../components/shared/PersonaGeneralSelect
 import UnifiedPersonForm from '../../components/shared/UnifiedPersonForm.jsx';
 import useSnackbar from '../../hooks/useSnackbar.js';
 
-/* ---------- Helpers ---------- */
-function getUsuarioId() {
-  const raw = localStorage.getItem('user_data');
-  if (raw) {
-    try {
-      const u = JSON.parse(raw);
-      if (u?.id) return u.id;
-    } catch {}
-  }
-  const token = localStorage.getItem('jwt_token');
-  if (token && token.split('.').length === 3) {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.user_id || payload.id || payload.sub || null;
-    } catch {}
-  }
-  return null;
-}
-
 /* ---------- Componente ---------- */
 const UsuarioFormulario = ({
   editingData = null,
@@ -266,8 +247,8 @@ const UsuarioFormulario = ({
       validationErrors.nombre_usuario = 'Ingrese un nombre de usuario';
     } else if (formData.nombre_usuario.trim().length < 3) {
       validationErrors.nombre_usuario = 'El nombre de usuario debe tener al menos 3 caracteres';
-    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.nombre_usuario.trim())) {
-      validationErrors.nombre_usuario = 'El nombre de usuario solo puede contener letras, números y guiones bajos';
+    } else if (!/^[a-zA-Z0-9._-]+$/.test(formData.nombre_usuario.trim())) {
+      validationErrors.nombre_usuario = 'El nombre de usuario solo puede contener letras, números, puntos, guiones y guiones bajos';
     }
 
     // Validar contraseña solo en modo creación
@@ -285,23 +266,17 @@ const UsuarioFormulario = ({
 
   const buildPayload = (isEdit) => {
     const payload = {
-      nombre_usuario: formData.nombre_usuario?.trim(),
-      rol_id: parseInt(formData.rol_id, 10),
+      usuario: formData.nombre_usuario?.trim(),
+      id_rol: parseInt(formData.rol_id, 10),
       estado: formData.estado,
-      // SIEMPRE enviar centros_ids como array (tanto en creación como edición)
       centros_ids: formData.centros_ids.map(id => parseInt(id, 10))
     };
 
-    // En creación, incluir persona_id y contraseña
     if (!isEdit) {
-      payload.persona_id = parseInt(formData.persona_id, 10);
+      payload.id_persona = parseInt(formData.persona_id, 10);
       payload.contrasenia = formData.contrasenia;
-      const uid = getUsuarioId();
-      if (uid) payload.created_by = uid;
     }
-    // En edición, NO enviar persona_id (no se puede cambiar)
 
-    // NO usar formatForBackend porque no está adaptado para múltiples centros
     return payload;
   };
 
@@ -641,7 +616,7 @@ const UsuarioFormulario = ({
                     value={formData.nombre_usuario}
                     onChange={handleChange}
                     error={!!errors.nombre_usuario}
-                    helperText={errors.nombre_usuario || 'Solo letras, números y guiones bajos'}
+                    helperText={errors.nombre_usuario || 'Solo letras, números, puntos, guiones y guiones bajos'}
                     placeholder="usuario123"
                   />
                 </Grid>
