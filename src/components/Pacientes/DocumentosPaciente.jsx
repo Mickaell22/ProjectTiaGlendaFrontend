@@ -11,8 +11,6 @@ import {
   DialogActions,
   TextField,
   MenuItem,
-  FormControlLabel,
-  Checkbox,
   Grid,
   IconButton,
   Chip,
@@ -33,7 +31,6 @@ import {
   ArrowBack,
   Refresh,
   Description,
-  Security,
   Close,
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -41,7 +38,6 @@ import { formatDateLocal } from 'src/utils/dateUtils';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Servicios
-import { API_CONFIG } from '../../config/api.js';
 import ApiService, { extractData } from '../../services/apiService.js';
 import { FileValidator } from '../../utils/fileValidation.js';
 
@@ -73,8 +69,6 @@ const DocumentosPaciente = () => {
     archivo: null,
     tipo_documento: 'otros',
     descripcion: '',
-    es_confidencial: false,
-    fecha_vencimiento: ''
   });
 
   // Removido: ahora ApiService maneja los headers automáticamente
@@ -155,8 +149,6 @@ const DocumentosPaciente = () => {
       formData.append('archivo', uploadData.archivo);
       formData.append('tipo_documento', uploadData.tipo_documento);
       formData.append('descripcion', uploadData.descripcion);
-      formData.append('es_confidencial', uploadData.es_confidencial);
-      if (uploadData.fecha_vencimiento) formData.append('fecha_vencimiento', uploadData.fecha_vencimiento);
 
       await ApiService.post(`/api/pacientes/${pacienteId}/documentos`, formData, {
         headers: {
@@ -170,8 +162,6 @@ const DocumentosPaciente = () => {
         archivo: null,
         tipo_documento: 'otros',
         descripcion: '',
-        es_confidencial: false,
-        fecha_vencimiento: ''
       });
 
       const fileInput = document.querySelector('input[type="file"]');
@@ -223,12 +213,7 @@ const DocumentosPaciente = () => {
   };
 
   const handleEdit = (documento) => {
-    setEditingDocumento({
-      ...documento,
-      fecha_vencimiento: documento.fecha_vencimiento
-        ? new Date(documento.fecha_vencimiento).toISOString().split('T')[0]
-        : ''
-    });
+    setEditingDocumento({ ...documento });
   };
 
   const handleUpdateSubmit = async (e) => {
@@ -237,8 +222,6 @@ const DocumentosPaciente = () => {
       const updateData = {
         tipo_documento: editingDocumento.tipo_documento,
         descripcion: editingDocumento.descripcion,
-        es_confidencial: editingDocumento.es_confidencial,
-        fecha_vencimiento: editingDocumento.fecha_vencimiento || null
       };
       await ApiService.put(
         `/api/pacientes/${pacienteId}/documentos/${editingDocumento.id}`,
@@ -273,12 +256,6 @@ const DocumentosPaciente = () => {
 
   // Helper para mostrar nombre de archivo limpio
   const formatFileName = (documento) => {
-    // Prioridad: nombre_original > nombre_archivo limpio
-    if (documento.nombre_original && documento.nombre_original !== documento.nombre_archivo) {
-      return documento.nombre_original;
-    }
-
-    // Si solo tiene nombre_archivo, intentar limpiarlo
     if (documento.nombre_archivo) {
       const fileName = documento.nombre_archivo;
 
@@ -489,15 +466,6 @@ const DocumentosPaciente = () => {
                           color="primary"
                           variant="outlined"
                         />
-                        {documento.es_confidencial && (
-                          <Chip
-                            icon={<Security />}
-                            label="Confidencial"
-                            size="small"
-                            color="error"
-                            variant="outlined"
-                          />
-                        )}
                       </Box>
 
                       <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ wordBreak: 'break-word' }}>
@@ -515,13 +483,8 @@ const DocumentosPaciente = () => {
                           <strong>Tamaño:</strong> {formatFileSize(documento.tamaño_archivo)}
                         </Typography>
                         <Typography variant="caption" display="block">
-                          <strong>Subido:</strong> {formatDate(documento.fecha_creacion)}
+                          <strong>Subido:</strong> {formatDate(documento.fecha_subida)}
                         </Typography>
-                        {documento.fecha_vencimiento && (
-                          <Typography variant="caption" display="block">
-                            <strong>Vence:</strong> {formatDate(documento.fecha_vencimiento)}
-                          </Typography>
-                        )}
                       </Box>
 
                       <Divider sx={{ my: 1 }} />
@@ -654,17 +617,6 @@ const DocumentosPaciente = () => {
                 ))}
               </TextField>
 
-              {/* Fecha de Vencimiento */}
-              <TextField
-                type="date"
-                fullWidth
-                label="Fecha de Vencimiento (Opcional)"
-                InputLabelProps={{ shrink: true }}
-                value={uploadData.fecha_vencimiento}
-                onChange={(e) => setUploadData(prev => ({ ...prev, fecha_vencimiento: e.target.value }))}
-                disabled={uploading}
-              />
-
               {/* Descripción */}
               <TextField
                 fullWidth
@@ -675,18 +627,6 @@ const DocumentosPaciente = () => {
                 value={uploadData.descripcion}
                 onChange={(e) => setUploadData(prev => ({ ...prev, descripcion: e.target.value }))}
                 disabled={uploading}
-              />
-
-              {/* Confidencial */}
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={uploadData.es_confidencial}
-                    onChange={(e) => setUploadData(prev => ({ ...prev, es_confidencial: e.target.checked }))}
-                    disabled={uploading}
-                  />
-                }
-                label="Documento Confidencial"
               />
 
               {/* Loading */}
@@ -729,7 +669,7 @@ const DocumentosPaciente = () => {
           <form onSubmit={handleUpdateSubmit}>
             <DialogContent>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12}>
                   <TextField
                     select
                     fullWidth
@@ -746,37 +686,14 @@ const DocumentosPaciente = () => {
                   </TextField>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    type="date"
-                    fullWidth
-                    label="Fecha de Vencimiento"
-                    InputLabelProps={{ shrink: true }}
-                    value={editingDocumento.fecha_vencimiento}
-                    onChange={(e) => setEditingDocumento(prev => ({ ...prev, fecha_vencimiento: e.target.value }))}
-                  />
-                </Grid>
-
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
                     multiline
                     rows={2}
-                    label="Descripción"
+                    label="Descripcion"
                     value={editingDocumento.descripcion || ''}
                     onChange={(e) => setEditingDocumento(prev => ({ ...prev, descripcion: e.target.value }))}
-                  />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={editingDocumento.es_confidencial}
-                        onChange={(e) => setEditingDocumento(prev => ({ ...prev, es_confidencial: e.target.checked }))}
-                      />
-                    }
-                    label="🔒 Documento confidencial"
                   />
                 </Grid>
               </Grid>

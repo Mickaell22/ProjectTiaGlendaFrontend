@@ -93,6 +93,13 @@ export const API_ENDPOINTS = {
     BASE: '/api/pacientes',
     BY_ID: (id) => `/api/pacientes/${id}`,
     DOCUMENTOS: (id) => `/api/pacientes/${id}/documentos`,
+    DOCUMENTO_BY_ID: (pacienteId, docId) => `/api/pacientes/${pacienteId}/documentos/${docId}`,
+  },
+
+  // Documentos Paciente (globales)
+  DOCUMENTOS_PACIENTE: {
+    ESTADISTICAS: '/api/documentos/estadisticas',
+    TIPOS: '/api/documentos/tipos',
   },
 
   // Sistema de Pausas de Pacientes
