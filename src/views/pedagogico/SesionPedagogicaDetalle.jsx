@@ -12,7 +12,7 @@ import {
   ArrowBack, Person, Schedule, Group, Assignment, CalendarMonth,
   CheckCircle, Cancel, Edit, Add, Refresh, AccessTime,
   EventAvailable, EventBusy, School, Today, Delete, PersonRemove, Search, PersonAdd,
-  Visibility, Info
+  Visibility, Info, Replay
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -321,6 +321,24 @@ const SesionPedagogicaDetalle = () => {
     return { total, completadas, todasCompletadas };
   };
 
+  // Manejar reactivación de sesión cancelada
+  const handleReactivarSesion = async () => {
+    if (window.confirm('¿Está seguro de reactivar esta sesión pedagógica cancelada?')) {
+      try {
+        await sesionPedagogicaService.reactivarSesion(id);
+        setSnackbar({
+          open: true,
+          message: 'Sesión reactivada exitosamente',
+          severity: 'success'
+        });
+        await fetchSesionData();
+      } catch (error) {
+        const errorMessage = sesionPedagogicaService.handleError(error);
+        setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      }
+    }
+  };
+
   // Manejar finalización de sesión
   const handleFinalizarSesion = async () => {
     try {
@@ -456,6 +474,20 @@ const SesionPedagogicaDetalle = () => {
                 }}
               >
                 Finalizar Sesion
+              </Button>
+            )}
+            {sesion.estado === 'cancelada' && (
+              <Button
+                variant="contained"
+                startIcon={<Replay />}
+                onClick={handleReactivarSesion}
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }
+                }}
+              >
+                Reactivar Sesion
               </Button>
             )}
             <Button

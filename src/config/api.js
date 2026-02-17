@@ -170,7 +170,7 @@ export const API_ENDPOINTS = {
     ESTUDIANTES_RETIRADOS: (sesionId) => `/api/sesiones-pedagogicas/${sesionId}/estudiantes-retirados`,
     REINCORPORAR_ESTUDIANTE: (sesionId, pacienteId) => `/api/sesiones-pedagogicas/${sesionId}/estudiantes/${pacienteId}/reincorporar`,
     CRONOGRAMA: (id) => `/api/sesiones-pedagogicas/${id}/cronograma`,
-    CRONOGRAMA_GENERAL: '/api/sesiones-pedagogicas/cronograma',
+    CRONOGRAMA_GENERAL: '/api/sesiones-pedagogicas/cronograma-general',
     GENERAR_CRONOGRAMA: (id) => `/api/sesiones-pedagogicas/${id}/cronograma/generar`,
     BY_PEDAGOGO: (id) => `/api/sesiones-pedagogicas/pedagogo/${id}`,
     HOY: '/api/sesiones-pedagogicas/hoy',
@@ -195,8 +195,10 @@ export const API_ENDPOINTS = {
     REPROGRAMAR_CLASE: (cronogramaId) => 
       `/api/sesiones-pedagogicas/cronograma/${cronogramaId}/reprogramar`,
     // Cancel a class
-    CANCELAR_CLASE: (cronogramaId) => 
+    CANCELAR_CLASE: (cronogramaId) =>
       `/api/sesiones-pedagogicas/cronograma/${cronogramaId}/cancelar`,
+    // Reactivate a cancelled session
+    REACTIVAR: (id) => `/api/sesiones-pedagogicas/${id}/reactivar`,
   },
 
   // Roles

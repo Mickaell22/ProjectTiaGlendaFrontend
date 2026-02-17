@@ -11,7 +11,7 @@ import {
 import {
   Delete, Search, Visibility, Person,
   Schedule, PersonAdd, ViewList, CalendarViewWeek,
-  AccessTime, Event, School, Share, Link, ContentCopy
+  AccessTime, Event, School, Share, Link, ContentCopy, Replay
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
@@ -86,6 +86,19 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
       try {
         await sesionPedagogicaService.cancelarSesion(id);
         setSnackbar({ open: true, message: 'Sesión cancelada correctamente', severity: 'info' });
+        fetchData();
+      } catch (error) {
+        const errorMessage = sesionPedagogicaService.handleError(error);
+        setSnackbar({ open: true, message: errorMessage, severity: 'error' });
+      }
+    }
+  };
+
+  const handleReactivar = async (id) => {
+    if (window.confirm('¿Está seguro de reactivar esta sesión pedagógica cancelada?')) {
+      try {
+        await sesionPedagogicaService.reactivarSesion(id);
+        setSnackbar({ open: true, message: 'Sesión reactivada correctamente', severity: 'success' });
         fetchData();
       } catch (error) {
         const errorMessage = sesionPedagogicaService.handleError(error);
@@ -482,7 +495,9 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                 sx={{ ...purpleOutlineSX }}
               >
                 <MenuItem value="">Todas</MenuItem>
+                <MenuItem value="planificada">Planificada</MenuItem>
                 <MenuItem value="en_curso">En Curso</MenuItem>
+                <MenuItem value="pausada">Pausada</MenuItem>
                 <MenuItem value="finalizada">Finalizada</MenuItem>
                 <MenuItem value="cancelada">Cancelada</MenuItem>
               </Select>
@@ -839,16 +854,28 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                                   <Visibility fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Cancelar sesión">
-                                <IconButton
-                                  color="error"
-                                  size="small"
-                                  onClick={() => handleDelete(item.id)}
-                                  disabled={item.estado === 'cancelada' || item.estado === 'finalizada'}
-                                >
-                                  <Delete fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
+                              {item.estado === 'cancelada' ? (
+                                <Tooltip title="Reactivar sesión">
+                                  <IconButton
+                                    color="success"
+                                    size="small"
+                                    onClick={() => handleReactivar(item.id)}
+                                  >
+                                    <Replay fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              ) : (
+                                <Tooltip title="Cancelar sesión">
+                                  <IconButton
+                                    color="error"
+                                    size="small"
+                                    onClick={() => handleDelete(item.id)}
+                                    disabled={item.estado === 'finalizada'}
+                                  >
+                                    <Delete fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                             </Box>
                           </TableCell>
                         </TableRow>

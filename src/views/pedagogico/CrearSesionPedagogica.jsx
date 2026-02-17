@@ -108,6 +108,7 @@ const CrearSesionPedagogica = () => {
     capacidad_maxima: 10,
     periodo_academico: '',
     adaptacion_curricular: '',
+    descripcion: '',
     estado: 'planificada',
     observaciones: ''
   });
@@ -291,6 +292,7 @@ const CrearSesionPedagogica = () => {
         capacidad_maxima: parseInt(formData.capacidad_maxima),
         periodo_academico: formData.periodo_academico?.trim() || null,
         adaptacion_curricular: formData.adaptacion_curricular?.trim() || null,
+        descripcion: formData.descripcion?.trim() || null,
         estado: formData.estado,
         observaciones: formData.observaciones?.trim() || null
       };
@@ -331,6 +333,7 @@ const CrearSesionPedagogica = () => {
       capacidad_maxima: 10,
       periodo_academico: '',
       adaptacion_curricular: '',
+      descripcion: '',
       estado: 'planificada',
       observaciones: ''
     });
@@ -374,6 +377,20 @@ const CrearSesionPedagogica = () => {
                     error={!!errors.titulo}
                     helperText={errors.titulo}
                     placeholder="Ej: Lectoescritura Inicial 2025"
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={2}
+                    label="Descripción"
+                    name="descripcion"
+                    value={formData.descripcion}
+                    onChange={handleChange}
+                    placeholder="Descripción general de la sesión pedagógica"
                     InputLabelProps={{ shrink: true }}
                   />
                 </Grid>

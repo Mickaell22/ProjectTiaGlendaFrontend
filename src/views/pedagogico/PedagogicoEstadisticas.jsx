@@ -23,37 +23,39 @@ const PedagogicoEstadisticas = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    // Aquí se cargarían las estadísticas desde el backend
-    // fetchEstadisticas();
-    generateMockData();
+    fetchEstadisticas();
   }, []);
 
-  const generateMockData = () => {
-    setEstadisticas({
-      totalSesiones: 156,
-      sesionesCompletadas: 142,
-      sesionesActivas: 8,
-      sesionesProgramadas: 24,
-      totalEstudiantes: 89,
-      asistenciaPromedio: 92.5,
-      pedagogosActivos: 12,
-      especialidades: 6,
-      horasImpartidas: 468,
-      calificacionPromedio: 4.2,
-      porEspecialidad: [
-        { nombre: 'Matemáticas', sesiones: 45, estudiantes: 28, asistencia: 95 },
-        { nombre: 'Lenguaje', sesiones: 38, estudiantes: 32, asistencia: 89 },
-        { nombre: 'Ciencias', sesiones: 32, estudiantes: 25, asistencia: 93 },
-        { nombre: 'Educación Física', sesiones: 28, estudiantes: 35, asistencia: 87 },
-        { nombre: 'Arte', sesiones: 13, estudiantes: 15, asistencia: 96 }
-      ],
-      tendenciaSemanal: [
-        { semana: 'Sem 1', sesiones: 28, asistencia: 91 },
-        { semana: 'Sem 2', sesiones: 32, asistencia: 94 },
-        { semana: 'Sem 3', sesiones: 29, asistencia: 88 },
-        { semana: 'Sem 4', sesiones: 35, asistencia: 96 }
-      ]
-    });
+  const fetchEstadisticas = async () => {
+    setLoading(true);
+    try {
+      const response = await sesionPedagogicaService.getEstadisticas();
+      const data = response.data || response || {};
+
+      setEstadisticas({
+        totalSesiones: data.sesiones?.total || 0,
+        sesionesCompletadas: data.sesiones?.finalizadas || 0,
+        sesionesActivas: data.sesiones?.en_curso || 0,
+        sesionesProgramadas: data.sesiones?.planificadas || 0,
+        totalEstudiantes: data.estudiantes?.total || 0,
+        asistenciaPromedio: data.porcentajes?.clases_realizadas || 0,
+        pedagogosActivos: data.pedagogos?.total || 0,
+        especialidades: data.especialidades?.total || 0,
+        horasImpartidas: data.clases?.realizadas || 0,
+        calificacionPromedio: data.calificacion_promedio || 0,
+        porEspecialidad: data.por_especialidad || [],
+        tendenciaSemanal: data.tendencia_semanal || []
+      });
+    } catch (error) {
+      console.error('Error fetching estadisticas:', error);
+      setSnackbar({
+        open: true,
+        message: 'Error al cargar estadísticas',
+        severity: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const currentDate = new Date().toLocaleDateString('es-ES', {

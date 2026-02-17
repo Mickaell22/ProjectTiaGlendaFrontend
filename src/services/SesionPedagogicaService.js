@@ -166,71 +166,22 @@ class SesionPedagogicaService {
 
   /**
    * Get general schedule for all pedagogical sessions with filters
+   * Uses the backend endpoint GET /sesiones-pedagogicas/cronograma-general
    */
   async getCronogramaSesiones(filtros = {}) {
     try {
-      // Primero, obtener todas las sesiones
-      const sesionesResponse = await this.getSesiones();
-      const sesiones = sesionesResponse.data?.data || sesionesResponse.data || [];
-      
-      if (sesiones.length === 0) {
-        return { data: [] };
-      }
-      
-      // Obtener cronograma de cada sesión y combinarlos
-      const cronogramaPromises = sesiones.map(async (sesion) => {
-        try {
-          const cronogramaResponse = await this.getCronograma(sesion.id);
-          const cronogramaData = cronogramaResponse.data?.data || cronogramaResponse.data || [];
-          
-          // Agregar información de la sesión a cada entrada del cronograma
-          return cronogramaData.map(clase => ({
-            ...clase,
-            sesion_id: sesion.id,
-            sesion_titulo: sesion.titulo,
-            nombre_clase: sesion.titulo,
-            especialidad_nombre: sesion.especialidad?.nombre || 'Especialidad',
-            educador_nombre: sesion.pedagogo?.nombre || 'Educador',
-            hora_inicio: clase.hora_programada,
-            fecha_programada: clase.fecha_programada
-          }));
-        } catch (error) {
-          return [];
-        }
-      });
-      
-      const cronogramasResults = await Promise.all(cronogramaPromises);
-      const cronogramaCompleto = cronogramasResults.flat();
-      
-      // Aplicar filtros si existen
-      let cronogramaFiltrado = cronogramaCompleto;
-      
-      if (filtros.especialidad) {
-        cronogramaFiltrado = cronogramaFiltrado.filter(clase => 
-          clase.especialidad_id === filtros.especialidad ||
-          clase.especialidad_nombre?.includes(filtros.especialidad)
-        );
-      }
-      
-      if (filtros.pedagogo) {
-        cronogramaFiltrado = cronogramaFiltrado.filter(clase => 
-          clase.pedagogo_id === filtros.pedagogo ||
-          clase.educador_nombre?.includes(filtros.pedagogo)
-        );
-      }
-      
-      if (filtros.semana) {
-        // Aplicar filtro de semana si es necesario
-        const currentWeek = new Date();
-        cronogramaFiltrado = cronogramaFiltrado.filter(clase => {
-          const claseDate = new Date(clase.fecha_programada);
-          // Simplificado: mostrar todas las clases por ahora
-          return true;
-        });
-      }
-      
-      return { data: cronogramaFiltrado };
-      
+      const params = new URLSearchParams();
+      if (filtros.especialidad) params.append('especialidad', filtros.especialidad);
+      if (filtros.pedagogo) params.append('pedagogo', filtros.pedagogo);
+      if (filtros.semana) params.append('semana', filtros.semana);
+
+      const queryString = params.toString();
+      const url = queryString
+        ? `${API_ENDPOINTS.SESIONES_PEDAGOGICAS.CRONOGRAMA_GENERAL}?${queryString}`
+        : API_ENDPOINTS.SESIONES_PEDAGOGICAS.CRONOGRAMA_GENERAL;
+
+      const response = await ApiService.get(url);
+      return response.data;
     } catch (error) {
       throw error;
     }
@@ -697,7 +648,7 @@ class SesionPedagogicaService {
     try {
       const response = await ApiService.put(
         API_ENDPOINTS.SESIONES_PEDAGOGICAS.CANCELAR_CLASE(cronogramaId),
-        { motivo_cancelacion: motivoCancelacion }
+        { motivo: motivoCancelacion }
       );
       return response.data;
     } catch (error) {
@@ -819,6 +770,20 @@ class SesionPedagogicaService {
       return response.data;
     } catch (error) {
       console.error(`Error viewing public session with token ${token}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reactivate a cancelled pedagogical session
+   */
+  async reactivarSesion(sesionId) {
+    try {
+      const response = await ApiService.put(
+        API_ENDPOINTS.SESIONES_PEDAGOGICAS.REACTIVAR(sesionId)
+      );
+      return response.data;
+    } catch (error) {
       throw error;
     }
   }

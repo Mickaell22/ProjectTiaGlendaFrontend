@@ -445,7 +445,7 @@ const PedagogicoAsistencia = () => {
                   renderValue={(val) => {
                     if (!val) return cronogramas.length === 0 ? 'No hay clases disponibles para registro' : 'Seleccione una fecha';
                     const c = cronogramas.find(x => String(x.id) === String(val));
-                    return c ? `Clase ${c.numero_clase || c.numero_clase_semanal} - ${formatDate(c.fecha_programada)} ${formatTime(c.hora_inicio)}` : 'Seleccione una fecha';
+                    return c ? `Clase ${c.numero_clase || c.numero_clase_semanal} - ${formatDate(c.fecha_programada)} ${formatTime(c.hora_programada)}` : 'Seleccione una fecha';
                   }}
                 >
                   <MenuItem value="">
@@ -453,7 +453,7 @@ const PedagogicoAsistencia = () => {
                   </MenuItem>
                   {cronogramas.map((cronograma) => (
                     <MenuItem key={cronograma.id} value={cronograma.id}>
-                      {`Clase ${cronograma.numero_clase || cronograma.numero_clase_semanal} - ${formatDate(cronograma.fecha_programada)} ${formatTime(cronograma.hora_inicio)}`}
+                      {`Clase ${cronograma.numero_clase || cronograma.numero_clase_semanal} - ${formatDate(cronograma.fecha_programada)} ${formatTime(cronograma.hora_programada)}`}
                     </MenuItem>
                   ))}
                   {cronogramas.length === 0 && selectedSesion && (
@@ -889,8 +889,13 @@ const PedagogicoAsistencia = () => {
                       type="number"
                       label="Calificación de clase (1-10)"
                       value={formData.calificacion_evaluacion || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, calificacion_evaluacion: e.target.value }))}
-                      inputProps={{ min: 1, max: 10 }}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '' || (Number.isInteger(Number(val)) && Number(val) >= 1 && Number(val) <= 10)) {
+                          setFormData(prev => ({ ...prev, calificacion_evaluacion: val }));
+                        }
+                      }}
+                      inputProps={{ min: 1, max: 10, step: 1 }}
                       disabled={!formData.asistio}
                       InputProps={{
                         startAdornment: (
