@@ -121,18 +121,15 @@ const MiPerfil = () => {
     archivo: null,
     tipo_documento: 'otros',
     descripcion: '',
-    es_confidencial: false
   });
 
   const [editForm, setEditForm] = useState({
     descripcion: '',
-    es_confidencial: false
   });
 
   const [reuploadForm, setReuploadForm] = useState({
     archivo: null,
     descripcion: '',
-    es_confidencial: false
   });
 
   // Tipos de documento disponibles
@@ -368,7 +365,6 @@ const MiPerfil = () => {
       archivo: null,
       tipo_documento: 'otros',
       descripcion: '',
-      es_confidencial: false
     });
     setShowUploadDialog(true);
   };
@@ -377,7 +373,6 @@ const MiPerfil = () => {
     setEditingDoc(selectedDoc);
     setEditForm({
       descripcion: selectedDoc.descripcion || '',
-      es_confidencial: selectedDoc.es_confidencial || false
     });
     setShowEditDialog(true);
     handleMenuClose();
@@ -388,7 +383,6 @@ const MiPerfil = () => {
     setReuploadForm({
       archivo: null,
       descripcion: selectedDoc.descripcion || '',
-      es_confidencial: selectedDoc.es_confidencial || false
     });
     setShowReuploadDialog(true);
     handleMenuClose();
@@ -399,7 +393,7 @@ const MiPerfil = () => {
 
     if (window.confirm('¿Está seguro de que desea eliminar este documento?')) {
       try {
-        await ApiService.delete(`/api/personal/${userData.personal_id}/documentos/${selectedDoc.id}`);
+        await ApiService.delete(`/api/documentos-personal/${selectedDoc.id}`);
         showSuccess('Documento eliminado exitosamente');
         loadDocumentos();
       } catch (error) {
@@ -413,7 +407,7 @@ const MiPerfil = () => {
     if (!userData?.personal_id) return;
 
     try {
-      const response = await ApiService.get(`/api/personal/${userData.personal_id}/documentos/${documento.id}/download`, {
+      const response = await ApiService.get(`/api/documentos-personal/${documento.id}/descargar`, {
         responseType: 'blob'
       });
 
@@ -440,7 +434,6 @@ const MiPerfil = () => {
       formData.append('archivo', uploadForm.archivo);
       formData.append('tipo_documento', uploadForm.tipo_documento);
       formData.append('descripcion', uploadForm.descripcion);
-      formData.append('es_confidencial', uploadForm.es_confidencial);
 
       await ApiService.post(`/api/personal/${userData.personal_id}/documentos`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -448,7 +441,7 @@ const MiPerfil = () => {
 
       showSuccess('Documento subido exitosamente');
       setShowUploadDialog(false);
-      setUploadForm({ archivo: null, tipo_documento: 'otros', descripcion: '', es_confidencial: false });
+      setUploadForm({ archivo: null, tipo_documento: 'otros', descripcion: '' });
       loadDocumentos();
     } catch (error) {
       showError('Error al subir documento');
@@ -462,7 +455,7 @@ const MiPerfil = () => {
     if (!editingDoc || !userData?.personal_id) return;
 
     try {
-      await ApiService.put(`/api/personal/${userData.personal_id}/documentos/${editingDoc.id}`, editForm);
+      await ApiService.put(`/api/documentos-personal/${editingDoc.id}`, editForm);
       showSuccess('Documento actualizado exitosamente');
       setShowEditDialog(false);
       setEditingDoc(null);
@@ -480,16 +473,15 @@ const MiPerfil = () => {
       const formData = new FormData();
       formData.append('archivo', reuploadForm.archivo);
       formData.append('descripcion', reuploadForm.descripcion);
-      formData.append('es_confidencial', reuploadForm.es_confidencial);
 
-      await ApiService.put(`/api/personal/${userData.personal_id}/documentos/${editingDoc.id}/archivo`, formData, {
+      await ApiService.put(`/api/documentos-personal/${editingDoc.id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       showSuccess('Documento resubido exitosamente');
       setShowReuploadDialog(false);
       setEditingDoc(null);
-      setReuploadForm({ archivo: null, descripcion: '', es_confidencial: false });
+      setReuploadForm({ archivo: null, descripcion: '' });
       loadDocumentos();
     } catch (error) {
       showError('Error al resubir documento');
@@ -1226,11 +1218,17 @@ const MiPerfil = () => {
                             color="primary"
                             variant="outlined"
                           />
-                          {documento.es_confidencial && (
+                          {documento.estado_validacion && (
                             <Chip
-                              label="Confidencial"
+                              label={documento.estado_validacion.replace('_', ' ')}
                               size="small"
-                              color="error"
+                              color={
+                                documento.estado_validacion === 'aprobado' ? 'success' :
+                                documento.estado_validacion === 'rechazado' ? 'error' :
+                                documento.estado_validacion === 'vencido' ? 'error' :
+                                documento.estado_validacion === 'en_revision' ? 'info' :
+                                'warning'
+                              }
                               variant="filled"
                             />
                           )}
@@ -1251,7 +1249,7 @@ const MiPerfil = () => {
                             <strong>Tamaño:</strong> {documento.tamaño_archivo ? `${(documento.tamaño_archivo / 1024).toFixed(1)} KB` : 'N/A'}
                           </Typography>
                           <Typography variant="caption" display="block">
-                            <strong>Subido:</strong> {documento.fecha_creacion ? new Date(documento.fecha_creacion).toLocaleDateString() : 'N/A'}
+                            <strong>Subido:</strong> {documento.fecha_subida ? new Date(documento.fecha_subida).toLocaleDateString() : 'N/A'}
                           </Typography>
                           {documento.fecha_vencimiento && (
                             <Typography variant="caption" display="block">
@@ -1805,7 +1803,7 @@ const MiPerfil = () => {
         {canManageDocuments() && (
           [
             <MenuItem key="edit" onClick={() => {
-              setEditForm({ descripcion: selectedDoc?.descripcion || '', es_confidencial: selectedDoc?.es_confidencial || false });
+              setEditForm({ descripcion: selectedDoc?.descripcion || '' });
               setShowEditDialog(true);
               setMenuAnchor(null);
             }}>
@@ -1813,7 +1811,7 @@ const MiPerfil = () => {
               <ListItemText primary="Editar" />
             </MenuItem>,
             <MenuItem key="reupload" onClick={() => {
-              setReuploadForm({ archivo: null, descripcion: selectedDoc?.descripcion || '', es_confidencial: selectedDoc?.es_confidencial || false });
+              setReuploadForm({ archivo: null, descripcion: selectedDoc?.descripcion || '' });
               setShowReuploadDialog(true);
               setMenuAnchor(null);
             }}>

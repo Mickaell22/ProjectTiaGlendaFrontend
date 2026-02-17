@@ -11,8 +11,6 @@ import {
   DialogActions,
   TextField,
   MenuItem,
-  FormControlLabel,
-  Checkbox,
   Grid,
   IconButton,
   Chip,
@@ -33,7 +31,6 @@ import {
   ArrowBack,
   Refresh,
   Description,
-  Security,
   Close,
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -73,7 +70,6 @@ const DocumentosPersonal = () => {
     archivo: null,
     tipo_documento: 'otros',
     descripcion: '',
-    es_confidencial: false,
     fecha_vencimiento: ''
   });
 
@@ -160,7 +156,6 @@ const DocumentosPersonal = () => {
       formData.append('archivo', uploadData.archivo);
       formData.append('tipo_documento', uploadData.tipo_documento);
       formData.append('descripcion', uploadData.descripcion);
-      formData.append('es_confidencial', uploadData.es_confidencial);
       if (uploadData.fecha_vencimiento) formData.append('fecha_vencimiento', uploadData.fecha_vencimiento);
 
       await ApiService.post(`/api/personal/${personalId}/documentos`, formData, {
@@ -175,7 +170,6 @@ const DocumentosPersonal = () => {
         archivo: null,
         tipo_documento: 'otros',
         descripcion: '',
-        es_confidencial: false,
         fecha_vencimiento: ''
       });
 
@@ -195,13 +189,13 @@ const DocumentosPersonal = () => {
   const handleDownload = async (documento) => {
     try {
       const response = await ApiService.get(
-        `/api/personal/${personalId}/documentos/${documento.id}`,
+        `/api/documentos-personal/${documento.id}/descargar`,
         { responseType: 'blob' }
       );
       const url = window.URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
-      link.download = documento.nombre_original;
+      link.download = documento.nombre_original || documento.nombre_archivo;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -218,7 +212,7 @@ const DocumentosPersonal = () => {
       return;
     }
     try {
-      await ApiService.delete(`/api/personal/${personalId}/documentos/${documento.id}`);
+      await ApiService.delete(`/api/documentos-personal/${documento.id}`);
       setSnackbar({ open: true, message: 'Documento eliminado exitosamente', severity: 'success' });
       await loadDocumentos();
     } catch (error) {
@@ -242,11 +236,10 @@ const DocumentosPersonal = () => {
       const updateData = {
         tipo_documento: editingDocumento.tipo_documento,
         descripcion: editingDocumento.descripcion,
-        es_confidencial: editingDocumento.es_confidencial,
         fecha_vencimiento: editingDocumento.fecha_vencimiento || null
       };
       await ApiService.put(
-        `/api/personal/${personalId}/documentos/${editingDocumento.id}`,
+        `/api/documentos-personal/${editingDocumento.id}`,
         updateData
       );
       setSnackbar({ open: true, message: 'Documento actualizado exitosamente', severity: 'success' });
@@ -492,12 +485,17 @@ const DocumentosPersonal = () => {
                           color="primary"
                           variant="outlined"
                         />
-                        {documento.es_confidencial && (
+                        {documento.estado_validacion && (
                           <Chip
-                            icon={<Security />}
-                            label="Confidencial"
+                            label={documento.estado_validacion.replace('_', ' ')}
                             size="small"
-                            color="error"
+                            color={
+                              documento.estado_validacion === 'aprobado' ? 'success' :
+                              documento.estado_validacion === 'rechazado' ? 'error' :
+                              documento.estado_validacion === 'vencido' ? 'error' :
+                              documento.estado_validacion === 'en_revision' ? 'info' :
+                              'warning'
+                            }
                             variant="outlined"
                           />
                         )}
@@ -518,7 +516,7 @@ const DocumentosPersonal = () => {
                           <strong>Tamaño:</strong> {formatFileSize(documento.tamaño_archivo)}
                         </Typography>
                         <Typography variant="caption" display="block">
-                          <strong>Subido:</strong> {formatDate(documento.fecha_creacion)}
+                          <strong>Subido:</strong> {formatDate(documento.fecha_subida)}
                         </Typography>
                         {documento.fecha_vencimiento && (
                           <Typography variant="caption" display="block">
@@ -680,18 +678,6 @@ const DocumentosPersonal = () => {
                 disabled={uploading}
               />
 
-              {/* Confidencial */}
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={uploadData.es_confidencial}
-                    onChange={(e) => setUploadData(prev => ({ ...prev, es_confidencial: e.target.checked }))}
-                    disabled={uploading}
-                  />
-                }
-                label="Documento Confidencial"
-              />
-
               {/* Loading */}
               {uploading && (
                 <Alert severity="info" icon={<CircularProgress size={20} />}>
@@ -771,17 +757,6 @@ const DocumentosPersonal = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={editingDocumento.es_confidencial}
-                        onChange={(e) => setEditingDocumento(prev => ({ ...prev, es_confidencial: e.target.checked }))}
-                      />
-                    }
-                    label="🔒 Documento confidencial"
-                  />
-                </Grid>
               </Grid>
             </DialogContent>
             <DialogActions>

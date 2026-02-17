@@ -113,7 +113,7 @@ const PersonalDetalles = ({
 
     if (window.confirm('¿Está seguro de que desea eliminar este documento?')) {
       try {
-        await ApiService.delete(`/api/personal/${data.id}/documentos/${selectedDoc.id}`);
+        await ApiService.delete(`/api/documentos-personal/${selectedDoc.id}`);
         setSnackbar({ open: true, message: 'Documento eliminado exitosamente', severity: 'success' });
         loadDocumentos();
       } catch (error) {
@@ -383,11 +383,17 @@ const PersonalDetalles = ({
                                   color="primary"
                                   variant="outlined"
                                 />
-                                {documento.es_confidencial && (
+                                {documento.estado_validacion && (
                                   <Chip
-                                    label="Confidencial"
+                                    label={documento.estado_validacion.replace('_', ' ')}
                                     size="small"
-                                    color="error"
+                                    color={
+                                      documento.estado_validacion === 'aprobado' ? 'success' :
+                                      documento.estado_validacion === 'rechazado' ? 'error' :
+                                      documento.estado_validacion === 'vencido' ? 'error' :
+                                      documento.estado_validacion === 'en_revision' ? 'info' :
+                                      'warning'
+                                    }
                                     variant="filled"
                                   />
                                 )}
@@ -405,7 +411,7 @@ const PersonalDetalles = ({
                                   {documento.tamaño_archivo ? `${(documento.tamaño_archivo / 1024).toFixed(1)} KB` : 'N/A'}
                                 </Typography>
                                 <Typography variant="caption" color="text.secondary">
-                                  {documento.fecha_creacion ? formatDateLocal(documento.fecha_creacion) : 'N/A'}
+                                  {documento.fecha_subida ? formatDateLocal(documento.fecha_subida) : 'N/A'}
                                 </Typography>
                               </Box>
                             </Box>

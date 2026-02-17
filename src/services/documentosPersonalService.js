@@ -149,10 +149,6 @@ export class DocumentosPersonalService {
       formData.append('descripcion', frontendData.descripcion.trim());
     }
     
-    if (frontendData.fecha_documento) {
-      formData.append('fecha_documento', frontendData.fecha_documento);
-    }
-    
     if (frontendData.fecha_vencimiento) {
       formData.append('fecha_vencimiento', frontendData.fecha_vencimiento);
     }
@@ -163,11 +159,11 @@ export class DocumentosPersonalService {
   // Obtener información del estado de un documento
   static getEstadoInfo(estado) {
     const estadoMap = {
-      activo: { label: 'Activo', color: 'success' },
-      inactivo: { label: 'Inactivo', color: 'error' },
       pendiente: { label: 'Pendiente', color: 'warning' },
+      en_revision: { label: 'En Revision', color: 'info' },
       aprobado: { label: 'Aprobado', color: 'success' },
       rechazado: { label: 'Rechazado', color: 'error' },
+      vencido: { label: 'Vencido', color: 'error' },
     };
 
     return estadoMap[estado] || { label: estado || 'Sin estado', color: 'default' };
@@ -252,8 +248,10 @@ export class DocumentosPersonalService {
   // Estadísticas de documentos
   static getDocumentosStats(documentos) {
     const total = documentos.length;
-    const activos = documentos.filter(d => d.estado === 'activo').length;
-    const pendientes = documentos.filter(d => d.estado === 'pendiente').length;
+    const aprobados = documentos.filter(d => d.estado_validacion === 'aprobado').length;
+    const pendientes = documentos.filter(d => d.estado_validacion === 'pendiente').length;
+    const enRevision = documentos.filter(d => d.estado_validacion === 'en_revision').length;
+    const rechazados = documentos.filter(d => d.estado_validacion === 'rechazado').length;
     const vencidos = documentos.filter(d => this.isDocumentoVencido(d.fecha_vencimiento)).length;
     const proximosVencer = documentos.filter(d => 
       !this.isDocumentoVencido(d.fecha_vencimiento) && 
@@ -269,8 +267,10 @@ export class DocumentosPersonalService {
 
     return {
       total,
-      activos,
+      aprobados,
       pendientes,
+      enRevision,
+      rechazados,
       vencidos,
       proximosVencer,
       porTipo
