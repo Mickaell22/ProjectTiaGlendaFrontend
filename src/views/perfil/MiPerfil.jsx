@@ -1543,7 +1543,7 @@ const MiPerfil = () => {
               <input
                 id="photo-upload"
                 type="file"
-                accept="image/jpeg,image/jpg,image/png"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                 onChange={handleFileSelect}
                 style={{ display: 'none' }}
               />
