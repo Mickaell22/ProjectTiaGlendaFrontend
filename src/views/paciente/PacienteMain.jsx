@@ -54,7 +54,7 @@ function a11yProps(index) {
 const PacienteMain = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const { isAdmin, isTherapist, permissions, loading: roleLoading } = useUserRole();
+  const { isAdmin, isTherapist, isPedagogue, permissions, loading: roleLoading } = useUserRole();
 
   // Tabs/UI
   const [activeTab, setActiveTab] = useState(0);
@@ -77,17 +77,30 @@ const PacienteMain = () => {
   const { requireAuth } = useAuth();
 
   useEffect(() => {
-    if (requireAuth()) {
+    if (!roleLoading && requireAuth()) {
       fetchData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [roleLoading, isAdmin, isTherapist, isPedagogue]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+
+      // Admin ve todos los pacientes; terapeuta y pedagogo solo ven los suyos
+      let pacientesPromise;
+      if (isAdmin) {
+        pacientesPromise = PacienteService.getAll();
+      } else if (isTherapist) {
+        pacientesPromise = PacienteService.getMisPacientes();
+      } else if (isPedagogue) {
+        pacientesPromise = PacienteService.getMisEstudiantes();
+      } else {
+        pacientesPromise = Promise.resolve([]);
+      }
+
       const [pacientesData, especialidadesData] = await Promise.all([
-        PacienteService.getAll(),
+        pacientesPromise,
         EspecialidadService.getAll()
       ]);
       setPacientes(pacientesData);

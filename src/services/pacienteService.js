@@ -5,10 +5,24 @@ import ApiService, { extractData } from './apiService.js';
 import { API_ENDPOINTS } from '../config/api.js';
 
 export class PacienteService {
-  // Obtener todos los pacientes
+  // Obtener todos los pacientes (solo admin)
   static async getAll() {
     const response = await ApiService.get(API_ENDPOINTS.PACIENTES.BASE);
     return extractData(response);
+  }
+
+  // Obtener pacientes asignados al terapeuta autenticado
+  static async getMisPacientes() {
+    const response = await ApiService.get('/api/dashboard/mis-pacientes');
+    const data = response.data?.data ?? response.data;
+    return Array.isArray(data) ? data : [];
+  }
+
+  // Obtener estudiantes asignados al pedagogo autenticado
+  static async getMisEstudiantes() {
+    const response = await ApiService.get('/api/dashboard/mis-estudiantes');
+    const data = response.data?.data ?? response.data;
+    return Array.isArray(data) ? data : [];
   }
 
   // Obtener paciente por ID

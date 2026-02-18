@@ -132,63 +132,75 @@ class DashboardService {
    */
   async getAdminDashboard() {
     try {
-      // Use estadisticas endpoint which has real data
-      const response = await ApiService.get('/api/dashboard/estadisticas');
+      // Parallel calls: main stats + optional enrichment endpoints
+      const [statsResponse, actividadResult, alertasResult, rendimientoResult] = await Promise.allSettled([
+        ApiService.get('/api/dashboard/estadisticas'),
+        ApiService.get('/api/dashboard/actividad-reciente'),
+        ApiService.get('/api/dashboard/alertas'),
+        ApiService.get('/api/dashboard/rendimiento-semanal'),
+      ]);
 
-      if (response.data && response.data.data) {
-        const statsData = response.data.data;
-
-        // Transform data to match admin dashboard format
-        const transformedData = {
-          status: 'success',
-          data: {
-            usuarios: {
-              total: statsData.usuarios_activos || 0,
-              activos: statsData.usuarios_activos || 0,
-              inactivos: 0,
-              nuevos_este_mes: 0
-            },
-            pacientes: {
-              total: statsData.total_pacientes || 0,
-              activos: statsData.total_pacientes || 0,
-              nuevos_este_mes: 0,
-              por_edad: {
-                '0-5': 0,
-                '6-12': 0,
-                '13-18': 0,
-                '18+': 0
-              }
-            },
-            personal: {
-              total: (statsData.terapeutas || 0) + (statsData.pedagogos || 0),
-              terapeutas: statsData.terapeutas || 0,
-              pedagogos: statsData.pedagogos || 0,
-              administrativos: 0
-            },
-            especialidades: {
-              total: statsData.especialidades || 0,
-              terapeuticas: Math.floor((statsData.especialidades || 0) * 0.6),
-              pedagogicas: Math.floor((statsData.especialidades || 0) * 0.4)
-            },
-            sesiones: {
-              hoy: statsData.sesiones_hoy || 0,
-              esta_semana: 0,
-              completadas_mes: 0,
-              canceladas_mes: 0
-            },
-            estadisticas: {
-              asistencia_promedio: statsData.asistencia_promedio || 0,
-              satisfaccion_promedio: 0,
-              utilizacion_salas: 0
-            }
-          }
-        };
-
-        return transformedData;
+      if (statsResponse.status !== 'fulfilled' || !statsResponse.value?.data?.data) {
+        console.error('No data in estadisticas response:', statsResponse);
+        return { status: 'error', message: 'No data received' };
       }
 
-      console.error('No data in response:', response);
-      return { status: 'error', message: 'No data received' };
+      const statsData = statsResponse.value.data.data;
+
+      const actividadReciente = actividadResult.status === 'fulfilled'
+        ? (actividadResult.value?.data?.data || actividadResult.value?.data || [])
+        : [];
+
+      const alertas = alertasResult.status === 'fulfilled'
+        ? (alertasResult.value?.data?.data || alertasResult.value?.data || [])
+        : [];
+
+      const rendimientoSemanal = rendimientoResult.status === 'fulfilled'
+        ? (rendimientoResult.value?.data?.data || rendimientoResult.value?.data || [0,0,0,0,0,0,0])
+        : [0,0,0,0,0,0,0];
+
+      return {
+        status: 'success',
+        data: {
+          usuarios: {
+            total: statsData.usuarios_activos || 0,
+            activos: statsData.usuarios_activos || 0,
+            inactivos: 0,
+            nuevos_este_mes: 0
+          },
+          pacientes: {
+            total: statsData.total_pacientes || 0,
+            activos: statsData.total_pacientes || 0,
+            nuevos_este_mes: 0,
+            por_edad: { '0-5': 0, '6-12': 0, '13-18': 0, '18+': 0 }
+          },
+          personal: {
+            total: (statsData.terapeutas || 0) + (statsData.pedagogos || 0),
+            terapeutas: statsData.terapeutas || 0,
+            pedagogos: statsData.pedagogos || 0,
+            administrativos: 0
+          },
+          especialidades: {
+            total: statsData.especialidades || 0,
+            terapeuticas: Math.floor((statsData.especialidades || 0) * 0.6),
+            pedagogicas: Math.floor((statsData.especialidades || 0) * 0.4)
+          },
+          sesiones: {
+            hoy: statsData.sesiones_hoy || 0,
+            esta_semana: 0,
+            completadas_mes: 0,
+            canceladas_mes: 0
+          },
+          estadisticas: {
+            asistencia_promedio: statsData.asistencia_promedio || 0,
+            satisfaccion_promedio: 0,
+            utilizacion_salas: 0
+          },
+          actividad_reciente: Array.isArray(actividadReciente) ? actividadReciente : [],
+          alertas: Array.isArray(alertas) ? alertas : [],
+          rendimiento_semanal: Array.isArray(rendimientoSemanal) ? rendimientoSemanal : [0,0,0,0,0,0,0],
+        }
+      };
 
     } catch (error) {
       console.error('Error in getAdminDashboard:', error);
@@ -201,41 +213,58 @@ class DashboardService {
    */
   async getTherapistDashboard() {
     try {
-      // Use same estadisticas endpoint but format for therapist
-      const response = await ApiService.get('/api/dashboard/estadisticas');
+      const [statsResponse, sesionesResult, pacientesResult] = await Promise.allSettled([
+        ApiService.get('/api/dashboard/estadisticas'),
+        ApiService.get('/api/dashboard/mis-sesiones-hoy'),
+        ApiService.get('/api/dashboard/mis-pacientes'),
+      ]);
 
-      if (response.data && response.data.data) {
-        const statsData = response.data.data;
-
-        const transformedData = {
-          status: 'success',
-          data: {
-            mis_pacientes: {
-              total: Math.floor((statsData.total_pacientes || 0) / (statsData.terapeutas || 1)),
-              activos: Math.floor((statsData.total_pacientes || 0) / (statsData.terapeutas || 1)),
-              dados_alta: 0,
-              nuevos_este_mes: 0
-            },
-            sesiones: {
-              hoy: 0,
-              esta_semana: 0,
-              completadas_mes: 0,
-              pendientes: 0
-            },
-            agenda_hoy: [],
-            estadisticas: {
-              asistencia_promedio: statsData.asistencia_promedio || 0,
-              horas_trabajadas_mes: 0,
-              evaluaciones_pendientes: 0,
-              objetivos_cumplidos: 0
-            }
-          }
-        };
-
-        return transformedData;
+      if (statsResponse.status !== 'fulfilled' || !statsResponse.value?.data?.data) {
+        return { status: 'error', message: 'No data received' };
       }
 
-      return { status: 'error', message: 'No data received' };
+      const statsData = statsResponse.value.data.data;
+
+      const agendaHoy = sesionesResult.status === 'fulfilled'
+        ? (sesionesResult.value?.data?.data || sesionesResult.value?.data || [])
+        : [];
+
+      const misPacientesRaw = pacientesResult.status === 'fulfilled'
+        ? (pacientesResult.value?.data?.data || pacientesResult.value?.data || null)
+        : null;
+
+      const totalPacientes = misPacientesRaw?.total
+        ?? (Array.isArray(misPacientesRaw) ? misPacientesRaw.length : null)
+        ?? Math.floor((statsData.total_pacientes || 0) / (statsData.terapeutas || 1));
+
+      const activosPacientes = misPacientesRaw?.activos ?? totalPacientes;
+
+      return {
+        status: 'success',
+        data: {
+          mis_pacientes: {
+            total: totalPacientes,
+            activos: activosPacientes,
+            dados_alta: misPacientesRaw?.dados_alta || 0,
+            nuevos_este_mes: misPacientesRaw?.nuevos_este_mes || 0
+          },
+          sesiones: {
+            hoy: Array.isArray(agendaHoy) ? agendaHoy.length : 0,
+            esta_semana: 0,
+            completadas_mes: 0,
+            pendientes: Array.isArray(agendaHoy)
+              ? agendaHoy.filter(s => s.estado === 'pendiente').length
+              : 0
+          },
+          agenda_hoy: Array.isArray(agendaHoy) ? agendaHoy : [],
+          estadisticas: {
+            asistencia_promedio: statsData.asistencia_promedio || 0,
+            horas_trabajadas_mes: 0,
+            evaluaciones_pendientes: 0,
+            objetivos_cumplidos: 0
+          }
+        }
+      };
     } catch (error) {
       console.error('Error in getTherapistDashboard:', error);
       throw error;
@@ -247,41 +276,56 @@ class DashboardService {
    */
   async getPedagogueDashboard() {
     try {
-      // Use same estadisticas endpoint but format for pedagogue
-      const response = await ApiService.get('/api/dashboard/estadisticas');
+      const [statsResponse, clasesResult, estudiantesResult] = await Promise.allSettled([
+        ApiService.get('/api/dashboard/estadisticas'),
+        ApiService.get('/api/dashboard/mis-clases-hoy'),
+        ApiService.get('/api/dashboard/mis-estudiantes'),
+      ]);
 
-      if (response.data && response.data.data) {
-        const statsData = response.data.data;
-
-        const transformedData = {
-          status: 'success',
-          data: {
-            mis_estudiantes: {
-              total: Math.floor((statsData.total_pacientes || 0) / (statsData.pedagogos || 1)),
-              activos: Math.floor((statsData.total_pacientes || 0) / (statsData.pedagogos || 1)),
-              graduados: 0,
-              nuevos_este_mes: 0
-            },
-            clases: {
-              hoy: 0,
-              esta_semana: 0,
-              completadas_mes: 0,
-              canceladas_mes: 0
-            },
-            horario_hoy: [],
-            estadisticas: {
-              asistencia_promedio: statsData.asistencia_promedio || 0,
-              horas_clase_mes: 0,
-              evaluaciones_pendientes: 0,
-              rendimiento_promedio: 0
-            }
-          }
-        };
-
-        return transformedData;
+      if (statsResponse.status !== 'fulfilled' || !statsResponse.value?.data?.data) {
+        return { status: 'error', message: 'No data received' };
       }
 
-      return { status: 'error', message: 'No data received' };
+      const statsData = statsResponse.value.data.data;
+
+      const horarioHoy = clasesResult.status === 'fulfilled'
+        ? (clasesResult.value?.data?.data || clasesResult.value?.data || [])
+        : [];
+
+      const misEstudiantesRaw = estudiantesResult.status === 'fulfilled'
+        ? (estudiantesResult.value?.data?.data || estudiantesResult.value?.data || null)
+        : null;
+
+      const totalEstudiantes = misEstudiantesRaw?.total
+        ?? (Array.isArray(misEstudiantesRaw) ? misEstudiantesRaw.length : null)
+        ?? Math.floor((statsData.total_pacientes || 0) / (statsData.pedagogos || 1));
+
+      const activosEstudiantes = misEstudiantesRaw?.activos ?? totalEstudiantes;
+
+      return {
+        status: 'success',
+        data: {
+          mis_estudiantes: {
+            total: totalEstudiantes,
+            activos: activosEstudiantes,
+            graduados: misEstudiantesRaw?.graduados || 0,
+            nuevos_este_mes: misEstudiantesRaw?.nuevos_este_mes || 0
+          },
+          clases: {
+            hoy: Array.isArray(horarioHoy) ? horarioHoy.length : 0,
+            esta_semana: 0,
+            completadas_mes: 0,
+            canceladas_mes: 0
+          },
+          horario_hoy: Array.isArray(horarioHoy) ? horarioHoy : [],
+          estadisticas: {
+            asistencia_promedio: statsData.asistencia_promedio || 0,
+            horas_clase_mes: 0,
+            evaluaciones_pendientes: 0,
+            rendimiento_promedio: 0
+          }
+        }
+      };
     } catch (error) {
       console.error('Error in getPedagogueDashboard:', error);
       throw error;

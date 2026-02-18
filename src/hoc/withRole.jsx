@@ -90,26 +90,46 @@ const withRole = (WrappedComponent, options = {}) => {
     };
 
     /**
-     * Obtiene el rol del usuario actual desde diferentes fuentes posibles
-     * @returns {string|null} - Rol del usuario en minúsculas
+     * Obtiene el rol canónico del usuario desde diferentes fuentes posibles.
+     * Usa la misma lógica que DashboardMain para garantizar consistencia.
+     * @returns {string|null} - Rol del usuario en minúsculas (forma canónica)
      */
     const getUserRole = () => {
       if (!user) return null;
 
-      // Intentar obtener el rol de diferentes propiedades
-      let role = user.rol_nombre || user.rol?.nombre || user.rol;
+      // Extraer el rol raw de las propiedades disponibles
+      let rawRole = user.rol_nombre || user.rol?.nombre || user.rol;
 
-      // Si el rol es un objeto, intentar extraer el nombre
-      if (typeof role === 'object' && role !== null) {
-        role = role.nombre || role.label || null;
+      // Si el rol es un objeto, extraer el nombre
+      if (typeof rawRole === 'object' && rawRole !== null) {
+        rawRole = rawRole.nombre || rawRole.label || null;
       }
 
-      // Convertir a minúsculas y limpiar espacios
-      if (typeof role === 'string') {
-        return role.trim().toLowerCase();
+      const roleLower = typeof rawRole === 'string' ? rawRole.trim().toLowerCase() : '';
+
+      // Administrador (match exacto)
+      if (roleLower === 'administrador' || roleLower === 'admin') {
+        return 'administrador';
       }
 
-      return null;
+      // Verificar por especialidades primero (igual que DashboardMain)
+      if (user.especialidades && user.especialidades.length > 0) {
+        const hasTherapeutic = user.especialidades.some(esp =>
+          esp.area?.toLowerCase().includes('terap')
+        );
+        const hasPedagogical = user.especialidades.some(esp =>
+          esp.area?.toLowerCase().includes('pedag')
+        );
+        if (hasTherapeutic) return 'terapeuta';
+        if (hasPedagogical) return 'pedagogo';
+      }
+
+      // Fallback por nombre de rol (substring match para variaciones del backend)
+      if (roleLower.includes('terap')) return 'terapeuta';
+      if (roleLower.includes('pedag')) return 'pedagogo';
+      if (roleLower.includes('admin')) return 'administrador';
+
+      return roleLower || null;
     };
 
     /**

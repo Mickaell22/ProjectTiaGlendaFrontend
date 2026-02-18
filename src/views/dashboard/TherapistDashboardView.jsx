@@ -1,21 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Typography, Card, CardContent, Grid, Avatar, LinearProgress,
-  Divider, Paper, Button, Alert, List, ListItem, ListItemText, Chip, CircularProgress, Skeleton
+  Divider, Paper, Button, Alert, List, ListItem, ListItemText, Chip, Skeleton
 } from '@mui/material';
 import {
-  Psychology, EventNote, AccessTime, TrendingUp, CalendarToday,
-  CheckCircle, Person, Assignment, Schedule, Settings, Refresh
+  Psychology, AccessTime, CalendarToday,
+  CheckCircle, Person, Refresh
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
 import { useAuth } from 'src/contexts/AuthContext';
 import PageContainer from 'src/components/container/PageContainer';
 import { dashboardService } from 'src/services/dashboardService';
-import { useNavigate } from 'react-router-dom';
 
 const TherapistDashboardView = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
@@ -47,29 +45,14 @@ const TherapistDashboardView = () => {
 
   const handleRetry = useCallback(() => {
     loadTherapistData();
-  }, [loadTherapistData]);
-
-  const handleVerSesiones = useCallback(() => {
-    navigate('/terapeutico', { state: { initialTab: 0 } }); // Tab "Sesiones"
-  }, [navigate]);
-
-  const handleVerCronogramas = useCallback(() => {
-    navigate('/terapeutico', { state: { initialTab: 1 } }); // Tab "Cronogramas"
-  }, [navigate]);
-
-  const handleVerAsistencia = useCallback(() => {
-    navigate('/terapeutico', { state: { initialTab: 2 } }); // Tab "Asistencia"
-  }, [navigate]);
-
-  const handleVerHoy = useCallback(() => {
-    navigate('/terapeutico', { state: { initialTab: 3 } }); // Tab "Hoy"
-  }, [navigate]);
+  }, []);
 
   const getEstadoColor = (estado) => {
     switch (estado) {
       case 'confirmada': return 'success';
       case 'pendiente': return 'warning';
       case 'reprogramada': return 'info';
+      case 'completada': return 'success';
       default: return 'default';
     }
   };
@@ -78,15 +61,12 @@ const TherapistDashboardView = () => {
     return (
       <PageContainer title="Mi Panel Terapéutico" description="Dashboard del terapeuta">
         <Box>
-          {/* Header Skeleton */}
-          <Paper elevation={4} sx={{ p: 4, mb: 3, borderRadius: 3, maxWidth: 1000, mx: 'auto' }}>
+          <Paper elevation={4} sx={{ p: 4, mb: 3, borderRadius: 3 }}>
             <Skeleton variant="text" width="50%" height={50} sx={{ mx: 'auto' }} />
             <Skeleton variant="text" width="70%" height={30} sx={{ mt: 1, mx: 'auto' }} />
-            <Skeleton variant="text" width="60%" height={25} sx={{ mt: 1, mx: 'auto' }} />
           </Paper>
 
-          {/* Stats Cards Skeleton */}
-          <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: 'auto', justifyContent: 'center' }}>
+          <Grid container spacing={2} sx={{ mb: 4, justifyContent: 'center' }}>
             {[1, 2, 3, 4].map((item) => (
               <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center" key={item}>
                 <Card sx={{ height: 200, width: 200 }}>
@@ -95,7 +75,6 @@ const TherapistDashboardView = () => {
                       <Skeleton variant="circular" width={56} height={56} sx={{ mb: 2 }} />
                       <Skeleton variant="text" width="60%" height={40} />
                       <Skeleton variant="text" width="80%" height={20} />
-                      <Skeleton variant="text" width="50%" height={15} sx={{ mt: 1 }} />
                       <Skeleton variant="rectangular" width="100%" height={10} sx={{ mt: 1, borderRadius: 1 }} />
                     </Box>
                   </CardContent>
@@ -104,10 +83,9 @@ const TherapistDashboardView = () => {
             ))}
           </Grid>
 
-          {/* Agenda Skeleton */}
           <Grid container spacing={3} sx={{ mb: 4 }}>
             <Grid item xs={12}>
-              <Card sx={{ width: 1000, height: 500, mx: 'auto' }}>
+              <Card sx={{ maxWidth: 1000, mx: 'auto' }}>
                 <CardContent>
                   <Skeleton variant="text" width="40%" height={30} sx={{ mb: 2 }} />
                   <Skeleton variant="rectangular" width="100%" height={1} sx={{ mb: 2 }} />
@@ -167,6 +145,11 @@ const TherapistDashboardView = () => {
     );
   }
 
+  const totalSesiones = dashboardData.sesiones?.hoy || 0;
+  const pendientesSesiones = dashboardData.sesiones?.pendientes || 0;
+  const completadasSesiones = totalSesiones - pendientesSesiones;
+  const asistenciaPromedio = dashboardData.estadisticas?.asistencia_promedio || 0;
+
   return (
     <PageContainer title="Mi Panel Terapéutico" description="Dashboard del terapeuta">
       <Box>
@@ -180,7 +163,6 @@ const TherapistDashboardView = () => {
             background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             maxWidth: 1000,
-            width: 'auto',
             textAlign: 'center',
             display: 'flex',
             flexDirection: 'column',
@@ -197,35 +179,27 @@ const TherapistDashboardView = () => {
             Gestiona tus pacientes y sesiones de terapia de forma eficiente
           </Typography>
           <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                📅 Hoy: {new Date().toLocaleDateString('es-ES', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                👥 {dashboardData?.mis_pacientes?.total || 0} pacientes asignados
-              </Typography>
-            </Box>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              📅 Hoy: {new Date().toLocaleDateString('es-ES', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+              })}
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              👥 {dashboardData?.mis_pacientes?.total || 0} pacientes asignados
+            </Typography>
           </Box>
         </Paper>
 
         {/* Main Statistics */}
         <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: 'auto', justifyContent: 'center' }}>
-                  <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
-                    <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
-                      <CardContent sx={{ p: 3 }}>
+          <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+            <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
+              <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
                   <Avatar sx={{ mb: 2, bgcolor: 'primary.main', width: 56, height: 56 }}>
                     <Person fontSize="large" />
                   </Avatar>
-                  <Typography variant="h4" fontWeight="bold" sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}
-                  >
+                  <Typography variant="h4" fontWeight="bold" sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}>
                     {dashboardData.mis_pacientes?.total || 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -237,7 +211,6 @@ const TherapistDashboardView = () => {
                   <LinearProgress
                     variant="determinate"
                     value={dashboardData.mis_pacientes?.total > 0 ? ((dashboardData.mis_pacientes?.dados_alta || 0) / dashboardData.mis_pacientes?.total) * 100 : 0}
-                    color="primary.main"
                     sx={{ mt: 1, borderRadius: 1, width: '100%' }}
                   />
                 </Box>
@@ -252,22 +225,18 @@ const TherapistDashboardView = () => {
                   <Avatar sx={{ mb: 2, bgcolor: 'primary.main', width: 56, height: 56 }}>
                     <CalendarToday fontSize="large" />
                   </Avatar>
-                  <Typography variant="h4" fontWeight="bold" sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}
-                  >
-                    {dashboardData.sesiones?.hoy || 0}
+                  <Typography variant="h4" fontWeight="bold" sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}>
+                    {totalSesiones}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
                     Sesiones Hoy
                   </Typography>
                   <Typography variant="caption" color="primary.main">
-                    {dashboardData.sesiones?.pendientes || 0} pendientes
+                    {pendientesSesiones} pendientes
                   </Typography>
                   <LinearProgress
                     variant="determinate"
-                    value={dashboardData.sesiones?.hoy > 0
-                      ? Math.min(((dashboardData.sesiones.hoy - (dashboardData.sesiones?.pendientes || 0)) / dashboardData.sesiones.hoy) * 100, 100)
-                      : 0}
-                    color="primary.main"
+                    value={totalSesiones > 0 ? Math.min((completadasSesiones / totalSesiones) * 100, 100) : 0}
                     sx={{ mt: 1, borderRadius: 1, width: '100%' }}
                   />
                 </Box>
@@ -282,9 +251,8 @@ const TherapistDashboardView = () => {
                   <Avatar sx={{ mb: 2, bgcolor: 'primary.main', width: 56, height: 56 }}>
                     <Psychology fontSize="large" />
                   </Avatar>
-                  <Typography variant="h4" fontWeight="bold" sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}
-                  >
-                    {dashboardData.estadisticas?.asistencia_promedio || 0}%
+                  <Typography variant="h4" fontWeight="bold" sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}>
+                    {asistenciaPromedio}%
                   </Typography>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
                     Asistencia Promedio
@@ -292,8 +260,7 @@ const TherapistDashboardView = () => {
                   <Box my={1} />
                   <LinearProgress
                     variant="determinate"
-                    value={dashboardData.estadisticas?.asistencia_promedio || 0}
-                    color="primary.main"
+                    value={asistenciaPromedio}
                     sx={{ mt: 1, borderRadius: 1, width: '100%' }}
                   />
                 </Box>
@@ -308,8 +275,7 @@ const TherapistDashboardView = () => {
                   <Avatar sx={{ mb: 2, bgcolor: 'primary.main', width: 56, height: 56 }}>
                     <CheckCircle fontSize="large" />
                   </Avatar>
-                  <Typography variant="h4" fontWeight="bold" sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}
-                  >
+                  <Typography variant="h4" fontWeight="bold" sx={{ color: theme.palette.mode === 'dark' ? 'white' : 'black' }}>
                     {dashboardData.mis_pacientes?.activos || 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -323,7 +289,6 @@ const TherapistDashboardView = () => {
                     value={dashboardData.mis_pacientes?.activos > 0
                       ? Math.min(((dashboardData.mis_pacientes.activos - (dashboardData.estadisticas?.evaluaciones_pendientes || 0)) / dashboardData.mis_pacientes.activos) * 100, 100)
                       : 0}
-                    color="primary.main"
                     sx={{ mt: 1, borderRadius: 1, width: '100%' }}
                   />
                 </Box>
@@ -332,71 +297,111 @@ const TherapistDashboardView = () => {
           </Grid>
         </Grid>
 
-        {/* Today's Schedule */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12}>
-            <Card sx={{ width: 1000, height: 500 }}>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  Mi Agenda de Hoy
+        {/* Progress Bars Summary */}
+        <Card sx={{ maxWidth: 1000, mx: 'auto', mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>
+              Resumen de Rendimiento
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+
+            <Box sx={{ mb: 2 }}>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+                <Typography variant="body2">
+                  Sesiones completadas hoy
                 </Typography>
-                <Divider sx={{ mb: 2 }} />
+                <Typography variant="body2" fontWeight="bold">
+                  {completadasSesiones} / {totalSesiones}
+                </Typography>
+              </Box>
+              <LinearProgress
+                variant="determinate"
+                value={totalSesiones > 0 ? Math.min((completadasSesiones / totalSesiones) * 100, 100) : 0}
+                color="success"
+                sx={{ height: 10, borderRadius: 5 }}
+              />
+            </Box>
 
-                <List sx={{ p: 0 }}>
-                  {(dashboardData.agenda_hoy || []).map((sesion, index) => (
-                    <ListItem key={index} sx={{ px: 0, py: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-                      <Box sx={{ mr: 2 }}>
-                        <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
-                          <AccessTime fontSize="small" />
-                        </Avatar>
-                      </Box>
-                      <ListItemText
-                        primary={
-                          <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Typography variant="body1" fontWeight="medium">
-                              {sesion.paciente_nombre || 'Paciente'}
-                            </Typography>
-                            <Chip
-                              size="small"
-                              label={sesion.estado || 'programada'}
-                              color={getEstadoColor(sesion.estado || 'programada')}
-                              variant="outlined"
-                            />
-                          </Box>
-                        }
-                        secondary={
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">
-                              {sesion.especialidad || 'Sesión de Terapia'}
-                            </Typography>
-                            <Typography variant="caption" color="primary.main" fontWeight="bold">
-                              {sesion.hora_inicio || '--:--'}
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                    </ListItem>
-                  ))}
-                </List>
+            <Box>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+                <Typography variant="body2">
+                  Asistencia promedio
+                </Typography>
+                <Typography variant="body2" fontWeight="bold">
+                  {asistenciaPromedio}%
+                </Typography>
+              </Box>
+              <LinearProgress
+                variant="determinate"
+                value={asistenciaPromedio}
+                color="primary"
+                sx={{ height: 10, borderRadius: 5 }}
+              />
+            </Box>
+          </CardContent>
+        </Card>
 
-                {(!dashboardData.agenda_hoy || dashboardData.agenda_hoy.length === 0) && (
-                  <Box textAlign="center" py={4}>
-                    <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'action.hover', width: 60, height: 60 }}>
-                      <CalendarToday sx={{ fontSize: 30, color: 'text.secondary' }} />
+        {/* Today's Schedule */}
+        <Card sx={{ maxWidth: 1000, mx: 'auto', mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>
+              Mi Agenda de Hoy
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+
+            <List sx={{ p: 0 }}>
+              {(dashboardData.agenda_hoy || []).map((sesion, index) => (
+                <ListItem key={index} sx={{ px: 0, py: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <Box sx={{ mr: 2 }}>
+                    <Avatar sx={{ bgcolor: 'primary.main', width: 40, height: 40 }}>
+                      <AccessTime fontSize="small" />
                     </Avatar>
-                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                      Sin sesiones programadas
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Tu agenda está libre para hoy. Es un buen momento para revisar casos pendientes o contactar al administrador para nuevas asignaciones.
-                    </Typography>
                   </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
+                  <ListItemText
+                    primary={
+                      <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Typography variant="body1" fontWeight="medium">
+                          {sesion.paciente_nombre || sesion.paciente || 'Paciente'}
+                        </Typography>
+                        <Chip
+                          size="small"
+                          label={(sesion.estado || 'programada').replace('_', ' ')}
+                          color={getEstadoColor(sesion.estado || 'programada')}
+                          variant="outlined"
+                        />
+                      </Box>
+                    }
+                    secondary={
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          {sesion.especialidad || 'Sesión de Terapia'}
+                          {sesion.observaciones ? ` • ${sesion.observaciones}` : ''}
+                        </Typography>
+                        <Typography variant="caption" color="primary.main" fontWeight="bold">
+                          {sesion.hora_inicio || '--:--'}
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
 
-        </Grid>
+            {(!dashboardData.agenda_hoy || dashboardData.agenda_hoy.length === 0) && (
+              <Box textAlign="center" py={4}>
+                <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'action.hover', width: 60, height: 60 }}>
+                  <CalendarToday sx={{ fontSize: 30, color: 'text.secondary' }} />
+                </Avatar>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  Sin sesiones programadas
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Tu agenda está libre para hoy. Es un buen momento para revisar casos pendientes o contactar al administrador para nuevas asignaciones.
+                </Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
 
       </Box>
     </PageContainer>

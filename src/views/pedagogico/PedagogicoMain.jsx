@@ -234,6 +234,6 @@ const PedagogicoMain = () => {
 
 // Protección de acceso: Administradores y Pedagógicos
 export default withRole(PedagogicoMain, {
-  allowedRoles: ['administrador', 'pedagogico'],
+  allowedRoles: ['administrador', 'pedagogo'],
   moduleName: 'Módulo Pedagógico'
 });

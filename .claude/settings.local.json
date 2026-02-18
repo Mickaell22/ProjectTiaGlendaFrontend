@@ -51,7 +51,8 @@
       "Bash(wc:*)",
       "Bash(npx vite:*)",
       "Bash(xargs:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

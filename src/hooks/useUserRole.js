@@ -1,52 +1,52 @@
-import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
- * Hook para obtener el rol del usuario actual y verificar permisos
+ * Hook para obtener el rol del usuario actual y verificar permisos.
+ * Lee el usuario directamente desde AuthContext (siempre actualizado).
  */
 export const useUserRole = () => {
-  const [userRole, setUserRole] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, isLoading } = useAuth();
 
-  useEffect(() => {
-    const getUserRole = () => {
-      try {
-        // Intentar obtener desde user_data primero
-        const userData = localStorage.getItem('user_data');
-        if (userData) {
-          const user = JSON.parse(userData);
-          const role = (user.rol_nombre || user.rol || '').toLowerCase();
-          setUserRole(role);
-          setLoading(false);
-          return;
-        }
+  // Extraer el rol canónico usando la misma lógica que DashboardMain y withRole
+  const getUserRoleCanonical = () => {
+    if (!user) return '';
 
-        // Fallback a JWT token
-        const token = localStorage.getItem('jwt_token');
-        if (token && token.split('.').length === 3) {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          const role = (payload.rol || payload.rol_nombre || '').toLowerCase();
-          setUserRole(role);
-          setLoading(false);
-          return;
-        }
+    let rawRole = user.rol_nombre || user.rol?.nombre || user.rol;
+    if (typeof rawRole === 'object' && rawRole !== null) {
+      rawRole = rawRole.nombre || rawRole.label || '';
+    }
+    const roleLower = typeof rawRole === 'string' ? rawRole.trim().toLowerCase() : '';
 
-        // Si no hay datos, establecer como null
-        setUserRole(null);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error getting user role:', error);
-        setUserRole(null);
-        setLoading(false);
-      }
-    };
+    if (roleLower === 'administrador' || roleLower === 'admin') return 'administrador';
 
-    getUserRole();
-  }, []);
+    // Verificar por especialidades primero
+    if (user.especialidades && user.especialidades.length > 0) {
+      const hasTherapeutic = user.especialidades.some(esp =>
+        esp.area?.toLowerCase().includes('terap')
+      );
+      const hasPedagogical = user.especialidades.some(esp =>
+        esp.area?.toLowerCase().includes('pedag')
+      );
+      if (hasTherapeutic) return 'terapeuta';
+      if (hasPedagogical) return 'pedagogo';
+    }
+
+    if (roleLower.includes('terap')) return 'terapeuta';
+    if (roleLower.includes('pedag')) return 'pedagogo';
+    if (roleLower.includes('admin')) return 'administrador';
+
+    return roleLower;
+  };
+
+  const userRole = getUserRoleCanonical();
+
+  // Mientras AuthContext carga, no se conoce el rol
+  const loading = isLoading;
 
   // Funciones de verificación de permisos
   const isAdmin = userRole === 'administrador';
   const isTherapist = userRole === 'terapeuta';
-  const isPedagogue = userRole && userRole.includes('pedag');
+  const isPedagogue = userRole.includes('pedag');
 
   // Permisos específicos por módulo
   const permissions = {
@@ -62,7 +62,7 @@ export const useUserRole = () => {
       view: isAdmin || isTherapist || isPedagogue,
       create: isAdmin,
       edit: isAdmin,
-      viewOwn: isTherapist || isPedagogue // Terapeutas y pedagogos solo ven sus pacientes/estudiantes asignados
+      viewOwn: isTherapist || isPedagogue
     },
 
     // Personal - Solo admins
@@ -106,7 +106,7 @@ export const useUserRole = () => {
       view: isAdmin || isTherapist || isPedagogue,
       create: isAdmin,
       edit: isAdmin,
-      viewOwn: isTherapist || isPedagogue // Terapeutas y pedagogos solo ven tutores de sus pacientes/estudiantes
+      viewOwn: isTherapist || isPedagogue
     },
 
     // Especialidades - Solo admins
@@ -131,12 +131,10 @@ export const useUserRole = () => {
     isPedagogue,
     permissions,
 
-    // Funciones helper
     canAccess: (module) => permissions[module]?.view || false,
     canCreate: (module) => permissions[module]?.create || false,
     canEdit: (module) => permissions[module]?.edit || false,
 
-    // Función para verificar si debe mostrar un elemento en el navbar
     shouldShowInNavbar: (module) => {
       switch (module) {
         case 'personas':
@@ -153,7 +151,7 @@ export const useUserRole = () => {
         case 'sesionesPedagogicas':
           return isAdmin || isPedagogue;
         default:
-          return true; // Dashboard y otros módulos generales
+          return true;
       }
     }
   };
