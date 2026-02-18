@@ -105,9 +105,9 @@ const Header = ({ onChatToggle = () => {} }) => {
         if (backendUserData) {
           const userData = {
             id: backendUserData.id,
-            name: backendUserData.nombre_completo || backendUserData.nombre || 'Usuario',
-            rol: backendUserData.rol_nombre || backendUserData.rol || 'Usuario',
-            email: backendUserData.email || backendUserData.correo,
+            name: backendUserData.nombre_completo || 'Usuario',
+            rol: backendUserData.rol || 'Usuario',
+            email: backendUserData.correo,
             usuario: backendUserData.usuario,
             ruta_foto: backendUserData.ruta_foto
           };

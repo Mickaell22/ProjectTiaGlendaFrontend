@@ -31,7 +31,7 @@ const CentroSwitcher = () => {
   const [error, setError] = useState('');
 
   const centros = user?.centros || [];
-  const centroActual = user?.centro || user?.id_centro;
+  const centroActualId = user?.id_centro || user?.centro_id || user?.centro?.id;
   const centroActualNombre = user?.centro?.nombre || 'Centro';
 
   // Si solo tiene un centro, no mostrar el switcher
@@ -57,7 +57,7 @@ const CentroSwitcher = () => {
 
   const handleCambiarCentro = async (idCentro) => {
     // Si ya está en ese centro, no hacer nada
-    if (idCentro === centroActual || idCentro === user?.id_centro) {
+    if (idCentro === centroActualId) {
       handleClose();
       return;
     }
@@ -157,7 +157,7 @@ const CentroSwitcher = () => {
           </Box>
         ) : (
           centros.map((centro) => {
-            const isActual = centro.id === centroActual || centro.id === user?.id_centro;
+            const isActual = centro.id === centroActualId;
             return (
               <MenuItem
                 key={centro.id}

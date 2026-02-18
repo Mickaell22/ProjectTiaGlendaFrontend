@@ -50,7 +50,8 @@
       "Bash(where:*)",
       "Bash(wc:*)",
       "Bash(npx vite:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

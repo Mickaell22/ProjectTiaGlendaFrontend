@@ -24,8 +24,6 @@ export const API_ENDPOINTS = {
     ME: '/api/me',
     SELECCIONAR_CENTRO: '/api/seleccionar-centro',
     CAMBIAR_CENTRO: '/api/cambiar-centro',
-    CENTROS_DISPONIBLES: '/api/centros-disponibles',
-    MIS_CENTROS: '/api/mis-centros',
   },
 
   // Personas
