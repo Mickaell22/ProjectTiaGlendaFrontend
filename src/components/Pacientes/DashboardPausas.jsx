@@ -85,9 +85,10 @@ const DashboardPausas = () => {
     try {
       const resultado = await PausasService.procesarPausasAutomaticas();
 
+      const totalProcesadas = (resultado.pausas_generales_reactivadas || 0) + (resultado.pausas_especialidades_reactivadas || 0);
       setMensajeProcesamiento({
         tipo: 'success',
-        mensaje: `Procesamiento exitoso: ${resultado.procesadas || 0} pausas reactivadas`
+        mensaje: `Procesamiento exitoso: ${totalProcesadas} pausas reactivadas`
       });
 
       // Recargar datos

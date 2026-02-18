@@ -3,6 +3,7 @@ import { Container, Box, Breadcrumbs, Link, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Home, Speed } from '@mui/icons-material';
 import DashboardPausas from '../components/Pacientes/DashboardPausas';
+import withAdminRole from '../hoc/withAdminRole';
 
 const DashboardPausasView = () => {
   const navigate = useNavigate();
@@ -35,4 +36,6 @@ const DashboardPausasView = () => {
   );
 };
 
-export default DashboardPausasView;
+export default withAdminRole(DashboardPausasView, {
+  allowedRoles: ['administrador'],
+});
