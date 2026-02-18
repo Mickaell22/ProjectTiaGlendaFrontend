@@ -306,6 +306,30 @@ const ChatContainer = ({
   }, [activeConversation, isOpen, checkForNewMessages]);
 
   /**
+   * Eliminar un mensaje individual
+   */
+  const handleDeleteMessage = useCallback(async (idMensaje) => {
+    const result = await chatService.eliminarMensaje(idMensaje);
+    if (result.success) {
+      setMessages(prev => prev.filter(m => m.id !== idMensaje));
+    }
+  }, []);
+
+  /**
+   * Eliminar una conversacion completa
+   */
+  const handleDeleteConversation = useCallback(async (idContacto) => {
+    const result = await chatService.eliminarConversacion(idContacto);
+    if (result.success) {
+      setConversations(prev => prev.filter(c => c.id_contacto !== idContacto));
+      if (activeConversation?.id_contacto === idContacto) {
+        setActiveConversation(null);
+        setMessages([]);
+      }
+    }
+  }, [activeConversation]);
+
+  /**
    * Función de refresh memoizada
    */
   const handleRefresh = useCallback(() => {
@@ -374,6 +398,7 @@ const ChatContainer = ({
             activeConversation={activeConversation}
             onSelectConversation={handleSelectConversation}
             onNewConversation={() => setShowUserSearch(true)}
+            onDeleteConversation={handleDeleteConversation}
             loading={loading}
           />
         )}
@@ -466,6 +491,7 @@ const ChatContainer = ({
                       messages={messages}
                       onSendMessage={handleSendMessage}
                       onRefresh={handleRefresh}
+                      onDeleteMessage={handleDeleteMessage}
                     />
                   </Box>
                 </Box>
@@ -476,9 +502,9 @@ const ChatContainer = ({
                 <Paper sx={{ width: 320, height: '100%' }} elevation={0}>
                   {renderSidebar()}
                 </Paper>
-                
+
                 <Divider orientation="vertical" flexItem />
-                
+
                 {/* Ventana de chat en desktop */}
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                   {/* Header del chat */}
@@ -527,7 +553,7 @@ const ChatContainer = ({
                       </Box>
                     </Box>
                   </Box>
-                  
+
                   {/* Ventana de chat */}
                   <Box sx={{ flex: 1 }}>
                     <ChatWindow
@@ -535,6 +561,7 @@ const ChatContainer = ({
                       messages={messages}
                       onSendMessage={handleSendMessage}
                       onRefresh={handleRefresh}
+                      onDeleteMessage={handleDeleteMessage}
                     />
                   </Box>
                 </Box>
@@ -563,6 +590,7 @@ const ChatContainer = ({
           messages={messages}
           onSendMessage={handleSendMessage}
           onRefresh={() => activeConversation && loadMessages(activeConversation.id_contacto)}
+          onDeleteMessage={handleDeleteMessage}
         />
       </Box>
     </Paper>

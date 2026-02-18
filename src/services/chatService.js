@@ -192,6 +192,46 @@ class ChatService {
   }
 
   /**
+   * Eliminar un mensaje individual (soft delete para el usuario actual)
+   * @param {number} idMensaje - ID del mensaje a eliminar
+   */
+  async eliminarMensaje(idMensaje) {
+    try {
+      const response = await apiClient.delete(`${this.baseURL}/mensaje/${idMensaje}`);
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      console.error('Error eliminando mensaje:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Error al eliminar mensaje',
+      };
+    }
+  }
+
+  /**
+   * Eliminar toda la conversacion con un contacto (soft delete)
+   * @param {number} idContacto - ID del contacto cuya conversacion se elimina
+   */
+  async eliminarConversacion(idContacto) {
+    try {
+      const response = await apiClient.delete(`${this.baseURL}/conversacion/${idContacto}`);
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      console.error('Error eliminando conversacion:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Error al eliminar conversacion',
+      };
+    }
+  }
+
+  /**
    * Obtener estadísticas de chat del usuario
    */
   async getEstadisticas() {

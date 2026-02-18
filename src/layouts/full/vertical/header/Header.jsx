@@ -73,10 +73,6 @@ const Header = ({ onChatToggle = () => {} }) => {
         // Si falla, no hacer nada - mantener el estado actual
       } catch (error) {
         // En caso de error, mantener el estado actual sin logging
-        // Solo incrementar ocasionalmente para demo si no hay backend disponible
-        if (Math.random() > 0.95) { // 5% de probabilidad de demo
-          setUnreadMessagesCount(prev => Math.min(prev + 1, 3)); // Máximo 3 para demo
-        }
       }
     }, 60000); // Cada 60 segundos (reducido para menos requests)
 

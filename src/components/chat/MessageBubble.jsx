@@ -1,5 +1,5 @@
 // src/components/chat/MessageBubble.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
@@ -15,14 +15,17 @@ import {
   DoneAll as DoneAllIcon,
   Schedule as ScheduleIcon,
   Error as ErrorIcon,
+  DeleteOutline as DeleteIcon,
 } from '@mui/icons-material';
 
 const MessageBubble = ({
   message,
   formatDate = () => '',
-  currentUserId = null, // ID del usuario actual (obtenerlo del contexto de auth)
+  currentUserId = null,
+  onDelete = null,
 }) => {
   const theme = useTheme();
+  const [hovered, setHovered] = useState(false);
 
   if (!message) {
     return null;
@@ -131,11 +134,15 @@ const MessageBubble = ({
 
   return (
     <Box
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       sx={{
         display: 'flex',
         justifyContent: isOwnMessage ? 'flex-end' : 'flex-start',
+        alignItems: 'flex-end',
         mb: 1.5,
         px: 1,
+        gap: 0.5,
         animation: 'fadeInUp 0.3s ease-out',
         '@keyframes fadeInUp': {
           '0%': {
@@ -163,6 +170,19 @@ const MessageBubble = ({
         >
           {getInitials(message.nombre_remitente)}
         </Avatar>
+      )}
+
+      {/* Boton eliminar (solo mensajes propios, visible al hover) */}
+      {isOwnMessage && onDelete && hovered && (
+        <Tooltip title="Eliminar mensaje">
+          <IconButton
+            size="small"
+            onClick={() => onDelete(message.id)}
+            sx={{ color: 'error.light', mb: 0.5 }}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
       )}
 
       {/* Contenedor del mensaje */}

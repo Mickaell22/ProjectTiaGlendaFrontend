@@ -24,6 +24,7 @@ const ChatWindow = ({
   messages = [],
   onSendMessage = () => {},
   onRefresh = () => {},
+  onDeleteMessage = null,
 }) => {
   const theme = useTheme();
   const [messageText, setMessageText] = useState('');
@@ -326,9 +327,10 @@ const ChatWindow = ({
                 {/* Mensajes del grupo */}
                 {group.messages.map((message, messageIndex) => (
                   <MessageBubble
-                    key={`${message.id_mensaje || messageIndex}`}
+                    key={`${message.id || messageIndex}`}
                     message={message}
                     formatDate={formatMessageDate}
+                    onDelete={onDeleteMessage}
                   />
                 ))}
               </Box>

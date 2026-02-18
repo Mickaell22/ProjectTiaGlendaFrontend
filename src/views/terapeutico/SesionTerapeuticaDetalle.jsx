@@ -12,12 +12,13 @@ import {
   ArrowBack, Person, Schedule, Group, Assignment, CalendarMonth,
   CheckCircle, Cancel, Edit, Add, Refresh, AccessTime,
   EventAvailable, EventBusy, Psychology, Today, Delete, PersonRemove,
-  Close, Search, PersonAdd, Visibility
+  Close, Search, PersonAdd, Visibility, NoteAdd, Lock, Warning
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
 import { useUserRole } from 'src/hooks/useUserRole';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
+import observacionesService from 'src/services/observacionesService';
 import { formatDateLocal } from 'src/utils/dateUtils';
 
 /* ---------- Estilos tipo "listar" ---------- */
@@ -107,6 +108,22 @@ const SesionTerapeuticaDetalle = () => {
   });
   const [finalizarDialog, setFinalizarDialog] = useState({ open: false });
 
+  // Observaciones state
+  const [observaciones, setObservaciones] = useState([]);
+  const [loadingObservaciones, setLoadingObservaciones] = useState(false);
+  const [observacionesLoaded, setObservacionesLoaded] = useState(false);
+  const [obsDialog, setObsDialog] = useState({ open: false, mode: 'create', data: null });
+  const [obsDeleteDialog, setObsDeleteDialog] = useState({ open: false, id: null });
+  const obsInitial = {
+    observacion: '',
+    tipo_observacion: 'observacion',
+    es_privada: false,
+    es_critica: false,
+    requiere_seguimiento: false,
+    fecha_seguimiento: '',
+  };
+  const [obsForm, setObsForm] = useState(obsInitial);
+
   useEffect(() => {
     if (id) {
       fetchSessionData();
@@ -173,9 +190,110 @@ const SesionTerapeuticaDetalle = () => {
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
-    // Si cambió a la pestaña de asistencias (índice 3) y aún no se han cargado
     if (newValue === 3 && !asistenciasLoaded) {
       fetchAsistencias();
+    }
+    if (newValue === 4 && !observacionesLoaded) {
+      fetchObservaciones();
+    }
+  };
+
+  const fetchObservaciones = async () => {
+    setLoadingObservaciones(true);
+    try {
+      const res = await observacionesService.getObservacionesSesion(id, 'terapeutica', isAdmin);
+      const data = res?.data || res || [];
+      setObservaciones(Array.isArray(data) ? data : []);
+      setObservacionesLoaded(true);
+    } catch (err) {
+      setObservaciones([]);
+    } finally {
+      setLoadingObservaciones(false);
+    }
+  };
+
+  const handleOpenCreateObs = () => {
+    setObsForm(obsInitial);
+    setObsDialog({ open: true, mode: 'create', data: null });
+  };
+
+  const handleOpenEditObs = (obs) => {
+    setObsForm({
+      observacion: obs.observacion || '',
+      tipo_observacion: obs.tipo_observacion || 'observacion',
+      es_privada: obs.es_privada || false,
+      es_critica: obs.es_critica || false,
+      requiere_seguimiento: obs.requiere_seguimiento || false,
+      fecha_seguimiento: obs.fecha_seguimiento ? obs.fecha_seguimiento.split('T')[0] : '',
+    });
+    setObsDialog({ open: true, mode: 'edit', data: obs });
+  };
+
+  const handleSaveObs = async () => {
+    if (!obsForm.observacion.trim()) return;
+    try {
+      if (obsDialog.mode === 'create') {
+        const payload = {
+          id_sesion: parseInt(id),
+          tipo_sesion: 'terapeutica',
+          observacion: obsForm.observacion.trim(),
+          tipo_observacion: obsForm.tipo_observacion,
+          es_privada: obsForm.es_privada,
+          es_critica: obsForm.es_critica,
+          requiere_seguimiento: obsForm.requiere_seguimiento,
+        };
+        if (obsForm.requiere_seguimiento && obsForm.fecha_seguimiento) {
+          payload.fecha_seguimiento = obsForm.fecha_seguimiento;
+        }
+        await observacionesService.createObservacion(payload);
+        setSnackbar({ open: true, message: 'Observacion creada correctamente', severity: 'success' });
+      } else {
+        const payload = {
+          observacion: obsForm.observacion.trim(),
+          tipo_observacion: obsForm.tipo_observacion,
+          es_privada: obsForm.es_privada,
+          es_critica: obsForm.es_critica,
+          requiere_seguimiento: obsForm.requiere_seguimiento,
+        };
+        if (obsForm.requiere_seguimiento && obsForm.fecha_seguimiento) {
+          payload.fecha_seguimiento = obsForm.fecha_seguimiento;
+        } else {
+          payload.fecha_seguimiento = null;
+        }
+        await observacionesService.updateObservacion(obsDialog.data.id, payload);
+        setSnackbar({ open: true, message: 'Observacion actualizada correctamente', severity: 'success' });
+      }
+      setObsDialog({ open: false, mode: 'create', data: null });
+      setObservacionesLoaded(false);
+      await fetchObservaciones();
+    } catch (err) {
+      const msg = observacionesService.handleError(err);
+      setSnackbar({ open: true, message: msg, severity: 'error' });
+    }
+  };
+
+  const handleDeleteObs = async () => {
+    try {
+      await observacionesService.deleteObservacion(obsDeleteDialog.id);
+      setSnackbar({ open: true, message: 'Observacion eliminada', severity: 'info' });
+      setObsDeleteDialog({ open: false, id: null });
+      setObservacionesLoaded(false);
+      await fetchObservaciones();
+    } catch (err) {
+      const msg = observacionesService.handleError(err);
+      setSnackbar({ open: true, message: msg, severity: 'error' });
+      setObsDeleteDialog({ open: false, id: null });
+    }
+  };
+
+  const getTipoObservacionColor = (tipo) => {
+    switch (tipo) {
+      case 'incidente': return 'error';
+      case 'falta': return 'warning';
+      case 'progreso': return 'success';
+      case 'nota': return 'info';
+      case 'recomendacion': return 'secondary';
+      default: return 'default';
     }
   };
 
@@ -511,6 +629,7 @@ const SesionTerapeuticaDetalle = () => {
             <Tab icon={<CalendarMonth />} label="Cronograma" {...a11yProps(1)} />
             <Tab icon={<Group />} label="Pacientes" {...a11yProps(2)} />
             <Tab icon={<Assignment />} label="Asistencias" {...a11yProps(3)} />
+            <Tab icon={<NoteAdd />} label="Observaciones" {...a11yProps(4)} />
           </Tabs>
         </CardContent>
       </Card>
@@ -1041,6 +1160,246 @@ const SesionTerapeuticaDetalle = () => {
           </CardContent>
         </Card>
       </TabPanel>
+
+      {/* Tab 4: Observaciones */}
+      <TabPanel value={tabValue} index={4}>
+        <Card elevation={8} sx={{ borderRadius: 4, overflow: 'hidden' }}>
+          <Box
+            sx={{
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+              color: 'white',
+              p: 2.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Typography variant="h6" fontWeight="bold">Observaciones de la Sesion</Typography>
+            <Button
+              startIcon={<Add />}
+              onClick={handleOpenCreateObs}
+              variant="outlined"
+              size="small"
+              sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.6)' }}
+            >
+              Nueva Observacion
+            </Button>
+          </Box>
+
+          <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+            {loadingObservaciones ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <Typography variant="body2" color="text.secondary">Cargando observaciones...</Typography>
+              </Box>
+            ) : observaciones.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 6 }}>
+                <NoteAdd sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                <Typography variant="body1" color="text.secondary">
+                  No hay observaciones registradas para esta sesion.
+                </Typography>
+                <Button
+                  startIcon={<Add />}
+                  onClick={handleOpenCreateObs}
+                  variant="contained"
+                  sx={{ mt: 2 }}
+                >
+                  Agregar primera observacion
+                </Button>
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {observaciones.map((obs) => (
+                  <Paper
+                    key={obs.id}
+                    elevation={2}
+                    sx={{
+                      p: 2.5,
+                      borderRadius: 2,
+                      borderLeft: obs.es_critica ? '4px solid' : '1px solid',
+                      borderLeftColor: obs.es_critica ? 'error.main' : 'divider',
+                      backgroundColor: obs.es_critica
+                        ? (theme.palette.mode === 'dark' ? 'rgba(211,47,47,0.08)' : 'rgba(211,47,47,0.04)')
+                        : 'background.paper'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <Chip
+                          label={obs.tipo_observacion || 'observacion'}
+                          color={getTipoObservacionColor(obs.tipo_observacion)}
+                          size="small"
+                        />
+                        {obs.es_critica && (
+                          <Chip icon={<Warning fontSize="small" />} label="Critica" color="error" size="small" />
+                        )}
+                        {obs.es_privada && (
+                          <Chip icon={<Lock fontSize="small" />} label="Privada" size="small" />
+                        )}
+                        {obs.requiere_seguimiento && (
+                          <Chip label={`Seguimiento: ${obs.estado_seguimiento || 'pendiente'}`} color="warning" size="small" variant="outlined" />
+                        )}
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <Tooltip title="Editar">
+                          <IconButton size="small" color="primary" onClick={() => handleOpenEditObs(obs)}>
+                            <Edit fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Eliminar">
+                          <IconButton size="small" color="error" onClick={() => setObsDeleteDialog({ open: true, id: obs.id })}>
+                            <Delete fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Box>
+
+                    <Typography variant="body1" sx={{ mb: 1.5, whiteSpace: 'pre-wrap' }}>
+                      {obs.observacion}
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                      <Typography variant="caption" color="text.secondary">
+                        Autor: {obs.autor_nombre || 'Desconocido'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {obs.fecha_registro ? new Date(obs.fecha_registro).toLocaleString('es-ES') : ''}
+                      </Typography>
+                      {obs.requiere_seguimiento && obs.fecha_seguimiento && (
+                        <Typography variant="caption" color="warning.main">
+                          Fecha seguimiento: {obs.fecha_seguimiento.split('T')[0]}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Paper>
+                ))}
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      </TabPanel>
+
+      {/* Dialog: Crear / Editar Observacion */}
+      <Dialog
+        open={obsDialog.open}
+        onClose={() => setObsDialog({ open: false, mode: 'create', data: null })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center">
+            <NoteAdd sx={{ mr: 2, color: 'primary.main' }} />
+            {obsDialog.mode === 'create' ? 'Nueva Observacion' : 'Editar Observacion'}
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <TextField
+              fullWidth
+              multiline
+              rows={4}
+              label="Observacion *"
+              value={obsForm.observacion}
+              onChange={(e) => setObsForm(prev => ({ ...prev, observacion: e.target.value }))}
+              inputProps={{ maxLength: 2000 }}
+              helperText={`${obsForm.observacion.length}/2000 caracteres`}
+              sx={purpleOutlineSX}
+            />
+            <FormControl fullWidth sx={purpleOutlineSX}>
+              <InputLabel>Tipo de observacion</InputLabel>
+              <Select
+                sx={selectStableSX}
+                value={obsForm.tipo_observacion}
+                onChange={(e) => setObsForm(prev => ({ ...prev, tipo_observacion: e.target.value }))}
+                label="Tipo de observacion"
+                MenuProps={menuProps}
+              >
+                <MenuItem value="observacion">Observacion general</MenuItem>
+                <MenuItem value="falta">Falta</MenuItem>
+                <MenuItem value="nota">Nota</MenuItem>
+                <MenuItem value="incidente">Incidente</MenuItem>
+                <MenuItem value="progreso">Progreso</MenuItem>
+                <MenuItem value="recomendacion">Recomendacion</MenuItem>
+              </Select>
+            </FormControl>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={obsForm.es_critica}
+                    onChange={(e) => setObsForm(prev => ({ ...prev, es_critica: e.target.checked }))}
+                    color="error"
+                  />
+                }
+                label="Critica"
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={obsForm.es_privada}
+                    onChange={(e) => setObsForm(prev => ({ ...prev, es_privada: e.target.checked }))}
+                  />
+                }
+                label="Privada"
+              />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={obsForm.requiere_seguimiento}
+                    onChange={(e) => setObsForm(prev => ({ ...prev, requiere_seguimiento: e.target.checked }))}
+                    color="warning"
+                  />
+                }
+                label="Requiere seguimiento"
+              />
+            </Box>
+            {obsForm.requiere_seguimiento && (
+              <TextField
+                fullWidth
+                type="date"
+                label="Fecha de seguimiento"
+                value={obsForm.fecha_seguimiento}
+                onChange={(e) => setObsForm(prev => ({ ...prev, fecha_seguimiento: e.target.value }))}
+                InputLabelProps={{ shrink: true }}
+                sx={purpleOutlineSX}
+              />
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setObsDialog({ open: false, mode: 'create', data: null })}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSaveObs}
+            variant="contained"
+            disabled={!obsForm.observacion.trim()}
+            startIcon={obsDialog.mode === 'create' ? <Add /> : <Edit />}
+          >
+            {obsDialog.mode === 'create' ? 'Crear' : 'Guardar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog: Confirmar eliminacion de observacion */}
+      <Dialog
+        open={obsDeleteDialog.open}
+        onClose={() => setObsDeleteDialog({ open: false, id: null })}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Eliminar Observacion</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1">
+            Esta accion es permanente. La observacion sera eliminada definitivamente.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setObsDeleteDialog({ open: false, id: null })}>Cancelar</Button>
+          <Button onClick={handleDeleteObs} variant="contained" color="error" startIcon={<Delete />}>
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Attendance Dialog */}
       <Dialog

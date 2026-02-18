@@ -16,12 +16,14 @@ import {
   IconButton,
   CircularProgress,
   Alert,
+  Tooltip,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Search as SearchIcon,
   Person as PersonIcon,
   Clear as ClearIcon,
+  DeleteOutline as DeleteIcon,
 } from '@mui/icons-material';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -31,9 +33,11 @@ const ConversationList = ({
   activeConversation = null,
   onSelectConversation = () => {},
   onNewConversation = () => {},
+  onDeleteConversation = null,
   loading = false,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [hoveredConversation, setHoveredConversation] = useState(null);
 
   // Filtrar conversaciones por término de búsqueda
   const filteredConversations = conversations.filter(conversation =>
@@ -152,13 +156,36 @@ const ConversationList = ({
         ) : (
           <List sx={{ py: 0 }}>
             {filteredConversations.map((conversation, index) => (
-              <ListItem key={`conversation-${conversation.id_contacto}-${index}`} disablePadding>
+              <ListItem
+                key={`conversation-${conversation.id_contacto}-${index}`}
+                disablePadding
+                onMouseEnter={() => setHoveredConversation(conversation.id_contacto)}
+                onMouseLeave={() => setHoveredConversation(null)}
+                secondaryAction={
+                  onDeleteConversation && hoveredConversation === conversation.id_contacto ? (
+                    <Tooltip title="Eliminar conversacion">
+                      <IconButton
+                        size="small"
+                        edge="end"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteConversation(conversation.id_contacto);
+                        }}
+                        sx={{ color: 'error.main' }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  ) : null
+                }
+              >
                 <ListItemButton
                   selected={activeConversation?.id_contacto === conversation.id_contacto}
                   onClick={() => onSelectConversation(conversation)}
                   sx={{
                     py: 1.5,
                     px: 2,
+                    pr: onDeleteConversation ? 6 : 2,
                     '&.Mui-selected': {
                       bgcolor: 'primary.light',
                       color: 'primary.contrastText',
@@ -171,10 +198,10 @@ const ConversationList = ({
                   {/* Avatar */}
                   <ListItemAvatar>
                     <Badge
-                      badgeContent={conversation.no_leidos || 0}
+                      badgeContent={conversation.mensajes_no_leidos || 0}
                       color="error"
                       max={99}
-                      invisible={!conversation.no_leidos}
+                      invisible={!conversation.mensajes_no_leidos}
                     >
                       <Avatar
                         src={conversation.avatar}
@@ -198,7 +225,7 @@ const ConversationList = ({
                         variant="subtitle2"
                         noWrap
                         sx={{
-                          fontWeight: conversation.no_leidos > 0 ? 600 : 400,
+                          fontWeight: conversation.mensajes_no_leidos > 0 ? 600 : 400,
                         }}
                       >
                         {conversation.nombre_contacto || 'Usuario'}
@@ -211,7 +238,7 @@ const ConversationList = ({
                           color="text.secondary"
                           noWrap
                           sx={{
-                            fontWeight: conversation.no_leidos > 0 ? 500 : 400,
+                            fontWeight: conversation.mensajes_no_leidos > 0 ? 500 : 400,
                           }}
                         >
                           {truncateMessage(conversation.ultimo_mensaje)}

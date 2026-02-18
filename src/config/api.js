@@ -249,6 +249,14 @@ export const API_ENDPOINTS = {
     MIS_ESTUDIANTES: '/api/dashboard/mis-estudiantes',
   },
 
+  // Observaciones de sesiones
+  OBSERVACIONES: {
+    BASE: '/api/observaciones',
+    BY_ID: (id) => `/api/observaciones/${id}`,
+    BY_SESION: (idSesion, tipoSesion) => `/api/observaciones/sesion/${idSesion}/${tipoSesion}`,
+    TIPOS: '/api/observaciones/tipos',
+  },
+
   // Sistema
   SYSTEM: {
     TEST: '/api/test',
