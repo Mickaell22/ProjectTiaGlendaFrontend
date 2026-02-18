@@ -5,17 +5,16 @@ import { ApiService } from './apiService.js';
 
 const ENDPOINTS = {
   GENERAL: '/api/configuracion/general',
-  NOTIFICACIONES_GLOBAL: '/api/configuracion/notificaciones/global',
-  NOTIFICACIONES_USUARIO: '/api/configuracion/notificaciones/usuario',
+  NOTIFICACIONES: '/api/configuracion/notificaciones',
   RESUMEN: '/api/configuracion/resumen'
 };
 
 class ConfiguracionService {
-  
+
   // ============================================
   // CONFIGURACIÓN GENERAL
   // ============================================
-  
+
   /**
    * Obtener configuración general del sistema
    */
@@ -42,10 +41,10 @@ class ConfiguracionService {
    */
   static async updateConfiguracionGeneral(configuracion) {
     try {
-      
+
       // Mapear datos del frontend al formato del backend
       const backendData = ConfiguracionService.mapGeneralConfigToBackend(configuracion);
-      
+
       const response = await ApiService.put(ENDPOINTS.GENERAL, backendData);
       return {
         success: true,
@@ -65,144 +64,43 @@ class ConfiguracionService {
   // ============================================
   // CONFIGURACIÓN DE NOTIFICACIONES
   // ============================================
-  
+
   /**
-   * Obtener configuración global de notificaciones (solo admin)
+   * Obtener configuración de notificaciones (requiere token)
    */
-  static async getConfiguracionNotificacionesGlobal() {
+  static async getConfiguracionNotificaciones() {
     try {
-      const response = await ApiService.get(ENDPOINTS.NOTIFICACIONES_GLOBAL);
+      const response = await ApiService.get(ENDPOINTS.NOTIFICACIONES);
       return {
         success: true,
         data: response.data.data,
         message: response.data.message
       };
     } catch (error) {
-      console.error('Error al obtener configuración de notificaciones globales:', error);
+      console.error('Error al obtener configuración de notificaciones:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Error al obtener configuración de notificaciones globales',
+        message: error.response?.data?.message || 'Error al obtener configuración de notificaciones',
         error
       };
     }
   }
 
   /**
-   * Actualizar configuración global de notificaciones (solo admin)
+   * Actualizar configuración de notificaciones (requiere admin)
    */
-  static async updateConfiguracionNotificacionesGlobal(configuracion) {
+  static async updateConfiguracionNotificaciones(configuracion) {
     try {
-      const response = await ApiService.put(ENDPOINTS.NOTIFICACIONES_GLOBAL, configuracion);
+      const response = await ApiService.put(ENDPOINTS.NOTIFICACIONES, configuracion);
       return {
         success: true,
         message: response.data.message
       };
     } catch (error) {
-      console.error('Error al actualizar configuración de notificaciones globales:', error);
+      console.error('Error al actualizar configuración de notificaciones:', error);
       return {
         success: false,
-        message: error.response?.data?.message || 'Error al actualizar configuración de notificaciones globales',
-        error
-      };
-    }
-  }
-
-  /**
-   * Obtener configuración de notificaciones del usuario actual
-   * NOTA: Se guarda en localStorage para evitar dependencia del backend
-   */
-  static async getConfiguracionNotificacionesUsuario() {
-    try {
-      // Obtener de localStorage
-      const stored = localStorage.getItem('config_notificaciones_usuario');
-
-      // Configuración por defecto
-      const defaultConfig = {
-        notificaciones_push: true,
-        notificaciones_email: true,
-        notificaciones_sistema: true,
-        sonido_notificaciones: true,
-        notificar_nuevas_sesiones: true,
-        notificar_cambios_horarios: true,
-        notificar_recordatorios: true
-      };
-
-      const data = stored ? JSON.parse(stored) : defaultConfig;
-
-      return {
-        success: true,
-        data,
-        message: 'Configuración de notificaciones obtenida exitosamente'
-      };
-    } catch (error) {
-      console.error('Error al obtener configuración de notificaciones de usuario:', error);
-      return {
-        success: false,
-        message: 'Error al obtener configuración de notificaciones de usuario',
-        error
-      };
-    }
-  }
-
-  /**
-   * Actualizar configuración de notificaciones del usuario actual
-   * NOTA: Se guarda en localStorage para evitar dependencia del backend
-   */
-  static async updateConfiguracionNotificacionesUsuario(configuracion) {
-    try {
-      // Guardar en localStorage
-      localStorage.setItem('config_notificaciones_usuario', JSON.stringify(configuracion));
-
-      return {
-        success: true,
-        message: 'Configuración de notificaciones actualizada exitosamente'
-      };
-    } catch (error) {
-      console.error('Error al actualizar configuración de notificaciones de usuario:', error);
-      return {
-        success: false,
-        message: 'Error al actualizar configuración de notificaciones de usuario',
-        error
-      };
-    }
-  }
-
-  /**
-   * Obtener configuración de notificaciones de un usuario específico (solo admin)
-   */
-  static async getConfiguracionNotificacionesUsuarioEspecifico(userId) {
-    try {
-      const response = await ApiService.get(`${ENDPOINTS.NOTIFICACIONES_USUARIO}/${userId}`);
-      return {
-        success: true,
-        data: response.data.data,
-        message: response.data.message
-      };
-    } catch (error) {
-      console.error('Error al obtener configuración de notificaciones de usuario específico:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Error al obtener configuración de notificaciones de usuario específico',
-        error
-      };
-    }
-  }
-
-  /**
-   * Actualizar configuración de notificaciones de un usuario específico (solo admin)
-   */
-  static async updateConfiguracionNotificacionesUsuarioEspecifico(userId, configuracion) {
-    try {
-      const response = await ApiService.put(`${ENDPOINTS.NOTIFICACIONES_USUARIO}/${userId}`, configuracion);
-      return {
-        success: true,
-        message: response.data.message
-      };
-    } catch (error) {
-      console.error('Error al actualizar configuración de notificaciones de usuario específico:', error);
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Error al actualizar configuración de notificaciones de usuario específico',
+        message: error.response?.data?.message || 'Error al actualizar configuración de notificaciones',
         error
       };
     }
@@ -212,7 +110,7 @@ class ConfiguracionService {
   // ============================================
   // UTILIDADES Y ADMINISTRACIÓN
   // ============================================
-  
+
   /**
    * Obtener resumen de todas las configuraciones
    */
@@ -244,14 +142,16 @@ class ConfiguracionService {
    */
   static mapGeneralConfigToFrontend(backendData) {
     if (!backendData) return {};
-    
+
     return {
       nombreCentro: backendData.nombre_centro || '',
+      codigo: backendData.codigo || '',
       direccion: backendData.direccion || '',
       telefono: backendData.telefono || '',
       email: backendData.email || '',
-      horarioInicio: backendData.horario_inicio || '',
-      horarioFin: backendData.horario_fin || '',
+      horarioInicio: backendData.horario_apertura || '',
+      horarioFin: backendData.horario_cierre || '',
+      turnoPrincipal: backendData.turno_principal || '',
       zonaHoraria: backendData.zona_horaria || 'America/Guayaquil',
       formatoFecha: backendData.formato_fecha || 'DD/MM/YYYY',
       formatoHora: backendData.formato_hora || '24h',
@@ -270,14 +170,9 @@ class ConfiguracionService {
       direccion: frontendData.direccion,
       telefono: frontendData.telefono,
       email: frontendData.email,
-      logo_url: null, // Simplificado - sin logo por ahora
-      horario_inicio: frontendData.horarioInicio,
-      horario_fin: frontendData.horarioFin,
-      zona_horaria: frontendData.zonaHoraria,
-      formato_fecha: frontendData.formatoFecha,
-      formato_hora: frontendData.formatoHora,
-      moneda: frontendData.moneda,
-      idioma: frontendData.idioma,
+      horario_apertura: frontendData.horarioInicio,
+      horario_cierre: frontendData.horarioFin,
+      turno_principal: frontendData.turnoPrincipal,
       descripcion: frontendData.descripcion
     };
   }

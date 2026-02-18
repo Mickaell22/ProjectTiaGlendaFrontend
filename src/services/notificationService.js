@@ -22,11 +22,12 @@ class NotificationService {
       const response = await apiClient.get(
         `${this.baseURL}?incluir_leidas=${incluirLeidas}&limite=${limite}`
       );
+      const data = response.data.data || response.data;
       return {
         success: true,
         data: response.data,
-        notificaciones: response.data.notificaciones || [],
-        total: response.data.total || 0,
+        notificaciones: data.notificaciones || [],
+        total: data.total || 0,
       };
     } catch (error) {
       console.error('Error obteniendo notificaciones:', error);
@@ -60,15 +61,57 @@ class NotificationService {
   }
 
   /**
+   * Marcar todas las notificaciones como leídas
+   */
+  async marcarTodasComoLeidas() {
+    try {
+      const response = await apiClient.put(`${this.baseURL}/leer-todas`);
+      const data = response.data.data || response.data;
+      return {
+        success: true,
+        data: response.data,
+        totalMarcadas: data.total_marcadas || 0,
+      };
+    } catch (error) {
+      console.error('Error marcando todas las notificaciones como leídas:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Error al marcar todas las notificaciones como leídas',
+      };
+    }
+  }
+
+  /**
+   * Eliminar una notificación
+   * @param {number} idNotificacion - ID de la notificación
+   */
+  async eliminarNotificacion(idNotificacion) {
+    try {
+      const response = await apiClient.delete(`${this.baseURL}/${idNotificacion}`);
+      return {
+        success: true,
+        data: response.data,
+      };
+    } catch (error) {
+      console.error('Error eliminando notificación:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Error al eliminar notificación',
+      };
+    }
+  }
+
+  /**
    * Obtener estadísticas de notificaciones del usuario
    */
   async getEstadisticas() {
     try {
       const response = await apiClient.get(`${this.baseURL}/estadisticas`);
+      const data = response.data.data || response.data;
       return {
         success: true,
         data: response.data,
-        estadisticas: response.data.estadisticas || {},
+        estadisticas: data || {},
       };
     } catch (error) {
       console.error('Error obteniendo estadísticas de notificaciones:', error);
@@ -85,10 +128,11 @@ class NotificationService {
    */
   async getUnreadCount() {
     try {
-      const result = await this.getNotificaciones(false, 1);
+      const response = await apiClient.get(`${this.baseURL}/no-leidas`);
+      const data = response.data.data || response.data;
       return {
-        success: result.success,
-        count: result.total || 0,
+        success: true,
+        count: data.no_leidas || 0,
       };
     } catch (error) {
       console.error('Error obteniendo conteo de notificaciones:', error);
@@ -115,7 +159,7 @@ class NotificationService {
         const result = await this.getUnreadCount();
         if (result.success) {
           const newCount = result.count;
-          
+
           // Si hay más notificaciones que antes, disparar callback
           if (newCount > this.lastNotificationCount) {
             this.callbacks.onNewNotification.forEach(callback => {
@@ -231,10 +275,10 @@ class NotificationService {
   enableBrowserNotifications() {
     this.onNewNotification((newCount) => {
       const title = 'Centro Tía Glenda';
-      const message = newCount === 1 
+      const message = newCount === 1
         ? 'Tienes 1 nueva notificación'
         : `Tienes ${newCount} nuevas notificaciones`;
-      
+
       this.showBrowserNotification(title, message);
     });
   }
@@ -248,11 +292,12 @@ class NotificationService {
    */
   async getConfiguracion() {
     try {
-      const response = await apiClient.get('/api/configuracion/notificaciones/usuario');
+      const response = await apiClient.get('/api/configuracion/notificaciones');
+      const data = response.data.data || response.data;
       return {
         success: true,
         data: response.data,
-        configuracion: response.data.configuracion || {},
+        configuracion: data || {},
       };
     } catch (error) {
       console.error('Error obteniendo configuración de notificaciones:', error);
@@ -270,7 +315,7 @@ class NotificationService {
    */
   async updateConfiguracion(configuracion) {
     try {
-      const response = await apiClient.put('/api/configuracion/notificaciones/usuario', configuracion);
+      const response = await apiClient.put('/api/configuracion/notificaciones', configuracion);
       return {
         success: true,
         data: response.data,

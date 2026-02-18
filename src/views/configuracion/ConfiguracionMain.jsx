@@ -79,7 +79,7 @@ const ConfiguracionMain = () => {
         const apiData = result.data;
         setConfiguraciones({
           general: ConfiguracionService.mapGeneralConfigToFrontend(apiData.general || {}),
-          notificaciones: apiData.notificaciones_usuario || {}
+          notificaciones: apiData.notificaciones || {}
         });
       } else {
         showError(result.message || 'Error al cargar configuraciones');
@@ -103,7 +103,7 @@ const ConfiguracionMain = () => {
           break;
           
         case 'notificaciones':
-          result = await ConfiguracionService.updateConfiguracionNotificacionesUsuario(nuevaConfig);
+          result = await ConfiguracionService.updateConfiguracionNotificaciones(nuevaConfig);
           break;
           
         default:

@@ -23,13 +23,14 @@ import {
 import {
   Save,
   Notifications,
-  VolumeUp,
   Schedule,
   NotificationsActive,
   DoNotDisturb,
   CheckCircle,
   Info,
-  AccessTime
+  AccessTime,
+  Chat,
+  Timer
 } from '@mui/icons-material';
 
 // Estilos compartidos para inputs
@@ -45,18 +46,21 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
   const theme = useTheme();
   const [formData, setFormData] = useState({
     notificaciones_habilitadas: true,
-    notificaciones_sesion_terapia: true,
-    notificaciones_clase_pedagogica: true,
-    notificaciones_cancelaciones: true,
-    notificaciones_reprogramaciones: true,
-    tiempo_anticipacion_minutos: 15,
-    sonido_habilitado: true,
-    modo_silencioso_inicio: '',
-    modo_silencioso_fin: '',
+    notificar_sesiones_terapia: true,
+    minutos_previos_sesion_terapia: 15,
+    notificar_clases_pedagogicas: true,
+    minutos_previos_clase_pedagogica: 15,
+    notificar_cancelaciones: true,
+    notificar_reprogramaciones: true,
+    notificar_mensajes_chat: true,
+    notificar_solo_mensajes_urgentes: false,
+    horario_silencio_inicio: '',
+    horario_silencio_fin: '',
+    intervalo_verificacion_minutos: 1,
     ...configuracion
   });
 
-  const tiemposAnticipacion = [
+  const tiemposPrevios = [
     { value: 5, label: '5 minutos antes' },
     { value: 10, label: '10 minutos antes' },
     { value: 15, label: '15 minutos antes' },
@@ -78,15 +82,6 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
-    // Validación del modo silencioso
-    if (formData.modo_silencioso_inicio && formData.modo_silencioso_fin) {
-      if (formData.modo_silencioso_inicio >= formData.modo_silencioso_fin) {
-        alert('La hora de inicio del modo silencioso debe ser anterior a la hora de fin');
-        return;
-      }
-    }
-    
     onSave(formData);
   };
 
@@ -94,8 +89,8 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
     if ('Notification' in window) {
       Notification.requestPermission().then(permission => {
         if (permission === 'granted') {
-          new Notification('¡Configuración de Prueba!', {
-            body: 'Las notificaciones están funcionando correctamente.',
+          new Notification('Configuracion de Prueba', {
+            body: 'Las notificaciones estan funcionando correctamente.',
             icon: '/favicon.ico'
           });
         }
@@ -134,10 +129,10 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
           <Box>
             <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
               <Notifications sx={{ mr: 1, fontSize: 28 }} />
-              Configuración de Notificaciones
+              Configuracion de Notificaciones
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
-              Administra alertas, recordatorios y preferencias de sonido
+              Administra alertas, recordatorios y preferencias del sistema
             </Typography>
           </Box>
           <Button
@@ -162,7 +157,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
           <Box component="form" onSubmit={handleSubmit}>
             <Grid container spacing={3}>
 
-              {/* Configuración General */}
+              {/* Configuracion General */}
               <Grid item xs={12}>
                 <Paper
                   elevation={0}
@@ -171,28 +166,16 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                     mb: 2,
                     borderRadius: 3,
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50',
-                    border: `1px solid ${theme.palette.divider}`,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      boxShadow: 3,
-                      transform: 'translateY(-2px)'
-                    }
+                    border: `1px solid ${theme.palette.divider}`
                   }}
                 >
                   <Box display="flex" alignItems="center" mb={3}>
-                    <Avatar
-                      sx={{
-                        bgcolor: 'primary.main',
-                        width: 48,
-                        height: 48,
-                        mr: 2
-                      }}
-                    >
+                    <Avatar sx={{ bgcolor: 'primary.main', width: 48, height: 48, mr: 2 }}>
                       <Notifications sx={{ fontSize: 24 }} />
                     </Avatar>
                     <Box>
                       <Typography variant="h6" fontWeight="bold" color="primary.main">
-                        Configuración General
+                        Configuracion General
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Preferencias principales de notificaciones
@@ -242,30 +225,28 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                       </Paper>
                     </Grid>
 
-                    <Grid item xs={12}>
+                    <Grid item xs={12} md={6}>
                       <TextField
                         select
                         fullWidth
-                        label="Tiempo de Anticipación"
-                        name="tiempo_anticipacion_minutos"
-                        value={formData.tiempo_anticipacion_minutos}
+                        label="Verificar notificaciones cada"
+                        name="intervalo_verificacion_minutos"
+                        value={formData.intervalo_verificacion_minutos}
                         onChange={handleChange}
-                        helperText="Con qué anticipación recibir las notificaciones"
+                        helperText="Con que frecuencia se consultan notificaciones nuevas (1-60 minutos)"
                         disabled={!formData.notificaciones_habilitadas}
                         variant="outlined"
                         sx={purpleOutlineSX}
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position="start">
-                              <AccessTime color="primary" />
+                              <Timer color="primary" />
                             </InputAdornment>
                           )
                         }}
                       >
-                        {tiemposAnticipacion.map((tiempo) => (
-                          <MenuItem key={tiempo.value} value={tiempo.value}>
-                            {tiempo.label}
-                          </MenuItem>
+                        {[1, 2, 5, 10, 15, 30, 60].map(v => (
+                          <MenuItem key={v} value={v}>{v} {v === 1 ? 'minuto' : 'minutos'}</MenuItem>
                         ))}
                       </TextField>
                     </Grid>
@@ -280,24 +261,13 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                   sx={{
                     p: 3,
                     borderRadius: 3,
+                    height: '100%',
                     bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50',
-                    border: `1px solid ${theme.palette.divider}`,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      boxShadow: 3,
-                      transform: 'translateY(-2px)'
-                    }
+                    border: `1px solid ${theme.palette.divider}`
                   }}
                 >
                   <Box display="flex" alignItems="center" mb={3}>
-                    <Avatar
-                      sx={{
-                        bgcolor: 'warning.main',
-                        width: 48,
-                        height: 48,
-                        mr: 2
-                      }}
-                    >
+                    <Avatar sx={{ bgcolor: 'warning.main', width: 48, height: 48, mr: 2 }}>
                       <NotificationsActive sx={{ fontSize: 24 }} />
                     </Avatar>
                     <Box>
@@ -305,46 +275,52 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                         Tipos de Notificaciones
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Selecciona qué alertas recibir
+                        Selecciona que alertas recibir
                       </Typography>
                     </Box>
                   </Box>
 
                   <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <Paper
-                        sx={{
-                          p: 2,
-                          border: '1px solid',
-                          borderColor: theme.palette.divider,
-                          borderRadius: 2,
-                          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'transparent'
-                        }}
-                      >
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              checked={formData.notificaciones_sesion_terapia}
-                              onChange={handleChange}
-                              name="notificaciones_sesion_terapia"
-                              disabled={!formData.notificaciones_habilitadas}
-                              size="small"
-                              color="warning"
-                            />
-                          }
-                          label={
-                            <Box>
-                              <Typography variant="body2" fontWeight="medium">
-                                Sesiones Terapéuticas
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: theme.palette.mode === 'dark' ? 'grey.400' : 'text.secondary' }}>
-                                Recordatorios de citas individuales
-                              </Typography>
-                            </Box>
-                          }
-                        />
-                      </Paper>
-                    </Grid>
+                    {[
+                      { name: 'notificar_sesiones_terapia', label: 'Sesiones Terapeuticas', desc: 'Recordatorios de citas individuales' },
+                      { name: 'notificar_clases_pedagogicas', label: 'Clases Pedagogicas', desc: 'Recordatorios de clases grupales' },
+                      { name: 'notificar_cancelaciones', label: 'Cancelaciones', desc: 'Alertas de sesiones canceladas' },
+                      { name: 'notificar_reprogramaciones', label: 'Reprogramaciones', desc: 'Alertas de cambios de horario' },
+                      { name: 'notificar_mensajes_chat', label: 'Mensajes de Chat', desc: 'Notificaciones de mensajes nuevos' }
+                    ].map(item => (
+                      <Grid item xs={12} key={item.name}>
+                        <Paper
+                          sx={{
+                            p: 2,
+                            border: '1px solid',
+                            borderColor: theme.palette.divider,
+                            borderRadius: 2,
+                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'transparent'
+                          }}
+                        >
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={formData[item.name]}
+                                onChange={handleChange}
+                                name={item.name}
+                                disabled={!formData.notificaciones_habilitadas}
+                                size="small"
+                                color="warning"
+                              />
+                            }
+                            label={
+                              <Box>
+                                <Typography variant="body2" fontWeight="medium">{item.label}</Typography>
+                                <Typography variant="caption" sx={{ color: theme.palette.mode === 'dark' ? 'grey.400' : 'text.secondary' }}>
+                                  {item.desc}
+                                </Typography>
+                              </Box>
+                            }
+                          />
+                        </Paper>
+                      </Grid>
+                    ))}
 
                     <Grid item xs={12}>
                       <Paper
@@ -359,91 +335,19 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                         <FormControlLabel
                           control={
                             <Switch
-                              checked={formData.notificaciones_clase_pedagogica}
+                              checked={formData.notificar_solo_mensajes_urgentes}
                               onChange={handleChange}
-                              name="notificaciones_clase_pedagogica"
-                              disabled={!formData.notificaciones_habilitadas}
+                              name="notificar_solo_mensajes_urgentes"
+                              disabled={!formData.notificaciones_habilitadas || !formData.notificar_mensajes_chat}
                               size="small"
-                              color="warning"
+                              color="error"
                             />
                           }
                           label={
                             <Box>
-                              <Typography variant="body2" fontWeight="medium">
-                                Clases Pedagógicas
-                              </Typography>
+                              <Typography variant="body2" fontWeight="medium">Solo mensajes urgentes</Typography>
                               <Typography variant="caption" sx={{ color: theme.palette.mode === 'dark' ? 'grey.400' : 'text.secondary' }}>
-                                Recordatorios de clases grupales
-                              </Typography>
-                            </Box>
-                          }
-                        />
-                      </Paper>
-                    </Grid>
-
-                    <Grid item xs={12}>
-                      <Paper
-                        sx={{
-                          p: 2,
-                          border: '1px solid',
-                          borderColor: theme.palette.divider,
-                          borderRadius: 2,
-                          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'transparent'
-                        }}
-                      >
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              checked={formData.notificaciones_cancelaciones}
-                              onChange={handleChange}
-                              name="notificaciones_cancelaciones"
-                              disabled={!formData.notificaciones_habilitadas}
-                              size="small"
-                              color="warning"
-                            />
-                          }
-                          label={
-                            <Box>
-                              <Typography variant="body2" fontWeight="medium">
-                                Cancelaciones
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: theme.palette.mode === 'dark' ? 'grey.400' : 'text.secondary' }}>
-                                Alertas de sesiones canceladas
-                              </Typography>
-                            </Box>
-                          }
-                        />
-                      </Paper>
-                    </Grid>
-
-                    <Grid item xs={12}>
-                      <Paper
-                        sx={{
-                          p: 2,
-                          border: '1px solid',
-                          borderColor: theme.palette.divider,
-                          borderRadius: 2,
-                          bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'transparent'
-                        }}
-                      >
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              checked={formData.notificaciones_reprogramaciones}
-                              onChange={handleChange}
-                              name="notificaciones_reprogramaciones"
-                              disabled={!formData.notificaciones_habilitadas}
-                              size="small"
-                              color="warning"
-                            />
-                          }
-                          label={
-                            <Box>
-                              <Typography variant="body2" fontWeight="medium">
-                                Reprogramaciones
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: theme.palette.mode === 'dark' ? 'grey.400' : 'text.secondary' }}>
-                                Alertas de cambios de horario
+                                Filtrar solo los mensajes marcados como urgentes
                               </Typography>
                             </Box>
                           }
@@ -454,190 +358,172 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                 </Paper>
               </Grid>
 
-              {/* Audio y Sonidos */}
+              {/* Tiempo Previo y Modo Silencioso */}
               <Grid item xs={12} md={6}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 3,
-                    borderRadius: 3,
-                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50',
-                    border: `1px solid ${theme.palette.divider}`,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      boxShadow: 3,
-                      transform: 'translateY(-2px)'
-                    }
-                  }}
-                >
-                  <Box display="flex" alignItems="center" mb={3}>
-                    <Avatar
-                      sx={{
-                        bgcolor: 'success.main',
-                        width: 48,
-                        height: 48,
-                        mr: 2
-                      }}
-                    >
-                      <VolumeUp sx={{ fontSize: 24 }} />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="h6" fontWeight="bold" color="success.main">
-                        Audio y Sonidos
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Configuración de sonidos
-                      </Typography>
-                    </Box>
-                  </Box>
-
+                <Stack spacing={3}>
+                  {/* Tiempo de anticipacion por tipo */}
                   <Paper
+                    elevation={0}
                     sx={{
                       p: 3,
-                      border: '1px solid',
-                      borderColor: theme.palette.divider,
-                      borderRadius: 2,
-                      bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'transparent'
+                      borderRadius: 3,
+                      bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50',
+                      border: `1px solid ${theme.palette.divider}`
                     }}
                   >
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={formData.sonido_habilitado}
-                          onChange={handleChange}
-                          name="sonido_habilitado"
-                          disabled={!formData.notificaciones_habilitadas}
-                          color="success"
-                        />
-                      }
-                      label={
-                        <Box>
-                          <Typography variant="subtitle2" fontWeight="bold">
-                            Sonidos de Notificación
-                          </Typography>
-                          <Typography variant="body2" sx={{ color: theme.palette.mode === 'dark' ? 'grey.400' : 'text.secondary' }}>
-                            Reproducir sonidos cuando lleguen notificaciones
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                  </Paper>
-                </Paper>
-              </Grid>
-
-              {/* Modo Silencioso */}
-              <Grid item xs={12} md={6}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 3,
-                    borderRadius: 3,
-                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50',
-                    border: `1px solid ${theme.palette.divider}`,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      boxShadow: 3,
-                      transform: 'translateY(-2px)'
-                    }
-                  }}
-                >
-                  <Box display="flex" alignItems="center" mb={3}>
-                    <Avatar
-                      sx={{
-                        bgcolor: 'error.main',
-                        width: 48,
-                        height: 48,
-                        mr: 2
-                      }}
-                    >
-                      <DoNotDisturb sx={{ fontSize: 24 }} />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="h6" fontWeight="bold" color="error.main">
-                        Modo Silencioso
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Horario de silencio programado
-                      </Typography>
+                    <Box display="flex" alignItems="center" mb={3}>
+                      <Avatar sx={{ bgcolor: 'info.main', width: 48, height: 48, mr: 2 }}>
+                        <AccessTime sx={{ fontSize: 24 }} />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="h6" fontWeight="bold" color="info.main">
+                          Anticipacion de Recordatorios
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Con cuanta anticipacion recibir alertas
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Box>
 
-                  <Grid container spacing={3}>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        type="time"
-                        label="Inicio"
-                        name="modo_silencioso_inicio"
-                        value={formData.modo_silencioso_inicio}
-                        onChange={handleChange}
-                        helperText="Hora de inicio"
-                        disabled={!formData.notificaciones_habilitadas}
-                        InputLabelProps={{ shrink: true }}
-                        variant="outlined"
-                        sx={purpleOutlineSX}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <AccessTime color="error" />
-                            </InputAdornment>
-                          )
-                        }}
-                      />
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <TextField
+                          select
+                          fullWidth
+                          label="Sesiones Terapeuticas"
+                          name="minutos_previos_sesion_terapia"
+                          value={formData.minutos_previos_sesion_terapia}
+                          onChange={handleChange}
+                          disabled={!formData.notificaciones_habilitadas || !formData.notificar_sesiones_terapia}
+                          variant="outlined"
+                          sx={purpleOutlineSX}
+                        >
+                          {tiemposPrevios.map(t => (
+                            <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
+                          ))}
+                        </TextField>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          select
+                          fullWidth
+                          label="Clases Pedagogicas"
+                          name="minutos_previos_clase_pedagogica"
+                          value={formData.minutos_previos_clase_pedagogica}
+                          onChange={handleChange}
+                          disabled={!formData.notificaciones_habilitadas || !formData.notificar_clases_pedagogicas}
+                          variant="outlined"
+                          sx={purpleOutlineSX}
+                        >
+                          {tiemposPrevios.map(t => (
+                            <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>
+                          ))}
+                        </TextField>
+                      </Grid>
                     </Grid>
+                  </Paper>
 
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        type="time"
-                        label="Fin"
-                        name="modo_silencioso_fin"
-                        value={formData.modo_silencioso_fin}
-                        onChange={handleChange}
-                        helperText="Hora de fin"
-                        disabled={!formData.notificaciones_habilitadas}
-                        InputLabelProps={{ shrink: true }}
-                        variant="outlined"
-                        sx={purpleOutlineSX}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <AccessTime color="error" />
-                            </InputAdornment>
-                          )
-                        }}
-                      />
-                    </Grid>
+                  {/* Modo Silencioso */}
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      borderRadius: 3,
+                      bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'grey.50',
+                      border: `1px solid ${theme.palette.divider}`
+                    }}
+                  >
+                    <Box display="flex" alignItems="center" mb={3}>
+                      <Avatar sx={{ bgcolor: 'error.main', width: 48, height: 48, mr: 2 }}>
+                        <DoNotDisturb sx={{ fontSize: 24 }} />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="h6" fontWeight="bold" color="error.main">
+                          Modo Silencioso
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Horario de silencio programado
+                        </Typography>
+                      </Box>
+                    </Box>
 
-                    <Grid item xs={12}>
-                      <Paper
-                        sx={{
-                          p: 2.5,
-                          borderRadius: 2,
-                          bgcolor: theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.15)' : 'rgba(244, 67, 54, 0.1)',
-                          border: `1px solid ${theme.palette.error.main}`
-                        }}
-                      >
-                        <Box display="flex" alignItems="flex-start" gap={2}>
-                          <Info sx={{ color: 'error.main', mt: 0.5 }} />
-                          <Box>
-                            <Typography variant="body2" fontWeight="medium" color="error.main" gutterBottom>
-                              Período Silencioso Actual
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: theme.palette.mode === 'dark' ? 'grey.300' : 'text.secondary' }}>
-                              {formData.modo_silencioso_inicio && formData.modo_silencioso_fin
-                                ? `${formData.modo_silencioso_inicio} - ${formData.modo_silencioso_fin}`
-                                : 'No configurado'}
-                            </Typography>
+                    <Grid container spacing={3}>
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          type="time"
+                          label="Inicio"
+                          name="horario_silencio_inicio"
+                          value={formData.horario_silencio_inicio}
+                          onChange={handleChange}
+                          helperText="Hora de inicio"
+                          disabled={!formData.notificaciones_habilitadas}
+                          InputLabelProps={{ shrink: true }}
+                          variant="outlined"
+                          sx={purpleOutlineSX}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <AccessTime color="error" />
+                              </InputAdornment>
+                            )
+                          }}
+                        />
+                      </Grid>
+
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          type="time"
+                          label="Fin"
+                          name="horario_silencio_fin"
+                          value={formData.horario_silencio_fin}
+                          onChange={handleChange}
+                          helperText="Hora de fin"
+                          disabled={!formData.notificaciones_habilitadas}
+                          InputLabelProps={{ shrink: true }}
+                          variant="outlined"
+                          sx={purpleOutlineSX}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <AccessTime color="error" />
+                              </InputAdornment>
+                            )
+                          }}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12}>
+                        <Paper
+                          sx={{
+                            p: 2.5,
+                            borderRadius: 2,
+                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.15)' : 'rgba(244, 67, 54, 0.1)',
+                            border: `1px solid ${theme.palette.error.main}`
+                          }}
+                        >
+                          <Box display="flex" alignItems="flex-start" gap={2}>
+                            <Info sx={{ color: 'error.main', mt: 0.5 }} />
+                            <Box>
+                              <Typography variant="body2" fontWeight="medium" color="error.main" gutterBottom>
+                                Periodo Silencioso Actual
+                              </Typography>
+                              <Typography variant="body2" sx={{ color: theme.palette.mode === 'dark' ? 'grey.300' : 'text.secondary' }}>
+                                {formData.horario_silencio_inicio && formData.horario_silencio_fin
+                                  ? `${formData.horario_silencio_inicio} - ${formData.horario_silencio_fin}`
+                                  : 'No configurado'}
+                              </Typography>
+                            </Box>
                           </Box>
-                        </Box>
-                      </Paper>
+                        </Paper>
+                      </Grid>
                     </Grid>
-                  </Grid>
-                </Paper>
+                  </Paper>
+                </Stack>
               </Grid>
 
-              {/* Información Importante */}
+              {/* Informacion importante */}
               <Grid item xs={12}>
                 <Alert
                   severity="info"
@@ -648,26 +534,26 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                   }}
                 >
                   <Typography variant="body2" fontWeight="bold" gutterBottom>
-                    Información importante
+                    Informacion importante
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12} md={6}>
                       <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }}>
                         <li>Las notificaciones push requieren permiso del navegador</li>
-                        <li>El modo silencioso solo aplica a sonidos de notificación</li>
+                        <li>El modo silencioso suspende las notificaciones en ese horario</li>
                       </Typography>
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }}>
-                        <li>Los recordatorios se envían con la anticipación configurada</li>
-                        <li>Los cambios se aplicarán inmediatamente</li>
+                        <li>Los recordatorios se envian segun el tiempo de anticipacion configurado</li>
+                        <li>Los cambios se aplicaran inmediatamente</li>
                       </Typography>
                     </Grid>
                   </Grid>
                 </Alert>
               </Grid>
 
-              {/* Botón de guardar */}
+              {/* Boton de guardar */}
               <Grid item xs={12}>
                 <Box sx={{ textAlign: 'center', mt: 3, mb: 2 }}>
                   <Button
@@ -690,16 +576,17 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                       transition: 'all 0.3s ease'
                     }}
                   >
-                    Guardar Configuración de Notificaciones
+                    Guardar Configuracion de Notificaciones
                   </Button>
                   <Box display="flex" alignItems="center" justifyContent="center" gap={1} sx={{ mt: 2 }}>
                     <CheckCircle sx={{ fontSize: 18, color: 'text.secondary' }} />
                     <Typography variant="body2" color="text.secondary">
-                      Las notificaciones se activarán según tus preferencias
+                      Las notificaciones se activaran segun tus preferencias
                     </Typography>
                   </Box>
                 </Box>
               </Grid>
+
             </Grid>
           </Box>
         </CardContent>

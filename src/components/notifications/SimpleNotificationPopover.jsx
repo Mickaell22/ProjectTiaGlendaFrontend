@@ -129,36 +129,36 @@ const SimpleNotificationPopover = ({ onRefresh = () => {} }) => {
     }
   };
 
-  // Obtener icono según el tipo de notificación
-  const getNotificationIcon = (tipo) => {
-    switch (tipo) {
-      case 'chat':
+  // Obtener icono según tipo_notificacion del backend
+  // Valores: sesion_terapia | clase_pedagogica | cancelacion | reprogramacion | mensaje_chat | recordatorio_general
+  const getNotificationIcon = (tipoNotificacion) => {
+    switch (tipoNotificacion) {
+      case 'mensaje_chat':
         return <MessageIcon color="primary" />;
-      case 'cita':
-      case 'sesion':
+      case 'sesion_terapia':
+      case 'clase_pedagogica':
         return <EventIcon color="secondary" />;
-      case 'usuario':
-        return <PersonIcon color="info" />;
-      case 'sistema':
-        return <InfoIcon color="action" />;
-      case 'error':
+      case 'cancelacion':
         return <ErrorIcon color="error" />;
-      case 'warning':
+      case 'reprogramacion':
         return <WarningIcon color="warning" />;
-      case 'success':
-        return <SuccessIcon color="success" />;
+      case 'recordatorio_general':
+        return <SuccessIcon color="info" />;
       default:
         return <NotificationsIcon color="default" />;
     }
   };
 
-  // Obtener color del chip según prioridad
+  // Obtener color del chip según prioridad del backend
+  // Valores: urgente | alta | normal | baja
   const getPriorityColor = (prioridad) => {
     switch (prioridad) {
+      case 'urgente':
+        return 'error';
       case 'alta':
         return 'error';
-      case 'media':
-        return 'warning';
+      case 'normal':
+        return 'default';
       case 'baja':
         return 'info';
       default:
@@ -167,26 +167,24 @@ const SimpleNotificationPopover = ({ onRefresh = () => {} }) => {
   };
 
   // Manejar clic en notificación para marcar como leída
+  // El backend usa campo "estado": "enviada" | "leida"
   const handleNotificationClick = async (notification) => {
-    if (!notification.leida) {
+    if (notification.estado !== 'leida') {
       try {
         const result = await notificationService.marcarComoLeida(notification.id);
         if (result.success) {
-          // Actualizar estado local
           setNotifications(prevNotifications =>
             prevNotifications.map(n =>
-              n.id === notification.id ? { ...n, leida: true } : n
+              n.id === notification.id ? { ...n, estado: 'leida' } : n
             )
           );
-          // Actualizar contador en header
           onRefresh();
         }
       } catch (error) {
         console.error('Error marcando notificación como leída:', error);
-        // Para el demo, marcar como leída localmente
         setNotifications(prevNotifications =>
           prevNotifications.map(n =>
-            n.id === notification.id ? { ...n, leida: true } : n
+            n.id === notification.id ? { ...n, estado: 'leida' } : n
           )
         );
       }
@@ -200,14 +198,14 @@ const SimpleNotificationPopover = ({ onRefresh = () => {} }) => {
 
     setNotifications(prevNotifications => {
       const cleanedNotifications = prevNotifications.filter(notification => {
-        // Mantener notificaciones no leídas
-        if (!notification.leida) return true;
+        // Mantener notificaciones no leídas (estado "enviada")
+        if (notification.estado !== 'leida') return true;
 
-        // Mantener notificaciones de alta prioridad por más tiempo
-        if (notification.prioridad === 'alta') return true;
+        // Mantener notificaciones de alta/urgente prioridad por más tiempo
+        if (notification.prioridad === 'urgente' || notification.prioridad === 'alta') return true;
 
-        // Eliminar notificaciones leídas antiguas
-        const notificationDate = new Date(notification.fecha_creacion);
+        // Eliminar notificaciones leídas antiguas (usa fecha_envio del backend)
+        const notificationDate = new Date(notification.fecha_envio || notification.fecha_creacion);
         return (now - notificationDate) < maxAge;
       });
 
@@ -222,7 +220,7 @@ const SimpleNotificationPopover = ({ onRefresh = () => {} }) => {
   const saveImportantNotifications = (notifications) => {
     try {
       const importantNotifications = notifications.filter(n =>
-        n.prioridad === 'alta' || !n.leida
+        n.prioridad === 'urgente' || n.prioridad === 'alta' || n.estado !== 'leida'
       );
       localStorage.setItem('important_notifications', JSON.stringify(importantNotifications));
     } catch (error) {
@@ -288,7 +286,7 @@ const SimpleNotificationPopover = ({ onRefresh = () => {} }) => {
                   onClick={() => handleNotificationClick(notification)}
                   sx={{
                     px: 1,
-                    bgcolor: notification.leida ? 'transparent' : 'action.hover',
+                    bgcolor: notification.estado === 'leida' ? 'transparent' : 'action.hover',
                     borderRadius: 1,
                     mb: 0.5,
                     cursor: 'pointer',
@@ -298,7 +296,7 @@ const SimpleNotificationPopover = ({ onRefresh = () => {} }) => {
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 40 }}>
-                    {getNotificationIcon(notification.tipo)}
+                    {getNotificationIcon(notification.tipo_notificacion)}
                   </ListItemIcon>
                   <ListItemText
                     primary={
@@ -306,21 +304,21 @@ const SimpleNotificationPopover = ({ onRefresh = () => {} }) => {
                         <Typography
                           variant="subtitle2"
                           sx={{
-                            fontWeight: notification.leida ? 400 : 600,
+                            fontWeight: notification.estado === 'leida' ? 400 : 600,
                             flex: 1,
                           }}
                         >
                           {notification.titulo || 'Notificación'}
                         </Typography>
-                        {notification.prioridad === 'alta' && (
+                        {(notification.prioridad === 'urgente' || notification.prioridad === 'alta') && (
                           <Chip
-                            label="Urgente"
+                            label={notification.prioridad === 'urgente' ? 'Urgente' : 'Alta'}
                             size="small"
                             color="error"
                             sx={{ height: 18, fontSize: '0.6rem' }}
                           />
                         )}
-                        {!notification.leida && (
+                        {notification.estado !== 'leida' && (
                           <Box
                             sx={{
                               width: 8,
@@ -340,10 +338,10 @@ const SimpleNotificationPopover = ({ onRefresh = () => {} }) => {
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                           <Typography variant="caption" color="text.secondary">
-                            {formatDate(notification.fecha_creacion)}
+                            {formatDate(notification.fecha_envio)}
                           </Typography>
                           <Chip
-                            label={notification.tipo || 'general'}
+                            label={notification.tipo_notificacion || 'general'}
                             size="small"
                             variant="outlined"
                             sx={{ height: 16, fontSize: '0.6rem' }}

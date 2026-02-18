@@ -19,38 +19,21 @@ import {
 import {
   ArrowBack as ArrowBackIcon,
   Save as SaveIcon,
-  Notifications as NotificationsIcon,
-  NotificationsOff as NotificationsOffIcon,
 } from '@mui/icons-material';
 import notificationService from '../../services/notificationService';
 
-const NotificationSettings = ({ 
+const NotificationSettings = ({
   onBack = () => {},
   onClose = () => {},
 }) => {
-  // Estados de configuración
   const [config, setConfig] = useState({
-    // Configuración general
-    notificaciones_activas: true,
-    notificaciones_navegador: false,
-    sonido_activo: true,
-    
-    // Configuración por tipo
-    notificaciones_chat: true,
-    notificaciones_citas: true,
-    notificaciones_sesiones: true,
-    notificaciones_usuarios: true,
-    notificaciones_sistema: true,
-    
-    // Configuración por prioridad
-    prioridad_alta: true,
-    prioridad_media: true,
-    prioridad_baja: false,
-    
-    // Configuración de horarios
-    horario_inicio: '08:00',
-    horario_fin: '20:00',
-    notificaciones_fines_semana: false,
+    notificaciones_habilitadas: true,
+    notificar_sesiones_terapia: true,
+    notificar_clases_pedagogicas: true,
+    notificar_cancelaciones: true,
+    notificar_reprogramaciones: true,
+    notificar_mensajes_chat: true,
+    notificar_solo_mensajes_urgentes: false,
   });
 
   const [loading, setLoading] = useState(false);
@@ -59,19 +42,14 @@ const NotificationSettings = ({
   const [success, setSuccess] = useState('');
   const [browserPermission, setBrowserPermission] = useState('default');
 
-  // Cargar configuración al montar
   useEffect(() => {
     loadConfiguration();
     checkBrowserPermission();
   }, []);
 
-  /**
-   * Cargar configuración actual del usuario
-   */
   const loadConfiguration = async () => {
     setLoading(true);
     setError('');
-
     try {
       const result = await notificationService.getConfiguracion();
       if (result.success) {
@@ -80,19 +58,16 @@ const NotificationSettings = ({
           ...result.configuracion,
         }));
       } else {
-        setError(result.error || 'Error al cargar configuración');
+        setError(result.error || 'Error al cargar configuracion');
       }
-    } catch (error) {
-      console.error('Error cargando configuración:', error);
-      setError('Error al cargar configuración');
+    } catch (err) {
+      console.error('Error cargando configuracion:', err);
+      setError('Error al cargar configuracion');
     } finally {
       setLoading(false);
     }
   };
 
-  /**
-   * Verificar permisos del navegador para notificaciones
-   */
   const checkBrowserPermission = () => {
     if ('Notification' in window) {
       setBrowserPermission(Notification.permission);
@@ -101,103 +76,66 @@ const NotificationSettings = ({
     }
   };
 
-  /**
-   * Guardar configuración
-   */
   const saveConfiguration = async () => {
     setSaving(true);
     setError('');
     setSuccess('');
-
     try {
       const result = await notificationService.updateConfiguracion(config);
       if (result.success) {
-        setSuccess('Configuración guardada correctamente');
+        setSuccess('Configuracion guardada correctamente');
         setTimeout(() => {
           setSuccess('');
-          onBack(); // Volver a la lista de notificaciones
+          onBack();
         }, 2000);
       } else {
-        setError(result.error || 'Error al guardar configuración');
+        setError(result.error || 'Error al guardar configuracion');
       }
-    } catch (error) {
-      console.error('Error guardando configuración:', error);
-      setError('Error al guardar configuración');
+    } catch (err) {
+      console.error('Error guardando configuracion:', err);
+      setError('Error al guardar configuracion');
     } finally {
       setSaving(false);
     }
   };
 
-  /**
-   * Solicitar permisos del navegador
-   */
   const requestBrowserPermission = async () => {
     const permission = await notificationService.requestBrowserPermission();
     setBrowserPermission(permission);
-    
-    if (permission === 'granted') {
-      setConfig(prev => ({ ...prev, notificaciones_navegador: true }));
-    }
   };
 
-  /**
-   * Manejar cambio en la configuración
-   */
   const handleConfigChange = (field, value) => {
-    setConfig(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+    setConfig(prev => ({ ...prev, [field]: value }));
   };
 
-  /**
-   * Renderizar switch de configuración
-   */
-  const renderConfigSwitch = (field, label, description = '') => (
+  const renderSwitch = (field, label, description = '', disabled = false) => (
     <ListItem>
-      <ListItemText
-        primary={label}
-        secondary={description}
-      />
+      <ListItemText primary={label} secondary={description} />
       <ListItemSecondaryAction>
         <Switch
           checked={config[field] || false}
           onChange={(e) => handleConfigChange(field, e.target.checked)}
-          disabled={saving}
+          disabled={saving || disabled}
         />
       </ListItemSecondaryAction>
     </ListItem>
   );
 
-  /**
-   * Obtener color del estado de permisos
-   */
   const getPermissionColor = () => {
     switch (browserPermission) {
-      case 'granted':
-        return 'success';
-      case 'denied':
-        return 'error';
-      case 'not-supported':
-        return 'warning';
-      default:
-        return 'default';
+      case 'granted': return 'success';
+      case 'denied': return 'error';
+      case 'not-supported': return 'warning';
+      default: return 'default';
     }
   };
 
-  /**
-   * Obtener texto del estado de permisos
-   */
   const getPermissionText = () => {
     switch (browserPermission) {
-      case 'granted':
-        return 'Permitidas';
-      case 'denied':
-        return 'Bloqueadas';
-      case 'not-supported':
-        return 'No compatibles';
-      default:
-        return 'Pendiente';
+      case 'granted': return 'Permitidas';
+      case 'denied': return 'Bloqueadas';
+      case 'not-supported': return 'No compatibles';
+      default: return 'Pendiente';
     }
   };
 
@@ -218,13 +156,9 @@ const NotificationSettings = ({
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h6" sx={{ flex: 1 }}>
-            Configuración
+            Configuracion
           </Typography>
-          <IconButton
-            size="small"
-            onClick={saveConfiguration}
-            disabled={saving}
-          >
+          <IconButton size="small" onClick={saveConfiguration} disabled={saving}>
             {saving ? <CircularProgress size={20} /> : <SaveIcon />}
           </IconButton>
         </Box>
@@ -232,42 +166,32 @@ const NotificationSettings = ({
 
       {/* Contenido */}
       <Box sx={{ flex: 1, overflow: 'auto' }}>
-        {/* Alerts */}
         {error && (
           <Box sx={{ p: 2 }}>
-            <Alert severity="error" onClose={() => setError('')}>
-              {error}
-            </Alert>
+            <Alert severity="error" onClose={() => setError('')}>{error}</Alert>
           </Box>
         )}
-        
         {success && (
           <Box sx={{ p: 2 }}>
-            <Alert severity="success">
-              {success}
-            </Alert>
+            <Alert severity="success">{success}</Alert>
           </Box>
         )}
 
         <List sx={{ py: 0 }}>
-          {/* Configuración General */}
+          {/* General */}
           <ListItem>
             <ListItemText
-              primary="Configuración General"
+              primary="Configuracion General"
               sx={{ '& .MuiListItemText-primary': { fontWeight: 600 } }}
             />
           </ListItem>
-          
-          {renderConfigSwitch(
-            'notificaciones_activas',
-            'Notificaciones activas',
-            'Activar o desactivar todas las notificaciones'
-          )}
+
+          {renderSwitch('notificaciones_habilitadas', 'Notificaciones activas', 'Activar o desactivar todas las notificaciones')}
 
           <ListItem>
             <ListItemText
               primary="Notificaciones del navegador"
-              secondary="Mostrar notificaciones fuera de la aplicación"
+              secondary="Mostrar notificaciones fuera de la aplicacion"
             />
             <ListItemSecondaryAction>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -278,111 +202,64 @@ const NotificationSettings = ({
                   sx={{ fontSize: '0.7rem' }}
                 />
                 {browserPermission !== 'granted' && browserPermission !== 'not-supported' && (
-                  <Button
-                    size="small"
-                    onClick={requestBrowserPermission}
-                    sx={{ fontSize: '0.7rem' }}
-                  >
+                  <Button size="small" onClick={requestBrowserPermission} sx={{ fontSize: '0.7rem' }}>
                     Permitir
                   </Button>
                 )}
-                <Switch
-                  checked={config.notificaciones_navegador && browserPermission === 'granted'}
-                  onChange={(e) => handleConfigChange('notificaciones_navegador', e.target.checked)}
-                  disabled={browserPermission !== 'granted' || saving}
-                />
               </Box>
             </ListItemSecondaryAction>
           </ListItem>
 
-          {renderConfigSwitch(
-            'sonido_activo',
-            'Sonido de notificación',
-            'Reproducir sonido al recibir notificaciones'
-          )}
-
           <Divider sx={{ my: 1 }} />
 
-          {/* Configuración por Tipo */}
+          {/* Tipos */}
           <ListItem>
             <ListItemText
-              primary="Tipos de Notificación"
+              primary="Tipos de Notificacion"
               sx={{ '& .MuiListItemText-primary': { fontWeight: 600 } }}
             />
           </ListItem>
 
-          {renderConfigSwitch(
-            'notificaciones_chat',
+          {renderSwitch(
+            'notificar_sesiones_terapia',
+            'Sesiones Terapeuticas',
+            'Recordatorios de citas de terapia',
+            !config.notificaciones_habilitadas
+          )}
+
+          {renderSwitch(
+            'notificar_clases_pedagogicas',
+            'Clases Pedagogicas',
+            'Recordatorios de clases grupales',
+            !config.notificaciones_habilitadas
+          )}
+
+          {renderSwitch(
+            'notificar_cancelaciones',
+            'Cancelaciones',
+            'Alertas de sesiones o clases canceladas',
+            !config.notificaciones_habilitadas
+          )}
+
+          {renderSwitch(
+            'notificar_reprogramaciones',
+            'Reprogramaciones',
+            'Alertas de cambios de horario',
+            !config.notificaciones_habilitadas
+          )}
+
+          {renderSwitch(
+            'notificar_mensajes_chat',
             'Mensajes de Chat',
-            'Notificaciones de nuevos mensajes'
+            'Notificaciones de mensajes nuevos',
+            !config.notificaciones_habilitadas
           )}
 
-          {renderConfigSwitch(
-            'notificaciones_citas',
-            'Citas Médicas',
-            'Notificaciones de citas programadas'
-          )}
-
-          {renderConfigSwitch(
-            'notificaciones_sesiones',
-            'Sesiones Terapéuticas',
-            'Notificaciones de sesiones de terapia'
-          )}
-
-          {renderConfigSwitch(
-            'notificaciones_usuarios',
-            'Gestión de Usuarios',
-            'Notificaciones de cambios de usuarios'
-          )}
-
-          {renderConfigSwitch(
-            'notificaciones_sistema',
-            'Sistema',
-            'Notificaciones del sistema y actualizaciones'
-          )}
-
-          <Divider sx={{ my: 1 }} />
-
-          {/* Configuración por Prioridad */}
-          <ListItem>
-            <ListItemText
-              primary="Prioridad de Notificaciones"
-              sx={{ '& .MuiListItemText-primary': { fontWeight: 600 } }}
-            />
-          </ListItem>
-
-          {renderConfigSwitch(
-            'prioridad_alta',
-            'Prioridad Alta',
-            'Notificaciones urgentes e importantes'
-          )}
-
-          {renderConfigSwitch(
-            'prioridad_media',
-            'Prioridad Media',
-            'Notificaciones regulares'
-          )}
-
-          {renderConfigSwitch(
-            'prioridad_baja',
-            'Prioridad Baja',
-            'Notificaciones informativas'
-          )}
-
-          <Divider sx={{ my: 1 }} />
-
-          {/* Configuración de Horarios */}
-          <ListItem>
-            <ListItemText
-              primary="Horarios"
-              sx={{ '& .MuiListItemText-primary': { fontWeight: 600 } }}
-            />
-          </ListItem>
-
-          {renderConfigSwitch(
-            'notificaciones_fines_semana',
-            'Fines de semana',
-            'Recibir notificaciones los fines de semana'
+          {renderSwitch(
+            'notificar_solo_mensajes_urgentes',
+            'Solo mensajes urgentes',
+            'Filtrar unicamente mensajes marcados como urgentes',
+            !config.notificaciones_habilitadas || !config.notificar_mensajes_chat
           )}
         </List>
       </Box>
@@ -396,7 +273,7 @@ const NotificationSettings = ({
           disabled={saving}
           startIcon={saving ? <CircularProgress size={16} /> : <SaveIcon />}
         >
-          {saving ? 'Guardando...' : 'Guardar Configuración'}
+          {saving ? 'Guardando...' : 'Guardar Configuracion'}
         </Button>
       </Box>
     </Box>

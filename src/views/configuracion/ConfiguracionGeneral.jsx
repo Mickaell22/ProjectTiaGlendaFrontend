@@ -50,6 +50,7 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
     email: '',
     horarioInicio: '08:00',
     horarioFin: '17:00',
+    turnoPrincipal: '',
     zonaHoraria: 'America/Guayaquil',
     formatoFecha: 'DD/MM/YYYY',
     formatoHora: '24h',
@@ -346,6 +347,30 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                       )
                     }}
                   />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Turno Principal"
+                    name="turnoPrincipal"
+                    value={formData.turnoPrincipal}
+                    onChange={handleChange}
+                    variant="outlined"
+                    sx={purpleOutlineSX}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Schedule color="success" />
+                        </InputAdornment>
+                      )
+                    }}
+                  >
+                    <MenuItem value="matutino">Matutino</MenuItem>
+                    <MenuItem value="vespertino">Vespertino</MenuItem>
+                    <MenuItem value="mixto">Mixto</MenuItem>
+                  </TextField>
                 </Grid>
 
                 <Grid item xs={12}>

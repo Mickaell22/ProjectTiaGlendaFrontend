@@ -24,29 +24,26 @@ import NotificationItem from './NotificationItem';
 import NotificationSettings from './NotificationSettings';
 import notificationService from '../../services/notificationService';
 
-const NotificationCenter = ({ 
-  position = { top: 8, right: 8 }, // Posición del botón
+const NotificationCenter = ({
+  position = { top: 8, right: 8 },
   maxHeight = 400,
   autoRefresh = true,
   refreshInterval = 30000, // 30 segundos
 }) => {
-  // Estados principales
   const [anchorEl, setAnchorEl] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  // Estados de configuración
+
   const [showSettings, setShowSettings] = useState(false);
   const [includeRead, setIncludeRead] = useState(false);
 
   const open = Boolean(anchorEl);
 
-  // Cargar notificaciones al montar
   useEffect(() => {
     loadNotifications();
-    
+
     if (autoRefresh) {
       setupAutoRefresh();
       setupBrowserNotifications();
@@ -59,37 +56,26 @@ const NotificationCenter = ({
     };
   }, [autoRefresh, refreshInterval]);
 
-  // Recargar cuando cambia includeRead
   useEffect(() => {
     if (open) {
       loadNotifications();
     }
   }, [includeRead]);
 
-  /**
-   * Configurar refresh automático
-   */
   const setupAutoRefresh = useCallback(() => {
-    // Configurar callback para actualización de conteo
     notificationService.onCountUpdate((count) => {
       setUnreadCount(count);
     });
 
-    // Configurar callback para nuevas notificaciones
-    notificationService.onNewNotification((newCount) => {
-      // Recargar lista si el popover está abierto
+    notificationService.onNewNotification(() => {
       if (open) {
         loadNotifications();
       }
     });
 
-    // Iniciar polling
     notificationService.startPolling(refreshInterval);
   }, [open, refreshInterval]);
 
-  /**
-   * Configurar notificaciones del navegador
-   */
   const setupBrowserNotifications = useCallback(async () => {
     const permission = await notificationService.requestBrowserPermission();
     if (permission === 'granted') {
@@ -97,9 +83,6 @@ const NotificationCenter = ({
     }
   }, []);
 
-  /**
-   * Cargar notificaciones desde el servidor
-   */
   const loadNotifications = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -108,13 +91,14 @@ const NotificationCenter = ({
       const result = await notificationService.getNotificaciones(includeRead, 50);
       if (result.success) {
         setNotifications(result.notificaciones);
-        setUnreadCount(result.notificaciones.filter(n => !n.leida).length);
+        // Contar no leidas usando campo "estado" del backend
+        setUnreadCount(result.notificaciones.filter(n => n.estado !== 'leida').length);
       } else {
         setError(result.error || 'Error al cargar notificaciones');
         setNotifications([]);
       }
-    } catch (error) {
-      console.error('Error cargando notificaciones:', error);
+    } catch (err) {
+      console.error('Error cargando notificaciones:', err);
       setError('Error de conexión');
       setNotifications([]);
     } finally {
@@ -122,9 +106,6 @@ const NotificationCenter = ({
     }
   }, [includeRead]);
 
-  /**
-   * Abrir/cerrar popover
-   */
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
     if (!open) {
@@ -137,70 +118,62 @@ const NotificationCenter = ({
     setShowSettings(false);
   };
 
-  /**
-   * Marcar notificación como leída
-   */
   const handleMarkAsRead = async (notificationId) => {
     try {
       const result = await notificationService.marcarComoLeida(notificationId);
       if (result.success) {
-        // Actualizar la notificación en la lista local
-        setNotifications(prevNotifications =>
-          prevNotifications.map(notification =>
-            notification.id === notificationId
-              ? { ...notification, leida: true }
-              : notification
+        setNotifications(prev =>
+          prev.map(n =>
+            n.id === notificationId ? { ...n, estado: 'leida' } : n
           )
         );
-        
-        // Actualizar contador
-        setUnreadCount(prevCount => Math.max(0, prevCount - 1));
-      } else {
-        console.error('Error marcando notificación como leída:', result.error);
+        setUnreadCount(prev => Math.max(0, prev - 1));
       }
-    } catch (error) {
-      console.error('Error marcando notificación como leída:', error);
+    } catch (err) {
+      console.error('Error marcando notificación como leída:', err);
     }
   };
 
   /**
-   * Marcar todas como leídas
+   * Marcar todas como leídas usando el endpoint dedicado PUT /api/notificaciones/leer-todas
    */
   const handleMarkAllAsRead = async () => {
-    const unreadNotifications = notifications.filter(n => !n.leida);
-    
     try {
-      // Marcar todas las no leídas
-      await Promise.all(
-        unreadNotifications.map(notification =>
-          notificationService.marcarComoLeida(notification.id)
-        )
-      );
-      
-      // Actualizar estado local
-      setNotifications(prevNotifications =>
-        prevNotifications.map(notification => ({
-          ...notification,
-          leida: true,
-        }))
-      );
-      
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Error marcando todas las notificaciones como leídas:', error);
+      const result = await notificationService.marcarTodasComoLeidas();
+      if (result.success) {
+        setNotifications(prev =>
+          prev.map(n => ({ ...n, estado: 'leida' }))
+        );
+        setUnreadCount(0);
+      }
+    } catch (err) {
+      console.error('Error marcando todas las notificaciones como leídas:', err);
     }
   };
 
   /**
-   * Filtrar notificaciones para mostrar
+   * Eliminar una notificacion usando DELETE /api/notificaciones/<id>
    */
-  const filteredNotifications = notifications.filter(notification => 
-    includeRead || !notification.leida
+  const handleDelete = async (notificationId) => {
+    try {
+      const result = await notificationService.eliminarNotificacion(notificationId);
+      if (result.success) {
+        const removed = notifications.find(n => n.id === notificationId);
+        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+        if (removed && removed.estado !== 'leida') {
+          setUnreadCount(prev => Math.max(0, prev - 1));
+        }
+      }
+    } catch (err) {
+      console.error('Error eliminando notificación:', err);
+    }
+  };
+
+  // Filtrar usando campo "estado" del backend
+  const filteredNotifications = notifications.filter(n =>
+    includeRead || n.estado !== 'leida'
   );
 
-  /**
-   * Renderizar contenido del popover
-   */
   const renderContent = () => {
     if (showSettings) {
       return (
@@ -219,7 +192,7 @@ const NotificationCenter = ({
             <Typography variant="h6">
               Notificaciones
             </Typography>
-            
+
             <Box sx={{ display: 'flex', gap: 0.5 }}>
               <IconButton
                 size="small"
@@ -228,7 +201,7 @@ const NotificationCenter = ({
               >
                 <RefreshIcon />
               </IconButton>
-              
+
               <IconButton
                 size="small"
                 onClick={() => setShowSettings(true)}
@@ -247,7 +220,7 @@ const NotificationCenter = ({
               onClick={() => setIncludeRead(!includeRead)}
               clickable
             />
-            
+
             {unreadCount > 0 && (
               <Button
                 size="small"
@@ -268,7 +241,7 @@ const NotificationCenter = ({
             </Box>
           ) : error ? (
             <Box sx={{ p: 2 }}>
-              <Alert 
+              <Alert
                 severity="error"
                 action={
                   <Button size="small" onClick={loadNotifications}>
@@ -283,7 +256,7 @@ const NotificationCenter = ({
             <Box sx={{ p: 3, textAlign: 'center' }}>
               <NotificationsNoneIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
               <Typography color="text.secondary">
-                {includeRead 
+                {includeRead
                   ? 'No hay notificaciones'
                   : 'No hay notificaciones nuevas'
                 }
@@ -296,6 +269,7 @@ const NotificationCenter = ({
                   <NotificationItem
                     notification={notification}
                     onMarkAsRead={handleMarkAsRead}
+                    onDelete={handleDelete}
                     onClose={handleClose}
                   />
                   {index < filteredNotifications.length - 1 && (
@@ -347,8 +321,8 @@ const NotificationCenter = ({
         }}
         slotProps={{
           paper: {
-            sx: { boxShadow: 4 }
-          }
+            sx: { boxShadow: 4 },
+          },
         }}
       >
         <Paper elevation={0}>
