@@ -149,15 +149,26 @@ export const AuthProvider = ({ children }) => {
     }
   }, [dispatch]);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     try {
+      // Notificar al backend del logout para registro de auditoría
+      const token = localStorage.getItem('jwt_token');
+      if (token) {
+        try {
+          await ApiService.post(API_ENDPOINTS.AUTH.LOGOUT, {});
+        } catch (apiError) {
+          // Ignorar errores de la API de logout - continuar con logout local
+          logger.warn('Error al llamar logout API', apiError);
+        }
+      }
+
       localStorage.removeItem('jwt_token');
       localStorage.removeItem('user');
       localStorage.removeItem('login_data');
       localStorage.removeItem('full_login_data');
-      
+
       dispatch({ type: 'LOGOUT' });
-      
+
       // Redirigir al login
       navigate('/auth/login');
       logger.logoutEvent('manual');

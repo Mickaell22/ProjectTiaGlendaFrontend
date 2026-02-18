@@ -39,8 +39,11 @@ apiClient.interceptors.response.use(
   (error) => {
     // Manejo centralizado de errores
     if (error.response?.status === HTTP_STATUS.UNAUTHORIZED) {
-      // Token expirado o inválido
+      // Token expirado o inválido - limpiar toda la sesión
       localStorage.removeItem('jwt_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('login_data');
+      localStorage.removeItem('full_login_data');
       window.location.href = '/auth/login';
       return Promise.reject(new Error(ERROR_MESSAGES.UNAUTHORIZED));
     }

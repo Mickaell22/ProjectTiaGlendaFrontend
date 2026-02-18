@@ -77,16 +77,11 @@ const Login = () => {
           // Verificar si el usuario tiene múltiples centros
           const user = data.data.user;
           const centros = user?.centros || [];
+          const centroPredeterminado = user?.centro_predeterminado;
 
-          if (centros.length > 1) {
-            // Usuario tiene múltiples centros, mostrar selector
-            const loginSuccess = login(data.data.token, user, data);
-            if (loginSuccess) {
-              setCentrosDisponibles(centros);
-              setShowSelectorCentro(true);
-            } else {
-              setErrorMsg('Error al procesar el login');
-            }
+          if (centros.length === 0) {
+            // No tiene centros asignados
+            setErrorMsg('No tienes centros asignados. Contacta al administrador.');
           } else if (centros.length === 1) {
             // Solo tiene un centro, seleccionarlo automáticamente
             const loginSuccess = login(data.data.token, user, data);
@@ -102,9 +97,30 @@ const Login = () => {
             } else {
               setErrorMsg('Error al procesar el login');
             }
+          } else if (centroPredeterminado) {
+            // Tiene múltiples centros pero hay uno predeterminado, auto-seleccionar
+            const loginSuccess = login(data.data.token, user, data);
+            if (loginSuccess) {
+              const result = await seleccionarCentro(centroPredeterminado.id);
+              if (result.success) {
+                initConfig();
+                const from = location.state?.from?.pathname || '/app';
+                navigate(from, { replace: true });
+              } else {
+                setErrorMsg(result.message || 'Error al seleccionar centro');
+              }
+            } else {
+              setErrorMsg('Error al procesar el login');
+            }
           } else {
-            // No tiene centros asignados
-            setErrorMsg('No tienes centros asignados. Contacta al administrador.');
+            // Múltiples centros sin predeterminado, mostrar selector
+            const loginSuccess = login(data.data.token, user, data);
+            if (loginSuccess) {
+              setCentrosDisponibles(centros);
+              setShowSelectorCentro(true);
+            } else {
+              setErrorMsg('Error al procesar el login');
+            }
           }
         } else {
           setErrorMsg(data.message || 'Credenciales incorrectas');

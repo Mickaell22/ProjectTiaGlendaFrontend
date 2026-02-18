@@ -101,11 +101,13 @@ export const shouldRefreshToken = (token) => {
 export const getUserFromToken = (token) => {
   try {
     const decoded = jwtDecode(token);
+    // El payload del JWT del backend usa: user_id, username, rol, id_centro, centros_disponibles
     return {
-      id: decoded.id || decoded.userId || decoded.sub,
-      email: decoded.email,
-      role: decoded.role,
-      centro: decoded.centro || decoded.centroId,
+      id: decoded.user_id,
+      usuario: decoded.username,
+      rol: decoded.rol,
+      id_centro: decoded.id_centro || null,
+      centros_disponibles: decoded.centros_disponibles || [],
       exp: decoded.exp,
       iat: decoded.iat,
     };
