@@ -23,7 +23,6 @@ const DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
 const AdminDashboardView = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState(null);

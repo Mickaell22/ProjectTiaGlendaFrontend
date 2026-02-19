@@ -11,18 +11,42 @@ export class PacienteService {
     return extractData(response);
   }
 
+  // Extraer array de cualquier estructura de respuesta posible
+  static _extractArray(raw) {
+    if (Array.isArray(raw)) return raw;
+    // { pacientes: [...] }, { estudiantes: [...] }, { data: [...] }, { items: [...] }, { lista: [...] }
+    for (const key of ['pacientes', 'estudiantes', 'data', 'items', 'lista', 'results']) {
+      if (Array.isArray(raw?.[key])) return raw[key];
+    }
+    return null;
+  }
+
   // Obtener pacientes asignados al terapeuta autenticado
   static async getMisPacientes() {
-    const response = await ApiService.get('/api/dashboard/mis-pacientes');
-    const data = response.data?.data ?? response.data;
-    return Array.isArray(data) ? data : [];
+    try {
+      const response = await ApiService.get('/api/dashboard/mis-pacientes');
+      const raw = response.data?.data ?? response.data;
+      const list = this._extractArray(raw);
+      if (list !== null) return list;
+    } catch {
+      // ignorar y usar fallback
+    }
+    // Fallback: el backend filtra por JWT automáticamente
+    return PacienteService.getAll();
   }
 
   // Obtener estudiantes asignados al pedagogo autenticado
   static async getMisEstudiantes() {
-    const response = await ApiService.get('/api/dashboard/mis-estudiantes');
-    const data = response.data?.data ?? response.data;
-    return Array.isArray(data) ? data : [];
+    try {
+      const response = await ApiService.get('/api/dashboard/mis-estudiantes');
+      const raw = response.data?.data ?? response.data;
+      const list = this._extractArray(raw);
+      if (list !== null) return list;
+    } catch {
+      // ignorar y usar fallback
+    }
+    // Fallback: el backend filtra por JWT automáticamente
+    return PacienteService.getAll();
   }
 
   // Obtener paciente por ID
