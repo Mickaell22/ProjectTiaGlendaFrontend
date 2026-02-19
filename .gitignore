@@ -31,3 +31,11 @@ dist-ssr
 *.sw?
 
 .claude
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+tests/.auth/
+.env.test

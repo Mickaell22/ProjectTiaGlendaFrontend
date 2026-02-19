@@ -52,7 +52,10 @@
       "Bash(npx vite:*)",
       "Bash(xargs:*)",
       "Bash(npx eslint:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(npx playwright test:*)",
+      "Bash('/c/Users/ASUS/Desktop/Proyecto Tia:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
