@@ -69,17 +69,13 @@ export class PersonaService {
 
     if (!data.cedula?.trim()) {
       errors.cedula = 'La cédula es requerida';
-    } else if (data.cedula.trim().length < 7) {
-      errors.cedula = 'La cédula debe tener al menos 7 caracteres';
-    } else if (data.cedula.trim().length > 20) {
-      errors.cedula = 'La cédula no puede exceder 20 caracteres';
+    } else if (!/^\d{10}$/.test(data.cedula.trim())) {
+      errors.cedula = 'La cédula debe tener exactamente 10 dígitos numéricos';
     }
 
     if (data.telefono && data.telefono.trim()) {
-      if (data.telefono.trim().length < 8) {
-        errors.telefono = 'El teléfono debe tener al menos 8 dígitos';
-      } else if (data.telefono.trim().length > 15) {
-        errors.telefono = 'El teléfono no puede exceder 15 dígitos';
+      if (!/^\d{10}$/.test(data.telefono.trim())) {
+        errors.telefono = 'El teléfono debe tener exactamente 10 dígitos numéricos';
       }
     }
 

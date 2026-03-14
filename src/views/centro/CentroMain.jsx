@@ -101,10 +101,24 @@ const CentroMain = () => {
     }
   };
 
+  // Genera codigo automaticamente desde el nombre
+  const generarCodigo = (nombre) => {
+    const palabras = nombre.trim().split(/\s+/).filter(Boolean);
+    if (palabras.length === 0) return '';
+    if (palabras.length === 1) return palabras[0].slice(0, 6).toUpperCase();
+    return (palabras[0].slice(0, 3) + palabras[1].slice(0, 3)).toUpperCase();
+  };
+
   // Form
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    let filtered = value;
+    if (name === 'telefono') filtered = value.replace(/[^0-9]/g, '');
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: filtered };
+      if (name === 'nombre') updated.codigo = generarCodigo(filtered);
+      return updated;
+    });
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 

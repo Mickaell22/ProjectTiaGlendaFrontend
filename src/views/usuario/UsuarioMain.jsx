@@ -105,9 +105,14 @@ const UsuarioMain = () => {
     setValue(1); // Ir a la pestaña de formulario
   };
 
-  const handleEdit = (item) => {
-    setEditingData(item);
-    setValue(1); // Ir a la pestaña de formulario
+  const handleEdit = async (item) => {
+    try {
+      const fullData = await UsuarioService.getById(item.id);
+      setEditingData(fullData || item);
+    } catch {
+      setEditingData(item);
+    }
+    setValue(1);
   };
 
   const handleDelete = (id) => {

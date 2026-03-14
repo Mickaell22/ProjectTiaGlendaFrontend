@@ -174,7 +174,7 @@ const PersonaFormulario = ({
       // Solo letras, espacios y apostrofes
       filteredValue = filteredValue.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s']/g, '');
     }
-    if (name === 'cedula') {
+    if (name === 'cedula' || name === 'telefono') {
       // Solo números
       filteredValue = filteredValue.replace(/[^0-9]/g, '');
     }
@@ -320,6 +320,7 @@ const PersonaFormulario = ({
                   helperText={errors.cedula}
                   placeholder="Ej: 0932XXXXXX"
                   sx={neutralInputSX}
+                  inputProps={{ maxLength: 10 }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -383,6 +384,7 @@ const PersonaFormulario = ({
                   helperText={errors.telefono}
                   placeholder="Ej: 09XXXXXXXX"
                   sx={neutralInputSX}
+                  inputProps={{ maxLength: 10 }}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">

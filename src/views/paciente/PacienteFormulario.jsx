@@ -389,6 +389,14 @@ const PacienteFormulario = ({
         observaciones: formData.observaciones || '',
         alergias: formData.alergias || '',
         medicina: formData.medicina || '',
+        especialidades: formData.especialidades.map(esp => ({
+          id_especialidad: parseInt(esp.id_especialidad, 10),
+          es_principal: esp.es_principal,
+          prioridad: esp.prioridad || 'media',
+          fecha_inicio_tratamiento: esp.fecha_inicio_tratamiento || null,
+          fecha_fin_tratamiento: esp.fecha_fin_tratamiento || null,
+          observaciones: esp.observaciones || ''
+        }))
       };
 
       if (usuarioId) {

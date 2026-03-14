@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import PersonSelector from './PersonSelector';
 import { TutorService } from '../../services/tutorService';
-
 const TutorSelector = ({
   selectedTutor = null,
   onSelect,
@@ -17,16 +16,15 @@ const TutorSelector = ({
       setLoading(true);
       const data = await TutorService.getActivos();
 
-      // Transform tutors data to match PersonSelector format
       const formattedTutores = data.map(tutor => ({
         id: tutor.id,
         nombre: tutor.nombre,
         apellido: tutor.apellido,
         nombre_completo: tutor.nombre_completo,
-        cedula: tutor.cedula,
-        telefono: tutor.telefono,
-        correo: tutor.email || tutor.correo,
-        direccion: tutor.direccion,
+        cedula: tutor.cedula || '',
+        telefono: tutor.telefono || '',
+        correo: tutor.email || tutor.correo || '',
+        direccion: tutor.direccion || '',
         parentesco: tutor.parentesco,
         ocupacion: tutor.ocupacion,
         displayName: `${tutor.nombre} ${tutor.apellido} (${tutor.parentesco})`,
@@ -56,7 +54,7 @@ const TutorSelector = ({
       title="Seleccionar Tutor"
       emptyMessage="No hay tutores disponibles"
       className={className}
-      showExtraInfo={true} // Show parentesco info
+      showExtraInfo={true}
     />
   );
 };

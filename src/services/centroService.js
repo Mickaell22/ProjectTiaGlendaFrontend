@@ -100,8 +100,10 @@ export class CentroService {
       errors.nombre = 'El nombre del centro es requerido';
     }
 
-    if (!data.codigo?.trim()) {
-      errors.codigo = 'El código del centro es requerido';
+    if (data.telefono && data.telefono.trim()) {
+      if (!/^\d{10}$/.test(data.telefono.trim())) {
+        errors.telefono = 'El teléfono debe tener exactamente 10 dígitos numéricos';
+      }
     }
 
     return {

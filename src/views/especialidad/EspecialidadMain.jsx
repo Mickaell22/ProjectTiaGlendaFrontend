@@ -164,9 +164,16 @@ const EspecialidadMain = () => {
 
   // Acciones lista
   const handleEdit = (item) => {
+    // Normalizar area: ignorar tildes y mayusculas
+    const sinTildes = str => str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const areasValidas = EspecialidadService.getAreas().map(a => a.value);
+    const areaNormalizada = areasValidas.find(
+      v => sinTildes(v) === sinTildes(item.area || '')
+    ) || item.area || '';
+
     setFormData({
       nombre: item.nombre,
-      area: item.area,
+      area: areaNormalizada,
       id_centro: item.id_centro || '',
       estado: item.estado,
     });

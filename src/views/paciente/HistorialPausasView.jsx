@@ -1,66 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Container, Paper, Button, Breadcrumbs, Link, Typography } from '@mui/material';
-import { ArrowBack, Home, Person } from '@mui/icons-material';
+import { Box, Button } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
 import HistorialPausas from '../../components/Pacientes/HistorialPausas';
+import PacienteService from '../../services/pacienteService';
 
 const HistorialPausasView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [pacienteNombre, setPacienteNombre] = useState('');
 
-  // En una implementacion real, se obtendria el nombre del paciente de la API
-  const pacienteNombre = 'Paciente'; // Placeholder
-
-  const handleVolver = () => {
-    navigate('/gestion/paciente');
-  };
+  useEffect(() => {
+    PacienteService.getById(id)
+      .then(data => setPacienteNombre(data?.nombre_completo || ''))
+      .catch(() => {});
+  }, [id]);
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 3 }}>
-        <Link
-          underline="hover"
-          sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-          color="inherit"
-          onClick={() => navigate('/dashboard')}
-        >
-          <Home sx={{ mr: 0.5 }} fontSize="inherit" />
-          Inicio
-        </Link>
-        <Link
-          underline="hover"
-          sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-          color="inherit"
-          onClick={() => navigate('/gestion/paciente')}
-        >
-          <Person sx={{ mr: 0.5 }} fontSize="inherit" />
-          Pacientes
-        </Link>
-        <Typography
-          sx={{ display: 'flex', alignItems: 'center' }}
-          color="text.primary"
-        >
-          Historial de Pausas
-        </Typography>
-      </Breadcrumbs>
-
-      {/* Boton volver */}
-      <Box sx={{ mb: 3 }}>
+    <Box sx={{ px: { xs: 2, md: 4 }, py: 3 }}>
+      <Box sx={{ mb: 2 }}>
         <Button
           startIcon={<ArrowBack />}
-          onClick={handleVolver}
+          onClick={() => navigate('/app/gestion/paciente')}
           variant="outlined"
+          size="small"
         >
-          Volver al Paciente
+          Volver a Pacientes
         </Button>
       </Box>
 
-      {/* Componente de historial */}
-      <Paper sx={{ p: 3 }}>
-        <HistorialPausas pacienteId={id} pacienteNombre={pacienteNombre} />
-      </Paper>
-    </Container>
+      <HistorialPausas pacienteId={id} pacienteNombre={pacienteNombre} />
+    </Box>
   );
 };
 

@@ -68,7 +68,7 @@ const CentroFormulario = ({
     onSubmit();
   };
 
-  const canSubmit = Boolean(formData?.nombre?.trim()) && Boolean(formData?.codigo?.trim());
+  const canSubmit = Boolean(formData?.nombre?.trim());
   const iconColor = { color: 'text.primary' };
 
   return (
@@ -146,24 +146,6 @@ const CentroFormulario = ({
               />
             </Box>
 
-            {/* Codigo */}
-            <Box sx={rowGridSX}>
-              <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
-                Codigo <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
-              </Typography>
-              <TextField
-                fullWidth
-                name="codigo"
-                value={formData.codigo}
-                onChange={onChange}
-                error={!!errors.codigo}
-                helperText={errors.codigo || 'Se convertira a mayusculas automaticamente'}
-                placeholder="Ej: CTG-01"
-                sx={neutralInputSX}
-                inputProps={{ style: { textTransform: 'uppercase' } }}
-              />
-            </Box>
-
             {/* Direccion */}
             <Box sx={rowGridSX}>
               <Typography sx={{ fontWeight: 600, color: 'text.primary' }}>
@@ -220,8 +202,11 @@ const CentroFormulario = ({
                 name="telefono"
                 value={formData.telefono}
                 onChange={onChange}
-                placeholder="Ej: 0412-1234567"
+                error={!!errors.telefono}
+                helperText={errors.telefono}
+                placeholder="Ej: 0912345678"
                 sx={neutralInputSX}
+                inputProps={{ maxLength: 10 }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">

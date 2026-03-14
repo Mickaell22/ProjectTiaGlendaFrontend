@@ -74,7 +74,7 @@ const PacienteMain = () => {
 
   // Hooks
   const { snackbar, showSuccess, showError, hideSnackbar } = useSnackbar();
-  const { requireAuth } = useAuth();
+  const { requireAuth, user } = useAuth();
 
   useEffect(() => {
     if (!roleLoading && requireAuth()) {
@@ -101,7 +101,7 @@ const PacienteMain = () => {
 
       const [pacientesData, especialidadesData] = await Promise.all([
         pacientesPromise,
-        EspecialidadService.getAll()
+        EspecialidadService.getAll(user?.id_centro || user?.centro_id)
       ]);
       setPacientes(pacientesData);
       setEspecialidades(especialidadesData);

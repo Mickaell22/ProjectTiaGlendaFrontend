@@ -287,128 +287,85 @@ const DocumentosPaciente = () => {
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-        <Typography ml={2}>Cargando documentos...</Typography>
+        <CircularProgress color="primary" />
       </Box>
     );
   }
 
   return (
-    <Box p={3}>
-      {/* ===== Encabezado arcoíris (igual estilo que Persona/Paciente) ===== */}
-      <Paper
-        elevation={6}
-        sx={{
-          borderRadius: 3,
-          backgroundColor: 'background.paper',
-          mb: 4,
-          p: 0,
-          overflow: 'hidden',
-          border: '4px solid transparent',
-          backgroundImage:
-            'linear-gradient(white, white), linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet)',
-          backgroundOrigin: 'border-box',
-          backgroundClip: 'padding-box, border-box',
-          animation: 'rainbow 5s linear infinite',
-          '@keyframes rainbow': {
-            '0%': { backgroundPosition: '0% 50%' },
-            '100%': { backgroundPosition: '100% 50%' },
-          },
-          backgroundSize: '300% 100%',
-        }}
-      >
-        <Box
-          sx={{
-            p: 3,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 2,
-            flexWrap: 'wrap'
-          }}
+    <Box sx={{ px: { xs: 2, md: 4 }, py: 3 }}>
+      {/* Boton volver */}
+      <Box sx={{ mb: 2 }}>
+        <Button
+          startIcon={<ArrowBack />}
+          onClick={() => navigate('/app/gestion/paciente')}
+          variant="outlined"
+          size="small"
         >
-          <Box>
-            <Typography variant="h5" fontWeight="bold" color="black">
-              Documentos de {paciente?.nombre_completo || 'Paciente'}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Gestión de documentos PDF del paciente
-            </Typography>
-          </Box>
+          Volver a Pacientes
+        </Button>
+      </Box>
 
-          <Box display="flex" gap={1} flexWrap="wrap">
-            {esAdministrador && (
-              <Tooltip title="Subir Documento">
-                <Button
-                  variant="contained"
-                  startIcon={<Upload />}
-                  onClick={() => setShowUploadForm(true)}
-                  disabled={uploading}
-                  sx={{
-                    borderRadius: 3,
-                    textTransform: 'none',
-                    fontWeight: 'bold',
-                    backgroundColor: theme.palette.primary.main,
-                  '&:hover': {
-                  backgroundColor: theme.palette.primary.dark,
-                 }
-                  }}
-                >
-                  Subir
-                </Button>
-              </Tooltip>
-            )}
-            <Tooltip title="Recargar">
-              <IconButton
-                onClick={loadDocumentos}
-                disabled={loading}
-                color="primary"
-                sx={{ border: '1px solid', borderColor: 'divider' }}
-              >
-                <Refresh />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Volver">
-              <IconButton
-                onClick={() => navigate('/app/gestion/paciente')}
-                color="inherit"
-                sx={{ border: '1px solid', borderColor: 'divider' }}
-              >
-                <ArrowBack />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </Box>
-      </Paper>
-
-      {/* ===== Lista / grid de documentos (card mejorado estilo form Paciente) ===== */}
       <Card
         elevation={8}
         sx={{
           borderRadius: 4,
           mb: 4,
-          background: theme.palette.mode === 'dark'
-            ? 'theme.palette.primary.main'
-            : 'linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%)',
-          border: '1px solid',
-          borderColor: 'divider',
-          overflow: 'hidden'
+          backgroundColor: 'background.paper',
+          overflow: 'hidden',
+          border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
         }}
       >
-        {/* Cabecera de la lista */}
+        {/* Header */}
         <Box
           sx={{
-            background: theme.palette.primary.main,
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             p: 3,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1
           }}
         >
-          <Typography variant="h6" fontWeight="bold" >
-            📋 Documentos ({documentos.length})
-          </Typography>
+          <Box>
+            <Typography variant="h6" fontWeight="bold" display="flex" alignItems="center">
+              <Description sx={{ mr: 1 }} />
+              Documentos del Paciente
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              {paciente?.nombre_completo || 'Cargando...'}
+            </Typography>
+          </Box>
+          <Box display="flex" gap={1} alignItems="center">
+            <Chip
+              label={`${documentos.length} documento${documentos.length !== 1 ? 's' : ''}`}
+              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
+              size="small"
+            />
+            <Tooltip title="Recargar">
+              <IconButton size="small" onClick={loadDocumentos} sx={{ color: 'white' }}>
+                <Refresh />
+              </IconButton>
+            </Tooltip>
+            {esAdministrador && (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<Upload />}
+                onClick={() => setShowUploadForm(true)}
+                disabled={uploading}
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }
+                }}
+              >
+                Subir
+              </Button>
+            )}
+          </Box>
         </Box>
 
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
@@ -520,6 +477,7 @@ const DocumentosPaciente = () => {
       </Card>
 
       {/* Dialog de Subir Documento */}
+
       <Dialog
         open={showUploadForm}
         onClose={() => setShowUploadForm(false)}

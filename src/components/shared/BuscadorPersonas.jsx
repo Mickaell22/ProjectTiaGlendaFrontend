@@ -125,7 +125,8 @@ const BuscadorPersonas = ({
       // Enriquecer tutores con datos de personas
       if (tutoresData.length > 0 && personasParaTutores.length > 0) {
         tutoresData = tutoresData.map(tutor => {
-          const persona = personasParaTutores.find(p => p.id === tutor.persona_id);
+          const personaId = tutor.persona_id ?? tutor.id_persona;
+          const persona = personasParaTutores.find(p => String(p.id) === String(personaId));
           if (persona) {
             return {
               ...tutor,

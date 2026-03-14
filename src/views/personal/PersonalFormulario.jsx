@@ -222,8 +222,8 @@ const PersonalFormulario = ({
                   }
                   groupBy={(option) => EspecialidadService.getAreaLabel(option.area)}
                   isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                  renderOption={(props, option) => (
-                    <Box component="li" {...props}>
+                  renderOption={({ key, ...props }, option) => (
+                    <Box key={key} component="li" {...props}>
                       <Work sx={{ mr: 1, color: `${EspecialidadService.getAreaColor(option.area)}.main` }} />
                       <Box>
                         <Typography variant="body2" fontWeight="bold">

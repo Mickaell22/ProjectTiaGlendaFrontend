@@ -114,12 +114,12 @@ const UsuarioFormulario = ({
 
       // Obtener centros del usuario para edición
       let centrosIds = [];
-      if (editingData.centros && Array.isArray(editingData.centros)) {
+      if (editingData.centros && Array.isArray(editingData.centros) && editingData.centros.length > 0) {
         // Si viene como array de objetos
-        centrosIds = editingData.centros.map(c => c.id || c);
-      } else if (editingData.centros_ids && Array.isArray(editingData.centros_ids)) {
+        centrosIds = editingData.centros.map(c => parseInt(c.id ?? c, 10)).filter(id => !isNaN(id));
+      } else if (editingData.centros_ids && Array.isArray(editingData.centros_ids) && editingData.centros_ids.length > 0) {
         // Si viene como array de IDs
-        centrosIds = editingData.centros_ids;
+        centrosIds = editingData.centros_ids.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
       } else if (centroIdStr) {
         // Fallback: solo tiene un centro
         centrosIds = [parseInt(centroIdStr, 10)];
