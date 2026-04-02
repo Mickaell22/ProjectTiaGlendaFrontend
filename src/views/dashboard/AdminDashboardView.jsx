@@ -380,18 +380,20 @@ const AdminDashboardView = () => {
                   <List dense disablePadding>
                     {actividadReciente.slice(0, 6).map((item, idx) => (
                       <ListItem key={idx} disableGutters sx={{ py: 0.5 }}>
-                        <ListItemIcon sx={{ minWidth: 28 }}>
-                          <FiberManualRecord sx={{ fontSize: 10, color: theme.palette.primary.main }} />
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          <Avatar sx={{ width: 28, height: 28, fontSize: 10, bgcolor: item.tipo === 'paciente' ? theme.palette.secondary.main : theme.palette.primary.main }}>
+                            {item.avatar || '?'}
+                          </Avatar>
                         </ListItemIcon>
                         <ListItemText
                           primary={
-                            <Typography variant="body2" noWrap>
-                              {item.descripcion || item.mensaje || String(item)}
+                            <Typography variant="body2" noWrap title={item.accion}>
+                              <strong>{item.usuario}: </strong>{item.accion}
                             </Typography>
                           }
                           secondary={
                             <Typography variant="caption" color="text.secondary">
-                              {item.hora || item.fecha || ''}
+                              {item.tiempo || ''}
                             </Typography>
                           }
                         />
