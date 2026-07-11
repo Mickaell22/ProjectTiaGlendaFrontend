@@ -13,8 +13,6 @@ import {
   Person, Assignment, School, EventAvailable, Note, TrendingUp, TaskAlt,
   Flag, Grade, EmojiEvents
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from 'src/contexts/AuthContext';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 import { formatDateLocal } from 'src/utils/dateUtils';
 
@@ -70,9 +68,6 @@ const PedagogicoAsistencia = () => {
     tareas_asignadas: '',
     calificacion_evaluacion: null
   });
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
   useEffect(() => {
     fetchSesiones();
   }, []);
@@ -114,7 +109,7 @@ const PedagogicoAsistencia = () => {
       let response = null;
       try {
         response = await sesionPedagogicaService.getControlAsistencia(cronogramaId);
-      } catch (attendanceError) {
+      } catch {
         response = { data: [] };
       }
       
@@ -270,7 +265,10 @@ const PedagogicoAsistencia = () => {
         participacion_clase: formData.participacion_clase?.trim() || null,
         actividades_completadas: formData.actividades_completadas || false,
         tareas_asignadas: formData.tareas_asignadas?.trim() || null,
-        calificacion_clase: parseInt(formData.calificacion_evaluacion) || null
+        // Number.isNaN para permitir calificacion 0 (con "|| null" un 0 se perdia)
+        calificacion_clase: Number.isNaN(parseInt(formData.calificacion_evaluacion, 10))
+          ? null
+          : parseInt(formData.calificacion_evaluacion, 10)
       };
 
 
@@ -304,12 +302,6 @@ const PedagogicoAsistencia = () => {
     }
     return timeString;
   };
-
-  const getSesionInfo = (sesionId) => sesiones.find(s => s.id === parseInt(sesionId));
-  const getCronogramaInfo = (cronogramaId) => cronogramas.find(c => c.id === parseInt(cronogramaId));
-  const getEstudianteAsistencia = (estudianteId) => asistencias.find(a => 
-    a.estudiante_id === estudianteId || a.paciente_id === estudianteId
-  );
 
   const filteredAsistencias = asistencias.filter(a => {
     const matchesSearch = (
@@ -369,7 +361,7 @@ const PedagogicoAsistencia = () => {
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           {/* Filtro por Pedagogo */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={8} md={9}>
+            <Grid size={{ xs: 12, sm: 8, md: 9 }}>
               <FormControl fullWidth size="small">
                 <InputLabel shrink>Filtrar por Pedagogo</InputLabel>
                 <Select
@@ -390,7 +382,7 @@ const PedagogicoAsistencia = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4} md={3}>
+            <Grid size={{ xs: 12, sm: 4, md: 3 }}>
               <Button
                 fullWidth
                 variant="outlined"
@@ -404,7 +396,7 @@ const PedagogicoAsistencia = () => {
           </Grid>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth>
                 <InputLabel shrink>Sesión Pedagógica</InputLabel>
                 <Select
@@ -432,7 +424,7 @@ const PedagogicoAsistencia = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth disabled={!selectedSesion}>
                 <InputLabel shrink>Fecha de Clase</InputLabel>
                 <Select
@@ -791,7 +783,7 @@ const PedagogicoAsistencia = () => {
                   Estado de Asistencia
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={7}>
+                  <Grid size={{ xs: 12, sm: 7 }}>
                     <Paper
                       elevation={0}
                       sx={{
@@ -828,7 +820,7 @@ const PedagogicoAsistencia = () => {
                       />
                     </Paper>
                   </Grid>
-                  <Grid item xs={12} sm={5}>
+                  <Grid size={{ xs: 12, sm: 5 }}>
                     <TextField
                       fullWidth
                       type="number"
@@ -862,7 +854,7 @@ const PedagogicoAsistencia = () => {
                   Evaluación y Desempeño
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth disabled={!formData.asistio}>
                       <InputLabel>Participación en clase</InputLabel>
                       <Select
@@ -883,7 +875,7 @@ const PedagogicoAsistencia = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       type="number"
@@ -902,7 +894,7 @@ const PedagogicoAsistencia = () => {
                       helperText="Calificación del 1 al 10"
                     />
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <Paper
                       elevation={0}
                       sx={{
@@ -952,7 +944,7 @@ const PedagogicoAsistencia = () => {
                 </Typography>
                 <Grid container spacing={2.5}>
                   {/* Observaciones del Educador */}
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
                       multiline
@@ -977,7 +969,7 @@ const PedagogicoAsistencia = () => {
                   </Grid>
 
                   {/* Objetivos Trabajados */}
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       fullWidth
                       multiline
@@ -1003,7 +995,7 @@ const PedagogicoAsistencia = () => {
                   </Grid>
 
                   {/* Tareas Asignadas */}
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       fullWidth
                       multiline
@@ -1072,13 +1064,13 @@ const PedagogicoAsistencia = () => {
         <DialogContent>
           {detailDialog.data && (
             <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="subtitle2" color="primary">Información del Estudiante</Typography>
                 <Typography variant="body2"><strong>Nombre:</strong> {detailDialog.data.estudiante_nombre}</Typography>
                 <Typography variant="body2"><strong>Cédula:</strong> {detailDialog.data.estudiante_cedula}</Typography>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="subtitle2" color="primary">Información de Asistencia</Typography>
                 <Box display="flex" alignItems="center">
                   <Typography variant="body2" component="span"><strong>Estado:</strong></Typography>
@@ -1095,14 +1087,14 @@ const PedagogicoAsistencia = () => {
               </Grid>
 
               {(detailDialog.data.calificacion_clase !== null && detailDialog.data.calificacion_clase !== undefined) && (
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="subtitle2" color="primary">Evaluación Académica</Typography>
                   <Typography variant="body2"><strong>Calificación:</strong> {detailDialog.data.calificacion_clase}/10</Typography>
                 </Grid>
               )}
 
               {detailDialog.data.participacion_clase && (
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="subtitle2" color="primary">Participación en Clase</Typography>
                   <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
                     {detailDialog.data.participacion_clase}
@@ -1111,7 +1103,7 @@ const PedagogicoAsistencia = () => {
               )}
 
               {detailDialog.data.actividades_completadas !== null && detailDialog.data.actividades_completadas !== undefined && (
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="subtitle2" color="primary">Actividades Completadas</Typography>
                   <Chip
                     label={detailDialog.data.actividades_completadas ? 'Sí' : 'No'}
@@ -1122,7 +1114,7 @@ const PedagogicoAsistencia = () => {
               )}
 
               {detailDialog.data.observaciones_educador && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Observaciones del Educador</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'background.paper' }}>
                     <Typography variant="body2">{detailDialog.data.observaciones_educador}</Typography>
@@ -1131,7 +1123,7 @@ const PedagogicoAsistencia = () => {
               )}
 
               {detailDialog.data.objetivos_trabajados && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Objetivos Trabajados</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'success.light', border: '1px solid', borderColor: 'success.main' }}>
                     <Typography variant="body2">{detailDialog.data.objetivos_trabajados}</Typography>
@@ -1140,7 +1132,7 @@ const PedagogicoAsistencia = () => {
               )}
 
               {detailDialog.data.tareas_asignadas && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Tareas Asignadas</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'warning.light', border: '1px solid', borderColor: 'warning.main' }}>
                     <Typography variant="body2">{detailDialog.data.tareas_asignadas}</Typography>

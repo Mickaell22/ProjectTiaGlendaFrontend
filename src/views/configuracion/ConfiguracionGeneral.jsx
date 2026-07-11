@@ -167,7 +167,7 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
               </Box>
 
               <Grid container spacing={3}>
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     label="Nombre del Centro"
@@ -188,7 +188,7 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
                     label="Teléfono"
@@ -208,7 +208,7 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
                     label="Email"
@@ -229,7 +229,7 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     label="Dirección"
@@ -251,7 +251,7 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     label="Descripción"
@@ -306,7 +306,7 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
               </Box>
 
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
                     label="Horario de Inicio"
@@ -327,7 +327,7 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
                     label="Horario de Fin"
@@ -348,7 +348,7 @@ const ConfiguracionGeneral = ({ configuracion = {}, onSave }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Paper
                     sx={{
                       p: 2.5,

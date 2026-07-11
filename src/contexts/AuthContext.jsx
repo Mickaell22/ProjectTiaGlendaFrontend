@@ -178,7 +178,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     return token;
-  }, [state.token]);
+  }, [state.token, logout]);
 
   const getAuthHeaders = useCallback(() => {
     const token = getToken();

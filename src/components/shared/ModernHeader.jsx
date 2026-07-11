@@ -22,7 +22,9 @@ const ModernHeader = ({
         p: 0, 
         overflow: 'hidden', 
         border: '4px solid transparent', 
-        backgroundImage: `linear-gradient(white, white), linear-gradient(270deg, ${gradientColors})`, 
+        backgroundImage: theme.palette.mode === 'dark'
+          ? 'none'
+          : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, ${gradientColors})`,
         backgroundOrigin: 'border-box', 
         backgroundClip: 'padding-box, border-box', 
         animation: 'rainbow 5s linear infinite', 

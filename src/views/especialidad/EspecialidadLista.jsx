@@ -51,8 +51,6 @@ const purpleOutlineSX = {
 
 const EspecialidadLista = ({
   especialidades = [],
-  centros = [],
-  user = null,
   onEdit,
   onDelete,
   onViewDetail,
@@ -142,6 +140,7 @@ const EspecialidadLista = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por nombre..."
+            inputProps={{ 'aria-label': 'Buscar por nombre' }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

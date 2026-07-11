@@ -8,7 +8,10 @@ import {
   Alert,
   Card,
   CardContent,
+  InputAdornment,
+  IconButton,
 } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -38,6 +41,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [errorMsg, setErrorMsg] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [showSelectorCentro, setShowSelectorCentro] = useState(false);
   const [centrosDisponibles, setCentrosDisponibles] = useState([]);
   const [loadingCentro, setLoadingCentro] = useState(false);
@@ -169,38 +173,18 @@ const Login = () => {
           left: 0;
           width: 100vw;
           height: 100vh;
-          background-image: 
-            radial-gradient(ellipse 1000px 700px at center, rgba(255,255,255,0.1) 20%, rgba(255,255,255,0.4) 60%, rgba(255,255,255,0.7) 90%),
-            linear-gradient(to right, rgba(248,249,255,0.6) 0%, rgba(248,249,255,0.1) 30%, rgba(248,249,255,0.1) 70%, rgba(248,249,255,0.6) 100%),
+          background-image:
+            linear-gradient(160deg, rgba(46, 26, 92, 0.45) 0%, rgba(46, 26, 92, 0.25) 45%, rgba(27, 16, 58, 0.55) 100%),
             url('/fondo-login1.jpg');
           background-repeat: no-repeat;
           background-position: center center;
           background-size: cover;
-          background-attachment: fixed;
           display: flex;
           align-items: center;
           justify-content: center;
           z-index: 1000;
         }
-        
-        @media (min-width: 768px) {
-          .full-screen-login {
-            background-size: 120% auto;
-          }
-        }
-        
-        @media (min-width: 1024px) {
-          .full-screen-login {
-            background-size: 130% auto;
-          }
-        }
-        
-        @media (min-width: 1440px) {
-          .full-screen-login {
-            background-size: 140% auto;
-          }
-        }
-        
+
         .login-card-container {
           width: 100%;
           max-width: 420px;
@@ -309,7 +293,9 @@ const Login = () => {
                       onBlur={formik.handleBlur}
                       error={formik.touched.usuario && Boolean(formik.errors.usuario)}
                       helperText={formik.touched.usuario && formik.errors.usuario}
-                      placeholder="admin"
+                      placeholder="tu.usuario"
+                      autoComplete="username"
+                      autoFocus
                     />
                   </Box>
 
@@ -326,7 +312,7 @@ const Login = () => {
                     <TextField
                       id="contrasenia"
                       name="contrasenia"
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       variant="outlined"
                       fullWidth
                       value={formik.values.contrasenia}
@@ -335,6 +321,20 @@ const Login = () => {
                       error={formik.touched.contrasenia && Boolean(formik.errors.contrasenia)}
                       helperText={formik.touched.contrasenia && formik.errors.contrasenia}
                       placeholder="••••••••"
+                      autoComplete="current-password"
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                              onClick={() => setShowPassword((v) => !v)}
+                              edge="end"
+                            >
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
                     />
                   </Box>
 

@@ -1,7 +1,6 @@
 // src/layouts/blank/BlankLayout.js
 import React from 'react';
 import { styled, Container, Box } from '@mui/material';
-import { useSelector } from 'react-redux';
 import { Outlet } from 'react-router-dom';
 
 const MainWrapper = styled('div')(() => ({
@@ -20,7 +19,6 @@ const PageWrapper = styled('div')(() => ({
 }));
 
 const BlankLayout = () => {
-  const customizer = useSelector((state) => state.customizer);
 
   return (
     <MainWrapper className="mainwrapper">

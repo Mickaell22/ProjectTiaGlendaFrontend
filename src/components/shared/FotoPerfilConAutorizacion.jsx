@@ -82,6 +82,7 @@ const FotoPerfilConAutorizacion = ({
         URL.revokeObjectURL(imageSrc);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [rutaFoto]);
 
   // Cleanup cuando el componente se desmonta

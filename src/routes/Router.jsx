@@ -89,51 +89,6 @@ const ConfiguracionGeneral = () => (
   />
 );
 
-const PacientesAlumnos = () => (
-  <ComingSoon
-    title="Pacientes/Alumnos"
-    description="Gestión integral de pacientes y alumnos del centro"
-    module="Gestión de Personas"
-    progress={60}
-  />
-);
-
-const PersonalLista = () => (
-  <ComingSoon
-    title="Lista de Personal"
-    description="Directorio y gestión del personal del centro"
-    module="Gestión de Personas"
-    progress={45}
-  />
-);
-
-const PersonalEquipos = () => (
-  <ComingSoon
-    title="Equipos de Trabajo"
-    description="Organización y gestión de equipos multidisciplinarios"
-    module="Gestión de Personas"
-    progress={30}
-  />
-);
-
-const Galeria = () => (
-  <ComingSoon
-    title="Galería"
-    description="Galería de fotos y recursos multimedia del centro"
-    module="Centro"
-    progress={70}
-  />
-);
-
-const Configuracion = () => (
-  <ComingSoon
-    title="Configuración"
-    description="Configuración general del sistema y preferencias"
-    module="Centro"
-    progress={80}
-  />
-);
-
 const Router = [
   {
     path: '/',
@@ -188,9 +143,6 @@ const Router = [
       { path: 'mi-perfil', element: <MiPerfil /> },
 
       // Gestión de Personas
-      { path: 'apps/contacts', element: <PacientesAlumnos /> },
-      { path: 'apps/user-profile/followers', element: <PersonalLista /> },
-      { path: 'apps/user-profile/friends', element: <PersonalEquipos /> },
       { path: 'gestion/persona', element: <PersonaMain /> },
       { path: 'gestion/paciente', element: <PacienteMain /> },
       { path: 'gestion/tutor', element: <TutorMain /> },
@@ -220,18 +172,6 @@ const Router = [
       { path: 'gestion/roles', element: <GestionRoles /> },
       { path: 'configuracion/general', element: <ConfiguracionGeneral /> },
       { path: 'configuracion/sistema', element: <ConfiguracionMain /> },
-
-
-      // Centro
-      { path: 'apps/user-profile/gallery', element: <Galeria /> },
-      { path: 'pages/account-settings', element: <Configuracion /> },
-
-      // Herramientas (en desarrollo)
-      { path: 'forms/form-layouts', element: () => <ComingSoon title="Formularios - Layouts" module="Herramientas" progress={90} /> },
-      { path: 'forms/form-validation', element: () => <ComingSoon title="Formularios - Validación" module="Herramientas" progress={85} /> },
-      { path: 'tables/basic', element: () => <ComingSoon title="Tablas Básicas" module="Herramientas" progress={95} /> },
-      { path: 'tables/pagination', element: () => <ComingSoon title="Tablas con Paginación" module="Herramientas" progress={90} /> },
-      { path: 'tables/search', element: () => <ComingSoon title="Tablas con Búsqueda" module="Herramientas" progress={85} /> },
     ],
   },
   {
@@ -239,7 +179,7 @@ const Router = [
     element: <BlankLayout />,
     children: [
       { path: ROUTES.AUTH.LOGIN, element: <Login /> },
-      { path: '/auth/404', element: () => <ComingSoon title="Error 404" description="Esta página no existe" module="Error" progress={100} /> },
+      { path: '/auth/404', element: <ComingSoon title="Error 404" description="Esta página no existe" module="Error" progress={100} /> },
       { path: '*', element: <Navigate to={ROUTES.AUTH.LOGIN} /> },
     ],
   },

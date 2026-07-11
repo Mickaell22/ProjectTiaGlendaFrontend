@@ -51,14 +51,14 @@ function getUsuarioId() {
     try {
       const u = JSON.parse(raw);
       if (u?.id) return u.id;
-    } catch {}
+    } catch { /* user_data ilegible: se intenta con el token */ }
   }
   const token = localStorage.getItem('jwt_token');
   if (token && token.split('.').length === 3) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       return payload.user_id || payload.id || payload.sub || null;
-    } catch {}
+    } catch { /* token ilegible: sin usuario */ }
   }
   return null;
 }
@@ -91,17 +91,6 @@ const UsuarioFormulario = ({
   const isEditing = !!editingData;
 
   // ancho responsivo y centrado para las tarjetas
-  const cardShellSX = {
-    borderRadius: 4,
-    mb: 3,
-    backgroundColor: 'background.paper',
-        border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : 'none',
-    overflow: 'hidden',
-    // 🔹 Responsivo: 100% en móvil, límites progresivos en pantallas mayores
-    width: '100%',
-    maxWidth: { xs: '100%', sm: 680, md: 820, lg: 900 },
-    mx: 'auto'
-  };
 
   /* ---------- Effects ---------- */
   useEffect(() => {
@@ -242,7 +231,6 @@ const UsuarioFormulario = ({
   const validateForm = () => {
     const personaIdNum = parseInt(formData.persona_id, 10);
     const rolIdNum = parseInt(formData.rol_id, 10);
-    const centroIdNum = parseInt(formData.centro_id, 10);
 
     // Inicializar errores manualmente en lugar de usar el servicio
     const validationErrors = {};
@@ -631,7 +619,7 @@ const UsuarioFormulario = ({
 
               <Grid container spacing={2}>
                 {/* Nombre de usuario */}
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
                     Nombre de usuario <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                   </Typography>
@@ -648,7 +636,7 @@ const UsuarioFormulario = ({
 
                 {/* Contraseña (solo creación) */}
                 {!isEditing && (
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Typography sx={{ fontWeight: 600, color: 'text.primary', mb: 1 }}>
                       Contraseña <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                     </Typography>

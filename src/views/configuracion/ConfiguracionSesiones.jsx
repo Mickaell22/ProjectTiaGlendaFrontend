@@ -112,7 +112,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
 
       <Grid container spacing={4}>
         {/* Sesiones Terapéuticas */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ 
             height: '100%', 
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
@@ -144,7 +144,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
               
               <Box component="form" onSubmit={handleSubmit}>
                 <Grid container spacing={3}>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
                       type="number"
@@ -161,7 +161,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
                     />
                   </Grid>
 
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       type="number"
@@ -178,7 +178,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
                     />
                   </Grid>
 
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       type="number"
@@ -195,7 +195,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
                     />
                   </Grid>
 
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       type="number"
@@ -212,7 +212,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
                     />
                   </Grid>
 
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       type="number"
@@ -235,7 +235,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
         </Grid>
 
         {/* Clases Pedagógicas */}
-        <Grid item xs={12} lg={6}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ 
             height: '100%', 
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
@@ -266,7 +266,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
               </Box>
 
               <Grid container spacing={3}>
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     type="number"
@@ -283,7 +283,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     type="number"
@@ -301,7 +301,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
                 </Grid>
 
                 {/* Estadísticas actuales */}
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Box sx={{ 
                     p: 2, 
                     backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : '#f8f9fa', 
@@ -325,7 +325,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
         </Grid>
 
         {/* Sistema de Calificaciones */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Card sx={{ 
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
             transition: 'all 0.3s ease',
@@ -355,7 +355,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
               </Box>
 
               <Grid container spacing={4}>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <TextField
                     select
                     fullWidth
@@ -376,7 +376,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
 
                 {formData.sistemaCalificaciones === 'numerico' && (
                   <>
-                    <Grid item xs={12} md={4}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                       <TextField
                         fullWidth
                         type="number"
@@ -390,7 +390,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
                       />
                     </Grid>
 
-                    <Grid item xs={12} md={4}>
+                    <Grid size={{ xs: 12, md: 4 }}>
                       <TextField
                         fullWidth
                         type="number"
@@ -407,7 +407,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
                 )}
 
                 {/* Preview de calificaciones */}
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Box sx={{ 
                     p: 3, 
                     backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : '#f8f9fa', 
@@ -434,7 +434,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
         </Grid>
 
         {/* Información de ayuda y botones */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Box sx={{ textAlign: 'center', mt: 4 }}>
             <Button 
               variant="contained" 
@@ -465,7 +465,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
         </Grid>
 
         {/* Panel informativo */}
-        <Grid item xs={12}>
+        <Grid size={{ xs: 12 }}>
           <Card sx={{ 
             background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)', 
             border: '1px solid #81c784',
@@ -480,7 +480,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
               </Box>
               
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
                     <strong>📋 Políticas de Cambio:</strong>
                   </Typography>
@@ -490,7 +490,7 @@ const ConfiguracionSesiones = ({ configuracion = {}, onSave }) => {
                     <li>Los recordatorios se envían automáticamente</li>
                   </Typography>
                 </Grid>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
                     <strong>⚠️ Validaciones Activas:</strong>
                   </Typography>

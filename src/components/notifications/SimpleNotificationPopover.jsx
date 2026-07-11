@@ -25,7 +25,7 @@ import {
   Event as EventIcon,
   Person as PersonIcon,
 } from '@mui/icons-material';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import notificationService from '../../services/notificationService';
 
 const SimpleNotificationPopover = ({ onRefresh = () => {} }) => {
@@ -43,6 +43,7 @@ const SimpleNotificationPopover = ({ onRefresh = () => {} }) => {
     return () => {
       clearInterval(cleanupInterval);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []);
 
   const loadNotifications = async () => {
@@ -149,20 +150,6 @@ const SimpleNotificationPopover = ({ onRefresh = () => {} }) => {
         return <SuccessIcon color="success" />;
       default:
         return <NotificationsIcon color="default" />;
-    }
-  };
-
-  // Obtener color del chip según prioridad
-  const getPriorityColor = (prioridad) => {
-    switch (prioridad) {
-      case 'alta':
-        return 'error';
-      case 'media':
-        return 'warning';
-      case 'baja':
-        return 'info';
-      default:
-        return 'default';
     }
   };
 

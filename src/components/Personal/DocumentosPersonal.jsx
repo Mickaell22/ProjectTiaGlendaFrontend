@@ -333,8 +333,10 @@ const DocumentosPersonal = () => {
           p: 0,
           overflow: 'hidden',
           border: '4px solid transparent',
-          backgroundImage:
-            'linear-gradient(white, white), linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet)',
+          backgroundImage: (theme) =>
+            theme.palette.mode === 'dark'
+              ? 'none'
+              : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, red, orange, yellow, green, blue, indigo, violet)`,
           backgroundOrigin: 'border-box',
           backgroundClip: 'padding-box, border-box',
           animation: 'rainbow 5s linear infinite',
@@ -474,7 +476,7 @@ const DocumentosPersonal = () => {
           ) : (
             <Grid container spacing={3}>
               {documentos.map((documento) => (
-                <Grid item xs={12} sm={6} md={4} key={documento.id}>
+                <Grid key={documento.id} size={{ xs: 12, sm: 6, md: 4 }}>
                   <Card
                     variant="outlined"
                     sx={{
@@ -732,7 +734,7 @@ const DocumentosPersonal = () => {
           <form onSubmit={handleUpdateSubmit}>
             <DialogContent>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     select
                     fullWidth
@@ -749,7 +751,7 @@ const DocumentosPersonal = () => {
                   </TextField>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     type="date"
                     fullWidth
@@ -760,7 +762,7 @@ const DocumentosPersonal = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     multiline
@@ -771,7 +773,7 @@ const DocumentosPersonal = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormControlLabel
                     control={
                       <Checkbox

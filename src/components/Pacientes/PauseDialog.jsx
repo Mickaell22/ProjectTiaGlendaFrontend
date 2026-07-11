@@ -84,7 +84,7 @@ const PauseDialog = ({
     }
 
     if (!paciente?.id) {
-      setError('No se encontró información válida del paciente');
+      setErrors({ general: 'No se encontró información válida del paciente' });
       return;
     }
 
@@ -179,7 +179,7 @@ const PauseDialog = ({
           )}
 
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <DatePicker
                 label="Fecha de Inicio de Pausa *"
                 value={formData.fecha_inicio_pausa}
@@ -196,7 +196,7 @@ const PauseDialog = ({
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <DatePicker
                 label="Fecha de Fin de Pausa (Opcional)"
                 value={formData.fecha_fin_pausa}
@@ -213,7 +213,7 @@ const PauseDialog = ({
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="Motivo de la Pausa *"
@@ -227,7 +227,7 @@ const PauseDialog = ({
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="Observaciones Adicionales"

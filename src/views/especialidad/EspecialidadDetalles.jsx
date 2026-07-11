@@ -106,7 +106,7 @@ const EspecialidadDetalles = ({ open, data, onClose, onEdit }) => {
         <Box sx={{ p: 3 }}>
           <Grid container spacing={3}>
             {/* Información de la Especialidad */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography

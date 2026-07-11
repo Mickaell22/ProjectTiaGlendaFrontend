@@ -9,60 +9,40 @@ class SesionTerapiaService {
    * Get all therapy sessions
    */
   async getSesiones() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.BASE);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.BASE);
+    return response.data;
   }
 
   /**
    * Get therapy session by ID
    */
   async getSesionById(id) {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.BY_ID(id));
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.BY_ID(id));
+    return response.data;
   }
 
   /**
    * Create new therapy session
    */
   async createSesion(sessionData) {
-    try {
-      const response = await ApiService.post(API_ENDPOINTS.SESIONES_TERAPIA.BASE, sessionData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.post(API_ENDPOINTS.SESIONES_TERAPIA.BASE, sessionData);
+    return response.data;
   }
 
   /**
    * Update therapy session
    */
   async updateSesion(id, sessionData) {
-    try {
-      const response = await ApiService.put(API_ENDPOINTS.SESIONES_TERAPIA.BY_ID(id), sessionData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.put(API_ENDPOINTS.SESIONES_TERAPIA.BY_ID(id), sessionData);
+    return response.data;
   }
 
   /**
    * Delete therapy session
    */
   async deleteSesion(id) {
-    try {
-      const response = await ApiService.delete(API_ENDPOINTS.SESIONES_TERAPIA.BY_ID(id));
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.delete(API_ENDPOINTS.SESIONES_TERAPIA.BY_ID(id));
+    return response.data;
   }
 
   // ==================== SPECIALIZED OPERATIONS ====================
@@ -71,56 +51,40 @@ class SesionTerapiaService {
    * Get patients for a therapy session
    */
   async getPacientesSesion(sesionId) {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId));
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId));
+    return response.data;
   }
 
   /**
    * Add patients to therapy session (plural - for multiple patients)
    */
   async addPacientesToSesion(sesionId, pacientesIds) {
-    try {
-      const response = await ApiService.post(
-        API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId),
-        { pacientes_ids: pacientesIds }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.post(
+      API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId),
+      { pacientes_ids: pacientesIds }
+    );
+    return response.data;
   }
 
   /**
    * Add single patient to therapy session (singular - for single patient)
    */
   async addPacienteToSesion(sesionId, patientData) {
-    try {
-      const response = await ApiService.post(
-        API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId),
-        patientData
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.post(
+      API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId),
+      patientData
+    );
+    return response.data;
   }
 
   /**
    * Remove patient from therapy session
    */
   async removePacienteFromSesion(sesionId, pacienteId) {
-    try {
-      const response = await ApiService.delete(
-        `${API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId)}/${pacienteId}`
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.delete(
+      `${API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES(sesionId)}/${pacienteId}`
+    );
+    return response.data;
   }
 
   /**
@@ -159,100 +123,72 @@ class SesionTerapiaService {
    * Get schedule for a therapy session
    */
   async getCronograma(sesionId) {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.CRONOGRAMA(sesionId));
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.CRONOGRAMA(sesionId));
+    return response.data;
   }
 
   /**
    * Generate schedule for a therapy session
    */
   async generarCronograma(sesionId, configData) {
-    try {
-      const response = await ApiService.post(
-        API_ENDPOINTS.SESIONES_TERAPIA.GENERAR_CRONOGRAMA(sesionId),
-        configData
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.post(
+      API_ENDPOINTS.SESIONES_TERAPIA.GENERAR_CRONOGRAMA(sesionId),
+      configData
+    );
+    return response.data;
   }
 
   /**
    * Mark a cronograma session as completed
    */
   async marcarSesionRealizada(cronogramaId, observaciones) {
-    try {
-      const response = await ApiService.put(
-        `/api/sesiones-terapia/cronograma/${cronogramaId}/realizar`,
-        { observaciones }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.put(
+      `/api/sesiones-terapia/cronograma/${cronogramaId}/realizar`,
+      { observaciones }
+    );
+    return response.data;
   }
 
   /**
    * Reschedule a cronograma session
    */
   async reprogramarSesion(cronogramaId, reprogramData) {
-    try {
-      const response = await ApiService.put(
-        `/api/sesiones-terapia/cronograma/${cronogramaId}/reprogramar`,
-        reprogramData
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.put(
+      `/api/sesiones-terapia/cronograma/${cronogramaId}/reprogramar`,
+      reprogramData
+    );
+    return response.data;
   }
 
   /**
    * Cancel a cronograma session
    */
   async cancelarSesionCronograma(cronogramaId, motivoCancelacion) {
-    try {
-      const response = await ApiService.put(
-        `/api/sesiones-terapia/cronograma/${cronogramaId}/cancelar`,
-        { motivo_cancelacion: motivoCancelacion }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.put(
+      `/api/sesiones-terapia/cronograma/${cronogramaId}/cancelar`,
+      { motivo_cancelacion: motivoCancelacion }
+    );
+    return response.data;
   }
 
   /**
    * Manually finalize a therapy session
    */
   async finalizarSesion(sesionId) {
-    try {
-      const response = await ApiService.put(
-        `/api/sesiones-terapia/${sesionId}/finalizar`
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.put(
+      `/api/sesiones-terapia/${sesionId}/finalizar`
+    );
+    return response.data;
   }
 
   /**
    * Cancel a therapy session
    */
   async cancelarSesion(sesionId) {
-    try {
-      const response = await ApiService.put(
-        `/api/sesiones-terapia/${sesionId}/cancelar`
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.put(
+      `/api/sesiones-terapia/${sesionId}/cancelar`
+    );
+    return response.data;
   }
 
   // ==================== ATTENDANCE OPERATIONS ====================
@@ -261,12 +197,8 @@ class SesionTerapiaService {
    * Get attendance for a therapy session
    */
   async getAsistencias(sesionId) {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.ASISTENCIAS(sesionId));
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.ASISTENCIAS(sesionId));
+    return response.data;
   }
 
   /**
@@ -280,72 +212,52 @@ class SesionTerapiaService {
    * Register attendance for schedule and patient
    */
   async registrarAsistencia(cronogramaId, pacienteId, asistenciaData) {
-    try {
-      const response = await ApiService.post(
-        API_ENDPOINTS.SESIONES_TERAPIA.REGISTRAR_ASISTENCIA(cronogramaId, pacienteId),
-        asistenciaData
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.post(
+      API_ENDPOINTS.SESIONES_TERAPIA.REGISTRAR_ASISTENCIA(cronogramaId, pacienteId),
+      asistenciaData
+    );
+    return response.data;
   }
 
   /**
    * Update existing attendance for schedule and patient
    */
   async updateAsistencia(cronogramaId, pacienteId, asistenciaData) {
-    try {
-      const response = await ApiService.put(
-        API_ENDPOINTS.SESIONES_TERAPIA.REGISTRAR_ASISTENCIA(cronogramaId, pacienteId),
-        asistenciaData
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.put(
+      API_ENDPOINTS.SESIONES_TERAPIA.REGISTRAR_ASISTENCIA(cronogramaId, pacienteId),
+      asistenciaData
+    );
+    return response.data;
   }
 
   /**
    * Get attendance for a specific schedule
    */
   async getAsistenciasCronograma(cronogramaId) {
-    try {
-      const response = await ApiService.get(
-        API_ENDPOINTS.SESIONES_TERAPIA.ASISTENCIAS_CRONOGRAMA(cronogramaId)
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(
+      API_ENDPOINTS.SESIONES_TERAPIA.ASISTENCIAS_CRONOGRAMA(cronogramaId)
+    );
+    return response.data;
   }
 
   /**
    * Get attendance history for a patient
    */
   async getAsistenciasPaciente(pacienteId) {
-    try {
-      const response = await ApiService.get(
-        API_ENDPOINTS.SESIONES_TERAPIA.ASISTENCIAS_PACIENTE(pacienteId)
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(
+      API_ENDPOINTS.SESIONES_TERAPIA.ASISTENCIAS_PACIENTE(pacienteId)
+    );
+    return response.data;
   }
 
   /**
    * Get attendance control for a specific cronograma
    */
   async getAsistencia(cronogramaId) {
-    try {
-      const response = await ApiService.get(
-        `/api/sesiones-terapia/cronograma/${cronogramaId}/control-asistencia`
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(
+      `/api/sesiones-terapia/cronograma/${cronogramaId}/control-asistencia`
+    );
+    return response.data;
   }
 
   // ==================== QUERY OPERATIONS ====================
@@ -354,111 +266,63 @@ class SesionTerapiaService {
    * Get therapy sessions by therapist
    */
   async getSesionesByTerapeuta(terapeutaId) {
-    try {
-      const response = await ApiService.get(
-        API_ENDPOINTS.SESIONES_TERAPIA.BY_TERAPEUTA(terapeutaId)
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(
+      API_ENDPOINTS.SESIONES_TERAPIA.BY_TERAPEUTA(terapeutaId)
+    );
+    return response.data;
   }
 
   /**
    * Get today's therapy sessions
    */
   async getSesionesHoy() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.HOY);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.HOY);
+    return response.data;
   }
 
   /**
    * Get therapy sessions statistics
    */
   async getEstadisticas() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.ESTADISTICAS);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.ESTADISTICAS);
+    return response.data;
   }
 
   /**
    * Get attendance statistics for a session
    */
   async getEstadisticasAsistencia(sesionId) {
-    try {
-      const response = await ApiService.get(
-        API_ENDPOINTS.SESIONES_TERAPIA.ESTADISTICAS_ASISTENCIA(sesionId)
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(
+      API_ENDPOINTS.SESIONES_TERAPIA.ESTADISTICAS_ASISTENCIA(sesionId)
+    );
+    return response.data;
   }
 
   /**
    * Get available patients for therapy sessions
    */
   async getPacientesDisponibles() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES_DISPONIBLES);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.PACIENTES_DISPONIBLES);
+    return response.data;
   }
 
   /**
    * Get available therapists for therapy sessions
    */
   async getTerapeutasDisponibles() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.TERAPEUTAS_DISPONIBLES);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(API_ENDPOINTS.SESIONES_TERAPIA.TERAPEUTAS_DISPONIBLES);
+    return response.data;
   }
 
   // ==================== AUXILIARY DATA ====================
 
-  /**
-   * Get all therapeutic specialties
-   */
-  async getEspecialidades() {
-    try {
-      // Fetch all specialties and filter on frontend to avoid URL encoding issues
-      const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.BASE);
-      const allEspecialidades = response.data?.data || response.data || [];
-
-      // Filter therapeutic specialties
-      const terapeuticas = allEspecialidades.filter(esp =>
-        esp.area === 'Especialidad terapéutica' ||
-        esp.area === 'Especialidad terapeutica'
-      );
-
-      return { data: terapeuticas };
-    } catch (error) {
-      throw error;
-    }
-  }
 
   /**
    * Get all patients
    */
   async getPacientes() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.PACIENTES.BASE);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(API_ENDPOINTS.PACIENTES.BASE);
+    return response.data;
   }
 
   /**
@@ -492,12 +356,8 @@ class SesionTerapiaService {
    * Get all personal (staff)
    */
   async getPersonal() {
-    try {
-      const response = await ApiService.get(API_ENDPOINTS.PERSONAL.BASE);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(API_ENDPOINTS.PERSONAL.BASE);
+    return response.data;
   }
 
   // ==================== PUBLIC LINKS MANAGEMENT ====================
@@ -506,71 +366,55 @@ class SesionTerapiaService {
    * Generate public link for a therapy session
    */
   async generatePublicLink(sessionId, linkData) {
-    try {
-      const response = await ApiService.post(
-        API_ENDPOINTS.SESIONES_TERAPIA.GENERAR_ENLACE_PUBLICO(sessionId),
-        linkData
-      );
-      // Extract the actual data from the response
-      return response.data?.data || response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.post(
+      API_ENDPOINTS.SESIONES_TERAPIA.GENERAR_ENLACE_PUBLICO(sessionId),
+      linkData
+    );
+    // Extract the actual data from the response
+    return response.data?.data || response.data;
   }
 
   /**
    * Get all public links for a therapy session
    */
   async getPublicLinks(sessionId) {
-    try {
-      const response = await ApiService.get(
-        API_ENDPOINTS.SESIONES_TERAPIA.ENLACES_PUBLICOS(sessionId)
-      );
-      // Extract the actual data from the response
-      return response.data?.data || response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.get(
+      API_ENDPOINTS.SESIONES_TERAPIA.ENLACES_PUBLICOS(sessionId)
+    );
+    // Extract the actual data from the response
+    return response.data?.data || response.data;
   }
 
   /**
    * Invalidate a public link (requires authentication)
    */
   async invalidatePublicLink(token) {
-    try {
-      const response = await ApiService.delete(
-        API_ENDPOINTS.SESIONES_TERAPIA.INVALIDAR_ENLACE_PUBLICO(token)
-      );
-      // Extract the actual data from the response
-      return response.data?.data || response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.delete(
+      API_ENDPOINTS.SESIONES_TERAPIA.INVALIDAR_ENLACE_PUBLICO(token)
+    );
+    // Extract the actual data from the response
+    return response.data?.data || response.data;
   }
 
   /**
    * View public session information (no authentication required)
    */
   async viewPublicSession(token) {
-    try {
-      // Use API configuration for backend URL
-      const fullUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.SESIONES_TERAPIA.SESION_PUBLICA(token)}`;
-      const response = await fetch(fullUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+    // Use API configuration for backend URL
+    const fullUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.SESIONES_TERAPIA.SESION_PUBLICA(token)}`;
+    const response = await fetch(fullUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al obtener información de la sesión');
-      }
-
-      return await response.json();
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error al obtener información de la sesión');
     }
+
+    return await response.json();
   }
 
   /**

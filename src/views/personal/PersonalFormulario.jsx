@@ -59,7 +59,6 @@ const PersonalFormulario = ({
   formData,
   errors,
   editingId,
-  personasDisponibles = [],
   especialidades = [],
   centros = [],
   personaEncontrada,
@@ -99,13 +98,8 @@ const PersonalFormulario = ({
     formData.tipo_contrato &&
     formData.id_centro;
 
-  const fullName =
-    personaEncontrada
-      ? (personaEncontrada.nombre_completo || `${personaEncontrada?.nombres || personaEncontrada?.nombre || ''} ${personaEncontrada?.apellidos || personaEncontrada?.apellido || ''}`.trim())
-      : '';
 
   // Iconos con mismo color que el texto
-  const iconColor = { color: 'text.primary' };
 
   return (
     <Box>
@@ -324,8 +318,8 @@ const PersonalFormulario = ({
                   Tipo de Contrato <span style={{ color: 'red', fontWeight: 'bold' }}>*</span>
                 </Typography>
                 <Autocomplete
-                  value={{ value: formData.tipo_contrato, label: formData.tipo_contrato ? 
-                    formData.tipo_contrato.charAt(0).toUpperCase() + formData.tipo_contrato.slice(1) : '' } || null}
+                  value={{ value: formData.tipo_contrato, label: formData.tipo_contrato ?
+                    formData.tipo_contrato.charAt(0).toUpperCase() + formData.tipo_contrato.slice(1) : '' }}
                   onChange={(event, newValue) => {
                     onChange({
                       target: {

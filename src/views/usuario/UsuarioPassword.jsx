@@ -125,7 +125,7 @@ const UsuarioPassword = ({
       <DialogContent>
         <Grid container spacing={1} sx={{ mt: 1 }}>
           {/* Información de seguridad */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Alert severity="info" sx={{ mb: 1 }}>
               <Typography variant="body2">
                 <strong>Política de contraseñas:</strong> La nueva contraseña debe tener al menos 6 caracteres.
@@ -135,7 +135,7 @@ const UsuarioPassword = ({
 
           {/* Campos de nueva contraseña y confirmar contraseña centrados */}
           <Grid container spacing={2} justifyContent="center" alignItems="center">
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <TextField
                 fullWidth
                 type={showNewPassword ? 'text' : 'password'}
@@ -164,7 +164,7 @@ const UsuarioPassword = ({
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <TextField
                 fullWidth
                 type={showConfirmPassword ? 'text' : 'password'}
@@ -197,7 +197,7 @@ const UsuarioPassword = ({
 
           {/* Indicador de fortaleza de contraseña */}
           {passwordStrength && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card variant="outlined">
                 <CardContent>
                   <Typography variant="subtitle2" gutterBottom display="flex" alignItems="center">
@@ -254,7 +254,7 @@ const UsuarioPassword = ({
                         { check: passwordData.nueva_contrasenia.length >= 6, text: "Mínimo 6 caracteres" },
                         { check: passwordData.nueva_contrasenia === passwordData.confirmar_contrasenia && passwordData.nueva_contrasenia !== '', text: "Contraseñas coinciden" }
                       ].map((item, index) => (
-                        <Grid item xs={12} sm={6} key={index}>
+                        <Grid key={index} size={{ xs: 12, sm: 6 }}>
                           <Box display="flex" alignItems="center">
                             {item.check ? (
                               <Check color="success" fontSize="small" sx={{ mr: 1 }} />

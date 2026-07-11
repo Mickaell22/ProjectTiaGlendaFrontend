@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -49,7 +49,7 @@ import {
   RadioButtonUnchecked
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import PersonCard from './PersonCard';
 import PersonSearchFilters from './PersonSearchFilters';
 import { ApiService } from '../../services/apiService';
@@ -92,6 +92,8 @@ const ModernPersonSelector = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [allPersons, setAllPersons] = useState([]);
   const [filteredPersons, setFilteredPersons] = useState([]);
+  // Datos de personal en estado: filterAndSortPersons los necesita fuera de loadPersons
+  const [personalList, setPersonalList] = useState([]);
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'list'
   const [sortBy, setSortBy] = useState('name'); // 'name' | 'recent' | 'relevance'
 
@@ -114,12 +116,13 @@ const ModernPersonSelector = ({
       loadRecentSelections();
       loadFavorites();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [open]); // Removido searchTypes para evitar re-renders infinitos
 
   // Filter and sort data when dependencies change
   useEffect(() => {
     filterAndSortPersons();
-  }, [allPersons, searchTerm, activeFilters, sortBy]);
+  }, [filterAndSortPersons]);
 
   const loadPersons = async () => {
     try {
@@ -152,6 +155,7 @@ const ModernPersonSelector = ({
           personalData = [];
         }
       }
+      setPersonalList(personalData);
 
       // Load users if we need to filter them out
       if (hideRegisteredUsers) {
@@ -324,11 +328,11 @@ const ModernPersonSelector = ({
     }
 
     // FILTRO POR ROL SIMPLE - Solo filtrar si tenemos datos de personal cargados
-    if (filterByRole && personalData.length > 0) {
+    if (filterByRole && personalList.length > 0) {
       const targetRole = filterByRole.toLowerCase();
 
       // Obtener IDs de personas con el rol deseado
-      const personasConRol = personalData
+      const personasConRol = personalList
         .filter(personal => {
           const rol = (personal.rol || personal.cargo || '').toLowerCase();
 
@@ -375,7 +379,7 @@ const ModernPersonSelector = ({
     });
 
     setFilteredPersons(filtered);
-  }, [allPersons, searchTerm, activeFilters, sortBy]); // Removidas dependencias problemáticas
+  }, [allPersons, searchTerm, activeFilters, sortBy, personalList, filterByRole, excludeRoles]);
 
   const calculateQuickStats = (data) => {
     const stats = {
@@ -572,7 +576,7 @@ const ModernPersonSelector = ({
           >
             <CardContent sx={{ p: 3 }}>
               <Grid container spacing={2} alignItems="center">
-                <Grid item>
+                <Grid>
                   <Avatar
                     sx={{
                       bgcolor: theme.palette.success.contrastText,
@@ -586,7 +590,7 @@ const ModernPersonSelector = ({
                     {selectedPerson.avatar}
                   </Avatar>
                 </Grid>
-                <Grid item xs>
+                <Grid size={{ xs: 'grow' }}>
                   <Typography variant="h6" fontWeight="bold" gutterBottom>
                     {selectedPerson.displayName}
                   </Typography>
@@ -610,7 +614,7 @@ const ModernPersonSelector = ({
                     }}
                   />
                 </Grid>
-                <Grid item>
+                <Grid>
                   <Stack direction="row" spacing={1}>
                     <Tooltip title="Cambiar selección">
                       <IconButton
@@ -834,13 +838,7 @@ const ModernPersonSelector = ({
               <Grid container spacing={2}>
                 <AnimatePresence>
                   {filteredPersons.map((person, index) => (
-                    <Grid
-                      item
-                      xs={12}
-                      sm={viewMode === 'cards' ? 6 : 12}
-                      md={viewMode === 'cards' ? 4 : 12}
-                      key={`${person.sourceType}-${person.id}`}
-                    >
+                    <Grid key={`${person.sourceType}-${person.id}`} size={{ xs: 12, sm: viewMode === 'cards' ? 6 : 12, md: viewMode === 'cards' ? 4 : 12 }}>
                       <PersonCard
                         person={person}
                         onSelect={() => handlePersonSelect(person)}

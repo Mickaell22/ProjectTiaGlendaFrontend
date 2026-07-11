@@ -7,26 +7,24 @@ import {
   List,
   styled,
   Collapse,
-  useTheme,
-  useMediaQuery,
 } from '@mui/material';
 import {
   ExpandLess,
   ExpandMore,
 } from '@mui/icons-material';
 import { useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import NavItem from './NavItem';
 
 const NavCollapse = ({ menu, level, pathWithoutLastPart, pathDirect, hideMenu, onClick }) => {
-  const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
-  const customizer = useSelector((state) => state.customizer);
   const { pathname } = useLocation();
-  const theme = useTheme();
   
   const [open, setOpen] = React.useState(() => {
-    return pathname.includes(menu.href);
+    // Abrir el grupo si la ruta actual coincide con alguno de sus hijos
+    const matches = (item) =>
+      (item.href && pathname.startsWith(item.href)) ||
+      (item.children ? item.children.some(matches) : false);
+    return menu.children ? menu.children.some(matches) : pathname.startsWith(menu.href);
   });
 
   const menuIcon = menu.icon ? <menu.icon sx={{ fontSize: '1.3rem' }} /> : null;

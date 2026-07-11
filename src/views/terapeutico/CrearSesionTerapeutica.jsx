@@ -90,8 +90,8 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
   const { isAdmin } = useUserRole();
   const { user } = useAuth();
   const { config } = useConfig();
-  const [pacientesDisponibles, setPacientesDisponibles] = useState([]);
-  const [terapeutasDisponibles, setTerapeutasDisponibles] = useState([]);
+  const [_pacientesDisponibles, setPacientesDisponibles] = useState([]);
+  const [_terapeutasDisponibles, setTerapeutasDisponibles] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
   const [formData, setFormData] = useState({
     titulo: '',
@@ -130,6 +130,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
 
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []);
 
   const fetchData = async () => {
@@ -203,13 +204,6 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
     }
   };
 
-  const handlePacienteSelect = (person) => {
-    setSelectedPaciente(person);
-    setFormData(prev => ({ ...prev, paciente_id: person.id }));
-    if (errors.paciente_id) {
-      setErrors(prev => ({ ...prev, paciente_id: '' }));
-    }
-  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -304,7 +298,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
       // Log para debug
       console.log('Datos a enviar:', sessionData);
 
-      const response = await sesionTerapiaService.createSesion(sessionData);
+      await sesionTerapiaService.createSesion(sessionData);
 
       setSnackbar({
         open: true,
@@ -379,7 +373,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
               <Divider sx={{ mb: 2 }} />
 
               <Grid container spacing={2} direction="column">
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     label="Título de la Sesión"
@@ -393,7 +387,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     multiline
@@ -409,7 +403,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="body1" mb={1}>
                     Terapeuta: *
                   </Typography>
@@ -432,7 +426,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                   )}
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormControl fullWidth error={!!errors.especialidad_id}>
                     <InputLabel shrink>Especialidad</InputLabel>
                     <Select
@@ -465,7 +459,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormControl fullWidth error={!!errors.tipo_sesion}>
                     <InputLabel shrink>Tipo de Sesión</InputLabel>
                     <Select
@@ -485,7 +479,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="body1" mb={1}>
                     Paciente (Opcional - Sesión Individual)
                   </Typography>
@@ -518,7 +512,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
               <Divider sx={{ mb: 2 }} />
 
               <Grid container spacing={2} direction="column">
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     type="date"
                     fullWidth
@@ -537,7 +531,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     type="date"
                     fullWidth
@@ -556,7 +550,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormControl fullWidth error={!!errors.hora_inicio}>
                     <InputLabel shrink>Hora de Inicio</InputLabel>
                     <Select
@@ -598,7 +592,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormControl fullWidth error={!!errors.dias_semana}>
                     <InputLabel shrink>Días de la Semana</InputLabel>
                     <Select
@@ -626,7 +620,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     type="number"
@@ -649,7 +643,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
               <Divider sx={{ mb: 2 }} />
 
               <Grid container spacing={2} direction="column">
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     type="number"
@@ -665,7 +659,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                 </Grid>
 
                 {isAdmin && (
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
                       type="number"
@@ -681,7 +675,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                   </Grid>
                 )}
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     type="number"
@@ -694,7 +688,7 @@ const CrearSesionTerapeutica = ({ onSessionCreated }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     multiline

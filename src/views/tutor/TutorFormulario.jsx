@@ -254,9 +254,6 @@ const TutorFormulario = ({
   };
 
   // Nombre completo robusto
-  const fullName =
-    personaEncontrada?.nombre_completo ||
-    buildNombreCompleto(personaEncontrada || {});
 
   const parentescos = TutorService.getParentescosComunes
     ? TutorService.getParentescosComunes()

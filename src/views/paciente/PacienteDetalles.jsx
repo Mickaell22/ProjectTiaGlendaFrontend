@@ -27,7 +27,7 @@ import {
   Star as StarIcon,
   History
 } from '@mui/icons-material';
-import { parseLocalDate, formatDateLocal as formatDateUtil } from '../../utils/dateUtils';
+import { formatDateLocal as formatDateUtil } from '../../utils/dateUtils';
 
 // Helper para formatear fechas usando parseLocalDate para evitar timezone issues
 function formatDateLocal(dateString) {
@@ -127,7 +127,7 @@ const PacienteDetalles = ({
         <Box sx={{ p: 3 }}>
           <Grid container spacing={3}>
             {/* Información Personal */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -163,7 +163,7 @@ const PacienteDetalles = ({
             </Grid>
 
             {/* Información de Tutores */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center" justifyContent="space-between">
@@ -185,7 +185,7 @@ const PacienteDetalles = ({
                   {pacienteData.tutores && pacienteData.tutores.length > 0 ? (
                     <Grid container spacing={2}>
                       {pacienteData.tutores.map((tutor, index) => (
-                        <Grid item xs={12} md={6} key={index}>
+                        <Grid key={index} size={{ xs: 12, md: 6 }}>
                           <Card
                             variant="outlined"
                             sx={{
@@ -313,7 +313,7 @@ const PacienteDetalles = ({
             </Grid>
 
             {/* Información del Tratamiento */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -323,7 +323,7 @@ const PacienteDetalles = ({
                   <Divider sx={{ mb: 2 }} />
 
                   <Grid container spacing={3}>
-                    <Grid item xs={12} sm={4}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
                       <Box>
                         <Typography variant="body2" color="text.secondary">Fecha de Ingreso</Typography>
                         <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center" sx={{ mt: 0.5 }}>
@@ -333,7 +333,7 @@ const PacienteDetalles = ({
                       </Box>
                     </Grid>
 
-                    <Grid item xs={12} sm={4}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
                       <Box>
                         <Typography variant="body2" color="text.secondary">Total Especialidades</Typography>
                         <Typography variant="h4" color="primary" fontWeight="bold" sx={{ mt: 0.5 }}>
@@ -342,7 +342,7 @@ const PacienteDetalles = ({
                       </Box>
                     </Grid>
 
-                    <Grid item xs={12} sm={4}>
+                    <Grid size={{ xs: 12, sm: 4 }}>
                       <Box>
                         <Typography variant="body2" color="text.secondary">Especialidades Activas</Typography>
                         <Typography variant="h4" color="success.main" fontWeight="bold" sx={{ mt: 0.5 }}>
@@ -356,7 +356,7 @@ const PacienteDetalles = ({
             </Grid>
 
             {/* Especialidades Detalladas */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -378,7 +378,7 @@ const PacienteDetalles = ({
                   ) : (
                     <Grid container spacing={3}>
                       {pacienteData.especialidades.map((especialidad, index) => (
-                        <Grid item xs={12} md={6} key={index}>
+                        <Grid key={index} size={{ xs: 12, md: 6 }}>
                           <Card
                             variant="outlined"
                             sx={{
@@ -431,7 +431,7 @@ const PacienteDetalles = ({
                                 {/* Estados y prioridad */}
                                 <Box>
                                   <Grid container spacing={2}>
-                                    <Grid item xs={6}>
+                                    <Grid size={{ xs: 6 }}>
                                       <Typography variant="caption" color="text.secondary" display="block">
                                         ESTADO
                                       </Typography>
@@ -442,7 +442,7 @@ const PacienteDetalles = ({
                                         sx={{ fontWeight: 'bold' }}
                                       />
                                     </Grid>
-                                    <Grid item xs={6}>
+                                    <Grid size={{ xs: 6 }}>
                                       <Typography variant="caption" color="text.secondary" display="block">
                                         PRIORIDAD
                                       </Typography>
@@ -466,13 +466,13 @@ const PacienteDetalles = ({
                                     FECHAS DEL TRATAMIENTO
                                   </Typography>
                                   <Grid container spacing={1}>
-                                    <Grid item xs={6}>
+                                    <Grid size={{ xs: 6 }}>
                                       <Typography variant="body2" color="text.secondary">Inicio:</Typography>
                                       <Typography variant="body2" fontWeight="bold">
                                         {formatDateLocal(especialidad.fecha_inicio_tratamiento)}
                                       </Typography>
                                     </Grid>
-                                    <Grid item xs={6}>
+                                    <Grid size={{ xs: 6 }}>
                                       <Typography variant="body2" color="text.secondary">Fin:</Typography>
                                       <Typography variant="body2" fontWeight="bold">
                                         {formatDateLocal(especialidad.fecha_fin_tratamiento)}
@@ -513,7 +513,7 @@ const PacienteDetalles = ({
 
             {/* Información Médica Adicional */}
             {(pacienteData.alergias || pacienteData.medicina) && (
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Card elevation={1}>
                   <CardContent>
                     <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -524,7 +524,7 @@ const PacienteDetalles = ({
 
                     <Grid container spacing={3}>
                       {pacienteData.alergias && (
-                        <Grid item xs={12} md={6}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                           <Box>
                             <Typography variant="body2" color="text.secondary" gutterBottom fontWeight="bold">
                               Alergias Conocidas
@@ -544,7 +544,7 @@ const PacienteDetalles = ({
                       )}
 
                       {pacienteData.medicina && (
-                        <Grid item xs={12} md={6}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                           <Box>
                             <Typography variant="body2" color="text.secondary" gutterBottom fontWeight="bold">
                               Medicamentos Actuales
@@ -570,7 +570,7 @@ const PacienteDetalles = ({
 
             {/* Observaciones */}
             {(pacienteData.observaciones_tratamiento || pacienteData.observaciones) && (
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Card elevation={1}>
                   <CardContent>
                     <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -581,7 +581,7 @@ const PacienteDetalles = ({
 
                     <Grid container spacing={3}>
                       {pacienteData.observaciones_tratamiento && (
-                        <Grid item xs={12} md={6}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                           <Box>
                             <Typography variant="body2" color="text.secondary" gutterBottom>
                               Observaciones del Tratamiento
@@ -600,7 +600,7 @@ const PacienteDetalles = ({
                       )}
 
                       {pacienteData.observaciones && (
-                        <Grid item xs={12} md={6}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                           <Box>
                             <Typography variant="body2" color="text.secondary" gutterBottom>
                               Observaciones Generales

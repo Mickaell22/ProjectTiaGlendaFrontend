@@ -52,7 +52,7 @@ const sendToRemote = async (logData) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(logData),
     });
-  } catch (error) {
+  } catch {
     // Si falla el envío remoto, no hacer nada para evitar loops
   }
 };

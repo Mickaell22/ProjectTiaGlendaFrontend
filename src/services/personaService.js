@@ -192,7 +192,7 @@ export class PersonaService {
         const day = String(date.getUTCDate()).padStart(2, '0');
         const result = `${year}-${month}-${day}`;
         return result;
-      } catch (error) {
+      } catch {
         return '';
       }
     }
@@ -205,7 +205,7 @@ export class PersonaService {
       const day = String(date.getDate()).padStart(2, '0');
       const result = `${year}-${month}-${day}`;
       return result;
-    } catch (error) {
+    } catch {
       return '';
     }
   }

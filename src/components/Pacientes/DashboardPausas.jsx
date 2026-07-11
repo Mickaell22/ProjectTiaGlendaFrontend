@@ -45,7 +45,7 @@ const DashboardPausas = () => {
   const [loading, setLoading] = useState(true);
   const [loadingProcesar, setLoadingProcesar] = useState(false);
   const [error, setError] = useState(null);
-  const [diasUmbral, setDiasUmbral] = useState(7);
+  const [diasUmbral, _setDiasUmbral] = useState(7);
 
   // Dialog de confirmacion
   const [openConfirm, setOpenConfirm] = useState(false);
@@ -53,6 +53,7 @@ const DashboardPausas = () => {
 
   useEffect(() => {
     cargarDatos();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [diasUmbral]);
 
   const cargarDatos = async () => {
@@ -159,7 +160,7 @@ const DashboardPausas = () => {
 
       {/* Tarjetas de estadisticas */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -178,7 +179,7 @@ const DashboardPausas = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -197,7 +198,7 @@ const DashboardPausas = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -216,7 +217,7 @@ const DashboardPausas = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

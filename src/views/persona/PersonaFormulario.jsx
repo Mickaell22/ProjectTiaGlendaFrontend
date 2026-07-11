@@ -30,7 +30,7 @@ import useSnackbar from '../../hooks/useSnackbar.js';
 const neutralInputSX = {};
 
 // Función para generar el sx del card principal con theming responsivo
-const getCardShellSX = (theme) => ({
+const getCardShellSX = (_theme) => ({
   borderRadius: 4,
   mb: 4,
   backgroundColor: 'background.paper',

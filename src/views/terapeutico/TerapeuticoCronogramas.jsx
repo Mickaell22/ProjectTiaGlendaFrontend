@@ -12,8 +12,6 @@ import {
   Schedule, AccessTime, Today, Person, EventNote, EditCalendar, Note,
   InfoOutlined, WarningAmber, ErrorOutline
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from 'src/contexts/AuthContext';
 import { useUserRole } from 'src/hooks/useUserRole';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 import { formatDateLocal } from 'src/utils/dateUtils';
@@ -60,8 +58,6 @@ const TerapeuticoCronogramas = () => {
   const [cancelDialog, setCancelDialog] = useState({ open: false, data: null });
   const [realizadaDialog, setRealizadaDialog] = useState({ open: false, data: null });
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { user } = useAuth();
 
   useEffect(() => {
     fetchSesiones();
@@ -284,7 +280,7 @@ const TerapeuticoCronogramas = () => {
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           {/* Filtros: Estado de Sesión y Terapeuta */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <FormControl fullWidth size="small">
                 <InputLabel shrink>Estado de Sesión</InputLabel>
                 <Select
@@ -302,7 +298,7 @@ const TerapeuticoCronogramas = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} md={5}>
+            <Grid size={{ xs: 12, sm: 6, md: 5 }}>
               <FormControl fullWidth size="small">
                 <InputLabel shrink>Filtrar por Terapeuta</InputLabel>
                 <Select
@@ -323,7 +319,7 @@ const TerapeuticoCronogramas = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={12} md={3}>
+            <Grid size={{ xs: 12, sm: 12, md: 3 }}>
               <Button
                 variant="outlined"
                 color="secondary"
@@ -340,7 +336,7 @@ const TerapeuticoCronogramas = () => {
           </Grid>
 
           <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} md={8}>
+            <Grid size={{ xs: 12, md: 8 }}>
               <FormControl fullWidth>
                 <InputLabel shrink>Sesión Terapéutica</InputLabel>
                 <Select
@@ -375,7 +371,7 @@ const TerapeuticoCronogramas = () => {
             </Grid>
 
             {selectedSesion && (
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Button
                   variant="outlined"
                   color="secondary"
@@ -394,15 +390,15 @@ const TerapeuticoCronogramas = () => {
           {selectedSesion && getSesionInfo(selectedSesion) && (
             <Paper sx={{ mt: 3, p: 2, backgroundColor: 'background.paper' }}>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Typography variant="subtitle2">Título:</Typography>
                   <Typography variant="body2">{getSesionInfo(selectedSesion).titulo}</Typography>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Typography variant="subtitle2">Terapeuta:</Typography>
                   <Typography variant="body2">{getSesionInfo(selectedSesion).terapeuta_nombre}</Typography>
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Typography variant="subtitle2">Especialidad:</Typography>
                   <Typography variant="body2">{getSesionInfo(selectedSesion).especialidad_nombre}</Typography>
                 </Grid>
@@ -474,6 +470,7 @@ const TerapeuticoCronogramas = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar por título/terapeuta o # de sesión…"
+                inputProps={{ 'aria-label': 'Buscar por título/terapeuta o # de sesión' }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -691,14 +688,14 @@ const TerapeuticoCronogramas = () => {
         <DialogContent>
           {detailDialog.data && (
             <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="subtitle2" color="primary">Información de la Sesión</Typography>
                 <Typography variant="body2"><strong>Número de Sesión:</strong> {detailDialog.data.numero_sesion}</Typography>
                 <Typography variant="body2"><strong>Fecha Programada:</strong> {formatDate(detailDialog.data.fecha_programada)}</Typography>
                 <Typography variant="body2"><strong>Hora Programada:</strong> {formatTime(detailDialog.data.hora_programada)}</Typography>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="subtitle2" color="primary">Estado y Realización</Typography>
                 <Typography variant="body2" display="flex" alignItems="center">
                   <strong>Estado:</strong>
@@ -712,7 +709,7 @@ const TerapeuticoCronogramas = () => {
               </Grid>
 
               {(detailDialog.data.observaciones_cronograma || detailDialog.data.observaciones) && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Observaciones</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'background.paper' }}>
                     <Typography variant="body2">
@@ -723,7 +720,7 @@ const TerapeuticoCronogramas = () => {
               )}
 
               {detailDialog.data.motivo_reprogramacion && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Motivo de Reprogramación</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
                     <Typography variant="body2">{detailDialog.data.motivo_reprogramacion}</Typography>
@@ -732,7 +729,7 @@ const TerapeuticoCronogramas = () => {
               )}
 
               {detailDialog.data.motivo_cancelacion && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="error">Motivo de Cancelación</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'error.50', border: '1px solid', borderColor: 'error.200' }}>
                     <Typography variant="body2">{detailDialog.data.motivo_cancelacion}</Typography>
@@ -741,7 +738,7 @@ const TerapeuticoCronogramas = () => {
               )}
 
               {selectedSesion && getSesionInfo(selectedSesion) && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Información de la Sesión Terapéutica</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'primary.50', border: '1px solid', borderColor: 'primary.200' }}>
                     <Typography variant="body2"><strong>Título:</strong> {getSesionInfo(selectedSesion).titulo}</Typography>
@@ -818,9 +815,6 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
       if (horaFormateada && !horaFormateada.includes(':')) {
         // If it's just a number like "14", convert to "14:00"
         horaFormateada = horaFormateada.padStart(2, '0') + ':00';
-      } else if (horaFormateada && horaFormateada.length === 5) {
-        // If it's already in HH:MM format, keep it
-        horaFormateada = horaFormateada;
       } else if (horaFormateada && horaFormateada.includes('T')) {
         // If it's a datetime string, extract just the time part
         const timePart = horaFormateada.split('T')[1];
@@ -914,7 +908,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
       <DialogContent sx={{ p: 3 }}>
         <Grid container spacing={3}>
           {/* Información actual */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper
               elevation={0}
               sx={{
@@ -929,7 +923,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
                 Programación Actual
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box display="flex" alignItems="center" gap={1}>
                     <Today color="info" />
                     <Box>
@@ -942,7 +936,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
                     </Box>
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box display="flex" alignItems="center" gap={1}>
                     <AccessTime color="info" />
                     <Box>
@@ -960,7 +954,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
           </Grid>
 
           {/* Botones de acción rápida */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2 }}>
               Acciones Rápidas
             </Typography>
@@ -1015,13 +1009,13 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
           </Grid>
 
           {/* Nueva fecha y hora */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
               <EditCalendar color="warning" fontSize="small" />
               Nueva Programación
             </Typography>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   type="date"
@@ -1046,7 +1040,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
                   }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   type="time"
@@ -1075,7 +1069,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
           </Grid>
 
           {/* Motivo */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
               <Note color="warning" fontSize="small" />
               Motivo de Reprogramación
@@ -1110,7 +1104,7 @@ const ReprogramarDialog = ({ open, data, onClose, onConfirm, loading }) => {
           </Grid>
 
           {/* Advertencia */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper
               elevation={0}
               sx={{
@@ -1229,7 +1223,7 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
       <DialogContent sx={{ p: 3 }}>
         <Grid container spacing={3}>
           {/* Información de la sesión */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper
               elevation={0}
               sx={{
@@ -1244,7 +1238,7 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
                 Información de la Sesión
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box display="flex" alignItems="center" gap={1}>
                     <Today color="error" />
                     <Box>
@@ -1257,7 +1251,7 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
                     </Box>
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box display="flex" alignItems="center" gap={1}>
                     <AccessTime color="error" />
                     <Box>
@@ -1275,7 +1269,7 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
           </Grid>
 
           {/* Advertencia importante */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper
               elevation={0}
               sx={{
@@ -1312,7 +1306,7 @@ const CancelarDialog = ({ open, data, onClose, onConfirm, loading }) => {
           </Grid>
 
           {/* Motivo de cancelación */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
               <Note color="error" fontSize="small" />
               Motivo de Cancelación
@@ -1437,7 +1431,7 @@ const RealizadaDialog = ({ open, data, onClose, onConfirm, loading }) => {
       <DialogContent sx={{ p: 3 }}>
         <Grid container spacing={3}>
           {/* Información de la sesión */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper
               elevation={0}
               sx={{
@@ -1449,7 +1443,7 @@ const RealizadaDialog = ({ open, data, onClose, onConfirm, loading }) => {
               }}
             >
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Box display="flex" alignItems="center" gap={1}>
                     <EventNote color="success" />
                     <Box>
@@ -1462,7 +1456,7 @@ const RealizadaDialog = ({ open, data, onClose, onConfirm, loading }) => {
                     </Box>
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Box display="flex" alignItems="center" gap={1}>
                     <Today color="success" />
                     <Box>
@@ -1475,7 +1469,7 @@ const RealizadaDialog = ({ open, data, onClose, onConfirm, loading }) => {
                     </Box>
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid size={{ xs: 12, sm: 4 }}>
                   <Box display="flex" alignItems="center" gap={1}>
                     <AccessTime color="success" />
                     <Box>
@@ -1493,7 +1487,7 @@ const RealizadaDialog = ({ open, data, onClose, onConfirm, loading }) => {
           </Grid>
 
           {/* Campo de observaciones */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Typography variant="subtitle1" fontWeight="medium" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
               <Note color="success" fontSize="small" />
               Observaciones de la Sesión
@@ -1526,7 +1520,7 @@ const RealizadaDialog = ({ open, data, onClose, onConfirm, loading }) => {
           </Grid>
 
           {/* Mensaje de confirmación */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper
               elevation={0}
               sx={{

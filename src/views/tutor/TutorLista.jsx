@@ -47,8 +47,6 @@ const TutorLista = ({
   onDelete,
   onViewDetail,
   onNewTutor,
-  loading = false,
-  showFinancialInfo = false
 }) => {
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');

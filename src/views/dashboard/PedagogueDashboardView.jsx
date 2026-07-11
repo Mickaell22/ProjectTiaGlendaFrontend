@@ -71,7 +71,7 @@ const PedagogueDashboardView = () => {
           {/* Stats Cards Skeleton */}
           <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: 'auto', justifyContent: 'center' }}>
             {[1, 2, 3, 4].map((item) => (
-              <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center" key={item}>
+              <Grid display="flex" justifyContent="center" key={item} size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card sx={{ height: 200, width: 200 }}>
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
@@ -89,7 +89,7 @@ const PedagogueDashboardView = () => {
 
           {/* Schedule Skeleton */}
           <Grid container spacing={3} sx={{ mb: 4, maxWidth: 900, mx: 'auto', justifyContent: 'center' }}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Paper elevation={3} sx={{ borderRadius: 3, p: 3, width: '100%', maxWidth: 900 }}>
                 <CardContent>
                   <Skeleton variant="text" width="40%" height={30} sx={{ mb: 2, mx: 'auto' }} />
@@ -200,7 +200,7 @@ const PedagogueDashboardView = () => {
 
         {/* Main Statistics */}
   <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: 'auto', justifyContent: 'center' }}>
-          <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+          <Grid display="flex" justifyContent="center" size={{ xs: 12, sm: 6, md: 3 }}>
             <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
@@ -231,7 +231,7 @@ const PedagogueDashboardView = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+          <Grid display="flex" justifyContent="center" size={{ xs: 12, sm: 6, md: 3 }}>
             <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
@@ -260,7 +260,7 @@ const PedagogueDashboardView = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+          <Grid display="flex" justifyContent="center" size={{ xs: 12, sm: 6, md: 3 }}>
             <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
@@ -287,7 +287,7 @@ const PedagogueDashboardView = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+          <Grid display="flex" justifyContent="center" size={{ xs: 12, sm: 6, md: 3 }}>
             <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
@@ -320,7 +320,7 @@ const PedagogueDashboardView = () => {
 
         {/* Today's Schedule */}
         <Grid container spacing={3} sx={{ mb: 4, maxWidth: 900, mx: 'auto', justifyContent: 'center' }}>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper elevation={3} sx={{ borderRadius: 3, p: 3, width: '100%', maxWidth: 900, mx: 'auto' }}>
               <CardContent>
                 <Typography variant="h6" fontWeight="bold" gutterBottom align="center">

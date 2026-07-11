@@ -221,10 +221,11 @@ const ThemeSettings = (customizer) => {
             color: isBlack ? '#fff' : undefined,
           },
           containedPrimary: {
-            backgroundColor: isBlack ? '#D32F2F' : (customizer.activeMode === 'dark' ? '#5D87FF' : undefined),
-            color: isBlack ? '#fff' : '#ffffff',
+            // isBlack sin override: usa palette.primary del tema activo
+            backgroundColor: customizer.activeMode === 'dark' && !isBlack ? '#5D87FF' : undefined,
+            color: '#ffffff',
             '&:hover': {
-              backgroundColor: isBlack ? '#b71c1c' : (customizer.activeMode === 'dark'
+              backgroundColor: isBlack ? undefined : (customizer.activeMode === 'dark'
                 ? 'rgba(93, 135, 255, 0.8)'
                 : 'rgba(93, 135, 255, 0.9)'),
             },

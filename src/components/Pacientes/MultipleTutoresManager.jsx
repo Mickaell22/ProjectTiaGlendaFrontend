@@ -58,7 +58,7 @@ const MultipleTutoresManager = ({
   modoEdicion = false
 }) => {
   const theme = useTheme();
-  const [tutorSeleccionadoIndex, setTutorSeleccionadoIndex] = useState(null);
+  const [_tutorSeleccionadoIndex, setTutorSeleccionadoIndex] = useState(null);
 
   const agregarTutor = () => {
     const nuevoTutor = {
@@ -315,7 +315,7 @@ const MultipleTutoresManager = ({
             {/* SECCION 1: DATOS BASICOS */}
             <Grid container spacing={3}>
               {/* Selector de Tutor */}
-              <Grid item xs={12} md={7}>
+              <Grid size={{ xs: 12, md: 7 }}>
                 <TutorSelector
                   selectedTutor={tutor._tutorObject || (tutor.tutor_id ? {
                     id: tutor.tutor_id,
@@ -338,7 +338,7 @@ const MultipleTutoresManager = ({
               </Grid>
 
               {/* Tipo de Relacion */}
-              <Grid item xs={12} md={5}>
+              <Grid size={{ xs: 12, md: 5 }}>
                 <TextField
                   select
                   fullWidth
@@ -372,7 +372,7 @@ const MultipleTutoresManager = ({
 
                 <Grid container spacing={2} sx={{ mb: 2 }}>
                   {tutor.telefono && (
-                    <Grid item xs={12} sm={6} md={4}>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, backgroundColor: 'action.hover', borderRadius: 1 }}>
                         <PhoneIcon fontSize="small" color="action" />
                         <Box>
@@ -388,7 +388,7 @@ const MultipleTutoresManager = ({
                   )}
 
                   {tutor.correo && (
-                    <Grid item xs={12} sm={6} md={4}>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, backgroundColor: 'action.hover', borderRadius: 1 }}>
                         <EmailIcon fontSize="small" color="action" />
                         <Box sx={{ minWidth: 0, flex: 1 }}>
@@ -404,7 +404,7 @@ const MultipleTutoresManager = ({
                   )}
 
                   {tutor.cedula && (
-                    <Grid item xs={12} sm={6} md={4}>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, backgroundColor: 'action.hover', borderRadius: 1 }}>
                         <BadgeIcon fontSize="small" color="action" />
                         <Box>
@@ -428,7 +428,7 @@ const MultipleTutoresManager = ({
             </Divider>
 
             <Grid container spacing={2} sx={{ mb: 2 }}>
-              <Grid item xs={12} sm={6} md={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -446,7 +446,7 @@ const MultipleTutoresManager = ({
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6} md={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -464,7 +464,7 @@ const MultipleTutoresManager = ({
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6} md={4}>
+              <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -484,7 +484,7 @@ const MultipleTutoresManager = ({
 
               {/* Prioridad de Contacto */}
               {tutor.contacto_emergencia && (
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     type="number"
                     fullWidth

@@ -55,6 +55,7 @@ const useInactivityTimer = () => {
       // El usuario no respondió o eligió cerrar, proceder con logout
       logout();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [logout]);
 
   // Función para hacer logout por inactividad
@@ -173,7 +174,7 @@ const useInactivityTimer = () => {
 
   // Escuchar cambios en la configuración de inactividad
   useEffect(() => {
-    const handleConfigChange = (event) => {
+    const handleConfigChange = (_event) => {
       resetTimer();
     };
 

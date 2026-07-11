@@ -128,164 +128,36 @@ class DashboardService {
     return null;
   }
   /**
-   * Get admin dashboard data with caching
+   * Get admin dashboard data with caching.
+   * /api/dashboard/admin devuelve la estructura completa (usuarios, pacientes,
+   * personal, especialidades, sesiones, estadisticas) con datos reales.
    */
   async getAdminDashboard() {
-    try {
-      // Use estadisticas endpoint which has real data
-      const response = await ApiService.get('/api/dashboard/estadisticas');
-
-      if (response.data && response.data.data) {
-        const statsData = response.data.data;
-
-        // Transform data to match admin dashboard format
-        const transformedData = {
-          status: 'success',
-          data: {
-            usuarios: {
-              total: statsData.usuarios_activos || 0,
-              activos: statsData.usuarios_activos || 0,
-              inactivos: 0,
-              nuevos_este_mes: 0
-            },
-            pacientes: {
-              total: statsData.total_pacientes || 0,
-              activos: statsData.total_pacientes || 0,
-              nuevos_este_mes: 0,
-              por_edad: {
-                '0-5': 0,
-                '6-12': 0,
-                '13-18': 0,
-                '18+': 0
-              }
-            },
-            personal: {
-              total: (statsData.terapeutas || 0) + (statsData.pedagogos || 0),
-              terapeutas: statsData.terapeutas || 0,
-              pedagogos: statsData.pedagogos || 0,
-              administrativos: 0
-            },
-            especialidades: {
-              total: statsData.especialidades || 0,
-              terapeuticas: Math.floor((statsData.especialidades || 0) * 0.6),
-              pedagogicas: Math.floor((statsData.especialidades || 0) * 0.4)
-            },
-            sesiones: {
-              hoy: statsData.sesiones_hoy || 0,
-              esta_semana: 0,
-              completadas_mes: 0,
-              canceladas_mes: 0
-            },
-            estadisticas: {
-              asistencia_promedio: statsData.asistencia_promedio || 0,
-              satisfaccion_promedio: 0,
-              utilizacion_salas: 0
-            }
-          }
-        };
-
-        return transformedData;
-      }
-
-      console.error('No data in response:', response);
-      return { status: 'error', message: 'No data received' };
-
-    } catch (error) {
-      console.error('Error in getAdminDashboard:', error);
-      throw error;
-    }
+    return this.makeCachedRequest('admin_dashboard', () =>
+      ApiService.get('/api/dashboard/admin')
+    );
   }
 
   /**
-   * Get therapist dashboard data with caching
+   * Get therapist dashboard data with caching.
+   * /api/dashboard/therapist deriva id_personal del token y devuelve
+   * mis_pacientes, sesiones, agenda_hoy y estadisticas reales.
    */
   async getTherapistDashboard() {
-    try {
-      // Use same estadisticas endpoint but format for therapist
-      const response = await ApiService.get('/api/dashboard/estadisticas');
-
-      if (response.data && response.data.data) {
-        const statsData = response.data.data;
-
-        const transformedData = {
-          status: 'success',
-          data: {
-            mis_pacientes: {
-              total: Math.floor((statsData.total_pacientes || 0) / (statsData.terapeutas || 1)),
-              activos: Math.floor((statsData.total_pacientes || 0) / (statsData.terapeutas || 1)),
-              dados_alta: 0,
-              nuevos_este_mes: 0
-            },
-            sesiones: {
-              hoy: 0,
-              esta_semana: 0,
-              completadas_mes: 0,
-              pendientes: 0
-            },
-            agenda_hoy: [],
-            estadisticas: {
-              asistencia_promedio: statsData.asistencia_promedio || 0,
-              horas_trabajadas_mes: 0,
-              evaluaciones_pendientes: 0,
-              objetivos_cumplidos: 0
-            }
-          }
-        };
-
-        return transformedData;
-      }
-
-      return { status: 'error', message: 'No data received' };
-    } catch (error) {
-      console.error('Error in getTherapistDashboard:', error);
-      throw error;
-    }
+    return this.makeCachedRequest('therapist_dashboard', () =>
+      ApiService.get('/api/dashboard/therapist')
+    );
   }
 
   /**
-   * Get pedagogue dashboard data with caching
+   * Get pedagogue dashboard data with caching.
+   * /api/dashboard/pedagogue deriva id_personal del token y devuelve
+   * mis_estudiantes, clases, horario_hoy y estadisticas reales.
    */
   async getPedagogueDashboard() {
-    try {
-      // Use same estadisticas endpoint but format for pedagogue
-      const response = await ApiService.get('/api/dashboard/estadisticas');
-
-      if (response.data && response.data.data) {
-        const statsData = response.data.data;
-
-        const transformedData = {
-          status: 'success',
-          data: {
-            mis_estudiantes: {
-              total: Math.floor((statsData.total_pacientes || 0) / (statsData.pedagogos || 1)),
-              activos: Math.floor((statsData.total_pacientes || 0) / (statsData.pedagogos || 1)),
-              graduados: 0,
-              nuevos_este_mes: 0
-            },
-            clases: {
-              hoy: 0,
-              esta_semana: 0,
-              completadas_mes: 0,
-              canceladas_mes: 0
-            },
-            horario_hoy: [],
-            estadisticas: {
-              asistencia_promedio: statsData.asistencia_promedio || 0,
-              horas_clase_mes: 0,
-              evaluaciones_pendientes: 0,
-              rendimiento_promedio: 0
-            }
-          }
-        };
-
-        return transformedData;
-      }
-
-      return { status: 'error', message: 'No data received' };
-    } catch (error) {
-      console.error('Error in getPedagogueDashboard:', error);
-      throw error;
-    }
+    return this.makeCachedRequest('pedagogue_dashboard', () =>
+      ApiService.get('/api/dashboard/pedagogue')
+    );
   }
 
   /**
@@ -340,25 +212,6 @@ class DashboardService {
         default:
           throw new Error(`Unknown dashboard type: ${dashboardType}`);
       }
-    }
-  }
-
-  /**
-   * Preload dashboard data
-   */
-  async preloadDashboards() {
-    try {
-      // Load general stats first as it's used by all dashboards
-      await this.getGeneralStats();
-
-      // Try to load other dashboards in background
-      Promise.allSettled([
-        this.getAdminDashboard(),
-        this.getTherapistDashboard(),
-        this.getPedagogueDashboard()
-      ]);
-    } catch (error) {
-      console.warn('Dashboard preload failed:', error);
     }
   }
 

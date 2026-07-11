@@ -47,9 +47,9 @@ export class PacienteService {
     return extractData(response);
   }
 
-  // Reactivar paciente
+  // Reactivar paciente (el backend toma el id de la URL, sin body)
   static async reactivarPacienteGeneral(pacienteId) {
-    const response = await ApiService.put(`${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/reactivar`, { paciente_id: pacienteId });
+    const response = await ApiService.put(`${API_ENDPOINTS.PACIENTES.BASE}/${pacienteId}/reactivar`);
     return extractData(response);
   }
 
@@ -132,22 +132,6 @@ export class PacienteService {
     return {
       isValid: Object.keys(errors).length === 0,
       errors
-    };
-  }
-
-  // Formatear datos para el backend
-  static formatForBackend(frontendData) {
-    return {
-      persona_id: parseInt(frontendData.persona_id),
-      tutor_id: parseInt(frontendData.tutor_id),
-      especialidad_id: frontendData.especialidad_id ? parseInt(frontendData.especialidad_id) : null,
-      fecha_ingreso: frontendData.fecha_ingreso,
-      fecha_inicio_tratamiento: frontendData.fecha_inicio_tratamiento || null,
-      fecha_fin_tratamiento: frontendData.fecha_fin_tratamiento || null,
-      estado_tratamiento: frontendData.estado_tratamiento || 'activo',
-      observaciones_tratamiento: frontendData.observaciones_tratamiento?.trim() || null,
-      observaciones: frontendData.observaciones?.trim() || null,
-      estado: frontendData.estado || 'activo'
     };
   }
 

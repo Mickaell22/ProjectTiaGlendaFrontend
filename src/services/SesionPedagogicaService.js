@@ -9,15 +9,9 @@ class SesionPedagogicaService {
    * Get all pedagogical sessions
    */
   async getSesiones() {
-    try {
-      
-      // CORRECCIÓN: Solo usar endpoint autenticado, sin fallback a debug
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE);
-      return response.data;
-      
-    } catch (error) {
-      throw error;
-    }
+    // CORRECCIÓN: Solo usar endpoint autenticado, sin fallback a debug
+    const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE);
+    return response.data;
   }
 
   /**
@@ -37,12 +31,8 @@ class SesionPedagogicaService {
    * Create new pedagogical session
    */
   async createSesion(sessionData) {
-    try {
-      const response = await ApiService.post(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE, sessionData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.post(API_ENDPOINTS.SESIONES_PEDAGOGICAS.BASE, sessionData);
+    return response.data;
   }
 
   /**
@@ -77,15 +67,9 @@ class SesionPedagogicaService {
    * Get students for a pedagogical session
    */
   async getEstudiantesSesion(sesionId) {
-    try {
-      
-      // CORRECCIÓN: Solo usar endpoint autenticado
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.ESTUDIANTES(sesionId));
-      return response.data;
-      
-    } catch (error) {
-      throw error;
-    }
+    // CORRECCIÓN: Solo usar endpoint autenticado
+    const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.ESTUDIANTES(sesionId));
+    return response.data;
   }
 
   /**
@@ -155,85 +139,67 @@ class SesionPedagogicaService {
    * Get schedule for a pedagogical session
    */
   async getCronograma(sesionId) {
-    try {
-      // CORRECCIÓN: Solo usar endpoint autenticado
-      const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.CRONOGRAMA(sesionId));
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    // CORRECCIÓN: Solo usar endpoint autenticado
+    const response = await ApiService.get(API_ENDPOINTS.SESIONES_PEDAGOGICAS.CRONOGRAMA(sesionId));
+    return response.data;
   }
 
   /**
    * Get general schedule for all pedagogical sessions with filters
    */
   async getCronogramaSesiones(filtros = {}) {
-    try {
-      // Primero, obtener todas las sesiones
-      const sesionesResponse = await this.getSesiones();
-      const sesiones = sesionesResponse.data?.data || sesionesResponse.data || [];
-      
-      if (sesiones.length === 0) {
-        return { data: [] };
-      }
-      
-      // Obtener cronograma de cada sesión y combinarlos
-      const cronogramaPromises = sesiones.map(async (sesion) => {
-        try {
-          const cronogramaResponse = await this.getCronograma(sesion.id);
-          const cronogramaData = cronogramaResponse.data?.data || cronogramaResponse.data || [];
-          
-          // Agregar información de la sesión a cada entrada del cronograma
-          return cronogramaData.map(clase => ({
-            ...clase,
-            sesion_id: sesion.id,
-            sesion_titulo: sesion.titulo,
-            nombre_clase: sesion.titulo,
-            especialidad_nombre: sesion.especialidad?.nombre || 'Especialidad',
-            educador_nombre: sesion.pedagogo?.nombre || 'Educador',
-            hora_inicio: clase.hora_programada,
-            fecha_programada: clase.fecha_programada
-          }));
-        } catch (error) {
-          return [];
-        }
-      });
-      
-      const cronogramasResults = await Promise.all(cronogramaPromises);
-      const cronogramaCompleto = cronogramasResults.flat();
-      
-      // Aplicar filtros si existen
-      let cronogramaFiltrado = cronogramaCompleto;
-      
-      if (filtros.especialidad) {
-        cronogramaFiltrado = cronogramaFiltrado.filter(clase => 
-          clase.especialidad_id === filtros.especialidad ||
-          clase.especialidad_nombre?.includes(filtros.especialidad)
-        );
-      }
-      
-      if (filtros.pedagogo) {
-        cronogramaFiltrado = cronogramaFiltrado.filter(clase => 
-          clase.pedagogo_id === filtros.pedagogo ||
-          clase.educador_nombre?.includes(filtros.pedagogo)
-        );
-      }
-      
-      if (filtros.semana) {
-        // Aplicar filtro de semana si es necesario
-        const currentWeek = new Date();
-        cronogramaFiltrado = cronogramaFiltrado.filter(clase => {
-          const claseDate = new Date(clase.fecha_programada);
-          // Simplificado: mostrar todas las clases por ahora
-          return true;
-        });
-      }
-      
-      return { data: cronogramaFiltrado };
-      
-    } catch (error) {
-      throw error;
+    // Primero, obtener todas las sesiones
+    const sesionesResponse = await this.getSesiones();
+    const sesiones = sesionesResponse.data?.data || sesionesResponse.data || [];
+    
+    if (sesiones.length === 0) {
+      return { data: [] };
     }
+    
+    // Obtener cronograma de cada sesión y combinarlos
+    const cronogramaPromises = sesiones.map(async (sesion) => {
+      try {
+        const cronogramaResponse = await this.getCronograma(sesion.id);
+        const cronogramaData = cronogramaResponse.data?.data || cronogramaResponse.data || [];
+        
+        // Agregar información de la sesión a cada entrada del cronograma
+        return cronogramaData.map(clase => ({
+          ...clase,
+          sesion_id: sesion.id,
+          sesion_titulo: sesion.titulo,
+          nombre_clase: sesion.titulo,
+          especialidad_nombre: sesion.especialidad?.nombre || 'Especialidad',
+          educador_nombre: sesion.pedagogo?.nombre || 'Educador',
+          hora_inicio: clase.hora_programada,
+          fecha_programada: clase.fecha_programada
+        }));
+      } catch {
+        return [];
+      }
+    });
+    
+    const cronogramasResults = await Promise.all(cronogramaPromises);
+    const cronogramaCompleto = cronogramasResults.flat();
+    
+    // Aplicar filtros si existen
+    let cronogramaFiltrado = cronogramaCompleto;
+    
+    if (filtros.especialidad) {
+      cronogramaFiltrado = cronogramaFiltrado.filter(clase => 
+        clase.especialidad_id === filtros.especialidad ||
+        clase.especialidad_nombre?.includes(filtros.especialidad)
+      );
+    }
+    
+    if (filtros.pedagogo) {
+      cronogramaFiltrado = cronogramaFiltrado.filter(clase => 
+        clase.pedagogo_id === filtros.pedagogo ||
+        clase.educador_nombre?.includes(filtros.pedagogo)
+      );
+    }
+    
+    // ponytail: filtros.semana no filtra nada todavia; implementar cuando la UI lo pida
+    return { data: cronogramaFiltrado };
   }
 
   // ==================== QUERY OPERATIONS ====================
@@ -323,28 +289,6 @@ class SesionPedagogicaService {
 
   // ==================== AUXILIARY DATA ====================
 
-  /**
-   * Get all pedagogical specialties
-   */
-  async getEspecialidades() {
-    try {
-      // Fetch all specialties and filter on frontend to avoid URL encoding issues
-      const response = await ApiService.get(API_ENDPOINTS.ESPECIALIDADES.BASE);
-      const allEspecialidades = response.data?.data || response.data || [];
-
-      // Filter pedagogical specialties
-      const pedagogicas = allEspecialidades.filter(esp =>
-        esp.area === 'Especialidad pedagógica' ||
-        esp.area === 'pedagogica' ||
-        esp.area?.toLowerCase().includes('pedagog')
-      );
-
-      return { data: pedagogicas };
-    } catch (error) {
-      console.error('Error fetching pedagogical specialties:', error);
-      throw error;
-    }
-  }
 
   /**
    * Get all patients (students)
@@ -512,17 +456,11 @@ class SesionPedagogicaService {
   /**
    * Mark a class as completed
    */
-  async marcarClaseRealizada(claseId, observaciones = null) {
-    try {
-      
-      // Try authenticated endpoint first
-      // CORRECCIÓN: Solo usar endpoint autenticado, sin fallback problemático
-      const response = await ApiService.put(API_ENDPOINTS.SESIONES_PEDAGOGICAS.MARCAR_REALIZADA(claseId));
-      return response.data;
-      
-    } catch (error) {
-      throw error;
-    }
+  async marcarClaseRealizada(claseId, _observaciones = null) {
+    // Try authenticated endpoint first
+    // CORRECCIÓN: Solo usar endpoint autenticado, sin fallback problemático
+    const response = await ApiService.put(API_ENDPOINTS.SESIONES_PEDAGOGICAS.MARCAR_REALIZADA(claseId));
+    return response.data;
   }
 
   /**
@@ -534,7 +472,7 @@ class SesionPedagogicaService {
       try {
         const response = await ApiService.put(API_ENDPOINTS.SESIONES_PEDAGOGICAS.REPROGRAMAR_CLASE(claseId), reprogramData);
         return response.data;
-      } catch (specificError) {
+      } catch {
         // Fallback to generic cronograma update
         const data = { ...reprogramData, estado: 'reprogramada' };
         const response = await ApiService.put(`/api/cronograma-clases/${claseId}`, data);
@@ -555,7 +493,7 @@ class SesionPedagogicaService {
       try {
         const response = await ApiService.put(API_ENDPOINTS.SESIONES_PEDAGOGICAS.CANCELAR_CLASE(claseId), cancelData);
         return response.data;
-      } catch (specificError) {
+      } catch {
         // Fallback to generic cronograma update
         const data = { ...cancelData, estado: 'cancelada' };
         const response = await ApiService.put(`/api/cronograma-clases/${claseId}`, data);
@@ -584,19 +522,12 @@ class SesionPedagogicaService {
    * Register attendance for a student in a class
    */
   async registrarAsistenciaClase(cronogramaId, pacienteId, asistenciaData) {
-    try {
-      
-      const response = await ApiService.post(
-        API_ENDPOINTS.SESIONES_PEDAGOGICAS.REGISTRAR_ASISTENCIA(cronogramaId, pacienteId),
-        asistenciaData
-      );
-      
-      return response.data;
-    } catch (error) {
-      
-      
-      throw error;
-    }
+    const response = await ApiService.post(
+      API_ENDPOINTS.SESIONES_PEDAGOGICAS.REGISTRAR_ASISTENCIA(cronogramaId, pacienteId),
+      asistenciaData
+    );
+    
+    return response.data;
   }
 
   /**
@@ -710,12 +641,8 @@ class SesionPedagogicaService {
    * Update class information (topic, objectives, etc.)
    */
   async updateClaseInfo(cronogramaId, updateData) {
-    try {
-      const response = await ApiService.put(`/api/cronograma-clases/${cronogramaId}`, updateData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.put(`/api/cronograma-clases/${cronogramaId}`, updateData);
+    return response.data;
   }
 
   /**
@@ -827,28 +754,20 @@ class SesionPedagogicaService {
    * Cancel a pedagogical session
    */
   async cancelarSesion(sesionId) {
-    try {
-      const response = await ApiService.put(
-        `/api/sesiones-pedagogicas/${sesionId}/cancelar`
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.put(
+      `/api/sesiones-pedagogicas/${sesionId}/cancelar`
+    );
+    return response.data;
   }
 
   /**
    * Finalize a pedagogical session manually
    */
   async finalizarSesion(sesionId) {
-    try {
-      const response = await ApiService.put(
-        `/api/sesiones-pedagogicas/${sesionId}/finalizar`
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await ApiService.put(
+      `/api/sesiones-pedagogicas/${sesionId}/finalizar`
+    );
+    return response.data;
   }
 
   /**

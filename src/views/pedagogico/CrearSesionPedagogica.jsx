@@ -88,8 +88,8 @@ const CrearSesionPedagogica = () => {
   const { isAdmin } = useUserRole();
   const { user } = useAuth();
   const { config } = useConfig();
-  const [estudiantesDisponibles, setEstudiantesDisponibles] = useState([]);
-  const [pedagogosDisponibles, setPedagogosDisponibles] = useState([]);
+  const [_estudiantesDisponibles, setEstudiantesDisponibles] = useState([]);
+  const [_pedagogosDisponibles, setPedagogosDisponibles] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
   const [formData, setFormData] = useState({
     titulo: '',
@@ -140,6 +140,7 @@ const CrearSesionPedagogica = () => {
 
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []);
 
   const fetchData = async () => {
@@ -295,7 +296,7 @@ const CrearSesionPedagogica = () => {
         observaciones: formData.observaciones?.trim() || null
       };
 
-      const response = await sesionPedagogicaService.createSesion(sessionData);
+      await sesionPedagogicaService.createSesion(sessionData);
 
       setSnackbar({ 
         open: true, 
@@ -364,7 +365,7 @@ const CrearSesionPedagogica = () => {
               <Divider sx={{ mb: 2 }} />
 
               <Grid container spacing={2} direction="column">
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     label="Título de la Sesión"
@@ -378,7 +379,7 @@ const CrearSesionPedagogica = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="body1" mb={1}>
                     Pedagogo/Educador: *
                   </Typography>
@@ -401,7 +402,7 @@ const CrearSesionPedagogica = () => {
                   )}
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormControl fullWidth error={!!errors.especialidad_id}>
                     <InputLabel shrink>Especialidad</InputLabel>
                     <Select
@@ -434,7 +435,7 @@ const CrearSesionPedagogica = () => {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormControl fullWidth error={!!errors.nivel_academico}>
                     <InputLabel shrink>Nivel Académico</InputLabel>
                     <Select
@@ -462,7 +463,7 @@ const CrearSesionPedagogica = () => {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormControl fullWidth>
                     <InputLabel shrink>Modalidad</InputLabel>
                     <Select
@@ -496,7 +497,7 @@ const CrearSesionPedagogica = () => {
               <Divider sx={{ mb: 2 }} />
 
               <Grid container spacing={2} direction="column">
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     type="date"
                     fullWidth
@@ -515,7 +516,7 @@ const CrearSesionPedagogica = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     type="date"
                     fullWidth
@@ -534,7 +535,7 @@ const CrearSesionPedagogica = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormControl fullWidth error={!!errors.hora_inicio}>
                     <InputLabel shrink>Hora de Inicio</InputLabel>
                     <Select
@@ -576,7 +577,7 @@ const CrearSesionPedagogica = () => {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <FormControl fullWidth error={!!errors.dias_semana}>
                     <InputLabel shrink>Días de la Semana</InputLabel>
                     <Select
@@ -604,7 +605,7 @@ const CrearSesionPedagogica = () => {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     type="number"
@@ -627,7 +628,7 @@ const CrearSesionPedagogica = () => {
               <Divider sx={{ mb: 2 }} />
 
               <Grid container spacing={2} direction="column">
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     type="number"
@@ -642,7 +643,7 @@ const CrearSesionPedagogica = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     type="number"
@@ -657,7 +658,7 @@ const CrearSesionPedagogica = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     label="Período Académico"
@@ -669,7 +670,7 @@ const CrearSesionPedagogica = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     multiline
@@ -685,7 +686,7 @@ const CrearSesionPedagogica = () => {
                 </Grid>
 
                 {isAdmin && (
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
                       type="number"
@@ -701,7 +702,7 @@ const CrearSesionPedagogica = () => {
                   </Grid>
                 )}
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
                     multiline

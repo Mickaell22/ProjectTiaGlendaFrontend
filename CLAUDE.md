@@ -13,6 +13,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Testing
 Currently no test framework is configured. Standalone test files were mentioned but are not present in the current codebase structure.
 
+## Invariantes y gotchas (mantener)
+
+- **MUI v7 / Grid v2 unicamente**: los props `item`/`xs`/`sm`/`md`/`lg`/`xl` de Grid v1
+  NO existen (se ignoran en silencio y el layout cae a bloque). Usar
+  `<Grid size={{ xs: 12, md: 6 }}>`. Todo `src` ya esta migrado; no reintroducir Grid v1.
+- **Estados de sesion**: el label y color de los chips de estado salen de
+  `src/utils/estadoLabels.js` (`estadoSesionInfo`). No renderizar el enum crudo
+  (`en_curso`) ni duplicar mapeos de color en las vistas.
+- **Colores por modulo**: los rainbow borders de los headers salen de
+  `src/config/moduleThemes.js`; en dark mode el gradiente se apaga (`'none'`).
+  Nunca `linear-gradient(white, white)` hardcodeado: usar `theme.palette.background.paper`.
+- **401 en apiService**: si `window.location.pathname` empieza con `/auth`, el
+  interceptor NO redirige (deja que Login/SelectorCentro muestren el mensaje del
+  backend, ej. "Credenciales invalidas"). Fuera de /auth, limpia `jwt_token` + `user`
+  y redirige a login. En 403 se prefiere el `message` del backend (ej. "Usuario sin
+  centro asignado" del flujo de dos pasos).
+- **Login en dos pasos**: POST /api/login devuelve token SIN centro; hasta llamar
+  POST /api/seleccionar-centro y reemplazar el token, los endpoints por centro dan 403.
+  `isAuthenticated` solo es true con token + `id_centro`.
+- **DialogTitle ya es `<h2>`**: no meter `Typography variant="h5"` sin `component`
+  dentro (DOM nesting invalido). Ver `SelectorCentro.jsx` como patron correcto.
+- **Dashboards con datos reales**: `dashboardService.js` consume los endpoints por
+  rol del backend (`/api/dashboard/admin|therapist|pedagogue`), que devuelven la
+  estructura exacta que esperan las vistas. NUNCA volver a fabricar KPIs en el
+  frontend (dividir totales, hardcodear inactivos=0, etc.).
+- **Lint en cero**: `npm run lint` corre sin errores ni warnings. Los efectos
+  mount-only intencionales llevan `eslint-disable-next-line react-hooks/exhaustive-deps`
+  con nota; `react-refresh/only-export-components` esta apagado a proposito
+  (patron withRole + hooks en contexts). Mantenerlo asi: no reintroducir
+  imports/variables muertos.
+
 ## Project Architecture
 
 ### Tech Stack

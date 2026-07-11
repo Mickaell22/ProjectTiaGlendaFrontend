@@ -65,7 +65,6 @@ const PersonaLista = ({
   onDelete,
   onViewDetail,
   onNewPersona,
-  loading = false
 }) => {
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
@@ -153,6 +152,7 @@ const PersonaLista = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por nombre, apellido, cédula o teléfono..."
+            inputProps={{ 'aria-label': 'Buscar por nombre, apellido, cédula o teléfono' }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

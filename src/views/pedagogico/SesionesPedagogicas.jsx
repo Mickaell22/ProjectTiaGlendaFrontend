@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
 import { useUserRole } from 'src/hooks/useUserRole';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
+import { estadoSesionInfo } from 'src/utils/estadoLabels';
 
 /* ---------- Estilos compartidos ---------- */
 const purpleOutlineSX = {
@@ -55,6 +56,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
 
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []);
 
   const fetchData = async () => {
@@ -458,6 +460,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por título, pedagogo o especialidad..."
+              inputProps={{ 'aria-label': 'Buscar por título, pedagogo o especialidad' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -765,15 +768,8 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                           {/* Estado */}
                           <TableCell>
                             <Chip
-                              label={item.estado || 'en_curso'}
-                              color={
-                                item.estado === 'finalizada' ? 'success' :
-                                item.estado === 'en_curso' ? 'primary' :
-                                item.estado === 'planificada' ? 'info' :
-                                item.estado === 'pausada' ? 'warning' :
-                                item.estado === 'cancelada' ? 'error' :
-                                'default'
-                              }
+                              label={estadoSesionInfo(item.estado || 'en_curso').label}
+                              color={estadoSesionInfo(item.estado || 'en_curso').color}
                               size="small"
                             />
                           </TableCell>
@@ -943,7 +939,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
               <Box sx={{ p: 3, bgcolor: theme.palette.mode === "dark" ? 'grey.200' : 'grey.150' }}>
                 <Grid container spacing={3}>
                   {/* Pedagogo */}
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Paper
                       elevation={0}
                       sx={{
@@ -978,7 +974,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                   </Grid>
 
                   {/* Estudiantes */}
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Paper
                       elevation={0}
                       sx={{
@@ -1024,7 +1020,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                   Programación
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box
                       sx={{
                         p: 2,
@@ -1041,7 +1037,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box
                       sx={{
                         p: 2,
@@ -1058,7 +1054,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box
                       sx={{
                         p: 2,
@@ -1076,7 +1072,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box
                       sx={{
                         p: 2,
@@ -1093,7 +1089,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <Box sx={{ mt: 1 }}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={1}>
                         Días de la semana
@@ -1124,7 +1120,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                   Información Académica
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={6} sm={3}>
+                  <Grid size={{ xs: 6, sm: 3 }}>
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="h5" color="primary.main" fontWeight="bold">
                         {detailDialog.data.numero_clases_programadas || detailDialog.data.clases_programadas || 0}
@@ -1134,7 +1130,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={6} sm={3}>
+                  <Grid size={{ xs: 6, sm: 3 }}>
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="h5" color="success.main" fontWeight="bold">
                         {detailDialog.data.clases_realizadas || 0}
@@ -1144,7 +1140,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={6} sm={3}>
+                  <Grid size={{ xs: 6, sm: 3 }}>
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="h5" color="info.main" fontWeight="bold">
                         {detailDialog.data.clases_programadas > 0
@@ -1156,7 +1152,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={6} sm={3}>
+                  <Grid size={{ xs: 6, sm: 3 }}>
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="h5" color="warning.main" fontWeight="bold">
                         {detailDialog.data.modalidad || 'Presencial'}
@@ -1166,7 +1162,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <Typography variant="body2" color="text.secondary" textAlign="center">
                       <strong>Período Académico:</strong> {detailDialog.data.periodo_academico || 'No especificado'}
                     </Typography>
@@ -1183,7 +1179,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                       Información Financiera
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={6}>
+                      <Grid size={{ xs: 6 }}>
                         <Box sx={{ textAlign: 'center' }}>
                           <Typography variant="h5" color="success.main" fontWeight="bold">
                             ${detailDialog.data.costo_total || 0}
@@ -1193,7 +1189,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid size={{ xs: 6 }}>
                         <Box sx={{ textAlign: 'center' }}>
                           <Typography variant="h5" color="info.main" fontWeight="bold">
                             ${detailDialog.data.costo_por_clase || 0}
@@ -1450,7 +1446,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                 Generar Nuevo Enlace
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={8}>
+                <Grid size={{ xs: 12, md: 8 }}>
                   <TextField
                     fullWidth
                     label="Descripción"
@@ -1459,7 +1455,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                     sx={{ ...purpleOutlineSX }}
                   />
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <FormControl fullWidth sx={{ ...purpleOutlineSX }}>
                     <InputLabel>Duración</InputLabel>
                     <Select
@@ -1506,7 +1502,7 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                 {publicLinks.map((link, index) => (
                   <Paper key={index} sx={{ p: 2, mb: 2, borderLeft: `4px solid ${link.estado === 'vigente' ? theme.palette.success.main : theme.palette.warning.main}` }}>
                     <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <Typography variant="body1" fontWeight="medium">
                           {link.descripcion}
                         </Typography>
@@ -1517,14 +1513,14 @@ const SesionesPedagogicas = ({ onNavigateToCreate }) => {
                           Expira: {new Date(link.fecha_expiracion).toLocaleDateString()}
                         </Typography>
                       </Grid>
-                      <Grid item xs={12} md={3}>
+                      <Grid size={{ xs: 12, md: 3 }}>
                         <Chip
                           label={link.estado}
                           color={link.estado === 'vigente' ? 'success' : 'warning'}
                           size="small"
                         />
                       </Grid>
-                      <Grid item xs={12} md={3}>
+                      <Grid size={{ xs: 12, md: 3 }}>
                         <Box display="flex" gap={1}>
                           <Tooltip title="Copiar enlace">
                             <IconButton

@@ -1,5 +1,6 @@
 // src/views/pedagogico/PedagogicoMain.jsx
 import React, { useState } from 'react';
+import { getModuleTheme } from 'src/config/moduleThemes';
 import {
   Box, Container, Paper, Typography, Tabs, Tab, useTheme, Alert
 } from '@mui/material';
@@ -155,7 +156,7 @@ const PedagogicoMain = () => {
             mb: 4,
             overflow: 'hidden',
             border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '4px solid transparent',
-            backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark}, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+            backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, ${getModuleTheme('pedagogico').colors.join(', ')})`,
             backgroundOrigin: 'border-box',
             backgroundClip: 'padding-box, border-box',
             animation: theme.palette.mode === 'dark' ? 'none' : 'rainbow 5s linear infinite',
@@ -205,7 +206,7 @@ const PedagogicoMain = () => {
             >
               {tabs.map((tab, index) => (
                 <Tab 
-                  key={index}
+                  key={tab.label}
                   label={tab.label} 
                   icon={tab.icon} 
                   iconPosition="start"

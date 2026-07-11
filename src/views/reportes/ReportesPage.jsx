@@ -34,6 +34,7 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import { reportesService } from '../../services/reportesService';
+import ApiService from '../../services/apiService';
 
 const ReportesPage = () => {
   // Estados principales
@@ -70,7 +71,7 @@ const ReportesPage = () => {
       }
 
       // Verificar conexión con el servidor
-      const response = await ApiService.get('/api/test');
+      await ApiService.get('/api/test');
       setEstadoConexion({ autenticado: true, servidor: true });
     } catch (error) {
       console.error('Error verificando conexión:', error);
@@ -394,7 +395,7 @@ const ReportesPage = () => {
           </TableContainer>
         );
 
-      default:
+      default: {
         // Para otros tipos de reporte, mostrar tabla genérica
         const columnas = Object.keys(datos[0]);
         return (
@@ -419,6 +420,7 @@ const ReportesPage = () => {
             </Table>
           </TableContainer>
         );
+      }
     }
   };
 
@@ -607,7 +609,7 @@ const ReportesPage = () => {
 
               <Grid container spacing={3} sx={{ mt: 2 }}>
                 {reportesDisponibles.map((reporte) => (
-                  <Grid item xs={12} md={6} key={reporte.id}>
+                  <Grid key={reporte.id} size={{ xs: 12, md: 6 }}>
                     <Card 
                       sx={{ 
                         cursor: 'pointer', 
@@ -650,7 +652,7 @@ const ReportesPage = () => {
 
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Grid container spacing={3} sx={{ mt: 2, mb: 3 }}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <DatePicker
                       label="Fecha de inicio"
                       value={fechaInicio}
@@ -663,7 +665,7 @@ const ReportesPage = () => {
                       }}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <DatePicker
                       label="Fecha de fin"
                       value={fechaFin}

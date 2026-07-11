@@ -191,7 +191,7 @@ export class FileValidator {
     const validFiles = [];
     const invalidFiles = [];
 
-    Array.from(files).forEach((file, index) => {
+    Array.from(files).forEach((file, _index) => {
       const validation = this.validateFile(file, documentType);
       if (validation.isValid) {
         validFiles.push(file);

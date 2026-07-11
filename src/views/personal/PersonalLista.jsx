@@ -129,6 +129,7 @@ const PersonalLista = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por nombre, título o especialidad..."
+            inputProps={{ 'aria-label': 'Buscar por nombre, título o especialidad' }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -186,6 +187,15 @@ const PersonalLista = ({
               </TableRow>
             </TableHead>
             <TableBody>
+              {filteredPersonal.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
+                    <Typography variant="body1" color="text.secondary">
+                      {searchTerm ? 'No se encontraron colaboradores con ese criterio' : 'No hay personal registrado'}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
               {filteredPersonal
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((item) => (
@@ -217,9 +227,9 @@ const PersonalLista = ({
                     <TableCell>
                       <Box>
                         {item.especialidades?.length > 0 ? (
-                          item.especialidades.map((esp, index) => (
+                          item.especialidades.map((esp) => (
                             <Chip
-                              key={index}
+                              key={esp.id || esp.nombre}
                               label={esp.nombre}
                               color={PersonalService.getEspecialidadColor(esp.area)}
                               size="small"

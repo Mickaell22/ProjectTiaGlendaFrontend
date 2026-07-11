@@ -9,8 +9,6 @@ import {
   AccessTime, AttachMoney, EventAvailable, Group, Person, Refresh,
   CalendarMonth, Timer, Assessment
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from 'src/contexts/AuthContext';
 import { useUserRole } from 'src/hooks/useUserRole';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 
@@ -40,10 +38,8 @@ const TerapeuticoEstadisticas = () => {
       porcentaje_cumplimiento: 0
     }
   });
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const navigate = useNavigate();
-  const { user } = useAuth();
 
   useEffect(() => {
     fetchEstadisticas();
@@ -125,7 +121,7 @@ const TerapeuticoEstadisticas = () => {
         </Box>
         <Grid container spacing={2}>
           {items.map((item, index) => (
-            <Grid item xs={12} key={index}>
+            <Grid key={index} size={{ xs: 12 }}>
               <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
                 <Typography variant="body2">
                   {item.label}
@@ -218,7 +214,7 @@ const TerapeuticoEstadisticas = () => {
 
         {/* Métricas principales */}
         <Grid container spacing={3} mb={4}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard
               title="Total Sesiones"
               value={formatNumber(estadisticas.sesiones?.total)}
@@ -228,7 +224,7 @@ const TerapeuticoEstadisticas = () => {
             />
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard
               title="Sesiones Programadas"
               value={formatNumber(estadisticas.cronograma?.total_programadas)}
@@ -238,7 +234,7 @@ const TerapeuticoEstadisticas = () => {
             />
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard
               title="Cumplimiento"
               value={`${(estadisticas.operacional?.porcentaje_cumplimiento || 0).toFixed(1)}%`}
@@ -250,7 +246,7 @@ const TerapeuticoEstadisticas = () => {
           </Grid>
           
           {isAdmin && (
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <StatCard
                 title="Ingresos Totales"
                 value={formatCurrency(estadisticas.financiero?.ingresos_totales)}
@@ -264,7 +260,7 @@ const TerapeuticoEstadisticas = () => {
 
         {/* Métricas operacionales */}
         <Grid container spacing={3} mb={4}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard
               title="Sesiones Activas"
               value={formatNumber(estadisticas.sesiones?.activas)}
@@ -274,7 +270,7 @@ const TerapeuticoEstadisticas = () => {
             />
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard
               title="Sesiones Completadas"
               value={formatNumber(estadisticas.sesiones?.completadas)}
@@ -284,7 +280,7 @@ const TerapeuticoEstadisticas = () => {
             />
           </Grid>
           
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatCard
               title="Duración Promedio"
               value={`${estadisticas.operacional?.duracion_promedio_minutos || 0} min`}
@@ -295,7 +291,7 @@ const TerapeuticoEstadisticas = () => {
           </Grid>
           
           {isAdmin && (
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <StatCard
                 title="Sesiones Contratadas"
                 value={formatNumber(estadisticas.financiero?.sesiones_contratadas)}
@@ -309,7 +305,7 @@ const TerapeuticoEstadisticas = () => {
 
         {/* Gráficos de progreso */}
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <ProgressSection
               title="Estado de Sesiones"
               items={sesionesItems}
@@ -317,7 +313,7 @@ const TerapeuticoEstadisticas = () => {
             />
           </Grid>
           
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <ProgressSection
               title="Estado del Cronograma"
               items={cronogramaItems}
@@ -336,7 +332,7 @@ const TerapeuticoEstadisticas = () => {
               </Typography>
 
               <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Box textAlign="center" p={2}>
                     <Typography variant="h4" color="success.main" fontWeight="bold">
                       {formatCurrency(estadisticas.financiero?.ingresos_totales)}
@@ -347,7 +343,7 @@ const TerapeuticoEstadisticas = () => {
                   </Box>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Box textAlign="center" p={2}>
                     <Typography variant="h4" color="primary.main" fontWeight="bold">
                       {formatNumber(estadisticas.financiero?.sesiones_contratadas)}
@@ -358,7 +354,7 @@ const TerapeuticoEstadisticas = () => {
                   </Box>
                 </Grid>
 
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <Box textAlign="center" p={2}>
                     <Typography variant="h4" color="info.main" fontWeight="bold">
                       {estadisticas.financiero?.sesiones_contratadas > 0 ?

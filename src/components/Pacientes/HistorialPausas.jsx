@@ -55,10 +55,12 @@ const HistorialPausas = ({ pacienteId, pacienteNombre }) => {
 
   useEffect(() => {
     cargarHistorial();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [pacienteId]);
 
   useEffect(() => {
     aplicarFiltros();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [historial, filtroTipo, filtroAccion, busqueda]);
 
   const cargarHistorial = async () => {
@@ -181,7 +183,7 @@ const HistorialPausas = ({ pacienteId, pacienteNombre }) => {
       {/* Estadisticas */}
       {stats && (
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Typography variant="body2" color="text.secondary">Total Registros</Typography>
@@ -189,7 +191,7 @@ const HistorialPausas = ({ pacienteId, pacienteNombre }) => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Typography variant="body2" color="text.secondary">Pausas Generales</Typography>
@@ -197,7 +199,7 @@ const HistorialPausas = ({ pacienteId, pacienteNombre }) => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Typography variant="body2" color="text.secondary">Pausas Especialidad</Typography>
@@ -205,7 +207,7 @@ const HistorialPausas = ({ pacienteId, pacienteNombre }) => {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Typography variant="body2" color="text.secondary">Reactivaciones</Typography>
@@ -219,7 +221,7 @@ const HistorialPausas = ({ pacienteId, pacienteNombre }) => {
       {/* Filtros */}
       <Paper sx={{ p: 2, mb: 2 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={4} md={3}>
+          <Grid size={{ xs: 12, sm: 4, md: 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel>Tipo de Pausa</InputLabel>
               <Select
@@ -234,7 +236,7 @@ const HistorialPausas = ({ pacienteId, pacienteNombre }) => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={4} md={3}>
+          <Grid size={{ xs: 12, sm: 4, md: 3 }}>
             <FormControl fullWidth size="small">
               <InputLabel>Accion</InputLabel>
               <Select
@@ -249,7 +251,7 @@ const HistorialPausas = ({ pacienteId, pacienteNombre }) => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={4} md={4}>
+          <Grid size={{ xs: 12, sm: 4, md: 4 }}>
             <TextField
               fullWidth
               size="small"
@@ -260,7 +262,7 @@ const HistorialPausas = ({ pacienteId, pacienteNombre }) => {
             />
           </Grid>
 
-          <Grid item xs={12} sm={12} md={2}>
+          <Grid size={{ xs: 12, sm: 12, md: 2 }}>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Tooltip title="Limpiar filtros">
                 <IconButton onClick={limpiarFiltros} size="small">

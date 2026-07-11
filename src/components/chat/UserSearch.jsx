@@ -37,11 +37,13 @@ const UserSearch = ({
   // Cargar usuarios disponibles al montar el componente
   useEffect(() => {
     loadAvailableUsers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []);
 
   // Filtrar usuarios cuando cambia el término de búsqueda
   useEffect(() => {
     filterUsers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [searchTerm, users]);
 
   /**

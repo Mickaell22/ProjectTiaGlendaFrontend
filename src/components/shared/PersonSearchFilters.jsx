@@ -43,7 +43,7 @@ import {
   Speed
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 
 const PersonSearchFilters = ({
   searchTerm,
@@ -129,7 +129,7 @@ const PersonSearchFilters = ({
       <Box sx={{ p: 2 }}>
         <Grid container spacing={2} alignItems="center">
           {/* Search field */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <motion.div
               animate={{ scale: searchFocused ? 1.02 : 1 }}
               transition={{ duration: 0.2 }}
@@ -173,7 +173,7 @@ const PersonSearchFilters = ({
           </Grid>
 
           {/* View mode toggle */}
-          <Grid item xs={6} md={2}>
+          <Grid size={{ xs: 6, md: 2 }}>
             <ToggleButtonGroup
               value={viewMode}
               exclusive
@@ -195,7 +195,7 @@ const PersonSearchFilters = ({
           </Grid>
 
           {/* Sort options */}
-          <Grid item xs={6} md={2}>
+          <Grid size={{ xs: 6, md: 2 }}>
             <TextField
               select
               fullWidth
@@ -217,7 +217,7 @@ const PersonSearchFilters = ({
           </Grid>
 
           {/* Advanced filters toggle */}
-          <Grid item xs={12} md={2}>
+          <Grid size={{ xs: 12, md: 2 }}>
             <Button
               fullWidth
               variant={showAdvancedFilters ? 'contained' : 'outlined'}
@@ -280,7 +280,7 @@ const PersonSearchFilters = ({
         <Box sx={{ p: 2, bgcolor: 'background.default' }}>
           <Grid container spacing={3}>
             {/* Type filter */}
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Typography variant="subtitle2" gutterBottom>
                 <Groups sx={{ mr: 1, verticalAlign: 'middle' }} />
                 Tipo de Persona
@@ -299,7 +299,7 @@ const PersonSearchFilters = ({
             </Grid>
 
             {/* Availability filter */}
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Typography variant="subtitle2" gutterBottom>
                 <CheckCircle sx={{ mr: 1, verticalAlign: 'middle' }} />
                 Disponibilidad
@@ -318,7 +318,7 @@ const PersonSearchFilters = ({
             </Grid>
 
             {/* Contact filter */}
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Typography variant="subtitle2" gutterBottom>
                 <Phone sx={{ mr: 1, verticalAlign: 'middle' }} />
                 Información de Contacto
@@ -343,7 +343,7 @@ const PersonSearchFilters = ({
       {/* Quick stats */}
       <Box sx={{ px: 2, py: 1, bgcolor: 'action.hover' }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Stack direction="row" spacing={2} flexWrap="wrap">
               <motion.div whileHover={{ scale: 1.05 }}>
                 <Chip
@@ -393,7 +393,7 @@ const PersonSearchFilters = ({
             </Stack>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Box display="flex" justifyContent="flex-end" alignItems="center" gap={1}>
               {loading && (
                 <Chip

@@ -1,5 +1,6 @@
 // src/views/tutores/TutorMain.jsx
 import React, { useState, useEffect } from 'react';
+import { getModuleTheme } from 'src/config/moduleThemes';
 import {
   Box, Container, Paper, Typography, Tabs, Tab, useTheme, Alert
 } from '@mui/material';
@@ -53,7 +54,7 @@ function a11yProps(index) {
 
 const TutorMain = () => {
   const theme = useTheme();
-  const { isAdmin, isTherapist, permissions, loading: roleLoading } = useUserRole();
+  const { isAdmin, permissions, loading: roleLoading } = useUserRole();
 
   // Estado principal
   const [activeTab, setActiveTab] = useState(0);
@@ -226,7 +227,7 @@ const TutorMain = () => {
               mb: 4,
               overflow: 'hidden',
               border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '4px solid transparent',
-              backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, #673AB7, #E91E63, #FF9800, #4CAF50)`,
+              backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, ${getModuleTheme('tutores').colors.join(', ')})`,
               backgroundOrigin: 'border-box',
               backgroundClip: 'padding-box, border-box',
               animation: theme.palette.mode === 'dark' ? 'none' : 'rainbow 5s linear infinite',

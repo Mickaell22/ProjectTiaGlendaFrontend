@@ -23,7 +23,17 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // Los Main views exportan por defecto withRole(Componente) y los contexts
+      // exportan hooks junto al provider: fast-refresh cae a full reload en esos
+      // archivos y no vale reestructurarlos solo por HMR.
+      'react-refresh/only-export-components': 'off',
+      'no-unused-vars': ['error', {
+        varsIgnorePattern: '^[A-Z_]',
+        argsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
+        ignoreRestSiblings: true,
+      }],
     },
   },
 ])

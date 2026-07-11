@@ -23,6 +23,7 @@ const PublicSessionView = () => {
     if (token) {
       fetchSessionData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [token]);
 
   const fetchSessionData = async () => {
@@ -165,7 +166,7 @@ const PublicSessionView = () => {
 
           <Grid container spacing={3}>
             {/* Basic Information */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Paper sx={{ p: 3, height: '100%', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50' }}>
                 <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', display: 'flex', alignItems: 'center' }}>
                   <Person sx={{ mr: 1 }} />
@@ -195,7 +196,7 @@ const PublicSessionView = () => {
             </Grid>
 
             {/* Schedule Information */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Paper sx={{ p: 3, height: '100%', bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50' }}>
                 <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', display: 'flex', alignItems: 'center' }}>
                   <CalendarToday sx={{ mr: 1 }} />
@@ -221,7 +222,7 @@ const PublicSessionView = () => {
 
             {/* Objective */}
             {sesion.objetivo_general && (
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Paper sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50' }}>
                   <Typography variant="h6" gutterBottom sx={{ color: 'primary.main', display: 'flex', alignItems: 'center' }}>
                     <School sx={{ mr: 1 }} />
@@ -246,7 +247,7 @@ const PublicSessionView = () => {
           </Typography>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Box textAlign="center">
                 <Avatar sx={{ bgcolor: 'primary.main', mx: 'auto', width: 56, height: 56, mb: 2 }}>
                   <Person />
@@ -260,7 +261,7 @@ const PublicSessionView = () => {
               </Box>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Box textAlign="center">
                 <Avatar sx={{ bgcolor: 'info.main', mx: 'auto', width: 56, height: 56, mb: 2 }}>
                   <Schedule />
@@ -274,7 +275,7 @@ const PublicSessionView = () => {
               </Box>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Box textAlign="center">
                 <Avatar sx={{ bgcolor: 'success.main', mx: 'auto', width: 56, height: 56, mb: 2 }}>
                   <CheckCircle />
@@ -288,7 +289,7 @@ const PublicSessionView = () => {
               </Box>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Box textAlign="center">
                 <Avatar sx={{ bgcolor: 'warning.main', mx: 'auto', width: 56, height: 56, mb: 2 }}>
                   <TrendingUp />

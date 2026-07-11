@@ -53,7 +53,7 @@ const ConversationList = ({
         addSuffix: true, 
         locale: es 
       });
-    } catch (error) {
+    } catch {
       return '';
     }
   };

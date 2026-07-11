@@ -67,6 +67,7 @@ const ConfiguracionMain = () => {
     if (requireAuth()) {
       fetchConfiguraciones();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []);
 
   const fetchConfiguraciones = async () => {

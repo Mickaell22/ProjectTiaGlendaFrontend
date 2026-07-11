@@ -100,7 +100,7 @@ const ResumeDialog = ({
     try {
       const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
       return format(date, 'dd/MM/yyyy', { locale: es });
-    } catch (error) {
+    } catch {
       return dateString;
     }
   };
@@ -130,7 +130,7 @@ const ResumeDialog = ({
         }
         return duration;
       }
-    } catch (error) {
+    } catch {
       return 'Duración no calculable';
     }
   };

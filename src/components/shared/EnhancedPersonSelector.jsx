@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -76,14 +76,11 @@ const EnhancedPersonSelector = ({
   // Configuración avanzada
   enableQuickActions = true,
   showRecentSelections = true,
-  enableFavorites = false,
   contextInfo = true, // Mostrar información contextual adicional
 
   // Props específicas del tipo de búsqueda
   hideRegisteredPatients = false,
   editingPatientId = null,
-  roleFilter = null, // Para filtrar personal por rol
-  especialidadFilter = null, // Para filtrar por especialidad
 }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
@@ -100,11 +97,13 @@ const EnhancedPersonSelector = ({
       loadData();
       loadRecentSelections();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [open, searchTypes, filterOptions]);
 
   // Filtrar datos cuando cambia el término de búsqueda
   useEffect(() => {
     filterData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [data, searchTerm, excludeIds]);
 
   const loadData = async () => {
@@ -371,7 +370,7 @@ const EnhancedPersonSelector = ({
       <CardContent sx={{ p: 2 }}>
         <Grid container spacing={2} alignItems="center">
           {showAvatar && (
-            <Grid item>
+            <Grid>
               <Avatar
                 sx={{
                   bgcolor: 'background.paper',
@@ -385,7 +384,7 @@ const EnhancedPersonSelector = ({
               </Avatar>
             </Grid>
           )}
-          <Grid item xs>
+          <Grid size={{ xs: 'grow' }}>
             <Typography variant="h6" sx={{ color: 'white', fontWeight: 'bold' }}>
               {selectedPerson.displayName || `${selectedPerson.nombre} ${selectedPerson.apellido}`}
             </Typography>
@@ -403,7 +402,7 @@ const EnhancedPersonSelector = ({
               </Box>
             )}
           </Grid>
-          <Grid item>
+          <Grid>
             <Box display="flex" gap={1}>
               {enableQuickActions && (
                 <Tooltip title="Editar">
@@ -606,13 +605,13 @@ const EnhancedPersonSelector = ({
                       <CardContent sx={{ p: 2 }}>
                         <Grid container spacing={2} alignItems="center">
                           {showAvatar && (
-                            <Grid item>
+                            <Grid>
                               <Avatar sx={{ bgcolor: 'primary.main' }}>
                                 {item.avatar}
                               </Avatar>
                             </Grid>
                           )}
-                          <Grid item xs>
+                          <Grid size={{ xs: 'grow' }}>
                             <Box display="flex" alignItems="center" gap={1} mb={0.5}>
                               <Typography variant="body1" fontWeight="medium">
                                 {item.displayName}
@@ -628,7 +627,7 @@ const EnhancedPersonSelector = ({
                               </Typography>
                             )}
                           </Grid>
-                          <Grid item>
+                          <Grid>
                             <Button
                               variant="contained"
                               size="small"

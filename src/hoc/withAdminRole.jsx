@@ -46,6 +46,7 @@ const withAdminRole = (WrappedComponent, options = {}) => {
 
     useEffect(() => {
       checkAccess();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
     }, [user, isAuthenticated, isLoading]);
 
     const checkAccess = () => {

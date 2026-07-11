@@ -77,7 +77,6 @@ export const safeParseDate = (dateString, source = 'unknown') => {
  */
 export const formatDate = (date, options = {}) => {
     const {
-        format = 'dd/MM/yyyy',
         locale = 'es-EC',
         source = 'unknown'
     } = options;

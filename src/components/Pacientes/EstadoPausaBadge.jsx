@@ -11,6 +11,7 @@ const EstadoPausaBadge = ({ pacienteId, compactMode = false, onStatusChange = nu
     if (pacienteId) {
       cargarEstadoPausa();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [pacienteId]);
 
   const cargarEstadoPausa = async () => {

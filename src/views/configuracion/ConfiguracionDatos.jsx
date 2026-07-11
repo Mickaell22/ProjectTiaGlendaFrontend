@@ -190,7 +190,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             {/* Uso de Espacio */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Typography variant="h6" color="primary" gutterBottom>
                 <Storage sx={{ mr: 1, verticalAlign: 'middle' }} />
                 Uso de Espacio de Almacenamiento
@@ -198,7 +198,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               <Divider sx={{ mb: 3 }} />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ mb: 2 }}>
                 <Typography variant="body2" color="text.secondary">
                   Espacio utilizado: {espacioUsado.usado}MB de {espacioUsado.total}MB
@@ -213,7 +213,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
             </Grid>
 
             {porcentajeUsado > 80 && (
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Alert severity="warning" sx={{ mb: 2 }}>
                   El espacio de almacenamiento está llegando al límite. 
                   Considera hacer limpieza de datos antiguos o aumentar el espacio disponible.
@@ -222,7 +222,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
             )}
 
             {/* Configuración de Backup */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Typography variant="h6" color="primary" gutterBottom>
                 <Backup sx={{ mr: 1, verticalAlign: 'middle' }} />
                 Configuración de Respaldos
@@ -230,7 +230,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               <Divider sx={{ mb: 3 }} />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -243,7 +243,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Button
                 variant="outlined"
                 startIcon={<CloudDownload />}
@@ -254,7 +254,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               </Button>
             </Grid>
 
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <TextField
                 select
                 fullWidth
@@ -272,7 +272,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               </TextField>
             </Grid>
 
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <TextField
                 fullWidth
                 type="time"
@@ -284,7 +284,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               />
             </Grid>
 
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <TextField
                 select
                 fullWidth
@@ -301,7 +301,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               </TextField>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -314,7 +314,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -328,7 +328,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
             </Grid>
 
             {/* Retención de Datos */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Typography variant="h6" color="primary" gutterBottom>
                 <Schedule sx={{ mr: 1, verticalAlign: 'middle' }} />
                 Retención de Datos
@@ -336,7 +336,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               <Divider sx={{ mb: 3 }} />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 select
                 fullWidth
@@ -355,7 +355,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
             </Grid>
 
             {/* Limpieza Automática */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Typography variant="h6" color="primary" gutterBottom>
                 <Delete sx={{ mr: 1, verticalAlign: 'middle' }} />
                 Limpieza Automática de Datos
@@ -363,7 +363,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               <Divider sx={{ mb: 3 }} />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -376,7 +376,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <List>
                 <ListItem>
                   <ListItemIcon>
@@ -459,7 +459,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
             </Grid>
 
             {/* Formatos de Exportación */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Typography variant="h6" color="primary" gutterBottom>
                 <GetApp sx={{ mr: 1, verticalAlign: 'middle' }} />
                 Formatos de Exportación
@@ -467,7 +467,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               <Divider sx={{ mb: 3 }} />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Typography variant="body2" gutterBottom>
                 Selecciona los formatos disponibles para exportar datos:
               </Typography>
@@ -484,7 +484,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               </Stack>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -497,7 +497,7 @@ const ConfiguracionDatos = ({ configuracion = {}, onSave }) => {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Divider sx={{ my: 2 }} />
               <Stack direction="row" spacing={2} justifyContent="center">
                 <Button 

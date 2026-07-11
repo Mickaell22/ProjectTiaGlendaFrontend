@@ -41,7 +41,6 @@ import {
 } from '@mui/icons-material';
 
 import UsuarioService from '../../services/usuarioService.js';
-import useSnackbar from '../../hooks/useSnackbar.js';
 
 const cardWidthSX = {
   width: '100%',
@@ -56,7 +55,6 @@ const UsuarioRoles = ({ usuarios = [] }) => {
   const [roleDialog, setRoleDialog] = useState({ open: false, type: 'view', data: null });
   const [rolesDisponibles, setRolesDisponibles] = useState([]);
 
-  const { showError } = useSnackbar();
 
   useEffect(() => {
     const cargarRoles = async () => {
@@ -76,6 +74,7 @@ const UsuarioRoles = ({ usuarios = [] }) => {
     if (rolesDisponibles.length > 0) {
       calculateRolesStats();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [usuarios, rolesDisponibles]);
 
   const calculateRolesStats = () => {
@@ -186,7 +185,7 @@ const UsuarioRoles = ({ usuarios = [] }) => {
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Grid container spacing={2}>
             {Object.entries(rolesStats).map(([roleKey, roleData]) => (
-              <Grid item xs={12} sm={6} md={6} key={roleKey}>
+              <Grid key={roleKey} size={{ xs: 12, sm: 6, md: 6 }}>
                 <Card
                   elevation={selectedRole === roleKey ? 3 : 1}
                   sx={{
@@ -221,12 +220,12 @@ const UsuarioRoles = ({ usuarios = [] }) => {
                     <Chip label={`${roleData.count} usuarios`} color="primary" size="small" />
 
                     <Grid container spacing={1} sx={{ mt: 1 }}>
-                      <Grid item xs={6}>
+                      <Grid size={{ xs: 6 }}>
                         <Typography variant="caption" color="success.main">
                           Activos: {roleData.activos}
                         </Typography>
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid size={{ xs: 6 }}>
                         <Typography variant="caption" color="error.main">
                           Inactivos: {roleData.inactivos}
                         </Typography>

@@ -9,12 +9,10 @@ import {
   Stack,
   Typography,
   Badge,
-  useTheme
 } from '@mui/material';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
-  setSidebarCollapse,
   toggleMobileSidebar
 } from 'src/store/customizer/CustomizerSlice';
 
@@ -32,8 +30,6 @@ import chatService from 'src/services/chatService';
 
 
 const Header = ({ onChatToggle = () => {} }) => {
-  const theme = useTheme();
-  const customizer = useSelector((state) => state.customizer);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
@@ -58,7 +54,7 @@ const Header = ({ onChatToggle = () => {} }) => {
         // Si el endpoint no está disponible, inicializar con 0
         setUnreadMessagesCount(0);
       }
-    } catch (error) {
+    } catch {
       // Si no hay backend o hay errores CORS, inicializar con 0 sin logging excesivo
       setUnreadMessagesCount(0);
     }
@@ -71,7 +67,7 @@ const Header = ({ onChatToggle = () => {} }) => {
           setUnreadMessagesCount(result.count || 0);
         }
         // Si falla, no hacer nada - mantener el estado actual
-      } catch (error) {
+      } catch {
         // En caso de error, mantener el estado actual sin logging
         // Solo incrementar ocasionalmente para demo si no hay backend disponible
         if (Math.random() > 0.95) { // 5% de probabilidad de demo
@@ -207,7 +203,7 @@ const Header = ({ onChatToggle = () => {} }) => {
     };
   }, []);
 
-  const handleProfileClick = (event) => {
+  const handleProfileClick = (_event) => {
     navigate('/mi-perfil');
   };
 
@@ -223,19 +219,6 @@ const Header = ({ onChatToggle = () => {} }) => {
     }
   };
 
-
-  // Obtener initials del usuario
-  const getUserInitials = () => {
-    if (userData?.name) {
-      const names = userData.name.split(' ').filter(n => n.length > 0);
-      if (names.length >= 2) {
-        return (names[0][0] + names[1][0]).toUpperCase();
-      } else if (names.length === 1) {
-        return names[0].substring(0, 2).toUpperCase();
-      }
-    }
-    return 'U';
-  };
 
   const AppBarStyled = styled(AppBar)(({ theme }) => ({
     boxShadow: 'none',

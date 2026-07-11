@@ -13,7 +13,7 @@ const FormSection = ({
 }) => {
   return (
     <>
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <Typography 
           variant="h6" 
           color="primary" 
@@ -28,7 +28,7 @@ const FormSection = ({
         <Divider sx={{ mb: 2 }} />
       </Grid>
       
-      <Grid container spacing={spacing} item xs={12}>
+      <Grid container spacing={spacing} size={{ xs: 12 }}>
         {children}
       </Grid>
     </>

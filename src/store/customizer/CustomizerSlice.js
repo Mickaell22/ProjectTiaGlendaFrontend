@@ -20,7 +20,7 @@ const loadState = () => {
       return initialState;
     }
     return { ...initialState, ...JSON.parse(serializedState) };
-  } catch (err) {
+  } catch {
     return initialState;
   }
 };

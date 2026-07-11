@@ -26,7 +26,6 @@ import notificationService from '../../services/notificationService';
 
 const NotificationSettings = ({ 
   onBack = () => {},
-  onClose = () => {},
 }) => {
   // Estados de configuración
   const [config, setConfig] = useState({

@@ -51,14 +51,14 @@ function getUsuarioId() {
     try {
       const u = JSON.parse(raw);
       if (u?.id) return u.id;
-    } catch {}
+    } catch { /* user_data ilegible: se intenta con el token */ }
   }
   const token = localStorage.getItem('jwt_token');
   if (token && token.split('.').length === 3) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       return payload.user_id || payload.id || payload.sub || null;
-    } catch {}
+    } catch { /* token ilegible: sin usuario */ }
   }
   return null;
 }
@@ -106,10 +106,10 @@ const PacienteFormulario = ({
   });
   const [errors, setErrors] = useState({});
   const [personaEncontrada, setPersonaEncontrada] = useState(null);
-  const [tutorEncontrado, setTutorEncontrado] = useState(null);
+  const [_tutorEncontrado, setTutorEncontrado] = useState(null);
   const [showPersonForm, setShowPersonForm] = useState(false);
   const [showTutorForm, setShowTutorForm] = useState(false);
-  const [personFormType, setPersonFormType] = useState('persona');
+  const [_personFormType, _setPersonFormType] = useState('persona');
 
   const { showError } = useSnackbar();
   const isEditing = !!editingData;
@@ -333,11 +333,9 @@ const PacienteFormulario = ({
         errors.especialidades = 'Debe agregar al menos una especialidad';
       } else {
         // Validar cada especialidad
-        let hasErrors = false;
         formData.especialidades.forEach((esp, index) => {
           if (!esp.id_especialidad) {
             errors[`especialidad_${index}`] = 'Debe seleccionar una especialidad';
-            hasErrors = true;
           }
         });
 
@@ -345,7 +343,6 @@ const PacienteFormulario = ({
         const tieneEspecialidadPrincipal = formData.especialidades.some(esp => esp.es_principal);
         if (!tieneEspecialidadPrincipal && formData.especialidades.length > 0) {
           errors.especialidades = 'Debe marcar al menos una especialidad como principal';
-          hasErrors = true;
         }
       }
     } else {
@@ -425,12 +422,6 @@ const PacienteFormulario = ({
       showError(error?.message || 'Ocurrió un error al guardar');
     }
   };
-
-  const personaNombre =
-    personaEncontrada?.nombre_completo ||
-    '' /* ya viene armado desde el buscador */;
-  const tutorNombre =
-    tutorEncontrado?.nombre_completo || '' /* idem */;
 
   // En modo edición, permitir submit si hay fecha de ingreso (persona y tutores ya asignados)
   // En modo creación, requerir todas las validaciones
@@ -659,7 +650,7 @@ const PacienteFormulario = ({
 
                       <Grid container spacing={2}>
                         {/* Especialidad Select */}
-                        <Grid item xs={12} md={6}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                           <TextField
                             select
                             fullWidth
@@ -679,7 +670,7 @@ const PacienteFormulario = ({
                         </Grid>
 
                         {/* Prioridad */}
-                        <Grid item xs={12} md={6}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                           <TextField
                             select
                             fullWidth
@@ -695,7 +686,7 @@ const PacienteFormulario = ({
                         </Grid>
 
                         {/* Fecha Inicio */}
-                        <Grid item xs={12} md={6}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                           <TextField
                             fullWidth
                             type="date"
@@ -707,7 +698,7 @@ const PacienteFormulario = ({
                         </Grid>
 
                         {/* Fecha Fin */}
-                        <Grid item xs={12} md={6}>
+                        <Grid size={{ xs: 12, md: 6 }}>
                           <TextField
                             fullWidth
                             type="date"
@@ -719,7 +710,7 @@ const PacienteFormulario = ({
                         </Grid>
 
                         {/* Observaciones */}
-                        <Grid item xs={12}>
+                        <Grid size={{ xs: 12 }}>
                           <TextField
                             fullWidth
                             multiline

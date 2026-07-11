@@ -18,7 +18,6 @@ const PersonSelector = ({
   selectedPerson = null,
   onSelect,
   placeholder = "Seleccionar persona",
-  triggerText = "Seleccionar",
   title = "Seleccionar Persona",
   emptyMessage = "No hay personas disponibles",
   className = ""

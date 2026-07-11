@@ -97,7 +97,7 @@ const UsuarioDetalles = ({
       <DialogContent>
         <Grid container spacing={3} sx={{ mt: 1 }}>
           {/* Tarjeta de perfil principal */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card elevation={2} sx={{ mb: 2 }}>
               <CardContent>
                 <Box display="flex" alignItems="center" mb={2}>
@@ -133,7 +133,7 @@ const UsuarioDetalles = ({
           </Grid>
 
           {/* Información Personal */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card elevation={1}>
               <CardContent>
                 <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -210,7 +210,7 @@ const UsuarioDetalles = ({
           </Grid>
 
           {/* Información del Sistema */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card elevation={1}>
               <CardContent>
                 <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -288,7 +288,7 @@ const UsuarioDetalles = ({
           </Grid>
 
           {/* Información de Auditoría 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card elevation={1}>
               <CardContent>
                 <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -298,7 +298,7 @@ const UsuarioDetalles = ({
                 <Divider sx={{ mb: 2 }} />
                 
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box textAlign="center" p={2}>
                       <Typography variant="caption" color="text.secondary">
                         Fecha de Creación
@@ -309,7 +309,7 @@ const UsuarioDetalles = ({
                     </Box>
                   </Grid>
                   
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box textAlign="center" p={2}>
                       <Typography variant="caption" color="text.secondary">
                         Última Modificación
@@ -320,7 +320,7 @@ const UsuarioDetalles = ({
                     </Box>
                   </Grid>
                   
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box textAlign="center" p={2}>
                       <Typography variant="caption" color="text.secondary">
                         Tiempo en el Sistema
@@ -331,7 +331,7 @@ const UsuarioDetalles = ({
                     </Box>
                   </Grid>
                   
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box textAlign="center" p={2}>
                       <Typography variant="caption" color="text.secondary">
                         Estado de Seguridad

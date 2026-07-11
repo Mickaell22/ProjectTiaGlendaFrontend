@@ -51,22 +51,6 @@ const NotificationItem = ({
   };
 
   /**
-   * Obtener color según la prioridad
-   */
-  const getPriorityColor = () => {
-    switch (notification.prioridad) {
-      case 'alta':
-        return 'error';
-      case 'media':
-        return 'warning';
-      case 'baja':
-        return 'info';
-      default:
-        return 'default';
-    }
-  };
-
-  /**
    * Formatear fecha de forma amigable
    */
   const formatDate = (dateString) => {
@@ -78,7 +62,7 @@ const NotificationItem = ({
         addSuffix: true, 
         locale: es 
       });
-    } catch (error) {
+    } catch {
       return '';
     }
   };

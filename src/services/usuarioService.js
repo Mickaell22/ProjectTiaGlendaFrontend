@@ -181,7 +181,7 @@ export class UsuarioService {
     try {
       const rolesData = await RolService.getAll();
       return RolService.formatRolesForSelect(rolesData);
-    } catch (error) {
+    } catch {
       // Fallback to static roles if backend fails
       return this.getRoles();
     }

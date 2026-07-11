@@ -30,8 +30,8 @@ import {
   WhatsApp,
 } from '@mui/icons-material';
 
-const MotionBox = motion(Box);
-const MotionCard = motion(Card);
+const MotionBox = motion.create(Box);
+const MotionCard = motion.create(Card);
 
 // Colores del logo Centro Tía Glenda
 const colors = {
@@ -317,7 +317,7 @@ const LandingPage = () => {
 
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, py: 8 }}>
           <Grid container spacing={6} alignItems="center">
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <MotionBox
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -402,7 +402,7 @@ const LandingPage = () => {
                 </Stack>
               </MotionBox>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <MotionBox
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -450,7 +450,7 @@ const LandingPage = () => {
           </Typography>
           <Grid container spacing={4}>
             {comoFunciona.map((paso, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
+              <Grid key={index} size={{ xs: 12, sm: 6, md: 3 }}>
                 <MotionBox
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -510,7 +510,7 @@ const LandingPage = () => {
           </Typography>
           <Grid container spacing={4}>
             {ultimosCasos.map((caso, index) => (
-              <Grid item xs={12} sm={6} md={4} key={index}>
+              <Grid key={index} size={{ xs: 12, sm: 6, md: 4 }}>
                 <MotionCard
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -580,7 +580,7 @@ const LandingPage = () => {
           </Typography>
           <Grid container spacing={4}>
             {beneficios.map((beneficio, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
+              <Grid key={index} size={{ xs: 12, sm: 6, md: 3 }}>
                 <MotionCard
                   initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
@@ -709,7 +709,7 @@ const LandingPage = () => {
       <Box id="nosotros" sx={{ py: 10, bgcolor: 'white' }}>
         <Container maxWidth="lg">
           <Grid container spacing={6} alignItems="center">
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <MotionBox
                 initial={{ opacity: 0, x: -50 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -729,7 +729,7 @@ const LandingPage = () => {
                 />
               </MotionBox>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <MotionBox
                 initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -875,7 +875,7 @@ const LandingPage = () => {
       <Box sx={{ py: 8, bgcolor: '#2C2C2C', color: 'white' }}>
         <Container maxWidth="lg">
           <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Box
                 component="img"
                 src="/LOGO TÍA GLENDA-07.png"
@@ -897,7 +897,7 @@ const LandingPage = () => {
                 </IconButton>
               </Stack>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Typography variant="h6" fontWeight="bold" gutterBottom>
                 Contacto
               </Typography>
@@ -922,7 +922,7 @@ const LandingPage = () => {
                 </Box>
               </Stack>
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Typography variant="h6" fontWeight="bold" gutterBottom>
                 Enlaces Rápidos
               </Typography>

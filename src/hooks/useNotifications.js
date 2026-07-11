@@ -46,11 +46,11 @@ const useNotifications = () => {
       setTimeout(() => {
         try {
           audioContext.close();
-        } catch (e) {
+        } catch {
           // Ignorar errores de cleanup
         }
       }, 500);
-    } catch (error) {
+    } catch {
       // Fallback: intentar reproducir un beep simple
       try {
         const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmAcCTuF1ero6wgUaZXp86xYFApCm9zyx2QdCDl+ztmOOgkTWK3n7qxdFAg');
@@ -58,7 +58,7 @@ const useNotifications = () => {
         audio.play().catch(() => {
           // Si falla, no hacer nada
         });
-      } catch (e) {
+      } catch {
         // Silenciar errores
       }
     }
@@ -80,7 +80,7 @@ const useNotifications = () => {
         }, 5000);
 
         return notification;
-      } catch (error) {
+      } catch {
         // Silently handle notification error
       }
     }

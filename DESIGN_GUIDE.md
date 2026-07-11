@@ -19,10 +19,10 @@ backgroundImage: theme.palette.mode === 'dark'
 ```
 
 ### 📚 Colores por Módulo:
-- **Terapéutico:** `#E91E63, #9C27B0, #673AB7, #3F51B5` (Rosa-Morado-Azul)
-- **Pedagógico:** `#4CAF50, #2E7D32, #388E3C, #1B5E20` (Verdes)
-- **Pacientes:** `#673AB7, #E91E63, #FF9800, #4CAF50` (Multicolor)
-- **Personal:** Gradientes usando `primary.main` y `primary.dark`
+La fuente de verdad es `src/config/moduleThemes.js` (`getModuleTheme('<modulo>').colors`).
+Los headers de cada vista Main (`PersonaMain`, `PacienteMain`, `UsuarioMain`, `TutorMain`,
+`PersonalMain`, `EspecialidadMain`, `TerapeuticoMain`, `PedagogicoMain`) construyen su
+rainbow border con esos colores; no hardcodear listas de colores en las vistas.
 
 ---
 

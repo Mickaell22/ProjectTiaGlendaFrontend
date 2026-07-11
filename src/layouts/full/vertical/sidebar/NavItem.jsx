@@ -1,8 +1,7 @@
 // src/layouts/full/vertical/sidebar/NavItem.jsx
 import React from 'react';
-import { useTheme } from '@mui/material/styles';
 import { ListItemButton, ListItemIcon, ListItemText, styled, useMediaQuery } from '@mui/material';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useAuth } from 'src/contexts/AuthContext';
 import PropTypes from 'prop-types';
@@ -10,8 +9,6 @@ import PropTypes from 'prop-types';
 const NavItem = ({ item, level, pathDirect, hideMenu, onClick }) => {
   const lgUp = useMediaQuery((theme) => theme.breakpoints.up('lg'));
   const customizer = useSelector((state) => state.customizer);
-  const { pathname } = useLocation();
-  const theme = useTheme();
   const { logout } = useAuth();
   
   const Icon = item.icon;

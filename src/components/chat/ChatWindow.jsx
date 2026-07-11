@@ -143,7 +143,7 @@ const ChatWindow = ({
         hour: '2-digit',
         minute: '2-digit'
       });
-    } catch (error) {
+    } catch {
       return '';
     }
   };
@@ -155,7 +155,7 @@ const ChatWindow = ({
     const groups = [];
     let currentGroup = null;
     
-    messages.forEach((message, index) => {
+    messages.forEach((message, _index) => {
       const messageDate = new Date(message.fecha_envio);
       const dateKey = messageDate.toDateString();
       
@@ -303,7 +303,7 @@ const ChatWindow = ({
           </Box>
         ) : (
           <>
-            {messageGroups.map((group, groupIndex) => (
+            {messageGroups.map((group, _groupIndex) => (
               <Box key={group.date}>
                 {/* Separador de fecha */}
                 <Box sx={{ display: 'flex', alignItems: 'center', my: 2 }}>

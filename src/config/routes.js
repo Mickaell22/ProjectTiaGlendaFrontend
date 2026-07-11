@@ -80,29 +80,6 @@ export const ROUTES = {
     SISTEMA: '/app/configuracion/sistema',
   },
 
-  // Rutas legacy/temporales (para compatibilidad)
-  LEGACY: {
-    APPS: {
-      CONTACTS: '/app/apps/contacts',
-      USER_PROFILE: {
-        FOLLOWERS: '/app/apps/user-profile/followers',
-        FRIENDS: '/app/apps/user-profile/friends',
-        GALLERY: '/app/apps/user-profile/gallery',
-      },
-    },
-    PAGES: {
-      ACCOUNT_SETTINGS: '/app/pages/account-settings',
-    },
-    FORMS: {
-      LAYOUTS: '/app/forms/form-layouts',
-      VALIDATION: '/app/forms/form-validation',
-    },
-    TABLES: {
-      BASIC: '/app/tables/basic',
-      PAGINATION: '/app/tables/pagination',
-      SEARCH: '/app/tables/search',
-    },
-  },
 };
 
 // Helper functions para navegación

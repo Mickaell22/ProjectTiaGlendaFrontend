@@ -8,16 +8,12 @@ import {
   Today, AccessTime, Person, Psychology, Schedule, CheckCircle, 
   Cancel, Refresh, EventNote, Group, MedicalServices
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from 'src/contexts/AuthContext';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 
 const TerapeuticoHoy = () => {
   const [sesionesHoy, setSesionesHoy] = useState([]);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const navigate = useNavigate();
-  const { user } = useAuth();
 
   useEffect(() => {
     fetchSesionesHoy();
@@ -128,11 +124,11 @@ const TerapeuticoHoy = () => {
 
         <Grid container spacing={3} mb={4}>
           {/* Información del día */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card>
               <CardContent>
                 <Grid container spacing={3} alignItems="center">
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Typography variant="h6" mb={1}>
                       {formatDate(new Date())}
                     </Typography>
@@ -140,7 +136,7 @@ const TerapeuticoHoy = () => {
                       Hora actual: {getCurrentTime()}
                     </Typography>
                   </Grid>
-                  <Grid item xs={12} md={6} textAlign={{ xs: 'left', md: 'right' }}>
+                  <Grid textAlign={{ xs: 'left', md: 'right' }} size={{ xs: 12, md: 6 }}>
                     <Button
                       variant="outlined"
                       startIcon={<Refresh />}
@@ -156,9 +152,9 @@ const TerapeuticoHoy = () => {
           </Grid>
 
           {/* Resumen estadístico */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card>
                   <CardContent sx={{ textAlign: 'center' }}>
                     <Typography variant="h4" color="primary.main" fontWeight="bold">
@@ -170,7 +166,7 @@ const TerapeuticoHoy = () => {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card>
                   <CardContent sx={{ textAlign: 'center' }}>
                     <Typography variant="h4" color="success.main" fontWeight="bold">
@@ -182,7 +178,7 @@ const TerapeuticoHoy = () => {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card>
                   <CardContent sx={{ textAlign: 'center' }}>
                     <Typography variant="h4" color="info.main" fontWeight="bold">
@@ -194,7 +190,7 @@ const TerapeuticoHoy = () => {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card>
                   <CardContent sx={{ textAlign: 'center' }}>
                     <Typography variant="h4" color="error.main" fontWeight="bold">
@@ -229,7 +225,7 @@ const TerapeuticoHoy = () => {
                 
                 <Grid container spacing={2}>
                   {sesiones.map((sesion, index) => (
-                    <Grid item xs={12} md={6} lg={4} key={sesion.id || index}>
+                    <Grid key={sesion.id || index} size={{ xs: 12, md: 6, lg: 4 }}>
                       <Paper 
                         elevation={2}
                         sx={{ 

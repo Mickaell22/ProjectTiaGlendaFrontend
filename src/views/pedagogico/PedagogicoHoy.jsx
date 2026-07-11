@@ -10,7 +10,6 @@ import {
   Today, School, AccessTime, Person,
   Event, Schedule, Groups, Assignment
 } from '@mui/icons-material';
-import { useAuth } from 'src/contexts/AuthContext';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 
 const PedagogicoHoy = () => {
@@ -18,7 +17,6 @@ const PedagogicoHoy = () => {
   const [sesionesHoy, setSesionesHoy] = useState([]);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const { user } = useAuth();
 
   useEffect(() => {
     fetchSesionesHoy();
@@ -31,7 +29,7 @@ const PedagogicoHoy = () => {
       let response = null;
       try {
         response = await sesionPedagogicaService.getClasesHoy();
-      } catch (classError) {
+      } catch {
         // Fallback to general sessions endpoint
         response = await sesionPedagogicaService.getSesionesHoy();
       }
@@ -148,7 +146,7 @@ const PedagogicoHoy = () => {
               {sesionesHoy.map((sesion, index) => {
                 const estado = getSesionEstado(sesion);
                 return (
-                  <Grid item xs={12} md={6} lg={4} key={sesion.id || index}>
+                  <Grid key={sesion.id || index} size={{ xs: 12, md: 6, lg: 4 }}>
                     <Card
                       elevation={2}
                       sx={{
@@ -272,7 +270,7 @@ const PedagogicoHoy = () => {
                 Resumen del Día
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
                   <Box textAlign="center">
                     <Typography variant="h4" color="success.main" fontWeight="bold">
                       {sesionesHoy.length}
@@ -282,7 +280,7 @@ const PedagogicoHoy = () => {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
                   <Box textAlign="center">
                     <Typography variant="h4" color="info.main" fontWeight="bold">
                       {sesionesHoy.filter(s => getSesionEstado(s) === 'pendiente').length}
@@ -292,7 +290,7 @@ const PedagogicoHoy = () => {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
                   <Box textAlign="center">
                     <Typography variant="h4" color="success.main" fontWeight="bold">
                       {sesionesHoy.filter(s => getSesionEstado(s) === 'en_curso').length}
@@ -302,7 +300,7 @@ const PedagogicoHoy = () => {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
                   <Box textAlign="center">
                     <Typography variant="h4" color="text.secondary" fontWeight="bold">
                       {sesionesHoy.filter(s => getSesionEstado(s) === 'completada').length}

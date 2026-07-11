@@ -1,11 +1,8 @@
 // src/layouts/full/vertical/sidebar/NavGroup.jsx
-import { ListSubheader, styled, useTheme } from '@mui/material';
-import { useSelector } from 'react-redux';
+import { ListSubheader, styled } from '@mui/material';
 import PropTypes from 'prop-types';
 
 const NavGroup = ({ item, hideMenu }) => {
-  const customizer = useSelector((state) => state.customizer);
-  const theme = useTheme();
 
   const ListSubheaderStyle = styled(ListSubheader)(({ theme }) => ({
     fontSize: '0.75rem',

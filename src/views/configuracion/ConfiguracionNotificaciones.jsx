@@ -163,7 +163,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
             <Grid container spacing={3}>
 
               {/* Configuración General */}
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Paper
                   elevation={0}
                   sx={{
@@ -201,7 +201,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                   </Box>
 
                   <Grid container spacing={3}>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                       <Paper
                         sx={{
                           p: 3,
@@ -242,7 +242,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                       </Paper>
                     </Grid>
 
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                       <TextField
                         select
                         fullWidth
@@ -274,7 +274,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
               </Grid>
 
               {/* Tipos de Notificaciones */}
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Paper
                   elevation={0}
                   sx={{
@@ -311,7 +311,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                   </Box>
 
                   <Grid container spacing={2}>
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                       <Paper
                         sx={{
                           p: 2,
@@ -346,7 +346,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                       </Paper>
                     </Grid>
 
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                       <Paper
                         sx={{
                           p: 2,
@@ -381,7 +381,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                       </Paper>
                     </Grid>
 
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                       <Paper
                         sx={{
                           p: 2,
@@ -416,7 +416,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                       </Paper>
                     </Grid>
 
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                       <Paper
                         sx={{
                           p: 2,
@@ -455,7 +455,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
               </Grid>
 
               {/* Audio y Sonidos */}
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Paper
                   elevation={0}
                   sx={{
@@ -526,7 +526,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
               </Grid>
 
               {/* Modo Silencioso */}
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Paper
                   elevation={0}
                   sx={{
@@ -563,7 +563,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                   </Box>
 
                   <Grid container spacing={3}>
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                       <TextField
                         fullWidth
                         type="time"
@@ -586,7 +586,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                       />
                     </Grid>
 
-                    <Grid item xs={6}>
+                    <Grid size={{ xs: 6 }}>
                       <TextField
                         fullWidth
                         type="time"
@@ -609,7 +609,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                       />
                     </Grid>
 
-                    <Grid item xs={12}>
+                    <Grid size={{ xs: 12 }}>
                       <Paper
                         sx={{
                           p: 2.5,
@@ -638,7 +638,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
               </Grid>
 
               {/* Información Importante */}
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Alert
                   severity="info"
                   icon={<Info />}
@@ -651,13 +651,13 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
                     Información importante
                   </Typography>
                   <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }}>
                         <li>Las notificaciones push requieren permiso del navegador</li>
                         <li>El modo silencioso solo aplica a sonidos de notificación</li>
                       </Typography>
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid size={{ xs: 12, md: 6 }}>
                       <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }}>
                         <li>Los recordatorios se envían con la anticipación configurada</li>
                         <li>Los cambios se aplicarán inmediatamente</li>
@@ -668,7 +668,7 @@ const ConfiguracionNotificaciones = ({ configuracion = {}, onSave }) => {
               </Grid>
 
               {/* Botón de guardar */}
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Box sx={{ textAlign: 'center', mt: 3, mb: 2 }}>
                   <Button
                     type="submit"

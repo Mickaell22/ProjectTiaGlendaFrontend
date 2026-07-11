@@ -243,6 +243,7 @@ const MiPerfil = () => {
 
   useEffect(() => {
     loadUserData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []);
 
 
@@ -373,28 +374,9 @@ const MiPerfil = () => {
     setShowUploadDialog(true);
   };
 
-  const handleEditDocument = () => {
-    setEditingDoc(selectedDoc);
-    setEditForm({
-      descripcion: selectedDoc.descripcion || '',
-      es_confidencial: selectedDoc.es_confidencial || false
-    });
-    setShowEditDialog(true);
-    handleMenuClose();
-  };
 
-  const handleReuploadDocument = () => {
-    setEditingDoc(selectedDoc);
-    setReuploadForm({
-      archivo: null,
-      descripcion: selectedDoc.descripcion || '',
-      es_confidencial: selectedDoc.es_confidencial || false
-    });
-    setShowReuploadDialog(true);
-    handleMenuClose();
-  };
 
-  const handleDeleteDocument = async () => {
+  async () => {
     if (!selectedDoc || !userData?.personal_id) return;
 
     if (window.confirm('¿Está seguro de que desea eliminar este documento?')) {
@@ -402,7 +384,7 @@ const MiPerfil = () => {
         await ApiService.delete(`/api/personal/${userData.personal_id}/documentos/${selectedDoc.id}`);
         showSuccess('Documento eliminado exitosamente');
         loadDocumentos();
-      } catch (error) {
+      } catch {
         showError('Error al eliminar documento');
       }
     }
@@ -425,12 +407,12 @@ const MiPerfil = () => {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch {
       showError('Error al descargar documento');
     }
   };
 
-  const handleUploadSubmit = async (e) => {
+  async (e) => {
     e.preventDefault();
     if (!uploadForm.archivo || !userData?.personal_id) return;
 
@@ -450,14 +432,14 @@ const MiPerfil = () => {
       setShowUploadDialog(false);
       setUploadForm({ archivo: null, tipo_documento: 'otros', descripcion: '', es_confidencial: false });
       loadDocumentos();
-    } catch (error) {
+    } catch {
       showError('Error al subir documento');
     } finally {
       setUploading(false);
     }
   };
 
-  const handleEditSubmit = async (e) => {
+  async (e) => {
     e.preventDefault();
     if (!editingDoc || !userData?.personal_id) return;
 
@@ -467,12 +449,12 @@ const MiPerfil = () => {
       setShowEditDialog(false);
       setEditingDoc(null);
       loadDocumentos();
-    } catch (error) {
+    } catch {
       showError('Error al actualizar documento');
     }
   };
 
-  const handleReuploadSubmit = async (e) => {
+  async (e) => {
     e.preventDefault();
     if (!editingDoc || !reuploadForm.archivo || !userData?.personal_id) return;
 
@@ -491,7 +473,7 @@ const MiPerfil = () => {
       setEditingDoc(null);
       setReuploadForm({ archivo: null, descripcion: '', es_confidencial: false });
       loadDocumentos();
-    } catch (error) {
+    } catch {
       showError('Error al resubir documento');
     }
   };
@@ -599,7 +581,6 @@ const MiPerfil = () => {
       console.log('Password change response:', response);
 
       // Extraer datos de la respuesta usando extractData
-      const data = extractData(response);
 
       // Si llegamos aquí sin error, la contraseña se cambió exitosamente
       showSuccess('Contraseña cambiada correctamente');
@@ -898,7 +879,7 @@ const MiPerfil = () => {
         <TabPanel value={activeTab} index={0}>
           <Grid container spacing={4}>
             {/* Información Personal */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
                 <Person sx={{ mr: 1 }} />
                 Información Personal
@@ -969,7 +950,7 @@ const MiPerfil = () => {
             </Grid>
 
             {/* Información del Sistema */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
                 <Work sx={{ mr: 1 }} />
                 Información del Sistema
@@ -1020,7 +1001,7 @@ const MiPerfil = () => {
         <TabPanel value={activeTab} index={1}>
           <Grid container spacing={3}>
             {/* Configuración de Notificaciones */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
                 <Notifications sx={{ mr: 1 }} />
                 Notificaciones
@@ -1067,7 +1048,7 @@ const MiPerfil = () => {
             </Grid>
 
             {/* Acciones Rápidas */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
                 <Settings sx={{ mr: 1 }} />
                 Acciones Rápidas
@@ -1206,7 +1187,7 @@ const MiPerfil = () => {
             ) : (
               <Grid container spacing={3}>
                 {documentos.map((documento) => (
-                  <Grid item xs={12} sm={6} md={4} key={documento.id}>
+                  <Grid key={documento.id} size={{ xs: 12, sm: 6, md: 4 }}>
                     <Card
                       variant="outlined"
                       sx={{
@@ -1612,7 +1593,7 @@ const MiPerfil = () => {
         <DialogTitle>Subir Nuevo Documento</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <FormControl fullWidth margin="normal">
                 <InputLabel>Tipo de Documento</InputLabel>
                 <Select
@@ -1628,7 +1609,7 @@ const MiPerfil = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="Descripción (opcional)"
@@ -1639,7 +1620,7 @@ const MiPerfil = () => {
                 rows={2}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <input
                 id="document-upload"
                 type="file"
@@ -1686,7 +1667,7 @@ const MiPerfil = () => {
         <DialogTitle>Editar Documento</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <FormControl fullWidth margin="normal">
                 <InputLabel>Tipo de Documento</InputLabel>
                 <Select
@@ -1702,7 +1683,7 @@ const MiPerfil = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="Descripción (opcional)"
@@ -1739,7 +1720,7 @@ const MiPerfil = () => {
             Selecciona un nuevo archivo para reemplazar: <strong>{selectedDoc?.nombre_archivo}</strong>
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <input
                 id="document-reupload"
                 type="file"

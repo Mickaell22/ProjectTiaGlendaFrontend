@@ -12,6 +12,7 @@ const PedagogoSelector = ({
 
   useEffect(() => {
     loadPedagogos();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []); // Sin dependencias problemáticas
 
   return (

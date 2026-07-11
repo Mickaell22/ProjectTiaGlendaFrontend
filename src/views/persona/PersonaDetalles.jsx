@@ -137,7 +137,7 @@ const PersonaDetalles = ({
         <Box sx={{ p: 3 }}>
           <Grid container spacing={3}>
             {/* Información Personal */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -181,7 +181,7 @@ const PersonaDetalles = ({
             </Grid>
 
             {/* Información de Contacto */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">

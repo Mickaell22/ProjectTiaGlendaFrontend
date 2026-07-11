@@ -42,7 +42,6 @@ import {
 } from '@mui/icons-material';
 
 import UsuarioService from '../../services/usuarioService.js';
-import useSnackbar from '../../hooks/useSnackbar.js';
 import { FotoPerfilTabla } from '../../components/shared/index.js';
 
 const purpleOutlineSX = {
@@ -60,7 +59,6 @@ const UsuarioLista = ({
   onViewDetail,
   onChangePassword,
   onNewUser,
-  loading = false
 }) => {
   const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState('');
@@ -68,7 +66,6 @@ const UsuarioLista = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { showError } = useSnackbar();
 
   let filteredUsuarios = UsuarioService.filterUsuarios(usuarios, searchTerm);
   filteredUsuarios = UsuarioService.filterByEstado(filteredUsuarios, filterEstado);
@@ -135,6 +132,7 @@ const UsuarioLista = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por nombre, usuario, rol..."
+            inputProps={{ 'aria-label': 'Buscar por nombre, usuario, rol' }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -186,6 +184,15 @@ const UsuarioLista = ({
             </TableRow>
           </TableHead>
           <TableBody>
+            {filteredUsuarios.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                  <Typography variant="body1" color="text.secondary">
+                    {searchTerm ? 'No se encontraron usuarios con ese criterio' : 'No hay usuarios registrados'}
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            )}
             {filteredUsuarios
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((item) => {

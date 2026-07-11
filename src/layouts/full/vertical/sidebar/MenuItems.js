@@ -29,7 +29,6 @@ import {
   AccountBox
 } from '@mui/icons-material';
 import { ROUTES } from '../../../../config/routes';
-import { useAuth } from 'src/contexts/AuthContext';
 
 // Función simple para generar IDs únicos
 const uniqueId = () => Math.random().toString(36).substring(2, 15);
@@ -92,7 +91,7 @@ export const getMenuItems = (user) => {
         id: uniqueId(),
         title: 'Registro de Personas',
         icon: Person,
-        href: '/apps/contacts',
+        href: ROUTES.GESTION.PERSONA,
         children: [
           {
             id: uniqueId(),
@@ -110,7 +109,7 @@ export const getMenuItems = (user) => {
         id: uniqueId(),
         title: 'Administración del Sistema',
         icon: Security,
-        href: '/apps/user-profile/followers',
+        href: ROUTES.GESTION.USUARIO,
         children: [
           {
             id: uniqueId(),
@@ -132,7 +131,7 @@ export const getMenuItems = (user) => {
         id: uniqueId(),
         title: 'Pacientes y Tutores',
         icon: LocalHospital,
-        href: '/apps/user-profile/followers',
+        href: ROUTES.GESTION.PACIENTE,
         children: [
           {
             id: uniqueId(),
@@ -156,7 +155,7 @@ export const getMenuItems = (user) => {
         id: uniqueId(),
         title: 'Personal del Centro',
         icon: AccountCircle,
-        href: '/apps/user-profile/followers',
+        href: ROUTES.GESTION.PERSONAL,
         children: [
           {
             id: uniqueId(),

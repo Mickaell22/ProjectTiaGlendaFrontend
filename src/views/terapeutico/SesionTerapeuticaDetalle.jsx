@@ -15,10 +15,10 @@ import {
   Close, Search, PersonAdd, Visibility
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from 'src/contexts/AuthContext';
 import { useUserRole } from 'src/hooks/useUserRole';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 import { formatDateLocal } from 'src/utils/dateUtils';
+import { estadoSesionInfo } from 'src/utils/estadoLabels';
 
 /* ---------- Estilos tipo "listar" ---------- */
 const purpleOutlineSX = {
@@ -42,7 +42,6 @@ const selectStableSX = {
   }
 };
 
-const menuProps = { PaperProps: { sx: { maxHeight: 280 } } };
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -72,7 +71,6 @@ function a11yProps(index) {
 const SesionTerapeuticaDetalle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { isAdmin } = useUserRole();
   const theme = useTheme();
 
@@ -81,7 +79,7 @@ const SesionTerapeuticaDetalle = () => {
   const [cronograma, setCronograma] = useState([]);
   const [pacientes, setPacientes] = useState([]);
   const [asistencias, setAsistencias] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [_loading, setLoading] = useState(false);
   const [loadingAsistencias, setLoadingAsistencias] = useState(false);
   const [asistenciasLoaded, setAsistenciasLoaded] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -98,7 +96,7 @@ const SesionTerapeuticaDetalle = () => {
   const [pacientesDisponibles, setPacientesDisponibles] = useState([]);
   const [newPatientId, setNewPatientId] = useState('');
   const [searchPatientTerm, setSearchPatientTerm] = useState('');
-  const [pacientesRetirados, setPacientesRetirados] = useState([]);
+  const [_pacientesRetirados, setPacientesRetirados] = useState([]);
   const [showRetirados, setShowRetirados] = useState(false);
   const [reincorporarDialog, setReincorporarDialog] = useState({
     open: false,
@@ -111,6 +109,7 @@ const SesionTerapeuticaDetalle = () => {
     if (id) {
       fetchSessionData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [id]);
 
   const fetchSessionData = async () => {
@@ -142,7 +141,7 @@ const SesionTerapeuticaDetalle = () => {
       const asistenciasRes = await sesionTerapiaService.getAsistenciasSession(id);
       setAsistencias(asistenciasRes.data || []);
       setAsistenciasLoaded(true);
-    } catch (err) {
+    } catch {
       setAsistencias([]);
     } finally {
       setLoadingAsistencias(false);
@@ -249,7 +248,7 @@ const SesionTerapeuticaDetalle = () => {
         fecha_incorporacion: new Date().toISOString().split('T')[0]
       };
       
-      const response = await sesionTerapiaService.addPacienteToSesion(id, patientData);
+      await sesionTerapiaService.addPacienteToSesion(id, patientData);
       
       setSnackbar({ 
         open: true, 
@@ -370,7 +369,7 @@ const SesionTerapeuticaDetalle = () => {
     }
   };
 
-  const handleToggleRetirados = async () => {
+  async () => {
     if (!showRetirados) {
       await fetchPacientesRetirados();
     }
@@ -466,7 +465,7 @@ const SesionTerapeuticaDetalle = () => {
               size="small"
             />
             <Chip
-              label={sesion.estado}
+              label={estadoSesionInfo(sesion.estado).label}
               color={getEstadoSesionColor(sesion.estado)}
               size="small"
               sx={{
@@ -514,14 +513,14 @@ const SesionTerapeuticaDetalle = () => {
       {/* ===== Tab Panels ===== */}
       <TabPanel value={tabValue} index={0}>
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card elevation={4} sx={{ borderRadius: 3 }}>
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" color="primary" mb={3} fontWeight="bold">
                   Información General
                 </Typography>
                 <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Box sx={{ mb: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
                         Código de Sesión
@@ -547,14 +546,14 @@ const SesionTerapeuticaDetalle = () => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Box sx={{ mb: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
                         Estado
                       </Typography>
                       <Box display="flex" alignItems="center" gap={1}>
                         <Chip
-                          label={sesion.estado}
+                          label={estadoSesionInfo(sesion.estado).label}
                           color={getEstadoSesionColor(sesion.estado)}
                           size="small"
                         />
@@ -593,14 +592,14 @@ const SesionTerapeuticaDetalle = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card elevation={4} sx={{ borderRadius: 3 }}>
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" color="primary" mb={3} fontWeight="bold">
                   Programación
                 </Typography>
                 <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Box sx={{ mb: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
                         Período
@@ -620,7 +619,7 @@ const SesionTerapeuticaDetalle = () => {
                       </Box>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Box sx={{ mb: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
                         Hora de Inicio
@@ -644,7 +643,7 @@ const SesionTerapeuticaDetalle = () => {
           </Grid>
 
           {sesion.objetivo_general && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card elevation={4} sx={{ borderRadius: 3 }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h6" color="primary" mb={2} fontWeight="bold">
@@ -658,7 +657,7 @@ const SesionTerapeuticaDetalle = () => {
             </Grid>
           )}
 
-          <Grid item xs={12} md={isAdmin ? 6 : 12}>
+          <Grid size={{ xs: 12, md: isAdmin ? 6 : 12 }}>
             <Card elevation={4} sx={{ borderRadius: 3 }}>
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" color="primary" mb={3} fontWeight="bold">
@@ -693,7 +692,7 @@ const SesionTerapeuticaDetalle = () => {
           </Grid>
 
           {isAdmin && (
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card elevation={4} sx={{ borderRadius: 3 }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h6" color="primary" mb={3} fontWeight="bold">
@@ -729,7 +728,7 @@ const SesionTerapeuticaDetalle = () => {
           )}
 
           {sesion.observaciones && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card elevation={4} sx={{ borderRadius: 3 }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h6" color="primary" mb={2} fontWeight="bold">
@@ -1277,7 +1276,7 @@ const SesionTerapeuticaDetalle = () => {
         <DialogContent>
           {detailDialog.data && (
             <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="subtitle2" color="primary" mb={1}>Información del Paciente</Typography>
                 <Box sx={{ mb: 1 }}>
                   <Typography variant="body2"><strong>Nombre:</strong> {detailDialog.data.paciente_nombre}</Typography>
@@ -1287,7 +1286,7 @@ const SesionTerapeuticaDetalle = () => {
                 </Box>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="subtitle2" color="primary" mb={1}>Información de Asistencia</Typography>
                 <Box sx={{ mb: 1 }}>
                   <Typography variant="body2" display="flex" alignItems="center">
@@ -1312,7 +1311,7 @@ const SesionTerapeuticaDetalle = () => {
               </Grid>
 
               {detailDialog.data.observaciones_terapeuta && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary" mb={1}>Observaciones del Terapeuta</Typography>
                   <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 2 }}>
                     <Typography variant="body2">{detailDialog.data.observaciones_terapeuta}</Typography>
@@ -1321,7 +1320,7 @@ const SesionTerapeuticaDetalle = () => {
               )}
 
               {detailDialog.data.progreso_observado && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary" mb={1}>Progreso Observado</Typography>
                   <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'success.dark' : 'success.50', border: '1px solid', borderColor: 'success.200', borderRadius: 2 }}>
                     <Typography variant="body2">{detailDialog.data.progreso_observado}</Typography>
@@ -1330,7 +1329,7 @@ const SesionTerapeuticaDetalle = () => {
               )}
 
               {detailDialog.data.tareas_asignadas && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary" mb={1}>Tareas Asignadas</Typography>
                   <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'info.dark' : 'info.50', border: '1px solid', borderColor: 'info.200', borderRadius: 2 }}>
                     <Typography variant="body2">{detailDialog.data.tareas_asignadas}</Typography>
@@ -1339,7 +1338,7 @@ const SesionTerapeuticaDetalle = () => {
               )}
 
               {detailDialog.data.objetivos_trabajados && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary" mb={1}>Objetivos Trabajados</Typography>
                   <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'warning.dark' : 'warning.50', border: '1px solid', borderColor: 'warning.200', borderRadius: 2 }}>
                     <Typography variant="body2">{detailDialog.data.objetivos_trabajados}</Typography>
@@ -1348,7 +1347,7 @@ const SesionTerapeuticaDetalle = () => {
               )}
 
               {detailDialog.data.notas_progreso && !detailDialog.data.progreso_observado && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary" mb={1}>Notas de Progreso</Typography>
                   <Paper sx={{ p: 2, backgroundColor: theme.palette.mode === 'dark' ? 'grey.800' : 'grey.50', borderRadius: 2 }}>
                     <Typography variant="body2">{detailDialog.data.notas_progreso}</Typography>

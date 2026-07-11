@@ -39,8 +39,14 @@ apiClient.interceptors.response.use(
   (error) => {
     // Manejo centralizado de errores
     if (error.response?.status === HTTP_STATUS.UNAUTHORIZED) {
-      // Token expirado o inválido
+      // 401 estando en /auth (login o seleccionar-centro fallido):
+      // NO redirigir, dejar que la vista muestre el mensaje del backend.
+      if (window.location.pathname.startsWith('/auth')) {
+        return Promise.reject(new Error(error.response.data?.message || 'Usuario o contraseña incorrectos.'));
+      }
+      // Token expirado o inválido en el resto de la app
       localStorage.removeItem('jwt_token');
+      localStorage.removeItem('user');
       window.location.href = '/auth/login';
       return Promise.reject(new Error(ERROR_MESSAGES.UNAUTHORIZED));
     }
@@ -56,7 +62,9 @@ apiClient.interceptors.response.use(
     // Mapear códigos de estado a mensajes amigables
     const statusMessages = {
       [HTTP_STATUS.BAD_REQUEST]: error.response.data?.message || ERROR_MESSAGES.VALIDATION_ERROR,
-      [HTTP_STATUS.FORBIDDEN]: ERROR_MESSAGES.FORBIDDEN,
+      // 403: preferir el mensaje del backend (ej. "Usuario sin centro asignado",
+      // acceso cross-centro) antes que el generico
+      [HTTP_STATUS.FORBIDDEN]: error.response.data?.message || ERROR_MESSAGES.FORBIDDEN,
       [HTTP_STATUS.NOT_FOUND]: ERROR_MESSAGES.NOT_FOUND,
       [HTTP_STATUS.INTERNAL_SERVER_ERROR]: ERROR_MESSAGES.SERVER_ERROR,
     };

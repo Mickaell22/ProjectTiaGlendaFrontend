@@ -72,6 +72,7 @@ const PersonalDetalles = ({
     if (open && data?.id) {
       loadDocumentos();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [open, data?.id]);
 
   const loadDocumentos = async () => {
@@ -116,7 +117,7 @@ const PersonalDetalles = ({
         await ApiService.delete(`/api/personal/${data.id}/documentos/${selectedDoc.id}`);
         setSnackbar({ open: true, message: 'Documento eliminado exitosamente', severity: 'success' });
         loadDocumentos();
-      } catch (error) {
+      } catch {
         setSnackbar({ open: true, message: 'Error al eliminar documento', severity: 'error' });
       }
     }
@@ -152,10 +153,6 @@ const PersonalDetalles = ({
     : { label: data.estado || 'activo', color: 'default' };
 
   // Fechas: usa lo que tengas disponible
-  const fechaCreacion =
-    data.fecha_creacion || data.created_at || data.fechaRegistro || null;
-  const fechaModificacion =
-    data.fecha_modificacion || data.updated_at || data.fechaActualizacion || null;
 
   return (
     <Dialog
@@ -225,7 +222,7 @@ const PersonalDetalles = ({
         <Box sx={{ p: 3 }}>
           <Grid container spacing={3}>
             {/* Información del Colaborador */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -262,7 +259,7 @@ const PersonalDetalles = ({
             </Grid>
 
             {/* Información de Contacto */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -305,7 +302,7 @@ const PersonalDetalles = ({
             </Grid>
 
             {/* Especialidades */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom>
@@ -338,7 +335,7 @@ const PersonalDetalles = ({
             </Grid>
 
             {/* Documentos Personales */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">

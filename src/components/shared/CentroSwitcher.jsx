@@ -13,7 +13,6 @@ import {
   CircularProgress,
   Alert,
   Tooltip,
-  useTheme,
 } from '@mui/material';
 import {
   Business,
@@ -24,7 +23,6 @@ import {
 import useAuth from '../../hooks/useAuth';
 
 const CentroSwitcher = () => {
-  const theme = useTheme();
   const { user, cambiarCentro } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [loading, setLoading] = useState(false);

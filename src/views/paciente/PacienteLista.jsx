@@ -45,7 +45,7 @@ import PauseDialog from '../../components/Pacientes/PauseDialog';
 import ResumeDialog from '../../components/Pacientes/ResumeDialog';
 import EstadoPausaBadge from '../../components/Pacientes/EstadoPausaBadge';
 import PacienteService from '../../services/pacienteService';
-import { parseLocalDate, formatDateLocal as formatDateUtil } from '../../utils/dateUtils';
+import { formatDateLocal as formatDateUtil } from '../../utils/dateUtils';
 
 /* ---------------- Helpers ---------------- */
 const purpleOutlineSX = {
@@ -150,7 +150,7 @@ async function exportPacientePDF(paciente) {
     ['Alergias', paciente?.alergias ?? '—'],
     ['Medicamentos', paciente?.medicina ?? '—'],
     ['Observaciones', paciente?.observaciones ?? '—'],
-  ].filter(([_, v]) => v && v !== '—'); // omitimos filas totalmente vacías
+  ].filter(([, v]) => v && v !== '—'); // omitimos filas totalmente vacías
 
   // Sección datos del tutor
   const datosTutor = [
@@ -159,7 +159,7 @@ async function exportPacientePDF(paciente) {
     ['Correo tutor', paciente?.correo_tutor ?? '—'],
     ['Parentesco', paciente?.parentesco ?? '—'],
     ['Dirección tutor', paciente?.direccion_tutor ?? '—'],
-  ].filter(([_, v]) => v && v !== '—');
+  ].filter(([, v]) => v && v !== '—');
 
   if (adicionales.length) {
     doc.setFont('helvetica', 'bold');
@@ -255,7 +255,6 @@ const PacienteLista = ({
   onViewDetail,
   onNewPatient,
   onPauseSuccess,
-  showFinancialInfo = false,
   loading = false,
   loadingDetails = false
 }) => {
@@ -433,6 +432,7 @@ const PacienteLista = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Buscar por nombre, cédula o tutor..."
+            inputProps={{ 'aria-label': 'Buscar por nombre, cédula o tutor' }}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

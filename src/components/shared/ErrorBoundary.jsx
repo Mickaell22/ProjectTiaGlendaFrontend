@@ -11,7 +11,7 @@ class ErrorBoundary extends React.Component {
     this.state = { hasError: false, error: null, errorInfo: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(_error) {
     return { hasError: true };
   }
 
@@ -73,7 +73,7 @@ class ErrorBoundary extends React.Component {
                 Recargar Página
               </Button>
               
-              {process.env.NODE_ENV === 'development' && (
+              {import.meta.env.DEV && (
                 <Button
                   variant="outlined"
                   onClick={() => this.setState({ hasError: false })}
@@ -84,7 +84,7 @@ class ErrorBoundary extends React.Component {
               )}
             </Box>
 
-            {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
+            {import.meta.env.DEV && this.state.errorInfo && (
               <Box sx={{ mt: 3, textAlign: 'left' }}>
                 <Typography variant="caption" color="text.secondary">
                   Stack trace (solo en desarrollo):

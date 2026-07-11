@@ -188,7 +188,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
       <Grid container spacing={4}>
 
       {/* Políticas de Contraseñas */}
-      <Grid item xs={12} lg={8}>
+      <Grid size={{ xs: 12, lg: 8 }}>
         <Card sx={{ 
           height: 'fit-content',
           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
@@ -220,7 +220,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
             
             <Box component="form" onSubmit={handleSubmit}>
               <Grid container spacing={3}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     fullWidth
                     type="number"
@@ -237,7 +237,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     select
                     fullWidth
@@ -256,7 +256,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
                   </TextField>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2 }}>
                     <FormControlLabel
                       control={
@@ -278,7 +278,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
                   </Box>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2 }}>
                     <FormControlLabel
                       control={
@@ -300,7 +300,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
                   </Box>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2 }}>
                     <FormControlLabel
                       control={
@@ -322,7 +322,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
                   </Box>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 2 }}>
                     <FormControlLabel
                       control={
@@ -350,7 +350,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
       </Grid>
 
       {/* Medidor de Fortaleza */}
-      <Grid item xs={12} lg={4}>
+      <Grid size={{ xs: 12, lg: 4 }}>
         <Card sx={{ 
           height: 'fit-content',
           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
@@ -417,7 +417,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
       </Grid>
 
       {/* Control de Sesiones */}
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <Card sx={{ 
           height: 'fit-content',
           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
@@ -448,7 +448,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
             </Box>
 
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   select
                   fullWidth
@@ -472,7 +472,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
       </Grid>
 
       {/* Protección de Acceso */}
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <Card sx={{ 
           height: 'fit-content',
           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
@@ -503,7 +503,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
             </Box>
 
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -517,7 +517,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   select
                   fullWidth
@@ -541,7 +541,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
       </Grid>
 
       {/* Auditoría y Logs */}
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <Card sx={{ 
           height: 'fit-content',
           boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
@@ -572,7 +572,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
             </Box>
 
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Box sx={{ p: 3, border: '1px solid #e0e0e0', borderRadius: 2 }}>
                   <FormControlLabel
                     control={
@@ -596,7 +596,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
                 </Box>
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   select
                   fullWidth
@@ -621,7 +621,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
       </Grid>
 
       {/* Panel de Estado de Seguridad */}
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <Card sx={{ background: 'linear-gradient(135deg, #fff3e0 0%, #ffcc80 100%)', border: '1px solid #ffb74d' }}>
           <CardContent>
             <Typography variant="h6" color="primary" display="flex" alignItems="center" gutterBottom>
@@ -655,20 +655,20 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
       </Grid>
 
       {/* Advertencias */}
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <Alert severity="warning" sx={{ mb: 0 }}>
           <Typography variant="body2" gutterBottom>
             <strong>⚠️ Advertencia:</strong> Los cambios afectan inmediatamente a todos los usuarios. Las sesiones activas podrían cerrarse automáticamente.
           </Typography>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }}>
                 <li>Use al menos 8 caracteres con mayúsculas, minúsculas y números</li>
                 <li>Limite los intentos de login a 5 o menos</li>
                 <li>Configure sesiones de máximo 8 horas</li>
               </Typography>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 0 }}>
                 <li>Mantenga habilitados los logs de auditoría</li>
                 <li>Revise regularmente los logs de acceso</li>
@@ -680,7 +680,7 @@ const ConfiguracionSeguridad = ({ configuracion = {}, onSave }) => {
       </Grid>
 
       {/* Botón centrado y espacioso */}
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <Box sx={{ textAlign: 'center', mt: 4 }}>
           <Button 
             variant="contained" 

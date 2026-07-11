@@ -72,19 +72,6 @@ export class EspecialidadService {
     };
   }
 
-  // Buscar especialidades por término
-  static filterEspecialidades(especialidades, searchTerm) {
-    if (!searchTerm?.trim()) return especialidades;
-
-    const term = searchTerm.toLowerCase();
-    return especialidades.filter(item =>
-      item.nombre?.toLowerCase().includes(term) ||
-      item.area?.toLowerCase().includes(term) ||
-      item.centro_nombre?.toLowerCase().includes(term) ||
-      item.centro_codigo?.toLowerCase().includes(term)
-    );
-  }
-
   // Filtrar por área
   static filterByArea(especialidades, area) {
     if (!area) return especialidades;
@@ -113,14 +100,6 @@ export class EspecialidadService {
       `${API_ENDPOINTS.ESPECIALIDADES.BASE}/activas`;
     const response = await ApiService.get(url);
     return extractData(response);
-  }
-
-  // Obtener áreas disponibles
-  static getAreas() {
-    return [
-      { value: 'Especialidad terapéutica', label: 'Especialidad terapéutica' },
-      { value: 'Especialidad pedagógica', label: 'Especialidad pedagógica' }
-    ];
   }
 
   // Obtener icono por área
@@ -261,7 +240,7 @@ export class EspecialidadService {
   }
 
   // Validar antes de eliminar (verificar si está en uso)
-  static validateBeforeDelete(especialidad) {
+  static validateBeforeDelete(_especialidad) {
     // Esta lógica se puede expandir para verificar si la especialidad
     // está siendo usada por personal, pacientes, etc.
     return {

@@ -15,7 +15,6 @@ import {
   Visibility, Info
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from 'src/contexts/AuthContext';
 import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 import { formatDateLocal } from 'src/utils/dateUtils';
 
@@ -27,21 +26,6 @@ const greenOutlineSX = {
     '&.Mui-focused fieldset': { borderColor: 'success.main', borderWidth: 2 }
   }
 };
-
-// Evita "saltos" al seleccionar y trunca texto largo
-const selectStableSX = {
-  width: '100%',
-  '& .MuiSelect-select': {
-    display: 'block',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    minHeight: '1.4375em',
-    lineHeight: '1.4375em'
-  }
-};
-
-const menuProps = { PaperProps: { sx: { maxHeight: 280 } } };
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -71,7 +55,6 @@ function a11yProps(index) {
 const SesionPedagogicaDetalle = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const theme = useTheme();
 
   const [tabValue, setTabValue] = useState(0);
@@ -85,7 +68,7 @@ const SesionPedagogicaDetalle = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   // Dialogs state
-  const [attendanceDialog, setAttendanceDialog] = useState({
+  const [_attendanceDialog, _setAttendanceDialog] = useState({
     open: false,
     cronogramaId: null,
     estudianteId: null,
@@ -96,7 +79,7 @@ const SesionPedagogicaDetalle = () => {
   const [estudiantesDisponibles, setEstudiantesDisponibles] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState('');
   const [searchStudentTerm, setSearchStudentTerm] = useState('');
-  const [estudiantesRetirados, setEstudiantesRetirados] = useState([]);
+  const [_estudiantesRetirados, setEstudiantesRetirados] = useState([]);
   const [showRetirados, setShowRetirados] = useState(false);
   const [reincorporarDialog, setReincorporarDialog] = useState({
     open: false,
@@ -109,6 +92,7 @@ const SesionPedagogicaDetalle = () => {
     if (id) {
       fetchSesionData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [id]);
 
   const fetchSesionData = async () => {
@@ -298,7 +282,7 @@ const SesionPedagogicaDetalle = () => {
     }
   };
 
-  const handleToggleRetirados = async () => {
+  async () => {
     if (!showRetirados) {
       await fetchEstudiantesRetirados();
     }
@@ -506,14 +490,14 @@ const SesionPedagogicaDetalle = () => {
       {/* Tab 0: Información */}
       <TabPanel value={tabValue} index={0}>
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card elevation={4} sx={{ borderRadius: 3 }}>
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" color="primary" mb={3} fontWeight="bold">
                   Información General
                 </Typography>
                 <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Box sx={{ mb: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
                         Pedagogo Responsable
@@ -539,7 +523,7 @@ const SesionPedagogicaDetalle = () => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Box sx={{ mb: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
                         Estado
@@ -572,14 +556,14 @@ const SesionPedagogicaDetalle = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card elevation={4} sx={{ borderRadius: 3 }}>
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" color="primary" mb={3} fontWeight="bold">
                   Estadísticas
                 </Typography>
                 <Grid container spacing={3}>
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <Box sx={{ mb: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
                         Clases Totales
@@ -589,7 +573,7 @@ const SesionPedagogicaDetalle = () => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <Box sx={{ mb: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
                         Clases Completadas
@@ -599,7 +583,7 @@ const SesionPedagogicaDetalle = () => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} md={4}>
+                  <Grid size={{ xs: 12, md: 4 }}>
                     <Box sx={{ mb: 2.5 }}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={0.5}>
                         Estudiantes Inscritos
@@ -615,7 +599,7 @@ const SesionPedagogicaDetalle = () => {
           </Grid>
 
           {sesion.adaptacion_curricular && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card elevation={4} sx={{ borderRadius: 3 }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h6" color="primary" mb={2} fontWeight="bold">
@@ -630,7 +614,7 @@ const SesionPedagogicaDetalle = () => {
           )}
 
           {sesion.observaciones && (
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card elevation={4} sx={{ borderRadius: 3 }}>
                 <CardContent sx={{ p: 3 }}>
                   <Typography variant="h6" color="primary" mb={2} fontWeight="bold">
@@ -910,7 +894,7 @@ const SesionPedagogicaDetalle = () => {
       {/* Tab 4: Resumen */}
       <TabPanel value={tabValue} index={4}>
         <Grid container spacing={3}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card elevation={3}>
               <CardContent>
                 <Typography variant="h6" sx={{ color: 'primary.main' }} gutterBottom>
@@ -951,7 +935,7 @@ const SesionPedagogicaDetalle = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card elevation={3}>
               <CardContent>
                 <Typography variant="h6" sx={{ color: 'primary.main' }} gutterBottom>
@@ -1179,13 +1163,13 @@ const SesionPedagogicaDetalle = () => {
         <DialogContent>
           {detailDialog.data && (
             <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="subtitle2" color="primary">Información del Estudiante</Typography>
                 <Typography variant="body2"><strong>Nombre:</strong> {detailDialog.data.estudiante_nombre}</Typography>
                 <Typography variant="body2"><strong>Cédula:</strong> {detailDialog.data.estudiante_cedula || 'N/A'}</Typography>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="subtitle2" color="primary">Información de Asistencia</Typography>
                 <Box display="flex" alignItems="center">
                   <Typography variant="body2" component="span"><strong>Estado:</strong></Typography>
@@ -1202,14 +1186,14 @@ const SesionPedagogicaDetalle = () => {
               </Grid>
 
               {(detailDialog.data.calificacion_clase !== null && detailDialog.data.calificacion_clase !== undefined) && (
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="subtitle2" color="primary">Evaluación Académica</Typography>
                   <Typography variant="body2"><strong>Calificación:</strong> {detailDialog.data.calificacion_clase}/10</Typography>
                 </Grid>
               )}
 
               {detailDialog.data.participacion_clase && (
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="subtitle2" color="primary">Participación en Clase</Typography>
                   <Typography variant="body2" sx={{ textTransform: 'capitalize' }}>
                     {detailDialog.data.participacion_clase}
@@ -1218,7 +1202,7 @@ const SesionPedagogicaDetalle = () => {
               )}
 
               {detailDialog.data.actividades_completadas !== null && detailDialog.data.actividades_completadas !== undefined && (
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="subtitle2" color="primary">Actividades Completadas</Typography>
                   <Chip
                     label={detailDialog.data.actividades_completadas ? 'Sí' : 'No'}
@@ -1229,7 +1213,7 @@ const SesionPedagogicaDetalle = () => {
               )}
 
               {detailDialog.data.observaciones_educador && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Observaciones del Educador</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'background.paper' }}>
                     <Typography variant="body2">{detailDialog.data.observaciones_educador}</Typography>
@@ -1238,7 +1222,7 @@ const SesionPedagogicaDetalle = () => {
               )}
 
               {detailDialog.data.objetivos_trabajados && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Objetivos Trabajados</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'success.light', border: '1px solid', borderColor: 'success.main' }}>
                     <Typography variant="body2">{detailDialog.data.objetivos_trabajados}</Typography>
@@ -1247,7 +1231,7 @@ const SesionPedagogicaDetalle = () => {
               )}
 
               {detailDialog.data.tareas_asignadas && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Tareas Asignadas</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'warning.light', border: '1px solid', borderColor: 'warning.main' }}>
                     <Typography variant="body2">{detailDialog.data.tareas_asignadas}</Typography>
@@ -1320,33 +1304,6 @@ const SesionPedagogicaDetalle = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
-  );
-};
-
-// Attendance Form Component
-const AttendanceForm = ({ cronogramaData, estudiantes, onSubmit }) => {
-  const theme = useTheme();
-  const [selectedStudent, setSelectedStudent] = useState('');
-  const [attendanceData, setAttendanceData] = useState({
-    asistio: true,
-    llegada_tardanza_minutos: 0,
-    observaciones_educador: '',
-    participacion_clase: '',
-    objetivos_trabajados: '',
-    tareas_entregadas: false,
-    notas_comportamiento: '',
-    calificacion_evaluacion: 5,
-    observaciones_evaluacion: ''
-  });
-
-  const handleSubmit = () => {
-    if (!selectedStudent) return;
-    onSubmit(cronogramaData.id, selectedStudent, attendanceData);
-  };
-
-  return (
-    <Container maxWidth="xl" sx={{ py: 0 }}>
     </Container>
   );
 };

@@ -27,7 +27,7 @@ const SearchAndFilters = ({
   return (
     <Grid container spacing={2} mb={3}>
       {/* Campo de búsqueda */}
-      <Grid item xs={12} md={filters.length > 0 ? 4 : 8}>
+      <Grid size={{ xs: 12, md: filters.length > 0 ? 4 : 8 }}>
         <TextField
           fullWidth
           size="small"
@@ -47,7 +47,7 @@ const SearchAndFilters = ({
 
       {/* Filtros dinámicos */}
       {filters.map((filter, index) => (
-        <Grid item xs={12} md={filter.width || 2} key={index}>
+        <Grid key={index} size={{ xs: 12, md: filter.width || 2 }}>
           {filter.type === 'select' ? (
             <FormControl fullWidth size="small">
               <InputLabel>{filter.label}</InputLabel>
@@ -101,7 +101,7 @@ const SearchAndFilters = ({
 
       {/* Botón de agregar nuevo */}
       {onAddNew && (
-        <Grid item xs={12} md={filters.length > 0 ? 3 : 4}>
+        <Grid size={{ xs: 12, md: filters.length > 0 ? 3 : 4 }}>
           <Button
             fullWidth
             variant="contained"

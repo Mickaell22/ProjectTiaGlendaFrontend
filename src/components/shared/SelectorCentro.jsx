@@ -43,6 +43,7 @@ const SelectorCentro = ({ open, centros = [], onSeleccionar, loading = false, er
       }}
     >
       <DialogTitle
+        component="div"
         sx={{
           bgcolor: '#6C4ACF',
           color: 'white',
@@ -50,8 +51,8 @@ const SelectorCentro = ({ open, centros = [], onSeleccionar, loading = false, er
           textAlign: 'center',
         }}
       >
-        <Business sx={{ fontSize: 48, mb: 1 }} />
-        <Typography variant="h5" fontWeight="bold">
+        <Business sx={{ fontSize: 48, mb: 1 }} aria-hidden />
+        <Typography variant="h5" component="h2" fontWeight="bold">
           Selecciona tu Centro de Trabajo
         </Typography>
         <Typography variant="body2" sx={{ opacity: 0.9, mt: 1 }}>
@@ -73,7 +74,7 @@ const SelectorCentro = ({ open, centros = [], onSeleccionar, loading = false, er
         ) : (
           <Grid container spacing={3}>
             {centros.map((centro) => (
-              <Grid item xs={12} sm={6} key={centro.id}>
+              <Grid size={{ xs: 12, sm: 6 }} key={centro.id}>
                 <Card
                   elevation={centroSeleccionado === centro.id ? 8 : 2}
                   sx={{

@@ -12,8 +12,6 @@ import {
   CheckCircle, Cancel, Search, Visibility, Add, Edit, AccessTime,
   Person, Assignment, EventAvailable, Note, TrendingUp, TaskAlt, Flag
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from 'src/contexts/AuthContext';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
 import { formatDateLocal } from 'src/utils/dateUtils';
 
@@ -66,8 +64,6 @@ const TerapeuticoAsistencia = () => {
     tareas_asignadas: '',
     objetivos_trabajados: ''
   });
-  const navigate = useNavigate();
-  const { user } = useAuth();
 
   useEffect(() => {
     fetchSesiones();
@@ -95,7 +91,7 @@ const TerapeuticoAsistencia = () => {
       setPacientesSesion(pacientesRes.data || []);
 
       // Opcional debug de asistencias por sesión
-      try { await sesionTerapiaService.getAsistenciasSession(sesionId); } catch {}
+      try { await sesionTerapiaService.getAsistenciasSession(sesionId); } catch { /* solo debug: se ignora */ }
     } catch (err) {
       const errorMessage = sesionTerapiaService.handleError(err);
       setSnackbar({ open: true, message: errorMessage, severity: 'error' });
@@ -127,7 +123,7 @@ const TerapeuticoAsistencia = () => {
           // Direct array response
           allAsistenciasData = response;
         }
-      } catch (extractError) {
+      } catch {
         allAsistenciasData = [];
       }
 
@@ -297,12 +293,11 @@ const TerapeuticoAsistencia = () => {
         objetivos_trabajados: formData.objetivos_trabajados?.trim() || null
       };
 
-      let response;
       if (asistenciaDialog.isEdit) {
-        response = await sesionTerapiaService.updateAsistencia(cronograma_id, pacienteId, asistenciaData);
+        await sesionTerapiaService.updateAsistencia(cronograma_id, pacienteId, asistenciaData);
         setSnackbar({ open: true, message: 'Asistencia actualizada correctamente', severity: 'success' });
       } else {
-        response = await sesionTerapiaService.registrarAsistencia(cronograma_id, pacienteId, asistenciaData);
+        await sesionTerapiaService.registrarAsistencia(cronograma_id, pacienteId, asistenciaData);
         setSnackbar({ open: true, message: 'Asistencia registrada correctamente', severity: 'success' });
       }
 
@@ -349,8 +344,6 @@ const TerapeuticoAsistencia = () => {
     return timeString;
   };
 
-  const getSesionInfo = (sesionId) => sesiones.find(s => s.id === parseInt(sesionId));
-  const getCronogramaInfo = (cronogramaId) => cronogramas.find(c => c.id === parseInt(cronogramaId));
   const getPacienteAsistencia = (pacienteId) => asistencias.find(a => a.id_paciente === pacienteId || a.paciente_id === pacienteId);
 
   const filteredAsistencias = asistencias.filter(a => {
@@ -411,7 +404,7 @@ const TerapeuticoAsistencia = () => {
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           {/* Filtro por Terapeuta */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={8} md={9}>
+            <Grid size={{ xs: 12, sm: 8, md: 9 }}>
               <FormControl fullWidth size="small">
                 <InputLabel shrink>Filtrar por Terapeuta</InputLabel>
                 <Select
@@ -432,7 +425,7 @@ const TerapeuticoAsistencia = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4} md={3}>
+            <Grid size={{ xs: 12, sm: 4, md: 3 }}>
               <Button
                 variant="outlined"
                 color="secondary"
@@ -446,7 +439,7 @@ const TerapeuticoAsistencia = () => {
           </Grid>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth>
                 <InputLabel shrink>Sesión Terapéutica</InputLabel>
                 <Select
@@ -474,7 +467,7 @@ const TerapeuticoAsistencia = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth disabled={!selectedSesion}>
                 <InputLabel shrink>Fecha de Sesión</InputLabel>
                 <Select
@@ -839,7 +832,7 @@ const TerapeuticoAsistencia = () => {
                   Estado de Asistencia
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <Paper
                       elevation={0}
                       sx={{
@@ -874,7 +867,7 @@ const TerapeuticoAsistencia = () => {
                       />
                     </Paper>
                   </Grid>
-                  <Grid item xs={12} sm={6}>
+                  <Grid size={{ xs: 12, sm: 6 }}>
                     <TextField
                       fullWidth
                       type="number"
@@ -909,7 +902,7 @@ const TerapeuticoAsistencia = () => {
                 </Typography>
                 <Grid container spacing={2.5}>
                   {/* Observaciones del Terapeuta */}
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
                       multiline
@@ -934,7 +927,7 @@ const TerapeuticoAsistencia = () => {
                   </Grid>
 
                   {/* Progreso Observado */}
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       fullWidth
                       multiline
@@ -960,7 +953,7 @@ const TerapeuticoAsistencia = () => {
                   </Grid>
 
                   {/* Objetivos Trabajados */}
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <TextField
                       fullWidth
                       multiline
@@ -986,7 +979,7 @@ const TerapeuticoAsistencia = () => {
                   </Grid>
 
                   {/* Tareas Asignadas */}
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <TextField
                       fullWidth
                       multiline
@@ -1058,13 +1051,13 @@ const TerapeuticoAsistencia = () => {
         <DialogContent>
           {detailDialog.data && (
             <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="subtitle2" color="primary">Información del Paciente</Typography>
                 <Typography variant="body2"><strong>Nombre:</strong> {detailDialog.data.paciente_nombre}</Typography>
                 <Typography variant="body2"><strong>Cédula:</strong> {detailDialog.data.paciente_cedula}</Typography>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="subtitle2" color="primary">Información de Asistencia</Typography>
                 <Typography variant="body2" display="flex" alignItems="center">
                   <strong>Estado:</strong>
@@ -1081,7 +1074,7 @@ const TerapeuticoAsistencia = () => {
               </Grid>
 
               {detailDialog.data.observaciones_terapeuta && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Observaciones del Terapeuta</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'background.paper' }}>
                     <Typography variant="body2">{detailDialog.data.observaciones_terapeuta}</Typography>
@@ -1090,7 +1083,7 @@ const TerapeuticoAsistencia = () => {
               )}
 
               {detailDialog.data.progreso_observado && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Progreso Observado</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'success.50', border: '1px solid', borderColor: 'success.200' }}>
                     <Typography variant="body2">{detailDialog.data.progreso_observado}</Typography>
@@ -1099,7 +1092,7 @@ const TerapeuticoAsistencia = () => {
               )}
 
               {detailDialog.data.tareas_asignadas && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Tareas Asignadas</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'info.50', border: '1px solid', borderColor: 'info.200' }}>
                     <Typography variant="body2">{detailDialog.data.tareas_asignadas}</Typography>
@@ -1108,7 +1101,7 @@ const TerapeuticoAsistencia = () => {
               )}
 
               {detailDialog.data.objetivos_trabajados && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Typography variant="subtitle2" color="primary">Objetivos Trabajados</Typography>
                   <Paper sx={{ p: 2, backgroundColor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
                     <Typography variant="body2">{detailDialog.data.objetivos_trabajados}</Typography>

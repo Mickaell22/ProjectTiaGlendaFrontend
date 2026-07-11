@@ -347,7 +347,6 @@ export class TutorService {
 
   // Generar resumen de contacto para emergencias
   static getEmergencyContactSummary(tutor) {
-    const contactInfo = this.getContactInfo(tutor);
     const summary = [];
     
     summary.push(`${this.getFullName(tutor)} (${this.formatParentesco(tutor.parentesco)})`);

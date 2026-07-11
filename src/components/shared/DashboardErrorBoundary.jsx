@@ -17,7 +17,7 @@ class DashboardErrorBoundary extends React.Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(_error) {
     return { hasError: true };
   }
 
@@ -137,7 +137,7 @@ class DashboardErrorBoundary extends React.Component {
               </Button>
             </Box>
 
-            {process.env.NODE_ENV === 'development' && errorInfo && (
+            {import.meta.env.DEV && errorInfo && (
               <Box sx={{ mt: 4, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
                 <Typography variant="caption" component="details">
                   <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>

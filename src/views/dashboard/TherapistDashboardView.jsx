@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Typography, Card, CardContent, Grid, Avatar, LinearProgress,
   Divider, Paper, Button, Alert, List, ListItem, ListItemText, Chip, CircularProgress, Skeleton
@@ -11,11 +11,9 @@ import { useTheme } from '@mui/material/styles';
 import { useAuth } from 'src/contexts/AuthContext';
 import PageContainer from 'src/components/container/PageContainer';
 import { dashboardService } from 'src/services/dashboardService';
-import { useNavigate } from 'react-router-dom';
 
 const TherapistDashboardView = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
@@ -45,25 +43,9 @@ const TherapistDashboardView = () => {
     }
   };
 
-  const handleRetry = useCallback(() => {
+  const handleRetry = () => {
     loadTherapistData();
-  }, [loadTherapistData]);
-
-  const handleVerSesiones = useCallback(() => {
-    navigate('/terapeutico', { state: { initialTab: 0 } }); // Tab "Sesiones"
-  }, [navigate]);
-
-  const handleVerCronogramas = useCallback(() => {
-    navigate('/terapeutico', { state: { initialTab: 1 } }); // Tab "Cronogramas"
-  }, [navigate]);
-
-  const handleVerAsistencia = useCallback(() => {
-    navigate('/terapeutico', { state: { initialTab: 2 } }); // Tab "Asistencia"
-  }, [navigate]);
-
-  const handleVerHoy = useCallback(() => {
-    navigate('/terapeutico', { state: { initialTab: 3 } }); // Tab "Hoy"
-  }, [navigate]);
+  };
 
   const getEstadoColor = (estado) => {
     switch (estado) {
@@ -88,7 +70,7 @@ const TherapistDashboardView = () => {
           {/* Stats Cards Skeleton */}
           <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: 'auto', justifyContent: 'center' }}>
             {[1, 2, 3, 4].map((item) => (
-              <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center" key={item}>
+              <Grid display="flex" justifyContent="center" key={item} size={{ xs: 12, sm: 6, md: 3 }}>
                 <Card sx={{ height: 200, width: 200 }}>
                   <CardContent sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
@@ -106,7 +88,7 @@ const TherapistDashboardView = () => {
 
           {/* Agenda Skeleton */}
           <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card sx={{ width: 1000, height: 500, mx: 'auto' }}>
                 <CardContent>
                   <Skeleton variant="text" width="40%" height={30} sx={{ mb: 2 }} />
@@ -217,7 +199,7 @@ const TherapistDashboardView = () => {
 
         {/* Main Statistics */}
         <Grid container spacing={2} sx={{ mb: 4, maxWidth: 1000, mx: 'auto', justifyContent: 'center' }}>
-                  <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+                  <Grid display="flex" justifyContent="center" size={{ xs: 12, sm: 6, md: 3 }}>
                     <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
                       <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
@@ -245,7 +227,7 @@ const TherapistDashboardView = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+          <Grid display="flex" justifyContent="center" size={{ xs: 12, sm: 6, md: 3 }}>
             <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
@@ -275,7 +257,7 @@ const TherapistDashboardView = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+          <Grid display="flex" justifyContent="center" size={{ xs: 12, sm: 6, md: 3 }}>
             <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
@@ -301,7 +283,7 @@ const TherapistDashboardView = () => {
             </Card>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3} display="flex" justifyContent="center">
+          <Grid display="flex" justifyContent="center" size={{ xs: 12, sm: 6, md: 3 }}>
             <Card sx={{ height: 200, width: 200, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', mx: 1, my: 1 }}>
               <CardContent sx={{ p: 3 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
@@ -334,7 +316,7 @@ const TherapistDashboardView = () => {
 
         {/* Today's Schedule */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card sx={{ width: 1000, height: 500 }}>
               <CardContent>
                 <Typography variant="h6" fontWeight="bold" gutterBottom>

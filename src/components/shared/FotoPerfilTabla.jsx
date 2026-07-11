@@ -50,13 +50,14 @@ const FotoPerfilTabla = ({
       { threshold: 0.1 }
     );
 
-    if (avatarRef.current) {
-      observer.observe(avatarRef.current);
+    const node = avatarRef.current;
+    if (node) {
+      observer.observe(node);
     }
 
     return () => {
-      if (avatarRef.current) {
-        observer.unobserve(avatarRef.current);
+      if (node) {
+        observer.unobserve(node);
       }
     };
   }, [rutaFoto]);
@@ -108,6 +109,7 @@ const FotoPerfilTabla = ({
         URL.revokeObjectURL(imageSrc);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [rutaFoto, isVisible]);
 
   // Cleanup cuando el componente se desmonta

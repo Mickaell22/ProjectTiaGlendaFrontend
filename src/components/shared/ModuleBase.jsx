@@ -40,9 +40,7 @@ const ModuleBase = ({
   filters = [],
   
   // Acciones
-  onAddNew,
   onEdit,
-  onDelete,
   onView,
   customActions = [],
   
@@ -79,6 +77,7 @@ const ModuleBase = ({
   // Verificar autenticación
   useEffect(() => {
     requireAuth();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []);
 
   // Función para eliminar

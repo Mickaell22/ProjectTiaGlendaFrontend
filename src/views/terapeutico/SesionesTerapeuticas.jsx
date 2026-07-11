@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from 'src/contexts/AuthContext';
 import { useUserRole } from 'src/hooks/useUserRole';
 import sesionTerapiaService from 'src/services/SesionTerapiaService';
+import { estadoSesionInfo } from 'src/utils/estadoLabels';
 
 /* ---------- Estilos compartidos (como TutorLista) ---------- */
 const purpleOutlineSX = {
@@ -55,6 +56,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
 
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []);
 
   // Efecto para refrescar cuando se crea una nueva sesión
@@ -62,6 +64,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
     if (refreshTrigger > 0) {
       fetchData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [refreshTrigger]);
 
   const fetchData = async () => {
@@ -176,7 +179,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
       };
 
 
-      const response = await sesionTerapiaService.addPacienteToSesion(addPatientDialog.sessionId, patientData);
+      await sesionTerapiaService.addPacienteToSesion(addPatientDialog.sessionId, patientData);
 
 
       setSnackbar({
@@ -472,6 +475,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por título, terapeuta o especialidad..."
+              inputProps={{ 'aria-label': 'Buscar por título, terapeuta o especialidad' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -778,15 +782,8 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                           {/* Estado */}
                           <TableCell>
                             <Chip
-                              label={item.estado || 'en_curso'}
-                              color={
-                                item.estado === 'finalizada' ? 'success' :
-                                item.estado === 'en_curso' ? 'primary' :
-                                item.estado === 'planificada' ? 'info' :
-                                item.estado === 'pausada' ? 'warning' :
-                                item.estado === 'cancelada' ? 'error' :
-                                'default'
-                              }
+                              label={estadoSesionInfo(item.estado || 'en_curso').label}
+                              color={estadoSesionInfo(item.estado || 'en_curso').color}
                               size="small"
                             />
                           </TableCell>
@@ -958,7 +955,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
               <Box sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? 'grey.200' : 'grey.50' }}>
                 <Grid container spacing={3}>
                   {/* Terapeuta */}
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Paper
                       elevation={0}
                       sx={{
@@ -993,7 +990,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                   </Grid>
 
                   {/* Pacientes */}
-                  <Grid item xs={12} md={6}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <Paper
                       elevation={0}
                       sx={{
@@ -1036,7 +1033,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                   Programación
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box
                       sx={{
                         p: 2,
@@ -1053,7 +1050,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box
                       sx={{
                         p: 2,
@@ -1070,7 +1067,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box
                       sx={{
                         p: 2,
@@ -1088,7 +1085,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                     <Box
                       sx={{
                         p: 2,
@@ -1105,7 +1102,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <Box sx={{ mt: 1 }}>
                       <Typography variant="caption" color="text.secondary" display="block" mb={1}>
                         Días de la semana
@@ -1135,7 +1132,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                       Información Financiera
                     </Typography>
                     <Grid container spacing={2}>
-                      <Grid item xs={6} sm={3}>
+                      <Grid size={{ xs: 6, sm: 3 }}>
                         <Box sx={{ textAlign: 'center' }}>
                           <Typography variant="h5" color="primary.main" fontWeight="bold">
                             {detailDialog.data.numero_sesiones_contratadas || 0}
@@ -1145,7 +1142,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={6} sm={3}>
+                      <Grid size={{ xs: 6, sm: 3 }}>
                         <Box sx={{ textAlign: 'center' }}>
                           <Typography variant="h5" color="success.main" fontWeight="bold">
                             ${detailDialog.data.costo_total || 0}
@@ -1155,7 +1152,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={6} sm={3}>
+                      <Grid size={{ xs: 6, sm: 3 }}>
                         <Box sx={{ textAlign: 'center' }}>
                           <Typography variant="h5" color="info.main" fontWeight="bold">
                             ${detailDialog.data.costo_por_sesion || 0}
@@ -1165,7 +1162,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                           </Typography>
                         </Box>
                       </Grid>
-                      <Grid item xs={6} sm={3}>
+                      <Grid size={{ xs: 6, sm: 3 }}>
                         <Box sx={{ textAlign: 'center' }}>
                           <Typography variant="h5" color="warning.main" fontWeight="bold">
                             {detailDialog.data.meses_contrato || 0}
@@ -1401,7 +1398,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                 Generar Nuevo Enlace
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} md={8}>
+                <Grid size={{ xs: 12, md: 8 }}>
                   <TextField
                     fullWidth
                     label="Descripción"
@@ -1410,7 +1407,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                     sx={{ ...purpleOutlineSX }}
                   />
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <FormControl fullWidth sx={{ ...purpleOutlineSX }}>
                     <InputLabel>Duración</InputLabel>
                     <Select
@@ -1457,7 +1454,7 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                 {publicLinks.map((link, index) => (
                   <Paper key={index} sx={{ p: 2, mb: 2, borderLeft: `4px solid ${link.estado === 'vigente' ? theme.palette.success.main : theme.palette.warning.main}` }}>
                     <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={12} md={6}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <Typography variant="body1" fontWeight="medium">
                           {link.descripcion}
                         </Typography>
@@ -1468,14 +1465,14 @@ const SesionesTerapeuticas = ({ onNavigateToCreate, refreshTrigger }) => {
                           Expira: {new Date(link.fecha_expiracion).toLocaleDateString()}
                         </Typography>
                       </Grid>
-                      <Grid item xs={12} md={3}>
+                      <Grid size={{ xs: 12, md: 3 }}>
                         <Chip
                           label={link.estado}
                           color={link.estado === 'vigente' ? 'success' : 'warning'}
                           size="small"
                         />
                       </Grid>
-                      <Grid item xs={12} md={3}>
+                      <Grid size={{ xs: 12, md: 3 }}>
                         <Box display="flex" gap={1}>
                           <Tooltip title="Copiar enlace">
                             <IconButton

@@ -20,7 +20,6 @@ import {
 const MessageBubble = ({
   message,
   formatDate = () => '',
-  currentUserId = null, // ID del usuario actual (obtenerlo del contexto de auth)
 }) => {
   const theme = useTheme();
 

@@ -12,15 +12,12 @@ import {
   Event, Assignment, CheckCircle, AccessTime,
   PersonSearch, CalendarMonth
 } from '@mui/icons-material';
-import { useAuth } from 'src/contexts/AuthContext';
-import sesionPedagogicaService from 'src/services/SesionPedagogicaService';
 
 const PedagogicoEstadisticas = () => {
   const theme = useTheme();
   const [estadisticas, setEstadisticas] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [_loading, _setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const { user } = useAuth();
 
   useEffect(() => {
     // Aquí se cargarían las estadísticas desde el backend
@@ -110,7 +107,7 @@ const PedagogicoEstadisticas = () => {
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           {/* Métricas principales */}
           <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'success.50', height: '100%' }}>
                 <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'success.main' }}>
                   <Event />
@@ -130,7 +127,7 @@ const PedagogicoEstadisticas = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.50', height: '100%' }}>
                 <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'primary.main' }}>
                   <Groups />
@@ -150,7 +147,7 @@ const PedagogicoEstadisticas = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'info.50', height: '100%' }}>
                 <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'info.main' }}>
                   <CheckCircle />
@@ -170,7 +167,7 @@ const PedagogicoEstadisticas = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'warning.50', height: '100%' }}>
                 <Avatar sx={{ mx: 'auto', mb: 2, bgcolor: 'warning.main' }}>
                   <AccessTime />
@@ -269,7 +266,7 @@ const PedagogicoEstadisticas = () => {
             </Typography>
             <Grid container spacing={2}>
               {estadisticas.tendenciaSemanal?.map((semana, index) => (
-                <Grid item xs={12} md={3} key={index}>
+                <Grid key={index} size={{ xs: 12, md: 3 }}>
                   <Card sx={{ p: 2, textAlign: 'center', bgcolor: 'grey.50' }}>
                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                       {semana.semana}
@@ -296,7 +293,7 @@ const PedagogicoEstadisticas = () => {
               Resumen Ejecutivo
             </Typography>
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="body2" gutterBottom>
                   <strong>Fortalezas:</strong>
                 </Typography>
@@ -310,7 +307,7 @@ const PedagogicoEstadisticas = () => {
                   • {estadisticas.pedagogosActivos} pedagogos activos cubriendo {estadisticas.especialidades} especialidades
                 </Typography>
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="body2" gutterBottom>
                   <strong>Áreas de Mejora:</strong>
                 </Typography>

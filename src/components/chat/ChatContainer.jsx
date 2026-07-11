@@ -32,7 +32,6 @@ const ChatContainer = ({
   isOpen = false,
   onClose = () => {},
   mode = 'modal', // 'modal', 'drawer', 'embedded'
-  unreadCount = 0
 }) => {
 
   const theme = useTheme();
@@ -49,7 +48,7 @@ const ChatContainer = ({
   const [showUserSearch, setShowUserSearch] = useState(false);
 
   // Contador de mensajes no leídos
-  const [totalUnreadCount, setTotalUnreadCount] = useState(0);
+  const [_totalUnreadCount, setTotalUnreadCount] = useState(0);
 
   // Sistema de detección de nuevos mensajes (CONTROLADO)
   const [isCheckingMessages, setIsCheckingMessages] = useState(false);
@@ -76,6 +75,7 @@ const ChatContainer = ({
         }, 1000); // Esperar un poco para mejor UX
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [isOpen]);
 
   // Recargar mensajes cuando cambia la conversación activa
@@ -100,7 +100,7 @@ const ChatContainer = ({
           } else {
             setMessages([]);
           }
-        } catch (error) {
+        } catch {
           setMessages([]);
         }
       };
@@ -132,9 +132,9 @@ const ChatContainer = ({
           }
           return prev;
         });
-      } else {
       }
-    } catch (error) {
+    } catch {
+      // Error al cargar conversaciones: se ignora y se reintenta en el siguiente ciclo
     } finally {
       setLoading(false);
     }
@@ -218,7 +218,7 @@ const ChatContainer = ({
       }
 
       return { success: true };
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Error al enviar mensaje' };
     }
   }, [activeConversation, loadConversations]); // Mantener dependencias necesarias
@@ -271,7 +271,8 @@ const ChatContainer = ({
           }
         }
       }
-    } catch (error) {
+    } catch {
+      // Polling de mensajes: un fallo puntual se ignora
     } finally {
       setIsCheckingMessages(false);
     }

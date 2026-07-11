@@ -147,7 +147,7 @@ const TutorDetalles = ({
         <Box sx={{ p: 3 }}>
           <Grid container spacing={3}>
             {/* Información Personal */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -215,7 +215,7 @@ const TutorDetalles = ({
             </Grid>
 
             {/* Información de Contacto y Emergencia */}
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -269,7 +269,7 @@ const TutorDetalles = ({
 
             {/* Información Laboral */}
             {(tutorData.nombre_empresa || tutorData.ocupacion || tutorData.direccion_empresa) && (
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Card elevation={1}>
                   <CardContent>
                     <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -280,7 +280,7 @@ const TutorDetalles = ({
                     
                     <Grid container spacing={3}>
                       {tutorData.nombre_empresa && (
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                           <Box>
                             <Typography variant="body2" color="text.secondary">Empresa</Typography>
                             <Typography variant="body1" fontWeight="bold">{tutorData.nombre_empresa}</Typography>
@@ -289,7 +289,7 @@ const TutorDetalles = ({
                       )}
                       
                       {tutorData.ocupacion && (
-                        <Grid item xs={12} sm={6}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
                           <Box>
                             <Typography variant="body2" color="text.secondary">Ocupación</Typography>
                             <Typography variant="body1" fontWeight="bold">{tutorData.ocupacion}</Typography>
@@ -298,7 +298,7 @@ const TutorDetalles = ({
                       )}
 
                       {tutorData.direccion_empresa && (
-                        <Grid item xs={12}>
+                        <Grid size={{ xs: 12 }}>
                           <Box>
                             <Typography variant="body2" color="text.secondary">Dirección de Empresa</Typography>
                             <Typography variant="body1" fontWeight="bold" display="flex" alignItems="center">
@@ -315,7 +315,7 @@ const TutorDetalles = ({
             )}
 
             {/* Pacientes Relacionados */}
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Card elevation={1}>
                 <CardContent>
                   <Typography variant="h6" color="primary" gutterBottom display="flex" alignItems="center">
@@ -337,7 +337,7 @@ const TutorDetalles = ({
                   ) : (
                     <Grid container spacing={2}>
                       {pacientesRelacionados.map((paciente, index) => (
-                        <Grid item xs={12} sm={6} md={4} key={paciente.id || index}>
+                        <Grid key={paciente.id || index} size={{ xs: 12, sm: 6, md: 4 }}>
                           <Card
                             variant="outlined"
                             sx={{

@@ -57,6 +57,7 @@ const NotificationCenter = ({
         notificationService.cleanup();
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [autoRefresh, refreshInterval]);
 
   // Recargar cuando cambia includeRead
@@ -64,6 +65,7 @@ const NotificationCenter = ({
     if (open) {
       loadNotifications();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [includeRead]);
 
   /**
@@ -76,7 +78,7 @@ const NotificationCenter = ({
     });
 
     // Configurar callback para nuevas notificaciones
-    notificationService.onNewNotification((newCount) => {
+    notificationService.onNewNotification((_newCount) => {
       // Recargar lista si el popover está abierto
       if (open) {
         loadNotifications();
@@ -85,6 +87,7 @@ const NotificationCenter = ({
 
     // Iniciar polling
     notificationService.startPolling(refreshInterval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [open, refreshInterval]);
 
   /**

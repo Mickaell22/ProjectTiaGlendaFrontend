@@ -1,5 +1,6 @@
 // src/views/especialidades/EspecialidadMain.jsx
 import React, { useState, useEffect } from 'react';
+import { getModuleTheme } from 'src/config/moduleThemes';
 import { Box, Container, Paper, Typography, Tabs, Tab, useTheme } from '@mui/material';
 import { MedicalServices, Add } from '@mui/icons-material';
 
@@ -259,7 +260,7 @@ const EspecialidadMain = () => {
               mb: 4,
               overflow: 'hidden',
               border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '4px solid transparent',
-              backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main}, ${theme.palette.warning.main}, ${theme.palette.success.main})`,
+              backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, ${getModuleTheme('especialidades').colors.join(', ')})`,
               backgroundOrigin: 'border-box',
               backgroundClip: 'padding-box, border-box',
               animation: theme.palette.mode === 'dark' ? 'none' : 'rainbow 5s linear infinite',
@@ -309,7 +310,7 @@ const EspecialidadMain = () => {
               >
                 {tabs.map((tab, index) => (
                   <Tab
-                    key={index}
+                    key={tab.label}
                     label={tab.label}
                     icon={tab.icon}
                     iconPosition="start"

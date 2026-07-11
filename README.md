@@ -33,11 +33,11 @@ Panel de administración web para centro terapéutico y pedagógico. Dashboards 
 | Capa | Tecnología |
 |------|-----------|
 | Framework | React + Vite |
-| UI | Material UI v5 |
+| UI | Material UI v7 |
 | Estado | Redux Toolkit |
-| Routing | React Router v6 |
+| Routing | React Router v7 |
 | HTTP | Axios |
-| Auth | JWT con refresh automático |
+| Auth | JWT en dos pasos (login + selección de centro); un 401 fuera de /auth cierra la sesión |
 
 ---
 

@@ -1,5 +1,6 @@
 // src/views/personal/PersonalMainComponent.jsx
 import React, { useState, useEffect } from 'react';
+import { getModuleTheme } from 'src/config/moduleThemes';
 import {
   Box, Container, Paper, Typography, Tabs, Tab, Dialog, DialogTitle, DialogContent, IconButton, useTheme
 } from '@mui/material';
@@ -91,13 +92,14 @@ const PersonalMainComponent = () => {
 
   // Hooks personalizados
   const { snackbar, showSuccess, showError, hideSnackbar } = useSnackbar();
-  const { requireAuth, user } = useAuth();
+  const { requireAuth } = useAuth();
 
   // Efectos
   useEffect(() => {
     if (requireAuth()) {
       fetchData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []);
 
   // Funciones de API
@@ -309,7 +311,7 @@ const PersonalMainComponent = () => {
               mb: 4,
               overflow: 'hidden',
               border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '4px solid transparent',
-              backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main}, ${theme.palette.warning.main}, ${theme.palette.success.main})`,
+              backgroundImage: theme.palette.mode === 'dark' ? 'none' : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, ${getModuleTheme('personal').colors.join(', ')})`,
               backgroundOrigin: 'border-box',
               backgroundClip: 'padding-box, border-box',
               animation: theme.palette.mode === 'dark' ? 'none' : 'rainbow 5s linear infinite',

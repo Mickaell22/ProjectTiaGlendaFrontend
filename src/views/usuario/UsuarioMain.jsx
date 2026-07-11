@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getModuleTheme } from 'src/config/moduleThemes';
 import {
   Box, Container, Paper, Typography, Tabs, Tab, useTheme
 } from '@mui/material';
@@ -72,6 +73,7 @@ const UsuarioMain = () => {
     if (requireAuth()) {
       fetchData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []);
 
   const fetchData = async () => {
@@ -219,7 +221,7 @@ const UsuarioMain = () => {
               border: theme.palette.mode === 'dark' ? `1px solid ${theme.palette.divider}` : '4px solid transparent',
               backgroundImage: theme.palette.mode === 'dark'
                 ? 'none'
-                : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main}, ${theme.palette.warning.main}, ${theme.palette.success.main})`,
+                : `linear-gradient(${theme.palette.background.paper}, ${theme.palette.background.paper}), linear-gradient(270deg, ${getModuleTheme('usuarios').colors.join(', ')})`,
               backgroundOrigin: 'border-box',
               backgroundClip: 'padding-box, border-box',
               animation: theme.palette.mode === 'dark' ? 'none' : 'rainbow 5s linear infinite',
@@ -270,7 +272,7 @@ const UsuarioMain = () => {
               >
                 {tabs.map((tab, index) => (
                   <Tab 
-                    key={index}
+                    key={tab.label}
                     label={tab.label} 
                     icon={tab.icon} 
                     iconPosition="start"

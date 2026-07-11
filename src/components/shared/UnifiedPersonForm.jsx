@@ -50,7 +50,6 @@ import {
   SupervisorAccount,
   LocalHospital
 } from '@mui/icons-material';
-import { useTheme } from '@mui/material/styles';
 import { ApiService } from '../../services/apiService';
 import { API_ENDPOINTS } from '../../config/api';
 
@@ -62,13 +61,9 @@ const UnifiedPersonForm = ({
   initialData = null,
   title = null,
   enableMultiStep = true,
-  requiredFields = [],
-  optionalFields = [],
   customValidations = {},
-  showPhotoUpload = true,
   autoCreatePersona = true, // Para crear persona automáticamente si es tutor/personal
 }) => {
-  const theme = useTheme();
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState({
     // Datos básicos de persona
@@ -102,7 +97,7 @@ const UnifiedPersonForm = ({
   const [loading, setLoading] = useState(false);
   const [especialidades, setEspecialidades] = useState([]);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
-  const [photoPreview, setPhotoPreview] = useState(null);
+  const [_photoPreview, setPhotoPreview] = useState(null);
 
   // Configuración de pasos según el tipo
   const getSteps = () => {
@@ -132,6 +127,7 @@ const UnifiedPersonForm = ({
       setActiveStep(0);
       setErrors({});
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, [open, initialData]);
 
   const loadDependencies = async () => {
@@ -368,7 +364,7 @@ const UnifiedPersonForm = ({
 
   const renderBasicDataStep = () => (
     <Grid container spacing={3}>
-      <Grid item xs={12} display="flex" justifyContent="center" mb={2}>
+      <Grid display="flex" justifyContent="center" mb={2} size={{ xs: 12 }}>
         <Avatar
           sx={{
             width: 80,
@@ -381,7 +377,7 @@ const UnifiedPersonForm = ({
         </Avatar>
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label={<span>Nombre <span style={{ color: 'red', fontWeight: 'bold' }}>*</span></span>}
@@ -399,7 +395,7 @@ const UnifiedPersonForm = ({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label={<span>Apellido <span style={{ color: 'red', fontWeight: 'bold' }}>*</span></span>}
@@ -417,7 +413,7 @@ const UnifiedPersonForm = ({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label={<span>Cédula <span style={{ color: 'red', fontWeight: 'bold' }}>*</span></span>}
@@ -436,7 +432,7 @@ const UnifiedPersonForm = ({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="Teléfono"
@@ -455,7 +451,7 @@ const UnifiedPersonForm = ({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="Correo Electrónico"
@@ -474,7 +470,7 @@ const UnifiedPersonForm = ({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="Fecha de Nacimiento"
@@ -485,7 +481,7 @@ const UnifiedPersonForm = ({
         />
       </Grid>
 
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <FormControl fullWidth>
           <InputLabel>Género</InputLabel>
           <Select
@@ -501,7 +497,7 @@ const UnifiedPersonForm = ({
         </FormControl>
       </Grid>
 
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <TextField
           fullWidth
           label="Dirección"
@@ -526,13 +522,13 @@ const UnifiedPersonForm = ({
       case 'tutor':
         return (
           <Grid container spacing={3}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Alert severity="info" sx={{ mb: 2 }}>
                 Complete la información específica del tutor
               </Alert>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label={<span>Relación con el paciente <span style={{ color: 'red', fontWeight: 'bold' }}>*</span></span>}
@@ -544,7 +540,7 @@ const UnifiedPersonForm = ({
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControlLabel
                 control={
                   <Switch
@@ -561,13 +557,13 @@ const UnifiedPersonForm = ({
       case 'personal':
         return (
           <Grid container spacing={3}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Alert severity="info" sx={{ mb: 2 }}>
                 Complete la información profesional
               </Alert>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth error={!!errors.especialidad_id}>
                 <InputLabel><span>Especialidad <span style={{ color: 'red', fontWeight: 'bold' }}>*</span></span></InputLabel>
                 <Select
@@ -587,7 +583,7 @@ const UnifiedPersonForm = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label={<span>Título Profesional <span style={{ color: 'red', fontWeight: 'bold' }}>*</span></span>}
@@ -599,7 +595,7 @@ const UnifiedPersonForm = ({
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="Fecha de Contratación"
@@ -610,7 +606,7 @@ const UnifiedPersonForm = ({
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>Estado</InputLabel>
                 <Select
@@ -630,13 +626,13 @@ const UnifiedPersonForm = ({
       case 'paciente':
         return (
           <Grid container spacing={3}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <Alert severity="info" sx={{ mb: 2 }}>
                 Complete la información médica del paciente
               </Alert>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="Historia Clínica"
@@ -648,7 +644,7 @@ const UnifiedPersonForm = ({
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="Alergias"
@@ -660,7 +656,7 @@ const UnifiedPersonForm = ({
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="Medicamentos"
@@ -672,7 +668,7 @@ const UnifiedPersonForm = ({
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="Observaciones"
@@ -703,19 +699,19 @@ const UnifiedPersonForm = ({
             Datos Básicos
           </Typography>
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <Typography variant="body2" color="text.secondary">Nombre:</Typography>
               <Typography variant="body1">{formData.nombre} {formData.apellido}</Typography>
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <Typography variant="body2" color="text.secondary">Cédula:</Typography>
               <Typography variant="body1">{formData.cedula}</Typography>
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <Typography variant="body2" color="text.secondary">Teléfono:</Typography>
               <Typography variant="body1">{formData.telefono || 'No especificado'}</Typography>
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={{ xs: 6 }}>
               <Typography variant="body2" color="text.secondary">Correo:</Typography>
               <Typography variant="body1">{formData.correo || 'No especificado'}</Typography>
             </Grid>
@@ -730,11 +726,11 @@ const UnifiedPersonForm = ({
 
               {personType === 'tutor' && (
                 <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="body2" color="text.secondary">Relación:</Typography>
                     <Typography variant="body1">{formData.relacion}</Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="body2" color="text.secondary">Contacto de emergencia:</Typography>
                     <Typography variant="body1">{formData.es_contacto_emergencia ? 'Sí' : 'No'}</Typography>
                   </Grid>
@@ -743,11 +739,11 @@ const UnifiedPersonForm = ({
 
               {personType === 'personal' && (
                 <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="body2" color="text.secondary">Título:</Typography>
                     <Typography variant="body1">{formData.titulo_profesional}</Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={{ xs: 6 }}>
                     <Typography variant="body2" color="text.secondary">Estado:</Typography>
                     <Typography variant="body1">{formData.estado}</Typography>
                   </Grid>

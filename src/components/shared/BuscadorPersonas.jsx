@@ -62,6 +62,7 @@ const BuscadorPersonas = ({
 
   useEffect(() => {
     loadData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- carga intencional solo al montar/cambiar la clave
   }, []);
 
   const loadData = async () => {
@@ -282,7 +283,7 @@ const BuscadorPersonas = ({
         {/* Controles de búsqueda */}
         <Paper elevation={1} sx={{ p: 2, mb: 2 }}>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={5}>
+            <Grid size={{ xs: 12, md: 5 }}>
               <TextField
                 fullWidth
                 placeholder="Buscar por nombre, cédula, teléfono o correo..."
@@ -306,7 +307,7 @@ const BuscadorPersonas = ({
               />
             </Grid>
             
-            <Grid item xs={12} md={3}>
+            <Grid size={{ xs: 12, md: 3 }}>
               <TextField
                 select
                 fullWidth
@@ -328,7 +329,7 @@ const BuscadorPersonas = ({
               </TextField>
             </Grid>
             
-            <Grid item xs={12} md={2}>
+            <Grid size={{ xs: 12, md: 2 }}>
               <Button
                 fullWidth
                 variant="outlined"
@@ -340,7 +341,7 @@ const BuscadorPersonas = ({
               </Button>
             </Grid>
             
-            <Grid item xs={12} md={2}>
+            <Grid size={{ xs: 12, md: 2 }}>
               <Button
                 fullWidth
                 variant="contained"
